@@ -1,0 +1,279 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Physics Residency Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .game-title {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 0 0 10px 10px;
+        }
+        .character-stats {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .node-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .node-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        .node-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .question-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #e9ecef;
+        }
+        .correct {
+            background-color: #d4edda !important;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .incorrect {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .visited {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .node-question { background-color: #3498db; color: white; }
+        .node-rest { background-color: #9b59b6; color: white; }
+        .node-treasure { background-color: #f1c40f; }
+        .node-elite { background-color: #e74c3c; color: white; }
+        .node-boss { background-color: #34495e; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-title">
+            <h1>Medical Physics Residency Game</h1>
+            <p>Learn · Challenge · Advance</p>
+        </div>
+        
+        <div class="row">
+            <!-- Character Stats -->
+            <div class="col-md-3">
+                <div class="character-stats">
+                    <h3>Your Character</h3>
+                    <div id="character-info">
+                        <!-- JS will populate this -->
+                        Loading character...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Game Board -->
+            <div class="col-md-9">
+                <h2>Floor <span id="current-floor">1</span></h2>
+                
+                <div id="nodes-container">
+                    <!-- JS will populate this -->
+                    <p>Loading nodes...</p>
+                </div>
+                
+                <div id="question-container" class="question-container" style="display: none;">
+                    <h3 id="question-text"></h3>
+                    <div id="options-container"></div>
+                    <div id="question-result" style="display: none;"></div>
+                    <button id="continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch game state when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameState();
+        });
+        
+        // Load the current game state
+        function loadGameState() {
+            fetch('/api/game-state')
+                .then(response => response.json())
+                .then(data => {
+                    updateCharacterInfo(data.character);
+                    document.getElementById('current-floor').textContent = data.current_floor;
+                    renderNodes(data.nodes);
+                })
+                .catch(error => console.error('Error loading game state:', error));
+        }
+        
+        // Update character info display
+        function updateCharacterInfo(character) {
+            const charInfoHtml = `
+                <p><strong>Name:</strong> ${character.name}</p>
+                <p><strong>Level:</strong> ${character.level}</p>
+                <p><strong>Lives:</strong> ${character.lives}/${character.max_lives}</p>
+                <p><strong>Insight:</strong> ${character.insight}</p>
+            `;
+            document.getElementById('character-info').innerHTML = charInfoHtml;
+        }
+        
+        // Render the nodes for the current floor
+        function renderNodes(nodes) {
+            const nodesContainer = document.getElementById('nodes-container');
+            nodesContainer.innerHTML = '';
+            
+            nodes.forEach(node => {
+                const nodeClass = `node-card node-${node.type} ${node.visited ? 'visited' : ''}`;
+                const nodeHtml = `
+                    <div class="${nodeClass}" data-node-id="${node.id}">
+                        <div class="node-title">${node.title}</div>
+                        <div class="node-type">${capitalizeFirstLetter(node.type)}</div>
+                        <div class="node-difficulty">
+                            ${'★'.repeat(node.difficulty)}
+                        </div>
+                    </div>
+                `;
+                nodesContainer.innerHTML += nodeHtml;
+            });
+            
+            // Add click event listeners
+            document.querySelectorAll('.node-card:not(.visited)').forEach(nodeEl => {
+                nodeEl.addEventListener('click', function() {
+                    const nodeId = this.getAttribute('data-node-id');
+                    visitNode(nodeId);
+                });
+            });
+        }
+        
+        // Visit a node
+        function visitNode(nodeId) {
+            fetch(`/api/node/${nodeId}`)
+                .then(response => response.json())
+                .then(nodeData => {
+                    // Handle different node types
+                    if (nodeData.type === 'question') {
+                        showQuestion(nodeData);
+                    } else {
+                        // Handle other node types (placeholder)
+                        alert(`Visiting ${nodeData.type} node: ${nodeData.title}`);
+                        // Mark as visited and reload
+                        loadGameState();
+                    }
+                })
+                .catch(error => console.error('Error visiting node:', error));
+        }
+        
+        // Show a question
+        function showQuestion(nodeData) {
+            const questionContainer = document.getElementById('question-container');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            
+            // Display the question
+            questionText.textContent = nodeData.question.text;
+            optionsContainer.innerHTML = '';
+            
+            // Add options
+            nodeData.question.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.classList.add('option-btn');
+                optionBtn.textContent = option;
+                optionBtn.addEventListener('click', function() {
+                    answerQuestion(nodeData.id, index);
+                });
+                optionsContainer.appendChild(optionBtn);
+            });
+            
+            // Show the question container
+            questionContainer.style.display = 'block';
+        }
+        
+        // Answer a question
+        function answerQuestion(nodeId, answerIndex) {
+            fetch('/api/answer-question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ node_id: nodeId, answer_index: answerIndex }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show result
+                const resultDiv = document.getElementById('question-result');
+                resultDiv.innerHTML = `
+                    <div class="alert ${data.correct ? 'alert-success' : 'alert-danger'} mt-3">
+                        <strong>${data.correct ? 'Correct!' : 'Incorrect!'}</strong>
+                        <p>${data.explanation}</p>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+                
+                // Highlight the selected option
+                const options = document.querySelectorAll('.option-btn');
+                options[answerIndex].classList.add(data.correct ? 'correct' : 'incorrect');
+                
+                // Disable all options
+                options.forEach(opt => opt.disabled = true);
+                
+                // Show continue button
+                document.getElementById('continue-btn').style.display = 'block';
+                document.getElementById('continue-btn').addEventListener('click', function() {
+                    // Reset and hide question container
+                    document.getElementById('question-container').style.display = 'none';
+                    document.getElementById('question-result').style.display = 'none';
+                    document.getElementById('continue-btn').style.display = 'none';
+                    
+                    // Update character and nodes
+                    updateCharacterInfo(data.game_state.character);
+                    renderNodes(data.game_state.nodes);
+                });
+                
+                // Update game state
+                updateCharacterInfo(data.game_state.character);
+            })
+            .catch(error => console.error('Error answering question:', error));
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+    </script>
+</body>
+</html>
