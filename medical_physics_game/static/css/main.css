@@ -1,0 +1,321 @@
+/* Add to main.css or create a new CSS file */
+
+/* Map canvas styling */
+.map-container {
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* Node colors */
+.node-start { background-color: #4CAF50; color: white; }
+.node-boss { background-color: #F44336; color: white; }
+.node-question { background-color: #2196F3; color: white; }
+.node-elite { background-color: #E91E63; color: white; }
+.node-treasure { background-color: #FFC107; }
+.node-rest { background-color: #9C27B0; color: white; }
+.node-shop { background-color: #00BCD4; color: white; }
+.node-event { background-color: #FF9800; color: white; }
+.node-gamble { background-color: #CDDC39; }
+
+/* Shop styling */
+#shop-container {
+    background-color: #f8f9fa;
+    border: 1px solid #00BCD4;
+    border-radius: 10px;
+}
+
+.shop-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+}
+
+.shop-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.rarity-common { border-left: 4px solid #aaa; }
+.rarity-uncommon { border-left: 4px solid #2196F3; }
+.rarity-rare { border-left: 4px solid #9C27B0; }
+.rarity-epic { border-left: 4px solid #FFC107; }
+
+/* Event styling */
+#event-container {
+    border: 1px solid #FF9800;
+    border-radius: 10px;
+}
+
+/* Gamble styling */
+#gamble-container {
+    border: 1px solid #CDDC39;
+    border-radius: 10px;
+}
+
+.gamble-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.gamble-options .card {
+    flex: 1;
+    min-width: 200px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.gamble-options .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Animation for floating text */
+@keyframes float-up {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+
+.floating-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 1000;
+    animation: float-up 2s ease-out;
+    pointer-events: none;
+}
+
+.floating-text-success { color: #28a745; }
+.floating-text-danger { color: #dc3545; }
+.floating-text-info { color: #17a2b8; }
+.floating-text-warning { color: #ffc107; }
+
+.floating-text-fade {
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+/* Inventory styling */
+.inventory-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.inventory-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.inventory-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.inventory-item {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.inventory-item:hover {
+    background-color: #e0e0e0;
+}
+
+.inventory-item.common { background-color: #e8e8e8; }
+.inventory-item.uncommon { background-color: #d1ecf1; }
+.inventory-item.rare { background-color: #ece2f9; }
+.inventory-item.epic { background-color: #fff3cd; }
+
+.inventory-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.inventory-item:hover .inventory-tooltip {
+    opacity: 1;
+}
+
+/* Status effects styling */
+.status-effects {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.status-effect {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: white;
+}
+
+.status-effect.buff { background-color: #28a745; }
+.status-effect.debuff { background-color: #dc3545; }
+
+.status-timer {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: black;
+    color: white;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ability button styling */
+.ability-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ability-button:hover {
+    background-color: #5a6268;
+}
+
+.ability-button:disabled {
+    background-color: #ced4da;
+    cursor: not-allowed;
+}
+
+/* Modal dialogs */
+.game-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Stat bars */
+.stat-bar-container {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.stat-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s;
+}
+
+.insight-bar { background-color: #2196F3; }
+.health-bar { background-color: #F44336; }
+
+/* Floor transition animation */
+@keyframes floor-transition {
+    0% { transform: translateY(100%); opacity: 0; }
+    10% { transform: translateY(0); opacity: 1; }
+    90% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 0; }
+}
+
+.floor-transition-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: floor-transition 3s ease-in-out forwards;
+}
+
+.floor-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.floor-description {
+    font-size: 24px;
+    max-width: 600px;
+    text-align: center;
+}

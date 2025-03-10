@@ -302,5 +302,239 @@ def next_floor():
     
     return jsonify(game_state)
 
+# Add these routes to app.py
+
+@app.route('/api/items')
+def get_items():
+    """Return all available items"""
+    items_data = load_json_data('items.json')
+    return jsonify(items_data)
+
+@app.route('/api/item/<item_id>')
+def get_item(item_id):
+    """Return a specific item by ID"""
+    items_data = load_json_data('items.json')
+    item = next((item for item in items_data.get('items', []) if item['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+    
+    return jsonify(item)
+
+@app.route('/api/random-event')
+def get_random_event():
+    """Return a random event"""
+    events_data = load_json_data('events.json')
+    all_events = events_data.get('events', [])
+    
+    if not all_events:
+        return jsonify({"error": "No events found"}), 404
+    
+    # Select random event
+    event = random.choice(all_events)
+    return jsonify(event)
+
+@app.route('/api/mark-node-visited', methods=['POST'])
+def mark_node_visited():
+    """Mark a node as visited"""
+    data = request.json
+    node_id = data.get('node_id')
+    
+    # Update game state
+    for n in game_state["nodes"]:
+        if n["id"] == node_id:
+            n["visited"] = True
+    
+    # Check if all nodes are visited
+    all_visited = all(n["visited"] for n in game_state["nodes"])
+    
+    return jsonify({
+        "game_state": game_state,
+        "all_nodes_visited": all_visited
+    })
+
+@app.route('/api/apply-item', methods=['POST'])
+def apply_item():
+    """Apply an item's effect to the character"""
+    data = request.json
+    item_id = data.get('item_id')
+    
+    # Find the item
+    items_data = load_json_data('items.json')
+    item = next((item for item in items_data.get('items', []) if item['id'] == item_id), None)
+    
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+    
+    # Apply the effect based on type
+    effect = item.get('effect', {})
+    effect_type = effect.get('type', '')
+    effect_value = effect.get('value', 0)
+    
+    if effect_type == 'insight_boost':
+        game_state["character"]["insight"] += int(effect_value)
+    elif effect_type == 'restore_life':
+        game_state["character"]["lives"] = min(
+            game_state["character"]["lives"] + int(effect_value),
+            game_state["character"]["max_lives"]
+        )
+    elif effect_type == 'extra_life':
+        game_state["character"]["max_lives"] += 1
+        game_state["character"]["lives"] += 1
+    
+    return jsonify(game_state)
+
+@app.route('/api/generate-floor-map', methods=['POST'])
+def generate_floor_map():
+    """Generate a map for the current floor"""
+    # Get the current floor
+    floor_number = game_state["current_floor"]
+    
+    # Load floor data
+    floors_data = load_json_data('floors.json')
+    floor_data = next((f for f in floors_data.get('floors', []) if f.get('id') == floor_number), None)
+    
+    if not floor_data:
+        # Use default floor data
+        floor_data = {
+            "node_count": {"min": 5, "max": 8},
+            "node_types": {
+                "question": {"weight": 50, "difficulty_range": [1, 2]},
+                "rest": {"weight": 20},
+                "treasure": {"weight": 15},
+                "shop": {"weight": 5},
+                "event": {"weight": 5},
+                "gamble": {"weight": 5}
+            },
+            "boss": None
+        }
+    
+    # Generate map layout
+    map_layout = generate_floor_layout(floor_number, floor_data)
+    
+    # Store in game state
+    game_state["map"] = map_layout
+    
+    return jsonify(map_layout)
+
+def generate_floor_layout(floor_number, floor_data):
+    """Generate a floor layout with nodes and connections"""
+    # Map parameters
+    node_count = random.randint(
+        floor_data.get('node_count', {}).get('min', 5),
+        floor_data.get('node_count', {}).get('max', 8)
+    )
+    
+    # Create basic structure
+    map_layout = {
+        "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 1}, "paths": []},
+        "nodes": {},
+        "boss": floor_data.get('boss') is not None and {
+            "id": "boss", 
+            "type": "boss", 
+            "position": {"row": 6, "col": 1}, 
+            "paths": [],
+            "title": floor_data.get('boss', {}).get('name', 'Boss'),
+            "difficulty": floor_data.get('boss', {}).get('difficulty', 3)
+        }
+    }
+    
+    # Node positions will be in a grid
+    nodes_per_row = min(3, node_count // 2 + 1)  # Limit to 3 nodes per row
+    rows = 4  # We'll use 4 rows between start and boss
+    
+    # Generate intermediate nodes in a grid pattern
+    node_index = 0
+    for row in range(1, rows + 1):
+        for col in range(nodes_per_row):
+            # Skip some nodes randomly to create variability
+            if row > 1 and random.random() < 0.2:
+                continue
+                
+            node_id = f"node_{row}_{col}"
+            node_index += 1
+            
+            # Determine node type based on weights
+            node_type = determine_node_type(floor_data.get('node_types', {}))
+            
+            # Determine difficulty for question/elite nodes
+            difficulty = 1
+            if node_type in ['question', 'elite'] and 'difficulty_range' in floor_data.get('node_types', {}).get(node_type, {}):
+                difficulty_range = floor_data['node_types'][node_type]['difficulty_range']
+                difficulty = random.randint(difficulty_range[0], difficulty_range[1])
+            
+            # Create node
+            map_layout["nodes"][node_id] = {
+                "id": node_id,
+                "type": node_type,
+                "position": {"row": row, "col": col},
+                "paths": [],
+                "visited": False,
+                "difficulty": difficulty,
+                "title": get_node_title(node_type)
+            }
+    
+    # Create paths between nodes
+    # Connect start to first row
+    first_row_nodes = [n for n in map_layout["nodes"].values() if n["position"]["row"] == 1]
+    for node in first_row_nodes:
+        map_layout["start"]["paths"].append(node["id"])
+    
+    # Connect intermediate rows
+    for row in range(1, rows):
+        current_row_nodes = [n for n in map_layout["nodes"].values() if n["position"]["row"] == row]
+        next_row_nodes = [n for n in map_layout["nodes"].values() if n["position"]["row"] == row + 1]
+        
+        if not next_row_nodes:
+            continue
+            
+        for node in current_row_nodes:
+            # Each node connects to 1-2 nodes in next row
+            connection_count = random.randint(1, min(2, len(next_row_nodes)))
+            
+            # Sort by column proximity
+            next_row_nodes.sort(key=lambda n: abs(n["position"]["col"] - node["position"]["col"]))
+            
+            # Connect to closest nodes
+            for i in range(min(connection_count, len(next_row_nodes))):
+                node["paths"].append(next_row_nodes[i]["id"])
+    
+    # Connect final row to boss if there is one
+    if map_layout["boss"]:
+        final_row_nodes = [n for n in map_layout["nodes"].values() if n["position"]["row"] == rows]
+        for node in final_row_nodes:
+            node["paths"].append("boss")
+    
+    return map_layout
+
+def determine_node_type(node_types):
+    """Determine a random node type based on weights"""
+    total_weight = sum(config.get('weight', 0) for config in node_types.values())
+    r = random.uniform(0, total_weight)
+    
+    cumulative_weight = 0
+    for node_type, config in node_types.items():
+        cumulative_weight += config.get('weight', 0)
+        if r <= cumulative_weight:
+            return node_type
+    
+    return "question"  # Default
+
+def get_node_title(node_type):
+    """Get a random title for a node type"""
+    titles = {
+        "question": ["Morning Rounds", "Case Review", "Patient Consult", "Treatment Planning"],
+        "shop": ["Department Store", "Campus Bookstore", "Equipment Vendor", "Coffee Cart"],
+        "rest": ["Break Room", "Cafeteria", "Library", "Quiet Corner"],
+        "treasure": ["Conference", "Journal Club", "Grand Rounds", "Workshop"],
+        "elite": ["Physicist Meeting", "Challenging Case", "Equipment Failure", "Accreditation Review"],
+        "event": ["Unexpected Call", "Patient Emergency", "Research Opportunity", "Department Meeting"],
+        "gamble": ["Journal Lottery", "Research Roulette", "Grant Application", "Experimental Treatment"]
+    }
+    
+    if node_type in titles:
+        return random.choice(titles[node_type])
+    return "Unknown"
+
 if __name__ == '__main__':
     app.run(debug=True)

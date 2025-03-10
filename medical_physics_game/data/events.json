@@ -1,0 +1,314 @@
+{
+    "events": [
+      {
+        "id": "unexpected_discovery",
+        "title": "Unexpected Discovery",
+        "description": "While reviewing patient data, you notice an unusual pattern in the treatment outcomes that could be significant.",
+        "options": [
+          {
+            "text": "Investigate further (requires technical knowledge)",
+            "outcome": {
+              "description": "Your investigation reveals a potential improvement to the treatment protocol. The department is impressed by your diligence.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 15
+              }
+            },
+            "requirementType": "insight_check",
+            "requirementValue": 30
+          },
+          {
+            "text": "Consult with a senior physicist",
+            "outcome": {
+              "description": "The senior physicist appreciates your caution. Together, you verify the finding, which proves to be significant but not groundbreaking.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 10
+              }
+            }
+          },
+          {
+            "text": "Ignore it as a statistical anomaly",
+            "outcome": {
+              "description": "Later, a colleague makes the same observation and publishes a paper on it. You missed an opportunity.",
+              "effect": {
+                "type": "insight_loss",
+                "value": 5
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "equipment_malfunction",
+        "title": "Equipment Malfunction",
+        "description": "During QA, you discover a minor discrepancy in the linear accelerator output that wasn't caught in routine checks.",
+        "options": [
+          {
+            "text": "Report immediately and delay all treatments",
+            "outcome": {
+              "description": "While cautious, this causes unnecessary treatment delays. Your department appreciates your concern for safety but notes the disruption was avoidable.",
+              "effect": {
+                "type": "insight_loss",
+                "value": 5
+              }
+            }
+          },
+          {
+            "text": "Investigate the root cause before reporting",
+            "outcome": {
+              "description": "Your thorough investigation reveals a simple fixable issue. You're able to resolve it with minimal disruption to the treatment schedule.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 15
+              }
+            },
+            "requirementType": "insight_check",
+            "requirementValue": 25
+          },
+          {
+            "text": "Make a quick adjustment and continue",
+            "outcome": {
+              "description": "Your adjustment works temporarily, but the issue returns the next day, now requiring more extensive repairs and causing treatment delays.",
+              "effect": {
+                "type": "lose_life",
+                "value": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "research_opportunity",
+        "title": "Research Opportunity",
+        "description": "A senior physicist invites you to join a research project on a new treatment planning algorithm.",
+        "options": [
+          {
+            "text": "Accept and dedicate significant time to the project",
+            "outcome": {
+              "description": "Your dedication leads to valuable contributions. The project is successful, and your name appears on the resulting publication.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 20
+              }
+            }
+          },
+          {
+            "text": "Accept but limit your involvement to maintain clinical focus",
+            "outcome": {
+              "description": "You manage to balance research and clinical duties well. While your contribution is smaller, it's still valuable.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 10
+              }
+            }
+          },
+          {
+            "text": "Decline politely to focus on your clinical training",
+            "outcome": {
+              "description": "The physicist understands your decision. Your clinical knowledge improves faster as a result.",
+              "effect": {
+                "type": "gain_life",
+                "value": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "conference_invitation",
+        "title": "Conference Invitation",
+        "description": "You're invited to present at a regional medical physics conference, but it requires preparation time.",
+        "options": [
+          {
+            "text": "Accept and prepare an outstanding presentation",
+            "outcome": {
+              "description": "Your thorough preparation pays off. Your talk is well-received, and you make valuable connections in the field.",
+              "effect": {
+                "type": "gain_item",
+                "value": "badge"
+              }
+            },
+            "requirementType": "insight_check",
+            "requirementValue": 35
+          },
+          {
+            "text": "Accept but prepare minimally",
+            "outcome": {
+              "description": "Your presentation is adequate but not memorable. You still benefit from attending the conference.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 10
+              }
+            }
+          },
+          {
+            "text": "Decline due to your residency workload",
+            "outcome": {
+              "description": "You miss the networking opportunity, but your supervisor appreciates your dedication to your clinical duties.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 5
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "challenging_patient",
+        "title": "Challenging Patient Case",
+        "description": "A patient with a complex anatomical situation requires a special treatment plan.",
+        "options": [
+          {
+            "text": "Spend extra time developing an optimal plan yourself",
+            "outcome": {
+              "description": "Your hard work results in an excellent plan that safely delivers the prescribed dose while sparing critical structures. The radiation oncologist is impressed.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 20
+              }
+            },
+            "requirementType": "insight_check",
+            "requirementValue": 40
+          },
+          {
+            "text": "Collaborate with a senior physicist",
+            "outcome": {
+              "description": "Working together yields a good plan and you learn valuable techniques from your senior colleague.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 15
+              }
+            }
+          },
+          {
+            "text": "Use a standard approach with minor modifications",
+            "outcome": {
+              "description": "Your plan is acceptable but not optimal. The radiation oncologist requests revisions, creating extra work.",
+              "effect": {
+                "type": "insight_loss",
+                "value": 5
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "broken_dosimeter",
+        "title": "Broken Dosimeter",
+        "description": "Your department's primary dosimeter is malfunctioning before an important calibration.",
+        "options": [
+          {
+            "text": "Improvise using alternative equipment",
+            "outcome": {
+              "description": "Your creative solution works, and you complete the calibration without delay. Your supervisor is impressed with your resourcefulness.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 15
+              }
+            },
+            "requirementType": "item_check",
+            "requirementValue": "dosimeter"
+          },
+          {
+            "text": "Request emergency loan from a neighboring facility",
+            "outcome": {
+              "description": "The neighboring facility agrees to help. The calibration proceeds with only a minor delay, and you establish a good relationship with colleagues at the other facility.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 10
+              }
+            }
+          },
+          {
+            "text": "Postpone the calibration until repairs can be made",
+            "outcome": {
+              "description": "The delay impacts treatment schedules and requires replanning several patient treatments.",
+              "effect": {
+                "type": "lose_life",
+                "value": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "protocol_update",
+        "title": "Protocol Update",
+        "description": "A new treatment protocol has been released for a common cancer type treated at your facility.",
+        "options": [
+          {
+            "text": "Study it thoroughly and develop an implementation plan",
+            "outcome": {
+              "description": "Your thorough understanding allows you to implement the protocol smoothly and train others. You become the go-to person for questions about it.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 20
+              }
+            },
+            "requirementType": "item_check",
+            "requirementValue": "tg51"
+          },
+          {
+            "text": "Review it briefly and implement the major changes",
+            "outcome": {
+              "description": "You implement the essential components but miss some nuances, requiring minor corrections later.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 5
+              }
+            }
+          },
+          {
+            "text": "Wait for direction from senior staff",
+            "outcome": {
+              "description": "The delay in implementation means your facility falls behind best practices temporarily.",
+              "effect": {
+                "type": "insight_loss",
+                "value": 10
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "late_night_call",
+        "title": "Late Night Call",
+        "description": "You receive an emergency call at 2 AM about a possible issue with the treatment planning system.",
+        "options": [
+          {
+            "text": "Go to the hospital immediately",
+            "outcome": {
+              "description": "You identify a minor issue that could have been handled remotely. You're exhausted the next day.",
+              "effect": {
+                "type": "lose_life",
+                "value": 1
+              }
+            }
+          },
+          {
+            "text": "Troubleshoot remotely first",
+            "outcome": {
+              "description": "You successfully diagnose and fix the issue remotely, saving yourself an unnecessary trip. Your efficient problem-solving is appreciated.",
+              "effect": {
+                "type": "insight_gain",
+                "value": 15
+              }
+            },
+            "requirementType": "insight_check",
+            "requirementValue": 30
+          },
+          {
+            "text": "Suggest they wait until morning",
+            "outcome": {
+              "description": "The issue compounds overnight, affecting the treatment schedule for the next day and requiring extensive troubleshooting.",
+              "effect": {
+                "type": "insight_loss",
+                "value": 15
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
