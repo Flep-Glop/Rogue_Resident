@@ -1,0 +1,53 @@
+{
+    "game_title": "Medical Physics Residency: The Roguelike Challenge",
+    "version": "0.1.0",
+    "difficulty_levels": [
+      {
+        "id": "easy",
+        "name": "Undergraduate",
+        "description": "For those just starting to learn medical physics.",
+        "modifiers": {
+          "lives_multiplier": 1.5,
+          "insight_gain_multiplier": 1.2,
+          "question_difficulty_offset": -1
+        }
+      },
+      {
+        "id": "normal",
+        "name": "Resident",
+        "description": "The standard residency experience.",
+        "modifiers": {
+          "lives_multiplier": 1.0,
+          "insight_gain_multiplier": 1.0,
+          "question_difficulty_offset": 0
+        }
+      },
+      {
+        "id": "hard",
+        "name": "Board Exam",
+        "description": "Prepare for your certification with challenging questions.",
+        "modifiers": {
+          "lives_multiplier": 0.75,
+          "insight_gain_multiplier": 0.8,
+          "question_difficulty_offset": 1
+        }
+      }
+    ],
+    "sounds": {
+      "enabled": true,
+      "volume": 0.7
+    },
+    "animations": {
+      "enabled": true,
+      "speed": "normal"
+    },
+    "game_settings": {
+      "insight_per_correct_answer": 10,
+      "insight_penalty_per_wrong_answer": 5,
+      "lives_per_floor": 0,
+      "unlock_requirements": {
+        "physicist_character": "Complete a run with the Resident character",
+        "hard_difficulty": "Complete a run on Normal difficulty"
+      }
+    }
+  }

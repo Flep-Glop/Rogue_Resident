@@ -1,0 +1,59 @@
+{
+    "items": [
+      {
+        "id": "textbook",
+        "name": "Radiation Physics Textbook",
+        "description": "A well-worn copy of Khan's The Physics of Radiation Therapy.",
+        "rarity": "common",
+        "effect": {
+          "type": "insight_boost",
+          "value": 10,
+          "duration": "permanent"
+        }
+      },
+      {
+        "id": "coffee",
+        "name": "Cup of Coffee",
+        "description": "Freshly brewed coffee from the department kitchen.",
+        "rarity": "common",
+        "effect": {
+          "type": "restore_life",
+          "value": 1,
+          "duration": "instant"
+        }
+      },
+      {
+        "id": "dosimeter",
+        "name": "Pocket Dosimeter",
+        "description": "A reliable tool for radiation measurements.",
+        "rarity": "uncommon",
+        "effect": {
+          "type": "question_hint",
+          "value": "Eliminates one wrong answer from radiation physics questions.",
+          "duration": "permanent"
+        }
+      },
+      {
+        "id": "tg51",
+        "name": "TG-51 Protocol",
+        "description": "The AAPM Task Group 51 protocol for clinical reference dosimetry.",
+        "rarity": "rare",
+        "effect": {
+          "type": "category_boost",
+          "value": "All dosimetry questions give +5 insight when answered correctly.",
+          "duration": "permanent"
+        }
+      },
+      {
+        "id": "badge",
+        "name": "AAPM Conference Badge",
+        "description": "Proof you attended the latest medical physics conference.",
+        "rarity": "epic",
+        "effect": {
+          "type": "extra_life",
+          "value": "Increases maximum lives by 1.",
+          "duration": "permanent"
+        }
+      }
+    ]
+  }

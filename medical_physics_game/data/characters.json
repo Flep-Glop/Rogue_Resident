@@ -1,0 +1,48 @@
+{
+    "characters": [
+      {
+        "id": "resident",
+        "name": "Medical Physics Resident",
+        "description": "A new resident with balanced stats and a focus on learning.",
+        "starting_stats": {
+          "level": 1,
+          "lives": 3,
+          "max_lives": 3,
+          "insight": 20
+        },
+        "level_bonuses": [
+          { "level": 2, "bonus": { "max_lives": 1 } },
+          { "level": 3, "bonus": { "insight": 10 } },
+          { "level": 4, "bonus": { "max_lives": 1 } },
+          { "level": 5, "bonus": { "insight": 15 } }
+        ],
+        "special_ability": {
+          "name": "Literature Review",
+          "description": "Once per floor, can skip a question node without penalty.",
+          "uses_per_floor": 1
+        }
+      },
+      {
+        "id": "physicist",
+        "name": "Junior Physicist",
+        "description": "More experienced with treatment planning but fewer lives.",
+        "starting_stats": {
+          "level": 1,
+          "lives": 2,
+          "max_lives": 2,
+          "insight": 30
+        },
+        "level_bonuses": [
+          { "level": 2, "bonus": { "max_lives": 1 } },
+          { "level": 3, "bonus": { "insight": 15 } },
+          { "level": 4, "bonus": { "insight": 15 } },
+          { "level": 5, "bonus": { "max_lives": 1 } }
+        ],
+        "special_ability": {
+          "name": "Peer Review",
+          "description": "Can see the correct answer for one question per floor.",
+          "uses_per_floor": 1
+        }
+      }
+    ]
+  }

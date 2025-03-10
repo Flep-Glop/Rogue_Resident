@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Physics Residency: The Roguelike Challenge</title>
+    <link href="/static/css/retro.css" rel="stylesheet">
+</head>
+<body>
+    <div class="pixel-container">
+        <!-- CRT and scanline effects -->
+        <div class="scanlines"></div>
+        <div class="crt-effect"></div>
+        
+        <!-- Game title -->
+        <h1 class="game-title">Medical Physics<br>Residency</h1>
+        <h2 class="subtitle">The Roguelike Challenge</h2>
+        
+        <!-- Main menu -->
+        <div class="menu-container">
+            <button class="retro-btn start" id="start-game">New Game</button>
+            <button class="retro-btn" id="continue-game">Continue</button>
+            <button class="retro-btn options" id="options">Options</button>
+            <button class="retro-btn help" id="help">Help</button>
+        </div>
+        
+        <!-- Decorative pixel elements -->
+        <div id="pixel-decorations"></div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>v0.1.0 | Press SPACE to start</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create pixel decorations
+            const decorationContainer = document.getElementById('pixel-decorations');
+            const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const decoration = document.createElement('div');
+                decoration.classList.add('pixel-decoration');
+                
+                // Random position
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size
+                const size = Math.random() * 8 + 2;
+                
+                // Random color
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                decoration.style.left = `${x}vw`;
+                decoration.style.top = `${y}vh`;
+                decoration.style.width = `${size}px`;
+                decoration.style.height = `${size}px`;
+                decoration.style.backgroundColor = color;
+                
+                // Add subtle animation
+                decoration.style.animation = `float ${Math.random() * 5 + 3}s ease-in-out infinite`;
+                decoration.style.animationDelay = `${Math.random() * 5}s`;
+                
+                decorationContainer.appendChild(decoration);
+            }
+            
+            // Button sound effect
+            function playButtonSound() {
+                // When we add audio files, we'll uncomment this
+                // const sound = new Audio('/static/audio/click.mp3');
+                // sound.volume = 0.3;
+                // sound.play();
+            }
+            
+            // Button event listeners
+            document.getElementById('start-game').addEventListener('click', function() {
+                playButtonSound();
+                window.location.href = '/game';
+            });
+            
+            document.getElementById('continue-game').addEventListener('click', function() {
+                playButtonSound();
+                // For now just redirect to game
+                window.location.href = '/game';
+            });
+            
+            document.getElementById('options').addEventListener('click', function() {
+                playButtonSound();
+                alert('Options will be available in the next update!');
+            });
+            
+            document.getElementById('help').addEventListener('click', function() {
+                playButtonSound();
+                alert('Welcome to Medical Physics Residency! Navigate through each floor, answer questions correctly to gain insight, and avoid losing all your lives. Good luck!');
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    playButtonSound();
+                    window.location.href = '/game';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
