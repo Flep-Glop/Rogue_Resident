@@ -401,20 +401,30 @@ def generate_floor_map():
             "node_types": {
                 "question": {"weight": 50, "difficulty_range": [1, 2]},
                 "rest": {"weight": 20},
-                "treasure": {"weight": 15},
-                "shop": {"weight": 5},
-                "event": {"weight": 5},
-                "gamble": {"weight": 5}
+                "treasure": {"weight": 15}
             },
             "boss": None
         }
     
-    # Generate map layout
-    map_layout = generate_floor_layout(floor_number, floor_data)
+    # Generate nodes in a simplified format for now
+    nodes = []
+    for i in range(5):  # Just create 5 nodes for testing
+        nodes.append({
+            "id": f"node_{i}",
+            "type": "question",
+            "position": {"row": 1, "col": i},
+            "paths": [],
+            "visited": False
+        })
     
-    # Store in game state
-    game_state["map"] = map_layout
+    # Basic map structure
+    map_layout = {
+        "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 2}, "paths": ["node_0", "node_1", "node_2"]},
+        "nodes": {node["id"]: node for node in nodes},
+        "boss": None
+    }
     
+    # Return the map
     return jsonify(map_layout)
 
 def generate_floor_layout(floor_number, floor_data):

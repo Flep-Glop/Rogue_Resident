@@ -27,7 +27,71 @@ document.addEventListener('DOMContentLoaded', function() {
         goToNextFloor();
     });
 });
+// Add near the top of your game.js file
+console.log = function(message) {
+    // Keep the original console.log functionality
+    window._originalConsoleLog = window._originalConsoleLog || console.log;
+    window._originalConsoleLog.apply(console, arguments);
+    
+    // Add visible debugging on the page
+    const debugDiv = document.getElementById('debug-output') || 
+        (function() {
+            const div = document.createElement('div');
+            div.id = 'debug-output';
+            div.style.position = 'fixed';
+            div.style.bottom = '10px';
+            div.style.right = '10px';
+            div.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            div.style.color = 'white';
+            div.style.padding = '10px';
+            div.style.maxHeight = '200px';
+            div.style.overflowY = 'scroll';
+            div.style.zIndex = '9999';
+            document.body.appendChild(div);
+            return div;
+        })();
+    
+    debugDiv.innerHTML += `<div>${message}</div>`;
+};
 
+// Add to generateFloorMap function
+function generateFloorMap() {
+    console.log("Attempting to generate floor map...");
+    
+    // Use a simpler approach for testing
+    const mapData = {
+        "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 2}, "paths": ["node_1", "node_2"]},
+        "nodes": {
+            "node_1": {"id": "node_1", "type": "question", "position": {"row": 1, "col": 1}, "paths": [], "visited": false},
+            "node_2": {"id": "node_2", "type": "rest", "position": {"row": 1, "col": 3}, "paths": [], "visited": false}
+        },
+        "boss": null
+    };
+    
+    console.log("Creating test map data");
+    gameState.map = mapData;
+    
+    // Test render function
+    renderFloorMap(mapData, 'floor-map');
+    
+    return;
+    
+    // Original code can be skipped for now
+    fetch('/api/generate-floor-map', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+    })
+    .then(response => response.json())
+    .then(mapData => {
+        console.log("Map data received:", mapData);
+        gameState.map = mapData;
+        renderFloorMap(mapData, 'floor-map');
+    })
+    .catch(error => console.error('Error generating floor map:', error));
+}
 // Load the current game state
 function loadGameState() {
     fetch('/api/game-state')
@@ -371,7 +435,7 @@ function resetGame() {
 
 // Add a button to your HTML (can be temporary for debugging)
 document.querySelector('.game-title').innerHTML += '<button onclick="resetGame()" style="position:absolute;right:10px;top:10px">Reset Game</button>';
-
+<button onclick="testMap()" class="btn btn-warning">Test Map</button>
 // Helper function to capitalize first letter
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -658,7 +722,18 @@ const MAP_CONFIG = {
       }
     });
   }
-  
+  function testMap() {
+    console.log("Testing map rendering...");
+    const testMapData = {
+        "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 2}, "paths": ["node_1", "node_2"]},
+        "nodes": {
+            "node_1": {"id": "node_1", "type": "question", "position": {"row": 1, "col": 1}, "paths": [], "visited": false},
+            "node_2": {"id": "node_2", "type": "rest", "position": {"row": 1, "col": 3}, "paths": [], "visited": false}
+        },
+        "boss": null
+    };
+    renderFloorMap(testMapData, 'floor-map');
+}
   // Helper function to determine if a node can be visited
   function canVisitNode(nodeId) {
     if (nodeId === 'start') return false; // Can't revisit start
