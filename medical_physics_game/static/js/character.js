@@ -200,7 +200,7 @@ window.Character = {
       }
     },
     
-    // Apply an item effect
+    // Complete the applyItemEffect function in Character.js
     applyItemEffect: function(item) {
       if (!item || !item.effect) return false;
       
@@ -209,36 +209,84 @@ window.Character = {
       let success = true;
       
       switch (effect.type) {
-        case 'insight_boost':
-          gameState.character.insight += parseInt(effect.value);
-          message = `+${effect.value} Insight`;
-          break;
-          
-        case 'restore_life':
-          // Only use if not at full health
-          if (gameState.character.lives < gameState.character.max_lives) {
-            gameState.character.lives = Math.min(
-              gameState.character.lives + parseInt(effect.value),
-              gameState.character.max_lives
-            );
-            message = `+${effect.value} Life`;
-          } else {
-            message = "Already at full health!";
-            success = false;
-          }
-          break;
-          
-        // Handle other effect types...
+          case 'insight_boost':
+              gameState.character.insight += parseInt(effect.value);
+              message = `+${effect.value} Insight`;
+              break;
+              
+          case 'restore_life':
+              // Only use if not at full health
+              if (gameState.character.lives < gameState.character.max_lives) {
+                  gameState.character.lives = Math.min(
+                      gameState.character.lives + parseInt(effect.value),
+                      gameState.character.max_lives
+                  );
+                  message = `+${effect.value} Life`;
+              } else {
+                  message = "Already at full health!";
+                  success = false;
+              }
+              break;
+              
+          case 'question_hint':
+              // Apply hint to current question if there is one
+              if (typeof Nodes !== 'undefined' && typeof Nodes.applyQuestionHint === 'function') {
+                  const applied = Nodes.applyQuestionHint();
+                  if (applied) {
+                      message = "Eliminated one wrong answer";
+                  } else {
+                      message = "No active question to apply hint to";
+                      success = false;
+                  }
+              } else {
+                  message = "Cannot apply hint at this time";
+                  success = false;
+              }
+              break;
+              
+          case 'category_boost':
+              // Add category boost status effect
+              const categoryBoost = {
+                  id: `boost_${Date.now()}`,
+                  type: 'category_boost',
+                  category: effect.value.split(" ")[0].toLowerCase() || 'all',
+                  value: effect.value,
+                  duration: effect.duration || 'permanent'
+              };
+              
+              if (!gameState.statusEffects) {
+                  gameState.statusEffects = [];
+              }
+              
+              gameState.statusEffects.push(categoryBoost);
+              message = `Added ${effect.value}`;
+              break;
+              
+          case 'extra_life':
+              // Increase max lives
+              gameState.character.max_lives += 1;
+              gameState.character.lives += 1;
+              message = "Increased maximum lives by 1";
+              break;
+              
+          default:
+              message = "Unknown effect type";
+              success = false;
       }
       
       // Update character display if successful
       if (success) {
-        this.updateCharacterInfo(gameState.character);
-        
-        // Show feedback
-        UiUtils.showFloatingText(message, success ? 'success' : 'warning');
+          this.updateCharacterInfo(gameState.character);
+          
+          // Show feedback
+          UiUtils.showFloatingText(message, success ? 'success' : 'warning');
       } else {
-        UiUtils.showFloatingText(message, 'warning');
+          UiUtils.showFloatingText(message, 'warning');
+      }
+      
+      // Save game state if possible
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+          ApiClient.saveGame().catch(err => console.error("Failed to save game after using item:", err));
       }
       
       return success;
@@ -262,8 +310,108 @@ window.Character = {
       // Update lives visualization
       this.updateLivesDisplay(character.lives, character.max_lives);
       
-      // Update special ability if available
-      this.updateSpecialAbility(character.special_ability);
+      // Add this to character.js to implement the updateSpecialAbility function
+      updateSpecialAbility: function(specialAbility) {
+        if (!specialAbility) return;
+        
+        // Find the special ability container or create it if it doesn't exist
+        let abilityContainer = document.getElementById('special-ability');
+        if (!abilityContainer) {
+            const charInfoElement = document.getElementById('character-info');
+            if (!charInfoElement) return;
+            
+            abilityContainer = document.createElement('div');
+            abilityContainer.id = 'special-ability';
+            abilityContainer.className = 'special-ability-container mt-3';
+            charInfoElement.appendChild(abilityContainer);
+        }
+        
+        // Initialize remaining uses if not set
+        if (specialAbility.remaining_uses === undefined) {
+            specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
+        }
+        
+        // Update the ability display
+        abilityContainer.innerHTML = `
+            <h4>Special Ability</h4>
+            <p><strong>${specialAbility.name}</strong></p>
+            <p>${specialAbility.description}</p>
+            <button class="btn btn-outline-secondary btn-sm use-ability-btn" id="use-ability-btn">
+                Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})
+            </button>
+        `;
+        
+        // Add event listener for using the ability
+        const useAbilityBtn = document.getElementById('use-ability-btn');
+        if (useAbilityBtn) {
+            useAbilityBtn.addEventListener('click', () => {
+                this.useSpecialAbility(specialAbility);
+            });
+            
+            // Disable button if no uses left
+            if (specialAbility.remaining_uses <= 0) {
+                useAbilityBtn.disabled = true;
+                useAbilityBtn.textContent = 'No uses remaining';
+            }
+        }
+      }
+
+      // Add this function to use the special ability
+      useSpecialAbility: function(specialAbility) {
+        if (!specialAbility || !specialAbility.name) return;
+        
+        // Check if there are uses remaining
+        if (specialAbility.remaining_uses <= 0) {
+            UiUtils.showFloatingText('No uses remaining!', 'warning');
+            return;
+        }
+        
+        // Decrease remaining uses
+        specialAbility.remaining_uses--;
+        
+        // Handle ability based on type
+        switch (specialAbility.name) {
+            case 'Literature Review':
+                // Skip question node implementation
+                UiUtils.showFloatingText('Skipped node without penalty', 'success');
+                // Mark current node as visited and return to map
+                if (gameState.currentNode) {
+                    Nodes.markNodeVisited(gameState.currentNode);
+                    Nodes.showContainer(CONTAINER_TYPES.MAP);
+                }
+                break;
+                
+            case 'Peer Review':
+                // Reveal correct answer implementation
+                if (gameState.currentQuestion) {
+                    Nodes.applyQuestionHint();
+                    UiUtils.showFloatingText('Revealed correct answer', 'success');
+                } else {
+                    UiUtils.showFloatingText('No active question', 'warning');
+                    // Return the use since it wasn't applicable
+                    specialAbility.remaining_uses++;
+                }
+                break;
+                
+            default:
+                console.warn('Unknown special ability:', specialAbility.name);
+        }
+        
+        // Update the button state
+        const useAbilityBtn = document.getElementById('use-ability-btn');
+        if (useAbilityBtn) {
+            useAbilityBtn.textContent = `Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})`;
+            if (specialAbility.remaining_uses <= 0) {
+                useAbilityBtn.disabled = true;
+                useAbilityBtn.textContent = 'No uses remaining';
+            }
+        }
+        
+        // Update character info to save the remaining uses
+        if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+            ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
+        }
+      }
     },
     
     // Update lives display
@@ -313,27 +461,33 @@ window.Character = {
       }
     },
     
-    // Show character selection screen
+    // Improved showCharacterSelection function in Character.js
     showCharacterSelection: function() {
       console.log("Showing character selection");
       
+      // First check if modal already exists
+      if (document.getElementById('character-select-modal')) {
+          console.warn("Character selection modal already exists");
+          return;
+      }
+      
       // Create character selection modal
       const charSelectHTML = `
-        <div id="character-select-modal" class="game-modal" style="display:flex;">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3>Select Your Character</h3>
-              <button class="close-modal" id="close-char-select">&times;</button>
-            </div>
-            <div class="modal-body">
-              <div id="char-select-container">Loading characters...</div>
-              <div class="mt-3">
-                <button id="start-with-char" class="btn btn-success" disabled>Begin Residency</button>
-                <button id="cancel-char-select" class="btn btn-secondary">Cancel</button>
+          <div id="character-select-modal" class="game-modal" style="display:flex;">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h3>Select Your Character</h3>
+                      <button class="close-modal" id="close-char-select">&times;</button>
+                  </div>
+                  <div class="modal-body">
+                      <div id="char-select-container">Loading characters...</div>
+                      <div class="mt-3">
+                          <button id="start-with-char" class="btn btn-success" disabled>Begin Residency</button>
+                          <button id="cancel-char-select" class="btn btn-secondary">Cancel</button>
+                      </div>
+                  </div>
               </div>
-            </div>
           </div>
-        </div>
       `;
       
       // Add to DOM
@@ -341,85 +495,142 @@ window.Character = {
       
       // Load characters from API
       fetch('/api/characters')
-        .then(response => response.json())
-        .then(data => {
-          const container = document.getElementById('char-select-container');
-          container.innerHTML = '';
-          
-          let selectedChar = null;
-          
-          // Create character cards
-          data.characters.forEach(character => {
-            const charCard = document.createElement('div');
-            charCard.className = 'card mb-3';
-            charCard.innerHTML = `
-              <div class="card-header">
-                <h4>${character.name}</h4>
-              </div>
-              <div class="card-body">
-                <p>${character.description || ""}</p>
-                <p><strong>Starting Stats:</strong></p>
-                <ul>
-                  <li>Level: ${character.starting_stats.level}</li>
-                  <li>Lives: ${character.starting_stats.lives}</li>
-                  <li>Insight: ${character.starting_stats.insight}</li>
-                </ul>
-                <p><strong>${character.special_ability.name}:</strong> ${character.special_ability.description}</p>
-              </div>
-            `;
-            
-            // Add selection behavior
-            charCard.addEventListener('click', function() {
-              // Remove selected class from all cards
-              document.querySelectorAll('#char-select-container .card').forEach(c => {
-                c.classList.remove('border-primary', 'bg-light');
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Server responded with status: ${response.status}`);
+              }
+              return response.json();
+          })
+          .then(data => {
+              if (!data.characters || !Array.isArray(data.characters) || data.characters.length === 0) {
+                  throw new Error("No characters found");
+              }
+              
+              const container = document.getElementById('char-select-container');
+              if (!container) {
+                  throw new Error("Character selection container not found");
+              }
+              
+              container.innerHTML = '';
+              
+              let selectedChar = null;
+              
+              // Create character cards
+              data.characters.forEach(character => {
+                  if (!character || !character.id || !character.name) return;
+                  
+                  const charCard = document.createElement('div');
+                  charCard.className = 'card mb-3';
+                  charCard.dataset.characterId = character.id;
+                  
+                  // Build character card HTML with safety checks
+                  const startingStats = character.starting_stats || {};
+                  const specialAbility = character.special_ability || {};
+                  
+                  charCard.innerHTML = `
+                      <div class="card-header">
+                          <h4>${character.name}</h4>
+                      </div>
+                      <div class="card-body">
+                          <p>${character.description || ""}</p>
+                          <p><strong>Starting Stats:</strong></p>
+                          <ul>
+                              <li>Level: ${startingStats.level || 1}</li>
+                              <li>Lives: ${startingStats.lives || 3}</li>
+                              <li>Insight: ${startingStats.insight || 0}</li>
+                          </ul>
+                          <p><strong>${specialAbility.name || 'Special Ability'}:</strong> ${specialAbility.description || 'None'}</p>
+                      </div>
+                  `;
+                  
+                  // Add selection behavior
+                  charCard.addEventListener('click', function() {
+                      // Remove selected class from all cards
+                      document.querySelectorAll('#char-select-container .card').forEach(c => {
+                          c.classList.remove('border-primary', 'bg-light');
+                      });
+                      
+                      // Add selected class to this card
+                      this.classList.add('border-primary', 'bg-light');
+                      
+                      // Save selected character
+                      selectedChar = character.id;
+                      
+                      // Enable start button
+                      const startBtn = document.getElementById('start-with-char');
+                      if (startBtn) startBtn.disabled = false;
+                  });
+                  
+                  container.appendChild(charCard);
               });
               
-              // Add selected class to this card
-              this.classList.add('border-primary', 'bg-light');
+              // Select first character by default
+              if (data.characters.length > 0) {
+                  const firstCard = container.querySelector('.card');
+                  if (firstCard) {
+                      firstCard.click();
+                  }
+              }
               
-              // Save selected character
-              selectedChar = character.id;
+              // Add event listeners for buttons
+              const startBtn = document.getElementById('start-with-char');
+              if (startBtn) {
+                  startBtn.addEventListener('click', function() {
+                      if (!selectedChar) {
+                          UiUtils.showFloatingText("Please select a character", "warning");
+                          return;
+                      }
+                      
+                      // Disable button to prevent multiple clicks
+                      this.disabled = true;
+                      this.textContent = 'Starting...';
+                      
+                      // Start new game with selected character
+                      ApiClient.startNewGame(selectedChar)
+                          .then(() => {
+                              console.log("New game started successfully with character:", selectedChar);
+                              
+                              // Remove modal
+                              const modal = document.getElementById('character-select-modal');
+                              if (modal) modal.remove();
+                              
+                              // Reload page to start game
+                              window.location.href = '/game';
+                          })
+                          .catch(error => {
+                              console.error('Error starting new game:', error);
+                              UiUtils.showFloatingText('Failed to start new game', 'danger');
+                              
+                              // Re-enable button
+                              this.disabled = false;
+                              this.textContent = 'Begin Residency';
+                          });
+                  });
+              }
               
-              // Enable start button
-              document.getElementById('start-with-char').disabled = false;
-            });
-            
-            container.appendChild(charCard);
+              // Add cancel and close button listeners
+              ['cancel-char-select', 'close-char-select'].forEach(id => {
+                  const btn = document.getElementById(id);
+                  if (btn) {
+                      btn.addEventListener('click', function() {
+                          const modal = document.getElementById('character-select-modal');
+                          if (modal) modal.remove();
+                      });
+                  }
+              });
+          })
+          .catch(error => {
+              console.error('Error loading characters:', error);
+              const container = document.getElementById('char-select-container');
+              if (container) {
+                  container.innerHTML = `
+                      <div class="alert alert-danger">
+                          Failed to load characters: ${error.message}
+                          <button class="btn btn-primary mt-2" onclick="window.location.reload()">Retry</button>
+                      </div>
+                  `;
+              }
           });
-          
-          // Add event listeners for buttons
-          document.getElementById('start-with-char').addEventListener('click', function() {
-            if (selectedChar) {
-              // Start new game with selected character
-              ApiClient.startNewGame(selectedChar)
-                .then(() => {
-                  // Remove modal
-                  document.getElementById('character-select-modal').remove();
-                  
-                  // Reload page to start game
-                  window.location.reload();
-                })
-                .catch(error => {
-                  console.error('Error starting new game:', error);
-                  alert('Failed to start new game. Please try again.');
-                });
-            }
-          });
-          
-          document.getElementById('cancel-char-select').addEventListener('click', function() {
-            document.getElementById('character-select-modal').remove();
-          });
-          
-          document.getElementById('close-char-select').addEventListener('click', function() {
-            document.getElementById('character-select-modal').remove();
-          });
-        })
-        .catch(error => {
-          console.error('Error loading characters:', error);
-          const container = document.getElementById('char-select-container');
-          container.innerHTML = '<div class="alert alert-danger">Failed to load characters. Please try again.</div>';
-        });
     },
     
     // ASCII character animation

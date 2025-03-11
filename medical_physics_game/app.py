@@ -23,6 +23,7 @@ def make_session_permanent():
     
 # Initialize data when the app starts
 init_data_files()
+init_db()
 
 # Near the top of app.py, after imports
 from datetime import timedelta
@@ -64,16 +65,22 @@ def game():
 @app.route('/api/game-state')
 def get_game_state():
     """Return the current game state"""
-    game_id = get_game_id()
-    
-    # Load from database or create new state
-    game_state = load_game_state(game_id)
-    if not game_state:
-        # Create a new default game state
-        game_state = create_default_game_state()
-        save_game_state(game_id, game_state)
-    
-    return jsonify(game_state)
+    try:
+        game_id = get_game_id()
+        
+        # Load from database or create new state
+        game_state = load_game_state(game_id)
+        if not game_state:
+            # Create a new default game state
+            game_state = create_default_game_state()
+            save_success = save_game_state(game_id, game_state)
+            if not save_success:
+                return jsonify({"error": "Failed to save new game state"}), 500
+        
+        return jsonify(game_state)
+    except Exception as e:
+        print(f"Error retrieving game state: {e}")
+        return jsonify({"error": f"An error occurred retrieving game state: {str(e)}"}), 500
 
 @app.route('/character-select')
 def character_select():
@@ -100,39 +107,52 @@ def get_item(item_id):
 @app.route('/api/new-game', methods=['POST'])
 def new_game():
     """Start a new game with the selected character"""
-    data = request.json
-    character_id = data.get('character_id', 'resident')  # Default to resident if not specified
-    
-    # Load character data
-    characters = load_json_data('characters.json')
-    character_data = next((c for c in characters.get('characters', []) if c['id'] == character_id), None)
-    
-    if not character_data:
-        return jsonify({"error": "Character not found"}), 404
-    
-    # Get a unique game ID
-    game_id = get_game_id()
-    
-    # Set up initial game state
-    game_state = {
-        "character": {
-            "name": character_data['name'],
-            "level": character_data['starting_stats']['level'],
-            "lives": character_data['starting_stats']['lives'],
-            "max_lives": character_data['starting_stats']['max_lives'],
-            "insight": character_data['starting_stats']['insight'],
-            "special_ability": character_data['special_ability']
-        },
-        "current_floor": 1,
-        "created_at": datetime.now().isoformat(),
-        "last_updated": datetime.now().isoformat()
-    }
-    
-    # Store the game state in the database
-    if save_game_state(game_id, game_state):
-        return jsonify(game_state)
-    else:
-        return jsonify({"error": "Failed to save game state"}), 500
+    try:
+        data = request.json or {}
+        character_id = data.get('character_id', 'resident')  # Default to resident if not specified
+        
+        # Validate character_id is a string
+        if not isinstance(character_id, str):
+            return jsonify({"error": "Invalid character ID format"}), 400
+        
+        # Load character data
+        characters = load_json_data('characters.json')
+        character_data = next((c for c in characters.get('characters', []) if c['id'] == character_id), None)
+        
+        if not character_data:
+            return jsonify({"error": f"Character '{character_id}' not found"}), 404
+        
+        # Get a unique game ID
+        game_id = get_game_id()
+        
+        # Set up initial game state
+        game_state = {
+            "character": {
+                "name": character_data['name'],
+                "level": character_data['starting_stats']['level'],
+                "lives": character_data['starting_stats']['lives'],
+                "max_lives": character_data['starting_stats']['max_lives'],
+                "insight": character_data['starting_stats']['insight'],
+                "special_ability": character_data['special_ability'].copy() if character_data['special_ability'] else None
+            },
+            "current_floor": 1,
+            "inventory": [],
+            "created_at": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        # Add remaining uses to special ability
+        if game_state["character"]["special_ability"]:
+            game_state["character"]["special_ability"]["remaining_uses"] = game_state["character"]["special_ability"].get("uses_per_floor", 1)
+        
+        # Store the game state in the database
+        if save_game_state(game_id, game_state):
+            return jsonify(game_state)
+        else:
+            return jsonify({"error": "Failed to save game state"}), 500
+    except Exception as e:
+        print(f"Error starting new game: {e}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/api/floor/<int:floor_id>')
 def get_floor(floor_id):
@@ -194,47 +214,57 @@ def get_node(node_id):
     """Get content for a specific node"""
     from game_state import get_question_for_node, get_random_item, get_random_event
     
-    game_id = get_game_id()
-    
-    # Get the game state from database
-    game_state = load_game_state(game_id)
-    if not game_state:
-        return jsonify({"error": "Game not found"}), 404
-    
-    if 'map' not in game_state:
-        return jsonify({"error": "No map generated yet"}), 400
-    
-    # Find the node in the map
-    node = None
-    if node_id == 'start':
-        node = game_state['map']['start']
-    elif node_id == 'boss' and game_state['map']['boss']:
-        node = game_state['map']['boss']
-    elif node_id in game_state['map']['nodes']:
-        node = game_state['map']['nodes'][node_id]
-    
-    if not node:
-        return jsonify({"error": "Node not found"}), 404
-    
-    # Process node based on type
-    if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
-        # Get a question matching the difficulty
-        question_data = get_question_for_node(node)
-        return jsonify({**node, "question": question_data})
-    
-    elif node["type"] == "treasure":
-        # Get a random item
-        item_data = get_random_item()
-        return jsonify({**node, "item": item_data})
-    
-    elif node["type"] == "event":
-        # Get a random event
-        event_data = get_random_event()
-        return jsonify({**node, "event": event_data})
-    
-    else:
-        # Other node types don't need additional data
-        return jsonify(node)
+    try:
+        game_id = get_game_id()
+        
+        # Get the game state from database
+        game_state = load_game_state(game_id)
+        if not game_state:
+            return jsonify({"error": "Game not found"}), 404
+        
+        if 'map' not in game_state:
+            return jsonify({"error": "No map generated yet"}), 400
+        
+        # Find the node in the map
+        node = None
+        if node_id == 'start':
+            node = game_state['map']['start']
+        elif node_id == 'boss' and 'boss' in game_state['map'] and game_state['map']['boss']:
+            node = game_state['map']['boss']
+        elif 'nodes' in game_state['map'] and node_id in game_state['map']['nodes']:
+            node = game_state['map']['nodes'][node_id]
+        
+        if not node:
+            return jsonify({"error": f"Node {node_id} not found in map"}), 404
+        
+        # Process node based on type
+        if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
+            # Get a question matching the difficulty
+            question_data = get_question_for_node(node)
+            if not question_data:
+                return jsonify({"error": "Failed to generate a question"}), 500
+            return jsonify({**node, "question": question_data})
+        
+        elif node["type"] == "treasure":
+            # Get a random item
+            item_data = get_random_item()
+            if not item_data:
+                return jsonify({"error": "Failed to generate an item"}), 500
+            return jsonify({**node, "item": item_data})
+        
+        elif node["type"] == "event":
+            # Get a random event
+            event_data = get_random_event()
+            if not event_data:
+                return jsonify({"error": "Failed to generate an event"}), 500
+            return jsonify({**node, "event": event_data})
+        
+        else:
+            # Other node types don't need additional data
+            return jsonify(node)
+    except Exception as e:
+        print(f"Error retrieving node {node_id}: {e}")
+        return jsonify({"error": f"An error occurred retrieving node: {str(e)}"}), 500
 
 @app.route('/api/answer-question', methods=['POST'])
 def answer_question():

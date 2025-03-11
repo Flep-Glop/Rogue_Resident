@@ -188,22 +188,31 @@ window.MapRenderer = {
       return titles[nodeType] ? titles[nodeType][Math.floor(Math.random() * titles[nodeType].length)] : 'Unknown';
     },
     
-    // Fix for the handleMapClick event binding
+    // Improved renderFloorMap function in map-renderer.js
     renderFloorMap: function(mapData, canvasId) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) {
-        console.error("Canvas element not found:", canvasId);
-        return;
+          console.error("Canvas element not found:", canvasId);
+          return;
       }
       
       const ctx = canvas.getContext('2d');
+      
+      // Fix for high-DPI displays
+      const dpr = window.devicePixelRatio || 1;
       
       // Set canvas dimensions based on map size
       const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
       const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
       
-      canvas.width = width;
-      canvas.height = height;
+      // Set the canvas size with DPI adjustment
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      
+      // Scale context for high-DPI displays
+      ctx.scale(dpr, dpr);
       
       // Clear the canvas
       ctx.clearRect(0, 0, width, height);
@@ -213,72 +222,77 @@ window.MapRenderer = {
       
       // Draw all regular nodes
       for (const nodeId in mapData.nodes) {
-        this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
+          this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
       }
       
       // Draw start and boss nodes
       this.drawNode(ctx, mapData.start, width, height, true); // true for bottom-up
       if (mapData.boss) {
-        this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
+          this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
       }
       
       // Properly bind the event handler to maintain 'this' context
       const self = this;
-      const mapClickHandler = function(event) {
-        const canvas = event.target;
-        const rect = canvas.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
-        
-        const mapData = gameState.map;
-        if (!mapData) return;
-        
-        // Check if click is on any node
-        const allNodes = { ...mapData.nodes };
-        if (mapData.start) allNodes['start'] = mapData.start;
-        if (mapData.boss) allNodes['boss'] = mapData.boss;
-        
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        for (const nodeId in allNodes) {
-          const node = allNodes[nodeId];
+      const handleMapClick = function(event) {
+          const rect = canvas.getBoundingClientRect();
           
-          // Skip start node (can't be clicked)
-          if (nodeId === 'start') continue;
+          // Calculate click coordinates, adjusting for any CSS scaling and DPI
+          const clickX = (event.clientX - rect.left) * (canvas.width / rect.width / dpr);
+          const clickY = (event.clientY - rect.top) * (canvas.height / rect.height / dpr);
           
-          // Skip already visited nodes
-          if (node.visited) continue;
+          if (!gameState.map) return;
           
-          // Calculate node position (adjust for bottom-up layout)
-          let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
-          const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
+          // Check if click is on any node
+          const allNodes = { ...gameState.map.nodes };
+          if (gameState.map.start) allNodes['start'] = gameState.map.start;
+          if (gameState.map.boss) allNodes['boss'] = gameState.map.boss;
           
-          // Check if click is within node radius
-          const dx = clickX - x;
-          const dy = clickY - y;
-          const distance = Math.sqrt(dx*dx + dy*dy);
-          
-          if (distance <= 20 && self.canVisitNode(nodeId)) { // 20 is the node radius
-            console.log("Clicked on node:", nodeId);
-            
-            // Add visual feedback for click
-            const ctx = canvas.getContext('2d');
-            ctx.beginPath();
-            ctx.arc(x, y, 30, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.fill();
-            
-            // After a short delay, visit the node
-            setTimeout(() => {
-              Nodes.visitNode(nodeId);
-            }, 100);
-            
-            break;
+          for (const nodeId in allNodes) {
+              const node = allNodes[nodeId];
+              
+              // Skip start node (can't be clicked)
+              if (nodeId === 'start') continue;
+              
+              // Skip already visited nodes
+              if (node.visited) continue;
+              
+              // Calculate node position (adjust for bottom-up layout)
+              let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
+              const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
+              
+              // Check if click is within node radius
+              const dx = clickX - x;
+              const dy = clickY - y;
+              const distance = Math.sqrt(dx*dx + dy*dy);
+              
+              if (distance <= 25 && self.canVisitNode(nodeId)) { // Slightly increased radius for better usability
+                  console.log("Clicked on node:", nodeId);
+                  
+                  // Add visual feedback for click
+                  ctx.beginPath();
+                  ctx.arc(x, y, 30, 0, Math.PI * 2);
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                  ctx.fill();
+                  
+                  // After a short delay, visit the node
+                  setTimeout(() => {
+                      Nodes.visitNode(nodeId);
+                  }, 100);
+                  
+                  break;
+              }
           }
-        }
       };
+      // Remove previous click handler to avoid duplicates
+      if (this._currentClickHandler) {
+        canvas.removeEventListener('click', this._currentClickHandler);
+      }
       
+      // Store reference to current handler so we can remove it later
+      this._currentClickHandler = handleMapClick;
+      
+      // Add new click handler
+      canvas.addEventListener('click', handleMapClick);
       // Use proper binding to maintain context
       canvas.removeEventListener('click', this._currentClickHandler);
       // Explicitly bind "this" to the callback

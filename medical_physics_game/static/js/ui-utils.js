@@ -76,5 +76,54 @@ window.UiUtils = {
     showRoentgenIntroScene: function() {
       // Implementation for Roentgen intro scene
       // ...
+    },
+  
+
+  showToast: function(message, type = 'info', duration = 3000) {
+    const toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        console.error('Toast container not found');
+        return;
     }
-  };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Use Bootstrap's toast functionality if available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+        const bsToast = new bootstrap.Toast(toast, {
+            autohide: true,
+            delay: duration
+        });
+        
+        bsToast.show();
+        
+        // Remove from DOM after hiding
+        toast.addEventListener('hidden.bs.toast', function() {
+            toast.remove();
+        });
+    } else {
+        // Fallback if Bootstrap JS is not available
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.opacity = 0;
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+}
+};

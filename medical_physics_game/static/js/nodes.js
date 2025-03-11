@@ -33,23 +33,39 @@ window.Nodes = {
       }
     },
     
-    // Clear event listeners to prevent duplicates
+    // Improved clearEventListeners function in nodes.js
     clearEventListeners: function() {
-      // Clear continue button
-      const continueBtn = document.getElementById('continue-btn');
-      if (continueBtn) {
-        const newBtn = continueBtn.cloneNode(true);
-        continueBtn.parentNode.replaceChild(newBtn, continueBtn);
-      }
+      // Store references to all buttons that need listeners cleared
+      const elements = [
+          'continue-btn',
+          'treasure-continue-btn',
+          'rest-heal-btn',
+          'rest-study-btn',
+          'rest-continue-btn',
+          'event-continue-btn',
+          'collect-item-btn'
+      ];
       
-      // Clear question options
+      // Clone and replace each element to remove all event listeners
+      elements.forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+              const newElement = element.cloneNode(true);
+              element.parentNode.replaceChild(newElement, element);
+          }
+      });
+      
+      // Also clear option buttons if they exist
       const optionsContainer = document.getElementById('options-container');
       if (optionsContainer) {
-        const newContainer = optionsContainer.cloneNode(false);
-        optionsContainer.parentNode.replaceChild(newContainer, optionsContainer);
+          optionsContainer.innerHTML = '';
       }
       
-      // Clear other buttons...
+      // Clear event options
+      const eventOptions = document.getElementById('event-options');
+      if (eventOptions) {
+          eventOptions.innerHTML = '';
+      }
     },
     
     // Node visit handling
@@ -136,40 +152,63 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.QUESTION);
     },
     
-    // Apply a hint to the current question
+    // Add this to the Nodes object to improve applyQuestionHint
     applyQuestionHint: function() {
       const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
-      if (!questionContainer || questionContainer.style.display !== 'block') return;
+      if (!questionContainer || questionContainer.style.display !== 'block') return false;
       
       // Get all option buttons
       const options = document.querySelectorAll('.option-btn');
-      if (!options.length) return;
+      if (!options.length) return false;
       
       // Get correct answer from current question
       const currentQuestion = gameState.currentQuestion;
-      if (!currentQuestion) return;
+      if (!currentQuestion) return false;
       
-      // Find a wrong answer to eliminate (not the correct one)
+      // Find wrong answers to eliminate (not the correct one)
       let wrongIndexes = [];
       for (let i = 0; i < options.length; i++) {
-        if (i !== currentQuestion.correct) {
-          wrongIndexes.push(i);
-        }
+          if (i !== currentQuestion.correct) {
+              wrongIndexes.push(i);
+          }
       }
       
       // Randomly select one wrong answer to eliminate
       if (wrongIndexes.length > 0) {
-        const randomWrongIndex = wrongIndexes[Math.floor(Math.random() * wrongIndexes.length)];
-        const wrongOption = options[randomWrongIndex];
-        
-        // Cross out the wrong option
-        wrongOption.classList.add('eliminated-option');
-        wrongOption.innerHTML = `<s>${wrongOption.innerHTML}</s> <span class="badge bg-danger">Incorrect</span>`;
-        wrongOption.disabled = true;
-        
-        // Show feedback
-        UiUtils.showFloatingText("Eliminated one wrong answer!", "success");
+          const randomWrongIndex = wrongIndexes[Math.floor(Math.random() * wrongIndexes.length)];
+          const wrongOption = options[randomWrongIndex];
+          
+          // Check if this option is already eliminated
+          if (wrongOption.classList.contains('eliminated-option')) {
+              // Try to find another option that's not eliminated
+              const nonEliminatedWrong = wrongIndexes.find(idx => 
+                  !options[idx].classList.contains('eliminated-option')
+              );
+              
+              if (nonEliminatedWrong !== undefined) {
+                  const newWrongOption = options[nonEliminatedWrong];
+                  // Cross out the wrong option
+                  newWrongOption.classList.add('eliminated-option');
+                  newWrongOption.innerHTML = `<s>${newWrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
+                  newWrongOption.disabled = true;
+              } else {
+                  // All wrong options already eliminated
+                  UiUtils.showFloatingText("All wrong answers already eliminated!", "warning");
+                  return false;
+              }
+          } else {
+              // Cross out the wrong option
+              wrongOption.classList.add('eliminated-option');
+              wrongOption.innerHTML = `<s>${wrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
+              wrongOption.disabled = true;
+          }
+          
+          // Show feedback
+          UiUtils.showFloatingText("Eliminated one wrong answer!", "success");
+          return true;
       }
+      
+      return false;
     },
     
     // Answer a question

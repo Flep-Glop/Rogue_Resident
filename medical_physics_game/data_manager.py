@@ -1,3 +1,5 @@
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # data_manager.py - JSON data loading/saving
 import json
 import os
@@ -5,7 +7,7 @@ import os
 # Data loading functions
 def load_json_data(filename):
     """Load data from a JSON file in the data directory"""
-    data_path = os.path.join('data', filename)
+    data_path = os.path.join(BASE_DIR, 'data', filename)
     try:
         with open(data_path, 'r') as file:
             return json.load(file)
