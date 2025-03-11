@@ -469,9 +469,9 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.GAMBLE);
     },
     
-    // Replace the markNodeVisited function in nodes.js
+    // Replace markNodeVisited function in nodes.js with the following
     markNodeVisited: function(nodeId) {
-      console.log(`Marking node ${nodeId} as visited - FINAL FIX`);
+      console.log(`Marking node ${nodeId} as visited`);
       
       // FORCE server-side update first to ensure the game state is updated properly
       ApiClient.markNodeVisited(nodeId)
@@ -534,6 +534,9 @@ window.Nodes = {
               if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
                   gameState.map.nodes[nodeId].visited = true;
               }
+              
+              // Clear current node
+              gameState.currentNode = null;
               
               // Return to map view
               this.showContainer(CONTAINER_TYPES.MAP);
@@ -992,7 +995,7 @@ window.Nodes = {
       continueBtn.style.display = 'block';
       continueBtn.addEventListener('click', onContinue);
     },
-    // Add this function to the Nodes object in nodes.js
+    // Replace setCurrentNode function in nodes.js with the following
     setCurrentNode: function(nodeId) {
       console.log(`Setting current node to ${nodeId}`);
       

@@ -286,13 +286,13 @@ window.MapRenderer = {
       canvas.addEventListener('click', this._currentClickHandler);
   },
   
-  // Replace the drawConnections function in map-renderer.js
+  // Replace drawConnections function in map-renderer.js with the following
   drawConnections: function(ctx, mapData, width, height, bottomUp = false) {
     const allNodes = { ...mapData.nodes };
     if (mapData.start) allNodes['start'] = mapData.start;
     if (mapData.boss) allNodes['boss'] = mapData.boss;
     
-    // Temporarily force all nodes to recalculate availability
+    // Force all nodes to recalculate availability
     for (const nodeId in allNodes) {
         if (nodeId !== 'start') {
             const canVisit = this.canVisitNode(nodeId);
@@ -346,14 +346,7 @@ window.MapRenderer = {
             // Path offset variables for pixel effect
             const maxOffset = 1.5; // Maximum pixel offset
             
-            // Determine path color based on game state:
-            
-            // FIXED COLOR LOGIC: (This is the key fix!)
-            
-            // 1. YELLOW/GOLD PATH: Currently being traveled path (when node.current or targetNode.current)
-            // 2. GREEN PATH: Completed paths (visited nodes) AND available paths (can visit)
-            // 3. GRAY PATH: Unavailable paths
-            
+            // Determine path color based on game state
             let pathStyle = {
                 strokeStyle: 'rgba(100, 100, 110, 0.15)', // Default: gray
                 lineWidth: 1,
@@ -363,7 +356,7 @@ window.MapRenderer = {
             };
             
             // Check if this is the current path being traversed
-            if (node.current === true || targetNode.current === true) {
+            if (gameState.currentNode === nodeId || gameState.currentNode === targetId) {
                 // Gold for current path
                 pathStyle = {
                     strokeStyle: '#f0c866', // Gold color
@@ -451,7 +444,7 @@ window.MapRenderer = {
     }
   },
   
-  // Replace the drawNode function in map-renderer.js
+  // Replace drawNode function in map-renderer.js with the following
   drawNode: function(ctx, node, width, height, bottomUp = false) {
     // Calculate node position (adjust for bottom-up layout)
     let y;
@@ -474,10 +467,10 @@ window.MapRenderer = {
     
     // Add outer glow effect for current and available nodes
     if (node.current) {
-        // Current node - bright gold glow
+        // Current node - bright gold glow with strong pulsing
         const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
         const glowSize = 15;
-        const glowAlpha = 0.5;
+        const glowAlpha = 0.5 + Math.sin(Date.now() / 300) * 0.2; // Pulsing effect
         
         const gradient = ctx.createRadialGradient(
             x, y, radius - 5,
@@ -490,10 +483,15 @@ window.MapRenderer = {
         ctx.beginPath();
         ctx.arc(x, y, radius + glowSize, 0, Math.PI * 2);
         ctx.fill();
+        
+        // DEBUG: Add label showing this is current
+        ctx.font = '10px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText('CURRENT', x, y - radius - 15);
     } else if (node.available) {
-        // Available node - green glow
+        // Available node - green glow with gentle pulsing
         const glowSize = 10;
-        const glowAlpha = 0.3;
+        const glowAlpha = 0.3 + Math.sin(Date.now() / 500) * 0.1; // Gentle pulsing
         
         const gradient = ctx.createRadialGradient(
             x, y, radius - 5,
@@ -506,6 +504,16 @@ window.MapRenderer = {
         ctx.beginPath();
         ctx.arc(x, y, radius + glowSize, 0, Math.PI * 2);
         ctx.fill();
+        
+        // DEBUG: Add label showing this is available
+        ctx.font = '10px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText('AVAILABLE', x, y - radius - 15);
+    } else if (node.visited) {
+        // DEBUG: Add label showing this is visited
+        ctx.font = '10px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillText('VISITED', x, y - radius - 15);
     }
     
     // Create pixelated node shape
@@ -542,7 +550,7 @@ window.MapRenderer = {
         x, y, radius
     );
     
-    // Style based on status - UPDATED LOGIC
+    // Style based on status
     if (node.current) {
         // Current node - bright glowing blue/white
         const lighterColor = '#ffffff'; 
@@ -633,10 +641,15 @@ window.MapRenderer = {
         ctx.fillText(symbol, x, y);
     }
     
+    // Add node ID in small text for debugging
+    ctx.font = '8px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText(node.id, x, y + radius + 10);
+    
     // Add difficulty indicator for question and elite nodes
     if ((node.type === 'question' || node.type === 'elite') && node.difficulty) {
         // Position stars below the node
-        const starsY = y + radius + 10;
+        const starsY = y + radius + 20; // Moved down to not overlap with node ID
         
         if (node.available || node.visited) {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -747,7 +760,7 @@ window.MapRenderer = {
     }
   },
   
-  // Replace the canVisitNode function in map-renderer.js
+  // Replace canVisitNode function in map-renderer.js with the following
   canVisitNode: function(nodeId) {
     // Can't visit the start node
     if (nodeId === 'start') return false;
@@ -765,12 +778,6 @@ window.MapRenderer = {
     
     // Get node's row
     const nodeRow = node.position.row;
-    
-    // First, check if any node in this row has been visited - if so, no other nodes in this row can be visited
-    const nodesInSameRow = Object.values(mapData.nodes).filter(n => 
-        n.position && n.position.row === nodeRow && n.id !== nodeId && n.visited);
-    
-    if (nodesInSameRow.length > 0) return false;
     
     // Check if there's a path to this node from a previously visited node
     const previousRowNodes = [];
