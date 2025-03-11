@@ -25,6 +25,13 @@ window.gameState = {
   currentQuestion: null
 };
 
+// Show welcome message when game loads
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+      UiUtils.showFloatingText("Welcome to Medical Physics Residency!", "success");
+  }, 1000);
+});
+
 // Update the document ready function to properly initialize the game
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Game initializing...");
