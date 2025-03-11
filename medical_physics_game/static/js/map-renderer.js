@@ -321,7 +321,7 @@ window.MapRenderer = {
     canvas.addEventListener('click', this._currentClickHandler);
   },
   
-  // Update the drawConnections function for better path rendering
+  // Replace the drawConnections function in map-renderer.js
   drawConnections: function(ctx, mapData, width, height, bottomUp = false) {
     const allNodes = { ...mapData.nodes };
     if (mapData.start) allNodes['start'] = mapData.start;
@@ -375,8 +375,28 @@ window.MapRenderer = {
             // Path offset variables for pixel effect
             const maxOffset = 1.5; // Maximum pixel offset
             
+            // Check if this is a current active path (from current node)
+            const isCurrentPath = node.current === true;
+            const isTargetCurrent = targetNode.current === true;
+            
             // Style the path based on status
-            if (node.visited && targetNode.visited) {
+            if (isCurrentPath || isTargetCurrent) {
+                // Current node to target or target to current - highlight this path
+                ctx.strokeStyle = '#f0c866'; // Bright yellow/gold for current path
+                ctx.lineWidth = 4;
+                ctx.shadowColor = '#f0c866';
+                ctx.shadowBlur = 8;
+                ctx.globalAlpha = 0.9;
+                
+                // Add animation effect
+                const time = Date.now() / 1000;
+                const pulseRate = 2; // Pulse every 2 seconds
+                const pulseAmount = 0.3; // Amount to pulse (30% opacity change)
+                
+                // Create pulsing effect
+                ctx.globalAlpha = 0.7 + Math.sin(time * pulseRate * Math.PI) * pulseAmount;
+            }
+            else if (node.visited && targetNode.visited) {
                 // Path has been used - soft green with pixelated effect
                 ctx.strokeStyle = '#56b886'; // Secondary color - green
                 ctx.lineWidth = 3;
@@ -720,48 +740,87 @@ window.MapRenderer = {
     }
   },
   
-  // Replace the existing canVisitNode function in map-renderer.js
+  // Replace the canVisitNode function in map-renderer.js
   canVisitNode: function(nodeId) {
-    if (nodeId === 'start') return false; // Can't revisit start
+    console.log(`Checking if node ${nodeId} can be visited`);
+    
+    if (nodeId === 'start') {
+        console.log('Cannot revisit start node');
+        return false; // Can't revisit start
+    }
     
     // Get the map data
     const mapData = gameState.map;
-    if (!mapData) return false;
-    
-    // If this is the current node, it can't be visited
-    if (this.getCurrentNode() === nodeId) return false;
-    
-    // Get the node
-    const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
-    if (!node || node.visited) return false;
-    
-    // Check if there's a path to this node from a visited node
-    const allNodes = { ...mapData.nodes };
-    if (mapData.start) allNodes['start'] = mapData.start;
-    if (mapData.boss) allNodes['boss'] = mapData.boss;
-    
-    // Check if we've already chosen a node on this row (floor)
-    const nodesInSameRow = Object.values(allNodes).filter(n => 
-        n.position.row === node.position.row && n.visited);
-    
-    if (nodesInSameRow.length > 0) {
-        // If we've already visited a node on this row, we can't visit any other nodes on the same row
+    if (!mapData) {
+        console.log('No map data available');
         return false;
     }
     
-    // Check if there's a path to this node from a visited node
-    let canVisit = false;
-    for (const sourceId in allNodes) {
-        const sourceNode = allNodes[sourceId];
-        if ((sourceNode.visited || sourceId === 'start') && 
-            sourceNode.paths && 
-            sourceNode.paths.includes(nodeId)) {
-            canVisit = true;
-            break;
+    // If this is the current node, it can't be visited
+    if (gameState.currentNode === nodeId) {
+        console.log('This is the current node, cannot visit');
+        return false;
+    }
+    
+    // Get the node
+    const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
+    if (!node) {
+        console.log('Node not found');
+        return false;
+    }
+    
+    // If the node is already visited, it can't be visited again
+    if (node.visited) {
+        console.log('Node already visited');
+        return false;
+    }
+    
+    // Get the row number for this node
+    const nodeRow = node.position.row;
+    
+    // DEBUG: Log node position information
+    console.log(`Node ${nodeId} is in row ${nodeRow}`);
+    
+    // Check if any node in this row has been visited
+    const visitedNodesInRow = Object.values(mapData.nodes)
+        .filter(n => n.position.row === nodeRow && n.visited);
+    
+    if (visitedNodesInRow.length > 0) {
+        console.log(`Row ${nodeRow} already has visited nodes, cannot visit another in this row`);
+        return false;
+    }
+    
+    // Check if the previous row has any visited nodes
+    const prevRow = nodeRow - 1;
+    
+    // For the first row of nodes, check if start is "visited" (it's always considered visited)
+    if (prevRow === 0) {
+        // First row can always be visited if no other node in that row is visited
+        console.log('First row node can be visited if no other node in row is visited');
+        return visitedNodesInRow.length === 0;
+    }
+    
+    // For other rows, check if there's a visited node in the previous row that has a path to this node
+    const visitedNodesInPrevRow = Object.values(mapData.nodes)
+        .filter(n => n.position.row === prevRow && n.visited);
+    
+    // Also include the start node if it's in the previous row
+    if (mapData.start && mapData.start.position && mapData.start.position.row === prevRow) {
+        visitedNodesInPrevRow.push(mapData.start);
+    }
+    
+    console.log(`Found ${visitedNodesInPrevRow.length} visited nodes in previous row`);
+    
+    // Check if any of the visited nodes in the previous row have a path to this node
+    for (const prevNode of visitedNodesInPrevRow) {
+        if (prevNode.paths && prevNode.paths.includes(nodeId)) {
+            console.log(`Node ${nodeId} can be visited from ${prevNode.id}`);
+            return true;
         }
     }
     
-    return canVisit;
+    console.log(`No path to node ${nodeId} from any visited node in previous row`);
+    return false;
   },
   
   // Add these helper functions to MapRenderer in map-renderer.js

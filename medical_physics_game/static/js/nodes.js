@@ -68,22 +68,15 @@ window.Nodes = {
       }
     },
     
-    // Update the visitNode function in nodes.js
+    // Replace the visitNode function in nodes.js
     visitNode: function(nodeId) {
       console.log(`Visiting node: ${nodeId}`);
       
       // First, clear any existing event listeners to prevent duplicates
       this.clearEventListeners();
       
-      // Mark this as the current node
-      gameState.currentNode = nodeId;
-      
-      // Add visual indication of current node
-      if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-          gameState.map.nodes[nodeId].current = true;
-      } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
-          gameState.map.boss.current = true;
-      }
+      // Set this as the current node using our helper
+      this.setCurrentNode(nodeId);
       
       fetch(`/api/node/${nodeId}`)
           .then(response => {
@@ -114,9 +107,6 @@ window.Nodes = {
                   UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
                   this.markNodeVisited(nodeId);
               }
-              
-              // Update map to highlight current node
-              MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
           })
           .catch(error => {
               console.error('Error visiting node:', error);
@@ -304,59 +294,71 @@ window.Nodes = {
       }
     },
     
-    // Replace the existing showRestNode function in nodes.js with this implementation
+    // Replace the showRestNode function in nodes.js with this version
     showRestNode: function(nodeData) {
       console.log("Showing rest node:", nodeData);
       
-      // Reset buttons state
+      // First show the container so elements exist in the DOM
+      this.showContainer(CONTAINER_TYPES.REST);
+      
+      // Get button elements after the container is shown
       const healBtn = document.getElementById('rest-heal-btn');
       const studyBtn = document.getElementById('rest-study-btn');
       const continueBtn = document.getElementById('rest-continue-btn');
       
-      if (healBtn) healBtn.disabled = false;
-      if (studyBtn) studyBtn.disabled = false;
-      
-      // Add event listeners for rest options
-      if (healBtn) {
-          // Remove any existing event listeners
-          const newHealBtn = healBtn.cloneNode(true);
-          healBtn.parentNode.replaceChild(newHealBtn, healBtn);
+      // Remove ALL existing event listeners by cloning parent element and replacing content
+      const restOptions = document.getElementById('rest-options');
+      if (restOptions) {
+          const newRestOptions = restOptions.cloneNode(false); // Clone without children
           
-          // Add new event listener
-          newHealBtn.addEventListener('click', () => {
-              // Only heal if not at max health
-              if (gameState.character.lives < gameState.character.max_lives) {
-                  gameState.character.lives += 1;
+          // Recreate the buttons
+          newRestOptions.innerHTML = `
+              <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
+              <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
+          `;
+          
+          // Replace the old container
+          restOptions.parentNode.replaceChild(newRestOptions, restOptions);
+          
+          // Get the new buttons
+          const newHealBtn = document.getElementById('rest-heal-btn');
+          const newStudyBtn = document.getElementById('rest-study-btn');
+          
+          // Add event listeners to new buttons
+          if (newHealBtn) {
+              newHealBtn.addEventListener('click', function() {
+                  console.log("Heal button clicked");
+                  if (gameState.character.lives < gameState.character.max_lives) {
+                      gameState.character.lives += 1;
+                      Character.updateCharacterInfo(gameState.character);
+                      UiUtils.showFloatingText('+1 Life', 'success');
+                      this.disabled = true;
+                  } else {
+                      UiUtils.showFloatingText('Already at full health!', 'warning');
+                  }
+              });
+          }
+          
+          if (newStudyBtn) {
+              newStudyBtn.addEventListener('click', function() {
+                  console.log("Study button clicked");
+                  gameState.character.insight += 5;
                   Character.updateCharacterInfo(gameState.character);
-                  UiUtils.showFloatingText('+1 Life', 'success');
-                  newHealBtn.disabled = true;
-              } else {
-                  UiUtils.showFloatingText('Already at full health!', 'warning');
-              }
-          });
+                  UiUtils.showFloatingText('+5 Insight', 'success');
+                  this.disabled = true;
+              });
+          }
       }
       
-      if (studyBtn) {
-          // Remove any existing event listeners
-          const newStudyBtn = studyBtn.cloneNode(true);
-          studyBtn.parentNode.replaceChild(newStudyBtn, studyBtn);
-          
-          // Add new event listener
-          newStudyBtn.addEventListener('click', () => {
-              gameState.character.insight += 5;
-              Character.updateCharacterInfo(gameState.character);
-              UiUtils.showFloatingText('+5 Insight', 'success');
-              newStudyBtn.disabled = true;
-          });
-      }
-      
+      // Reset and add event listener for continue button
       if (continueBtn) {
-          // Remove any existing event listeners
+          // Clone and replace to remove old event listeners
           const newContinueBtn = continueBtn.cloneNode(true);
           continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
           
-          // Add new event listener
+          // Add event listener to the new button
           newContinueBtn.addEventListener('click', () => {
+              console.log("Continue button clicked");
               if (gameState.currentNode) {
                   this.markNodeVisited(gameState.currentNode);
                   this.showContainer(CONTAINER_TYPES.MAP);
@@ -369,8 +371,7 @@ window.Nodes = {
           });
       }
       
-      // Show the rest container
-      this.showContainer(CONTAINER_TYPES.REST);
+      console.log("Rest node setup complete, buttons should be working");
     },
     
     // Show shop node
@@ -449,23 +450,26 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.GAMBLE);
     },
     
-    // Update the markNodeVisited function in nodes.js
+    // Replace the markNodeVisited function in nodes.js
     markNodeVisited: function(nodeId) {
-      // Clear current node indicator
-      if (gameState.map && gameState.map.nodes) {
-          Object.values(gameState.map.nodes).forEach(node => {
-              node.current = false;
-          });
-      }
-      if (gameState.map && gameState.map.boss) {
+      console.log(`Marking node ${nodeId} as visited`);
+      
+      // Find the node that's being marked as visited
+      let visitedNode = null;
+      
+      if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
+          visitedNode = gameState.map.nodes[nodeId];
+          gameState.map.nodes[nodeId].visited = true;
+          gameState.map.nodes[nodeId].current = false;
+      } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
+          visitedNode = gameState.map.boss;
+          gameState.map.boss.visited = true;
           gameState.map.boss.current = false;
       }
-
-      // Update local game state
-      if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-          gameState.map.nodes[nodeId].visited = true;
-      } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
-          gameState.map.boss.visited = true;
+      
+      // Log the node that was visited and its paths
+      if (visitedNode) {
+          console.log(`Node ${nodeId} marked as visited with paths:`, visitedNode.paths);
       }
       
       // Clear current node
@@ -474,24 +478,41 @@ window.Nodes = {
       // Update on server
       ApiClient.markNodeVisited(nodeId)
           .then(data => {
+              console.log("Server response after marking node visited:", data);
+              
               // Check if all nodes are visited
               if (data.all_nodes_visited) {
-                  // Show next floor button
+                  console.log("All nodes visited, showing next floor button");
                   const nextFloorBtn = document.getElementById('next-floor-btn');
                   if (nextFloorBtn) {
                       nextFloorBtn.style.display = 'block';
                   }
               }
               
+              // Update game state from server response if provided
+              if (data.game_state) {
+                  console.log("Updating game state from server response");
+                  // We keep the local map data because it has UI state not persisted on server
+                  const localMap = gameState.map;
+                  gameState = data.game_state;
+                  gameState.map = localMap;
+              }
+              
               // Render the updated map
+              console.log("Re-rendering map");
               MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
               
               // Save game state
               if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-                  ApiClient.saveGame().catch(err => console.error("Failed to save game after marking node visited:", err));
+                  ApiClient.saveGame()
+                      .then(() => console.log("Game saved after marking node visited"))
+                      .catch(err => console.error("Failed to save game after marking node visited:", err));
               }
           })
-          .catch(error => console.error('Error marking node as visited:', error));
+          .catch(error => {
+              console.error('Error marking node as visited:', error);
+              UiUtils.showToast(`Error marking node as visited: ${error.message}`, 'danger');
+          });
     },
     
     // Go to the next floor
@@ -577,21 +598,6 @@ window.Nodes = {
       
       // Show the treasure container
       this.showContainer(CONTAINER_TYPES.TREASURE);
-    },
-
-    // Implement showRestNode function
-    showRestNode: function(nodeData) {
-      console.log("Showing rest node:", nodeData);
-      
-      // Reset buttons state
-      const healBtn = document.getElementById('rest-heal-btn');
-      const studyBtn = document.getElementById('rest-study-btn');
-      
-      if (healBtn) healBtn.disabled = false;
-      if (studyBtn) studyBtn.disabled = false;
-      
-      // Show the rest container
-      this.showContainer(CONTAINER_TYPES.REST);
     },
 
     // Show event node
@@ -941,5 +947,43 @@ window.Nodes = {
       
       continueBtn.style.display = 'block';
       continueBtn.addEventListener('click', onContinue);
+    },
+    // Add this function to the Nodes object in nodes.js
+    setCurrentNode: function(nodeId) {
+      console.log(`Setting current node to ${nodeId}`);
+      
+      // Clear current status from all nodes
+      if (gameState.map && gameState.map.nodes) {
+          Object.values(gameState.map.nodes).forEach(node => {
+              node.current = false;
+          });
+      }
+      
+      if (gameState.map && gameState.map.boss) {
+          gameState.map.boss.current = false;
+      }
+      
+      if (gameState.map && gameState.map.start) {
+          gameState.map.start.current = false;
+      }
+      
+      // Set current node
+      if (nodeId) {
+          if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
+              gameState.map.nodes[nodeId].current = true;
+          } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
+              gameState.map.boss.current = true;
+          } else if (gameState.map && gameState.map.start && gameState.map.start.id === nodeId) {
+              gameState.map.start.current = true;
+          }
+      }
+      
+      // Set in game state
+      gameState.currentNode = nodeId;
+      
+      // Render the map to show the current node
+      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+      }
     }
   };
