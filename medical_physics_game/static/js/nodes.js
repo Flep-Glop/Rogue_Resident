@@ -318,7 +318,7 @@ window.Nodes = {
       }
     },
     
-    // Replace the showRestNode function in nodes.js with this version
+    // Replace the showRestNode function in nodes.js
     showRestNode: function(nodeData) {
       console.log("Showing rest node:", nodeData);
       
@@ -374,23 +374,18 @@ window.Nodes = {
           }
       }
       
-      // Reset and add event listener for continue button
+      // Reset and add event listener for continue button - THIS IS THE CRITICAL PART
       if (continueBtn) {
           // Clone and replace to remove old event listeners
           const newContinueBtn = continueBtn.cloneNode(true);
           continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
           
-          // Add event listener to the new button
+          // Add new event listener with PROPER NODE COMPLETION
           newContinueBtn.addEventListener('click', () => {
-              console.log("Continue button clicked");
+              console.log("Continue button clicked - completing rest node");
               if (gameState.currentNode) {
+                  // FORCE the node to be marked as visited using our improved function
                   this.markNodeVisited(gameState.currentNode);
-                  this.showContainer(CONTAINER_TYPES.MAP);
-                  
-                  // Save game state
-                  if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-                      ApiClient.saveGame().catch(err => console.error("Failed to save game after rest:", err));
-                  }
               }
           });
       }
@@ -476,35 +471,40 @@ window.Nodes = {
     
     // Replace the markNodeVisited function in nodes.js
     markNodeVisited: function(nodeId) {
-      console.log(`Marking node ${nodeId} as visited`);
+      console.log(`Marking node ${nodeId} as visited - FINAL FIX`);
       
-      // Find the node that's being marked as visited
-      let visitedNode = null;
-      
-      if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
-          visitedNode = gameState.map.nodes[nodeId];
-          gameState.map.nodes[nodeId].visited = true;
-          gameState.map.nodes[nodeId].current = false;
-      } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
-          visitedNode = gameState.map.boss;
-          gameState.map.boss.visited = true;
-          gameState.map.boss.current = false;
-      }
-      
-      // Log the node that was visited and its paths
-      if (visitedNode) {
-          console.log(`Node ${nodeId} marked as visited with paths:`, visitedNode.paths);
-      }
-      
-      // Clear current node
-      gameState.currentNode = null;
-      
-      // Update on server
+      // FORCE server-side update first to ensure the game state is updated properly
       ApiClient.markNodeVisited(nodeId)
           .then(data => {
-              console.log("Server response after marking node visited:", data);
+              console.log("Server confirmed node visited:", nodeId);
               
-              // Check if all nodes are visited
+              // Now update LOCAL state
+              if (gameState.map) {
+                  // Clear current status from all nodes
+                  if (gameState.map.nodes) {
+                      Object.values(gameState.map.nodes).forEach(node => {
+                          node.current = false;
+                      });
+                  }
+                  
+                  if (gameState.map.boss) {
+                      gameState.map.boss.current = false;
+                  }
+                  
+                  // Mark the specific node as visited in local state
+                  if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
+                      console.log(`Setting node ${nodeId} to visited in local state`);
+                      gameState.map.nodes[nodeId].visited = true;
+                  } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
+                      console.log(`Setting boss node ${nodeId} to visited in local state`);
+                      gameState.map.boss.visited = true;
+                  }
+              }
+              
+              // Clear current node in game state
+              gameState.currentNode = null;
+              
+              // Check if all nodes are visited for next floor button
               if (data.all_nodes_visited) {
                   console.log("All nodes visited, showing next floor button");
                   const nextFloorBtn = document.getElementById('next-floor-btn');
@@ -513,18 +513,13 @@ window.Nodes = {
                   }
               }
               
-              // Update game state from server response if provided
-              if (data.game_state) {
-                  console.log("Updating game state from server response");
-                  // We keep the local map data because it has UI state not persisted on server
-                  const localMap = gameState.map;
-                  gameState = data.game_state;
-                  gameState.map = localMap;
+              // IMPORTANT: Re-render the map to reflect changes
+              if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+                  MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
               }
               
-              // Render the updated map
-              console.log("Re-rendering map");
-              MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+              // Return to map view
+              this.showContainer(CONTAINER_TYPES.MAP);
               
               // Save game state
               if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
@@ -535,7 +530,13 @@ window.Nodes = {
           })
           .catch(error => {
               console.error('Error marking node as visited:', error);
-              UiUtils.showToast(`Error marking node as visited: ${error.message}`, 'danger');
+              // Still try to update local state as a fallback
+              if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
+                  gameState.map.nodes[nodeId].visited = true;
+              }
+              
+              // Return to map view
+              this.showContainer(CONTAINER_TYPES.MAP);
           });
     },
     
@@ -572,16 +573,17 @@ window.Nodes = {
           UiUtils.showError(`Failed to advance to next floor: ${error.message}`);
         });
     },
-    // Implement complete showTreasure function 
+    // Update the final part of the showTreasure function in nodes.js
+    // Find this function and update just the "Continue" button code
     showTreasure: function(nodeData) {
       console.log("Showing treasure node:", nodeData);
       
       // Get item data from node
       const item = nodeData.item;
       if (!item) {
-        console.error("No item data in treasure node");
-        this.markNodeVisited(nodeData.id);
-        return;
+          console.error("No item data in treasure node");
+          this.markNodeVisited(nodeData.id);
+          return;
       }
       
       // Create treasure content
@@ -590,38 +592,56 @@ window.Nodes = {
       
       // Display item information
       treasureContent.innerHTML = `
-        <div class="card mb-3">
-          <div class="card-header bg-warning">
-            <h4>${item.name}</h4>
-            <span class="badge bg-secondary">${item.rarity || 'common'}</span>
+          <div class="card mb-3">
+              <div class="card-header bg-warning">
+                  <h4>${item.name}</h4>
+                  <span class="badge bg-secondary">${item.rarity || 'common'}</span>
+              </div>
+              <div class="card-body">
+                  <p>${item.description}</p>
+                  <div class="alert alert-info">
+                      <strong>Effect:</strong> ${Character.getEffectDescription(item.effect)}
+                  </div>
+                  <button id="collect-item-btn" class="btn btn-success">Add to Inventory</button>
+              </div>
           </div>
-          <div class="card-body">
-            <p>${item.description}</p>
-            <div class="alert alert-info">
-              <strong>Effect:</strong> ${Character.getEffectDescription(item.effect)}
-            </div>
-            <button id="collect-item-btn" class="btn btn-success">Add to Inventory</button>
-          </div>
-        </div>
       `;
       
       // Set up event listener for the collect button
       const collectBtn = document.getElementById('collect-item-btn');
       if (collectBtn) {
-        collectBtn.addEventListener('click', () => {
-          // Add item to inventory
-          const added = Character.addItemToInventory(item);
-          
-          if (added) {
-            // Disable the button to prevent multiple collections
-            collectBtn.disabled = true;
-            collectBtn.textContent = "Added to Inventory";
-          }
-        });
+          collectBtn.addEventListener('click', () => {
+              // Add item to inventory
+              const added = Character.addItemToInventory(item);
+              
+              if (added) {
+                  // Disable the button to prevent multiple collections
+                  collectBtn.disabled = true;
+                  collectBtn.textContent = "Added to Inventory";
+              }
+          });
       }
       
       // Show the treasure container
       this.showContainer(CONTAINER_TYPES.TREASURE);
+      
+      // UPDATED CODE FOR CONTINUE BUTTON:
+      // Set up event listener for continue button
+      const continueBtn = document.getElementById('treasure-continue-btn');
+      if (continueBtn) {
+          // Clone and replace to remove old event listeners
+          const newContinueBtn = continueBtn.cloneNode(true);
+          continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+          
+          // Add event listener with proper node completion
+          newContinueBtn.addEventListener('click', () => {
+              console.log("Treasure continue button clicked - completing node");
+              if (gameState.currentNode) {
+                  // Force the node to be marked as visited
+                  this.markNodeVisited(gameState.currentNode);
+              }
+          });
+      }
     },
 
     // Show event node
