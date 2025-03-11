@@ -1,20 +1,29 @@
-/* 8-bit retro style CSS */
+/* Updated retro.css with softer colors and more consistent theme */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
-  --primary: #3498db;
-  --secondary: #2ecc71;
-  --danger: #e74c3c;
-  --warning: #f1c40f;
-  --dark: #2c3e50;
-  --light: #ecf0f1;
-  --pixel-size: 4px;
+  /* Softer color palette with better harmony */
+  --primary: #5b8dd9;      /* Softer blue */
+  --primary-dark: #4a70b0; /* Dark blue for shadows */
+  --secondary: #56b886;    /* Softer green */
+  --secondary-dark: #45966d; /* Dark green for shadows */
+  --danger: #e67e73;       /* Softer red */
+  --danger-dark: #b66059;  /* Dark red for shadows */
+  --warning: #f0c866;      /* Softer yellow */
+  --warning-dark: #c9a955; /* Dark yellow for shadows */
+  --dark: #3d4c60;         /* Softer dark blue */
+  --dark-alt: #2c3848;     /* Darker shade for contrast */
+  --light: #ecf0f1;        /* Light gray */
+  --background: #292b36;   /* Dark background with slight blue tint */
+  --background-alt: #21232d; /* Slightly darker for contrast */
+  --text: #d4dae0;         /* Soft white/gray for text */
+  --pixel-size: 3px;       /* Slightly smaller pixel size for less jaggedness */
 }
 
 body {
   font-family: 'Press Start 2P', cursive;
-  background-color: #000;
-  color: var(--light);
+  background-color: var(--background);
+  color: var(--text);
   text-align: center;
   line-height: 1.5;
   margin: 0;
@@ -30,23 +39,21 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: repeating-linear-gradient(
+  background: linear-gradient(
     0deg,
-    #060606,
-    #060606 var(--pixel-size),
-    #0a0a0a var(--pixel-size),
-    #0a0a0a calc(var(--pixel-size) * 2)
+    var(--background),
+    var(--background-alt) 80%
   );
 }
 
 .game-title {
-  font-size: 48px;
-  margin-bottom: 30px;
+  font-size: 40px; /* Slightly smaller for less intensity */
+  margin-bottom: 25px;
   color: var(--primary);
   text-shadow: 
-    4px 4px 0 rgba(0,0,0,0.9),
-    var(--pixel-size) var(--pixel-size) 0 #000;
-  animation: pulse 2s infinite;
+    3px 3px 0 rgba(0,0,0,0.7),
+    var(--pixel-size) var(--pixel-size) 0 var(--background-alt);
+  animation: gentle-pulse 3s infinite; /* Slower, gentler animation */
 }
 
 .subtitle {
@@ -66,21 +73,22 @@ body {
 
 .retro-btn {
   font-family: 'Press Start 2P', cursive;
-  padding: 15px;
-  font-size: 16px;
+  padding: 12px;
+  font-size: 14px;
   border: none;
   background-color: var(--primary);
   color: #fff;
   cursor: pointer;
   position: relative;
-  transition: all 0.1s ease;
+  transition: all 0.2s ease;
   box-shadow: 
-    0 var(--pixel-size) 0 0 #2980b9,
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+    0 var(--pixel-size) 0 0 var(--primary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
 }
 
 .retro-btn:hover {
   transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 .retro-btn:active {
@@ -91,32 +99,32 @@ body {
 .retro-btn.start {
   background-color: var(--secondary);
   box-shadow: 
-    0 var(--pixel-size) 0 0 #27ae60,
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
 }
 
 .retro-btn.options {
   background-color: var(--warning);
   box-shadow: 
-    0 var(--pixel-size) 0 0 #f39c12,
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+    0 var(--pixel-size) 0 0 var(--warning-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
 }
 
 .retro-btn.help {
   background-color: var(--dark);
   box-shadow: 
-    0 var(--pixel-size) 0 0 #1a252f,
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+    0 var(--pixel-size) 0 0 var(--dark-alt),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
 }
 
 .footer {
   position: absolute;
   bottom: 20px;
   font-size: 10px;
-  color: #666;
+  color: rgba(255,255,255,0.5);
 }
 
-/* Scanline effect */
+/* Refined scanline effect - more subtle */
 .scanlines {
   position: fixed;
   top: 0;
@@ -127,13 +135,13 @@ body {
     linear-gradient(
       to bottom,
       rgba(255,255,255,0) 0%,
-      rgba(255,255,255,0.03) 50%,
+      rgba(255,255,255,0.02) 50%,
       rgba(255,255,255,0) 100%
     );
   background-size: 100% calc(var(--pixel-size) * 2);
   z-index: 1000;
   pointer-events: none;
-  opacity: 0.3;
+  opacity: 0.2; /* More subtle scanlines */
 }
 
 /* Pixelated character animations */
@@ -147,33 +155,23 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Pixelated decorations */
-.pixel-decoration {
-  position: absolute;
-  width: calc(var(--pixel-size) * 3);
-  height: calc(var(--pixel-size) * 3);
-  background-color: var(--primary);
-  opacity: 0.5;
-  z-index: -1;
-}
-
 /* Animations */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+@keyframes gentle-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.1); }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
   100% { transform: translateY(0px); }
 }
 
 /* Media queries for responsiveness */
 @media (max-width: 768px) {
   .game-title {
-    font-size: 32px;
+    font-size: 28px;
   }
   
   .subtitle {
@@ -181,33 +179,33 @@ body {
   }
   
   .retro-btn {
-    font-size: 14px;
-    padding: 12px;
+    font-size: 12px;
+    padding: 10px;
   }
 }
 
-/* CRT screen flicker effect */
+/* Softened CRT screen effect */
 .crt-effect {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.9) 100%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);
   pointer-events: none;
   z-index: 999;
-  opacity: 0.3;
-  animation: flicker 5s infinite;
+  opacity: 0.2; /* More subtle CRT effect */
+  animation: gentle-flicker 8s infinite; /* Slower, gentler flicker */
 }
 
-@keyframes flicker {
-  0% { opacity: 0.3; }
-  5% { opacity: 0.4; }
-  10% { opacity: 0.3; }
-  15% { opacity: 0.2; }
-  20% { opacity: 0.3; }
-  70% { opacity: 0.3; }
-  72% { opacity: 0.2; }
-  77% { opacity: 0.4; }
-  100% { opacity: 0.3; }
+@keyframes gentle-flicker {
+  0% { opacity: 0.2; }
+  5% { opacity: 0.25; }
+  10% { opacity: 0.2; }
+  15% { opacity: 0.18; }
+  20% { opacity: 0.2; }
+  70% { opacity: 0.2; }
+  72% { opacity: 0.18; }
+  77% { opacity: 0.25; }
+  100% { opacity: 0.2; }
 }

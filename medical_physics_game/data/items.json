@@ -1,59 +1,125 @@
 {
-    "items": [
-      {
-        "id": "textbook",
-        "name": "Radiation Physics Textbook",
-        "description": "A well-worn copy of Khan's The Physics of Radiation Therapy.",
-        "rarity": "common",
-        "effect": {
-          "type": "insight_boost",
-          "value": 10,
-          "duration": "permanent"
-        }
-      },
-      {
-        "id": "coffee",
-        "name": "Cup of Coffee",
-        "description": "Freshly brewed coffee from the department kitchen.",
-        "rarity": "common",
-        "effect": {
-          "type": "restore_life",
-          "value": 1,
-          "duration": "instant"
-        }
-      },
-      {
-        "id": "dosimeter",
-        "name": "Pocket Dosimeter",
-        "description": "A reliable tool for radiation measurements.",
-        "rarity": "uncommon",
-        "effect": {
-          "type": "question_hint",
-          "value": "Eliminates one wrong answer from radiation physics questions.",
-          "duration": "permanent"
-        }
-      },
-      {
-        "id": "tg51",
-        "name": "TG-51 Protocol",
-        "description": "The AAPM Task Group 51 protocol for clinical reference dosimetry.",
-        "rarity": "rare",
-        "effect": {
-          "type": "category_boost",
-          "value": "All dosimetry questions give +5 insight when answered correctly.",
-          "duration": "permanent"
-        }
-      },
-      {
-        "id": "badge",
-        "name": "AAPM Conference Badge",
-        "description": "Proof you attended the latest medical physics conference.",
-        "rarity": "epic",
-        "effect": {
-          "type": "extra_life",
-          "value": "Increases maximum lives by 1.",
-          "duration": "permanent"
-        }
+  "items": [
+    {
+      "id": "textbook",
+      "name": "Radiation Physics Textbook",
+      "description": "A well-worn copy of Khan's The Physics of Radiation Therapy.",
+      "rarity": "common",
+      "effect": {
+        "type": "insight_boost",
+        "value": 10,
+        "duration": "permanent"
       }
-    ]
-  }
+    },
+    {
+      "id": "coffee",
+      "name": "Cup of Coffee",
+      "description": "Freshly brewed coffee from the department kitchen.",
+      "rarity": "common",
+      "effect": {
+        "type": "restore_life",
+        "value": 1,
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "energy_drink",
+      "name": "Energy Drink",
+      "description": "Concentrated caffeine. Probably not great for you.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "special",
+        "value": "Skip the next question cooldown, allowing two consecutive questions.",
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "dosimeter",
+      "name": "Pocket Dosimeter",
+      "description": "A reliable tool for radiation measurements.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "question_hint",
+        "value": "Eliminates one wrong answer from radiation physics questions.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "cheat_sheet",
+      "name": "Cheat Sheet",
+      "description": "A hastily scribbled note with key formulas and definitions.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "question_hint",
+        "value": "Reveals wrong answers for the current question.",
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "tg51",
+      "name": "TG-51 Protocol",
+      "description": "The AAPM Task Group 51 protocol for clinical reference dosimetry.",
+      "rarity": "rare",
+      "effect": {
+        "type": "category_boost",
+        "value": "All dosimetry questions give +5 insight when answered correctly.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "reference_manual",
+      "name": "Reference Manual",
+      "description": "A comprehensive guide to medical physics procedures.",
+      "rarity": "rare",
+      "effect": {
+        "type": "question_hint",
+        "value": "Get a detailed hint for the current question.",
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "emergency_protocol",
+      "name": "Emergency Protocol",
+      "description": "A document outlining procedures for handling unexpected situations.",
+      "rarity": "rare",
+      "effect": {
+        "type": "special",
+        "value": "Escape any node without penalty.",
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "badge",
+      "name": "AAPM Conference Badge",
+      "description": "Proof you attended the latest medical physics conference.",
+      "rarity": "epic",
+      "effect": {
+        "type": "extra_life",
+        "value": "Increases maximum lives by 1.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "farmer_chamber",
+      "name": "Farmer Chamber",
+      "description": "A calibrated ionization chamber for absolute dosimetry.",
+      "rarity": "epic",
+      "effect": {
+        "type": "category_boost",
+        "value": "Dosimetry checks +10% accuracy. All dosimetry questions give +8 insight.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "lead_apron",
+      "name": "Lead Apron",
+      "description": "Standard protective gear against radiation exposure.",
+      "rarity": "rare",
+      "effect": {
+        "type": "defense",
+        "value": "Radiation protection questions deal -1 damage when answered incorrectly.",
+        "duration": "permanent"
+      }
+    }
+  ]
+}

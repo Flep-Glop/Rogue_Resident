@@ -1,48 +1,107 @@
 {
-    "characters": [
-      {
-        "id": "resident",
-        "name": "Medical Physics Resident",
-        "description": "A new resident with balanced stats and a focus on learning.",
-        "starting_stats": {
-          "level": 1,
-          "lives": 3,
-          "max_lives": 3,
-          "insight": 20
-        },
-        "level_bonuses": [
-          { "level": 2, "bonus": { "max_lives": 1 } },
-          { "level": 3, "bonus": { "insight": 10 } },
-          { "level": 4, "bonus": { "max_lives": 1 } },
-          { "level": 5, "bonus": { "insight": 15 } }
-        ],
-        "special_ability": {
-          "name": "Literature Review",
-          "description": "Once per floor, can skip a question node without penalty.",
-          "uses_per_floor": 1
-        }
+  "characters": [
+    {
+      "id": "resident",
+      "name": "Medical Physics Resident",
+      "description": "A new resident with balanced stats and a focus on learning.",
+      "ascii_art": "  O\n /|\\\n / \\",
+      "starting_stats": {
+        "level": 1,
+        "lives": 3,
+        "max_lives": 3,
+        "insight": 20
       },
-      {
-        "id": "physicist",
-        "name": "Junior Physicist",
-        "description": "More experienced with treatment planning but fewer lives.",
-        "starting_stats": {
-          "level": 1,
-          "lives": 2,
-          "max_lives": 2,
-          "insight": 30
-        },
-        "level_bonuses": [
-          { "level": 2, "bonus": { "max_lives": 1 } },
-          { "level": 3, "bonus": { "insight": 15 } },
-          { "level": 4, "bonus": { "insight": 15 } },
-          { "level": 5, "bonus": { "max_lives": 1 } }
-        ],
-        "special_ability": {
-          "name": "Peer Review",
-          "description": "Can see the correct answer for one question per floor.",
-          "uses_per_floor": 1
+      "level_bonuses": [
+        { "level": 2, "bonus": { "max_lives": 1 } },
+        { "level": 3, "bonus": { "insight": 10 } },
+        { "level": 4, "bonus": { "max_lives": 1 } },
+        { "level": 5, "bonus": { "insight": 15 } }
+      ],
+      "special_ability": {
+        "name": "Literature Review",
+        "description": "Once per floor, can skip a question node without penalty.",
+        "uses_per_floor": 1
+      },
+      "starting_relic": {
+        "id": "coffee",
+        "name": "Coffee Mug",
+        "description": "A well-worn mug that helps you stay focused.",
+        "rarity": "common",
+        "effect": {
+          "type": "restore_life",
+          "value": 1,
+          "duration": "instant"
         }
       }
-    ]
-  }
+    },
+    {
+      "id": "physicist",
+      "name": "Junior Physicist",
+      "description": "More experienced with treatment planning but fewer lives.",
+      "ascii_art": "  O\n -|-\n / \\",
+      "starting_stats": {
+        "level": 1,
+        "lives": 2,
+        "max_lives": 2,
+        "insight": 30
+      },
+      "level_bonuses": [
+        { "level": 2, "bonus": { "max_lives": 1 } },
+        { "level": 3, "bonus": { "insight": 15 } },
+        { "level": 4, "bonus": { "insight": 15 } },
+        { "level": 5, "bonus": { "max_lives": 1 } }
+      ],
+      "special_ability": {
+        "name": "Peer Review",
+        "description": "Can see the correct answer for one question per floor.",
+        "uses_per_floor": 1
+      },
+      "starting_relic": {
+        "id": "tg51",
+        "name": "TG-51 Protocol",
+        "description": "The AAPM Task Group 51 protocol for clinical reference dosimetry.",
+        "rarity": "rare",
+        "effect": {
+          "type": "category_boost",
+          "value": "All dosimetry questions give +5 insight when answered correctly.",
+          "duration": "permanent"
+        }
+      }
+    },
+    {
+      "id": "qa_specialist",
+      "name": "QA Specialist",
+      "description": "Quality Assurance expert with deep knowledge of machine checks.",
+      "ascii_art": "  O\n /|\\\n / \\",
+      "starting_stats": {
+        "level": 1,
+        "lives": 3,
+        "max_lives": 3,
+        "insight": 25
+      },
+      "level_bonuses": [
+        { "level": 2, "bonus": { "insight": 15 } },
+        { "level": 3, "bonus": { "max_lives": 1 } },
+        { "level": 4, "bonus": { "insight": 15 } },
+        { "level": 5, "bonus": { "max_lives": 1 } }
+      ],
+      "special_ability": {
+        "name": "Measurement Uncertainty",
+        "description": "Can retry one failed question per floor.",
+        "uses_per_floor": 1
+      },
+      "starting_relic": {
+        "id": "dosimeter",
+        "name": "Lucky Phantom",
+        "description": "A well-maintained reference phantom. QA questions are your specialty.",
+        "rarity": "uncommon",
+        "effect": {
+          "type": "category_boost",
+          "value": "50% chance to auto-pass machine QA questions.",
+          "duration": "permanent"
+        }
+      },
+      "unlock_requirement": "Complete a run with the Resident character."
+    }
+  ]
+}

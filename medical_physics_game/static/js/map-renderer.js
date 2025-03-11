@@ -1,615 +1,619 @@
 // map-renderer.js - Map rendering and node display
 
 window.MapRenderer = {
-    // Map configuration
-    config: {
-      nodesPerRow: 3,    // Number of nodes horizontally
-      rowCount: 5,       // Number of rows (excluding start/boss)
-      branchFactor: 2,   // How many paths forward each node can have
-      minWidth: 800,     // Minimum canvas width
-      minHeight: 600     // Minimum canvas height
-    },
+  // Map configuration
+  config: {
+    nodesPerRow: 3,    // Number of nodes horizontally
+    rowCount: 5,       // Number of rows (excluding start/boss)
+    branchFactor: 2,   // How many paths forward each node can have
+    minWidth: 800,     // Minimum canvas width
+    minHeight: 600     // Minimum canvas height
+  },
+  
+  // Updated node colors with softer palette
+  nodeColors: {
+      'start': '#56b886',    // Green (secondary)
+      'boss': '#e67e73',     // Red (danger)
+      'question': '#5b8dd9', // Blue (primary)
+      'elite': '#d35db3',    // Pink (softer)
+      'treasure': '#f0c866', // Yellow (warning)
+      'rest': '#9c77db',     // Purple (softer)
+      'shop': '#5bbcd9',     // Cyan (softer)
+      'event': '#e99c50',    // Orange (softer)
+      'gamble': '#b8d458'    // Lime (softer)
+  },
+  
+  // Updated node symbols
+  nodeSymbols: {
+      'start': 'S',
+      'boss': 'B',
+      'question': '?',
+      'elite': '!',
+      'treasure': 'T',
+      'rest': 'R',
+      'shop': '$',
+      'event': 'E',
+      'gamble': 'G'
+  },
+  
+  // Function to initialize the floor map
+  initializeFloorMap: function() {
+    console.log("Initializing floor map...");
     
-    // Function to initialize the floor map
-    initializeFloorMap: function() {
-      console.log("Initializing floor map...");
+    // First try to load from backend
+    fetch('/api/generate-floor-map', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        floor_number: gameState.currentFloor || 1
+      }),
+    })
+    .then(response => response.json())
+    .then(mapData => {
+      console.log("Map data received from server:", mapData);
+      gameState.map = mapData;
+      this.renderFloorMap(mapData, CONTAINER_TYPES.MAP);
+    })
+    .catch(error => {
+      console.error('Error getting map from server, using client-side generation:', error);
       
-      // First try to load from backend
-      fetch('/api/generate-floor-map', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          floor_number: gameState.currentFloor || 1
-        }),
-      })
-      .then(response => response.json())
-      .then(mapData => {
-        console.log("Map data received from server:", mapData);
-        gameState.map = mapData;
-        this.renderFloorMap(mapData, CONTAINER_TYPES.MAP);
-      })
-      .catch(error => {
-        console.error('Error getting map from server, using client-side generation:', error);
+      // Fall back to client-side generation
+      const floorData = this.getFloorData(gameState.currentFloor || 1);
+      const mapData = this.generateFloorMap(gameState.currentFloor || 1, floorData);
+      gameState.map = mapData;
+      this.renderFloorMap(mapData, CONTAINER_TYPES.MAP);
+    });
+  },
+  
+  // Get floor data (placeholder - ideally would come from server)
+  getFloorData: function(floorNumber) {
+    return {
+      id: floorNumber,
+      name: `Floor ${floorNumber}`,
+      description: `Advancing to floor ${floorNumber}...`,
+      node_count: {
+        min: 4 + floorNumber,
+        max: 6 + floorNumber
+      },
+      node_types: {
+        question: { weight: 60, difficulty_range: [1, Math.min(floorNumber, 3)] },
+        rest: { weight: 20 },
+        treasure: { weight: 20 },
+        elite: { weight: floorNumber > 1 ? 15 : 0, difficulty_range: [2, 3] }
+      },
+      boss: floorNumber >= 3 ? {
+        name: "Chief Medical Physicist",
+        description: "The department head has challenging questions about QA procedures.",
+        difficulty: 3
+      } : null
+    };
+  },
+  
+  // Generate the map data structure
+  generateFloorMap: function(floorLevel, floorData) {
+    console.log("Generating floor map for level", floorLevel);
+    
+    // Create basic structure
+    const map = {
+      start: { 
+        id: 'start', 
+        type: 'start', 
+        position: { row: 0, col: Math.floor(this.config.nodesPerRow/2) }, 
+        paths: [] 
+      },
+      nodes: {},
+      boss: floorData.boss ? { 
+        id: 'boss', 
+        type: 'boss', 
+        position: { row: this.config.rowCount + 1, col: Math.floor(this.config.nodesPerRow/2) }, 
+        paths: [] 
+      } : null
+    };
+    
+    // Generate intermediate nodes in a grid pattern with random connections
+    for (let row = 1; row <= this.config.rowCount; row++) {
+      for (let col = 0; col < this.config.nodesPerRow; col++) {
+        // Skip some nodes randomly to create variability
+        if (Math.random() < 0.2 && row !== 1) continue;
         
-        // Fall back to client-side generation
-        const floorData = this.getFloorData(gameState.currentFloor || 1);
-        const mapData = this.generateFloorMap(gameState.currentFloor || 1, floorData);
-        gameState.map = mapData;
-        this.renderFloorMap(mapData, CONTAINER_TYPES.MAP);
-      });
-    },
-    
-    // Get floor data (placeholder - ideally would come from server)
-    getFloorData: function(floorNumber) {
-      return {
-        id: floorNumber,
-        name: `Floor ${floorNumber}`,
-        description: `Advancing to floor ${floorNumber}...`,
-        node_count: {
-          min: 4 + floorNumber,
-          max: 6 + floorNumber
-        },
-        node_types: {
-          question: { weight: 60, difficulty_range: [1, Math.min(floorNumber, 3)] },
-          rest: { weight: 20 },
-          treasure: { weight: 20 },
-          elite: { weight: floorNumber > 1 ? 15 : 0, difficulty_range: [2, 3] }
-        },
-        boss: floorNumber >= 3 ? {
-          name: "Chief Medical Physicist",
-          description: "The department head has challenging questions about QA procedures.",
-          difficulty: 3
-        } : null
-      };
-    },
-    
-    // Generate the map data structure
-    generateFloorMap: function(floorLevel, floorData) {
-      console.log("Generating floor map for level", floorLevel);
-      
-      // Create basic structure
-      const map = {
-        start: { 
-          id: 'start', 
-          type: 'start', 
-          position: { row: 0, col: Math.floor(this.config.nodesPerRow/2) }, 
-          paths: [] 
-        },
-        nodes: {},
-        boss: floorData.boss ? { 
-          id: 'boss', 
-          type: 'boss', 
-          position: { row: this.config.rowCount + 1, col: Math.floor(this.config.nodesPerRow/2) }, 
-          paths: [] 
-        } : null
-      };
-      
-      // Generate intermediate nodes in a grid pattern with random connections
-      for (let row = 1; row <= this.config.rowCount; row++) {
-        for (let col = 0; col < this.config.nodesPerRow; col++) {
-          // Skip some nodes randomly to create variability
-          if (Math.random() < 0.2 && row !== 1) continue;
-          
-          const nodeId = `node_${row}_${col}`;
-          
-          // Determine node type based on weights in floorData
-          const nodeType = this.determineNodeType(floorData.node_types);
-          
-          // Create the node
-          map.nodes[nodeId] = {
-            id: nodeId,
-            type: nodeType,
-            position: { row, col },
-            paths: [],
-            visited: false,
-            // For question nodes, track difficulty
-            difficulty: nodeType === 'question' || nodeType === 'elite' ? 
-              this.getRandomDifficulty(floorData.node_types[nodeType]?.difficulty_range) : 1,
-            title: this.getNodeTitle(nodeType)
-          };
-        }
+        const nodeId = `node_${row}_${col}`;
+        
+        // Determine node type based on weights in floorData
+        const nodeType = this.determineNodeType(floorData.node_types);
+        
+        // Create the node
+        map.nodes[nodeId] = {
+          id: nodeId,
+          type: nodeType,
+          position: { row, col },
+          paths: [],
+          visited: false,
+          // For question nodes, track difficulty
+          difficulty: nodeType === 'question' || nodeType === 'elite' ? 
+            this.getRandomDifficulty(floorData.node_types[nodeType]?.difficulty_range) : 1,
+          title: this.getNodeTitle(nodeType)
+        };
       }
+    }
+    
+    // Connect start node to first row
+    const firstRowNodes = Object.values(map.nodes).filter(node => node.position.row === 1);
+    firstRowNodes.forEach(node => {
+      map.start.paths.push(node.id);
+    });
+    
+    // Connect intermediate rows
+    for (let row = 1; row < this.config.rowCount; row++) {
+      const currentRowNodes = Object.values(map.nodes).filter(node => node.position.row === row);
+      const nextRowNodes = Object.values(map.nodes).filter(node => node.position.row === row + 1);
       
-      // Connect start node to first row
-      const firstRowNodes = Object.values(map.nodes).filter(node => node.position.row === 1);
-      firstRowNodes.forEach(node => {
-        map.start.paths.push(node.id);
-      });
+      if (nextRowNodes.length === 0) continue;
       
-      // Connect intermediate rows
-      for (let row = 1; row < this.config.rowCount; row++) {
-        const currentRowNodes = Object.values(map.nodes).filter(node => node.position.row === row);
-        const nextRowNodes = Object.values(map.nodes).filter(node => node.position.row === row + 1);
+      currentRowNodes.forEach(node => {
+        // Each node connects to 1-2 nodes in the next row
+        const connectionCount = Math.floor(Math.random() * this.config.branchFactor) + 1;
         
-        if (nextRowNodes.length === 0) continue;
-        
-        currentRowNodes.forEach(node => {
-          // Each node connects to 1-2 nodes in the next row
-          const connectionCount = Math.floor(Math.random() * this.config.branchFactor) + 1;
-          
-          // Sort next row nodes by proximity (column distance)
-          const sortedNextNodes = [...nextRowNodes].sort((a, b) => {
-            return Math.abs(a.position.col - node.position.col) - Math.abs(b.position.col - node.position.col);
-          });
-          
-          // Connect to the closest nodes
-          for (let i = 0; i < Math.min(connectionCount, sortedNextNodes.length); i++) {
-            node.paths.push(sortedNextNodes[i].id);
-          }
+        // Sort next row nodes by proximity (column distance)
+        const sortedNextNodes = [...nextRowNodes].sort((a, b) => {
+          return Math.abs(a.position.col - node.position.col) - Math.abs(b.position.col - node.position.col);
         });
-      }
-      
-      // Connect final row to boss
-      if (map.boss) {
-        const finalRowNodes = Object.values(map.nodes).filter(node => node.position.row === this.config.rowCount);
-        finalRowNodes.forEach(node => {
-          node.paths.push('boss');
-        });
-      }
-      
-      return map;
-    },
-    
-    // Helper functions for map generation
-    determineNodeType: function(nodeTypes) {
-      const totalWeight = Object.values(nodeTypes).reduce((sum, config) => sum + (config.weight || 0), 0);
-      let random = Math.random() * totalWeight;
-      let cumulativeWeight = 0;
-      
-      for (const [type, config] of Object.entries(nodeTypes)) {
-        cumulativeWeight += (config.weight || 0);
-        if (random <= cumulativeWeight) {
-          return type;
+        
+        // Connect to the closest nodes
+        for (let i = 0; i < Math.min(connectionCount, sortedNextNodes.length); i++) {
+          node.paths.push(sortedNextNodes[i].id);
         }
-      }
-      
-      return 'question'; // Default fallback
-    },
+      });
+    }
     
-    getRandomDifficulty: function(range) {
-      if (!range || range.length !== 2) return 1;
-      return Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
-    },
+    // Connect final row to boss
+    if (map.boss) {
+      const finalRowNodes = Object.values(map.nodes).filter(node => node.position.row === this.config.rowCount);
+      finalRowNodes.forEach(node => {
+        node.paths.push('boss');
+      });
+    }
     
-    getNodeTitle: function(nodeType) {
-      const titles = {
-        'question': ['Morning Rounds', 'Case Review', 'Patient Consult', 'Treatment Planning'],
-        'shop': ['Department Store', 'Campus Bookstore', 'Equipment Vendor', 'Coffee Cart'],
-        'rest': ['Break Room', 'Cafeteria', 'Library', 'Quiet Corner'],
-        'treasure': ['Conference', 'Journal Club', 'Grand Rounds', 'Workshop'],
-        'elite': ['Physicist Meeting', 'Challenging Case', 'Equipment Failure', 'Accreditation Review'],
-        'event': ['Unexpected Call', 'Patient Emergency', 'Research Opportunity', 'Department Meeting'],
-        'gamble': ['Journal Lottery', 'Research Roulette', 'Grant Application', 'Experimental Treatment'],
-        'boss': ['Department Chair', 'Board Exam', 'Research Presentation', 'Clinical Trial Review']
-      };
-      
-      return titles[nodeType] ? titles[nodeType][Math.floor(Math.random() * titles[nodeType].length)] : 'Unknown';
-    },
+    return map;
+  },
+  
+  // Helper functions for map generation
+  determineNodeType: function(nodeTypes) {
+    const totalWeight = Object.values(nodeTypes).reduce((sum, config) => sum + (config.weight || 0), 0);
+    let random = Math.random() * totalWeight;
+    let cumulativeWeight = 0;
     
-    // Improved renderFloorMap function in map-renderer.js
-    renderFloorMap: function(mapData, canvasId) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) {
-          console.error("Canvas element not found:", canvasId);
-          return;
+    for (const [type, config] of Object.entries(nodeTypes)) {
+      cumulativeWeight += (config.weight || 0);
+      if (random <= cumulativeWeight) {
+        return type;
       }
-      
-      const ctx = canvas.getContext('2d');
-      
-      // Fix for high-DPI displays
-      const dpr = window.devicePixelRatio || 1;
-      
-      // Set canvas dimensions based on map size
-      const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
-      const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
-      
-      // Set the canvas size with DPI adjustment
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      
-      // Scale context for high-DPI displays
-      ctx.scale(dpr, dpr);
-      
-      // Clear the canvas
-      ctx.clearRect(0, 0, width, height);
-      
-      // Draw connections first (so they appear behind nodes)
-      this.drawConnections(ctx, mapData, width, height, true); // true for bottom-up
-      
-      // Draw all regular nodes
-      for (const nodeId in mapData.nodes) {
-          this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
-      }
-      
-      // Draw start and boss nodes
-      this.drawNode(ctx, mapData.start, width, height, true); // true for bottom-up
-      if (mapData.boss) {
-          this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
-      }
-      
-      // Properly bind the event handler to maintain 'this' context
-      const self = this;
-      const handleMapClick = function(event) {
-          const rect = canvas.getBoundingClientRect();
-          
-          // Calculate click coordinates, adjusting for any CSS scaling and DPI
-          const clickX = (event.clientX - rect.left) * (canvas.width / rect.width / dpr);
-          const clickY = (event.clientY - rect.top) * (canvas.height / rect.height / dpr);
-          
-          if (!gameState.map) return;
-          
-          // Check if click is on any node
-          const allNodes = { ...gameState.map.nodes };
-          if (gameState.map.start) allNodes['start'] = gameState.map.start;
-          if (gameState.map.boss) allNodes['boss'] = gameState.map.boss;
-          
-          for (const nodeId in allNodes) {
-              const node = allNodes[nodeId];
-              
-              // Skip start node (can't be clicked)
-              if (nodeId === 'start') continue;
-              
-              // Skip already visited nodes
-              if (node.visited) continue;
-              
-              // Calculate node position (adjust for bottom-up layout)
-              let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
-              const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
-              
-              // Check if click is within node radius
-              const dx = clickX - x;
-              const dy = clickY - y;
-              const distance = Math.sqrt(dx*dx + dy*dy);
-              
-              if (distance <= 25 && self.canVisitNode(nodeId)) { // Slightly increased radius for better usability
-                  console.log("Clicked on node:", nodeId);
-                  
-                  // Add visual feedback for click
-                  ctx.beginPath();
-                  ctx.arc(x, y, 30, 0, Math.PI * 2);
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                  ctx.fill();
-                  
-                  // After a short delay, visit the node
-                  setTimeout(() => {
-                      Nodes.visitNode(nodeId);
-                  }, 100);
-                  
-                  break;
-              }
-          }
-      };
-      // Remove previous click handler to avoid duplicates
-      if (this._currentClickHandler) {
-        canvas.removeEventListener('click', this._currentClickHandler);
-      }
+    }
+    
+    return 'question'; // Default fallback
+  },
+  
+  getRandomDifficulty: function(range) {
+    if (!range || range.length !== 2) return 1;
+    return Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+  },
+  
+  getNodeTitle: function(nodeType) {
+    const titles = {
+      'question': ['Morning Rounds', 'Case Review', 'Patient Consult', 'Treatment Planning'],
+      'shop': ['Department Store', 'Campus Bookstore', 'Equipment Vendor', 'Coffee Cart'],
+      'rest': ['Break Room', 'Cafeteria', 'Library', 'Quiet Corner'],
+      'treasure': ['Conference', 'Journal Club', 'Grand Rounds', 'Workshop'],
+      'elite': ['Physicist Meeting', 'Challenging Case', 'Equipment Failure', 'Accreditation Review'],
+      'event': ['Unexpected Call', 'Patient Emergency', 'Research Opportunity', 'Department Meeting'],
+      'gamble': ['Journal Lottery', 'Research Roulette', 'Grant Application', 'Experimental Treatment'],
+      'boss': ['Department Chair', 'Board Exam', 'Research Presentation', 'Clinical Trial Review']
+    };
+    
+    return titles[nodeType] ? titles[nodeType][Math.floor(Math.random() * titles[nodeType].length)] : 'Unknown';
+  },
+  
+  // Improved renderFloorMap function with better visuals
+  renderFloorMap: function(mapData, canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error("Canvas element not found:", canvasId);
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Fix for high-DPI displays
+    const dpr = window.devicePixelRatio || 1;
+    
+    // Set canvas dimensions based on map size
+    const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
+    const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
+    
+    // Set the canvas size with DPI adjustment
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    
+    // Scale context for high-DPI displays
+    ctx.scale(dpr, dpr);
+    
+    // Clear the canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw connections first (so they appear behind nodes)
+    this.drawConnections(ctx, mapData, width, height, true); // true for bottom-up
+    
+    // Draw all regular nodes
+    for (const nodeId in mapData.nodes) {
+        this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
+    }
+    
+    // Draw start and boss nodes
+    this.drawNode(ctx, mapData.start, width, height, true); // true for bottom-up
+    if (mapData.boss) {
+        this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
+    }
+    
+    // Properly bind the event handler to maintain 'this' context
+    const self = this;
+    const handleMapClick = function(event) {
+        const rect = canvas.getBoundingClientRect();
+        
+        // Calculate click coordinates, adjusting for any CSS scaling and DPI
+        const clickX = (event.clientX - rect.left) * (canvas.width / rect.width / dpr);
+        const clickY = (event.clientY - rect.top) * (canvas.height / rect.height / dpr);
+        
+        if (!gameState.map) return;
+        
+        // Check if click is on any node
+        const allNodes = { ...gameState.map.nodes };
+        if (gameState.map.start) allNodes['start'] = gameState.map.start;
+        if (gameState.map.boss) allNodes['boss'] = gameState.map.boss;
+        
+        for (const nodeId in allNodes) {
+            const node = allNodes[nodeId];
+            
+            // Skip start node (can't be clicked)
+            if (nodeId === 'start') continue;
+            
+            // Skip already visited nodes
+            if (node.visited) continue;
+            
+            // Calculate node position (adjust for bottom-up layout)
+            let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
+            const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
+            
+            // Check if click is within node radius
+            const dx = clickX - x;
+            const dy = clickY - y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            if (distance <= 25 && self.canVisitNode(nodeId)) { // Slightly increased radius for better usability
+                console.log("Clicked on node:", nodeId);
+                
+                // Add visual feedback for click
+                ctx.beginPath();
+                ctx.arc(x, y, 30, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fill();
+                
+                // After a short delay, visit the node
+                setTimeout(() => {
+                    Nodes.visitNode(nodeId);
+                }, 100);
+                
+                break;
+            }
+        }
+    };
+    // Remove previous click handler to avoid duplicates
+    if (this._currentClickHandler) {
+      canvas.removeEventListener('click', this._currentClickHandler);
+    }
 
-      // Create bound handler that maintains the correct 'this' context
-      this._currentClickHandler = handleMapClick.bind(this);
+    // Create bound handler that maintains the correct 'this' context
+    this._currentClickHandler = handleMapClick.bind(this);
 
-      // Add the new event listener
-      canvas.addEventListener('click', this._currentClickHandler);
-    },
-    
-    // Draw connections between nodes
-    drawConnections: function(ctx, mapData, width, height, bottomUp = false) {
+    // Add the new event listener
+    canvas.addEventListener('click', this._currentClickHandler);
+  },
+  
+  // Draw connections between nodes with improved visuals
+  drawConnections: function(ctx, mapData, width, height, bottomUp = false) {
       const allNodes = { ...mapData.nodes };
       if (mapData.start) allNodes['start'] = mapData.start;
       if (mapData.boss) allNodes['boss'] = mapData.boss;
       
       // Draw all connections
       for (const nodeId in allNodes) {
-        const node = allNodes[nodeId];
-        if (!node.paths || node.paths.length === 0) continue;
-        
-        // Calculate node position (adjust for bottom-up layout)
-        let startY;
-        if (bottomUp) {
-          // Invert Y position for bottom-up layout
-          startY = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-        } else {
-          startY = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-        }
-        
-        const startX = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-        
-        node.paths.forEach(targetId => {
-          const targetNode = allNodes[targetId];
-          if (!targetNode) return;
+          const node = allNodes[nodeId];
+          if (!node.paths || node.paths.length === 0) continue;
           
-          // Calculate target position (adjust for bottom-up layout)
-          let endY;
+          // Calculate node position
+          let startY;
           if (bottomUp) {
-            // Invert Y position for bottom-up layout
-            endY = height - height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+              startY = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
           } else {
-            endY = height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+              startY = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
           }
           
-          const endX = width * ((targetNode.position.col + 1) / (this.config.nodesPerRow + 1));
+          const startX = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
           
-          ctx.beginPath();
-          ctx.moveTo(startX, startY);
-          ctx.lineTo(endX, endY);
-          
-          // Style the path based on status
-          if (node.visited && targetNode.visited) {
-            // Path has been used - make bold and darker
-            ctx.strokeStyle = '#2E7D32'; // Dark green
-            ctx.lineWidth = 5;
-          } else if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
-            // Available path - highlight
-            ctx.strokeStyle = '#4CAF50'; // Bright green
-            ctx.lineWidth = 3;
-            
-            // Add pulsing effect to available paths
-            ctx.shadowColor = '#4CAF50';
-            ctx.shadowBlur = 10;
-          } else if (!node.visited && !targetNode.visited) {
-            // Unavailable path - fade out
-            ctx.strokeStyle = 'rgba(170, 170, 170, 0.3)'; // Faded gray
-            ctx.lineWidth = 1;
-          } else {
-            // Default - used but can't continue
-            ctx.strokeStyle = 'rgba(204, 204, 204, 0.7)'; // Light gray
-            ctx.lineWidth = 2;
-          }
-          
-          ctx.stroke();
-          
-          // Reset shadow
-          ctx.shadowBlur = 0;
-        });
+          node.paths.forEach(targetId => {
+              const targetNode = allNodes[targetId];
+              if (!targetNode) return;
+              
+              // Calculate target position
+              let endY;
+              if (bottomUp) {
+                  endY = height - height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+              } else {
+                  endY = height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+              }
+              
+              const endX = width * ((targetNode.position.col + 1) / (this.config.nodesPerRow + 1));
+              
+              // Draw path with gradient for better visual effect
+              const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+              
+              // Style the path based on status
+              if (node.visited && targetNode.visited) {
+                  // Path has been used - soft green gradient
+                  gradient.addColorStop(0, 'rgba(86, 184, 134, 0.8)');
+                  gradient.addColorStop(1, 'rgba(86, 184, 134, 0.6)');
+                  ctx.strokeStyle = gradient;
+                  ctx.lineWidth = 4;
+              } else if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
+                  // Available path - glowing green gradient
+                  gradient.addColorStop(0, 'rgba(86, 184, 134, 0.9)');
+                  gradient.addColorStop(1, 'rgba(86, 184, 134, 0.7)');
+                  ctx.strokeStyle = gradient;
+                  ctx.lineWidth = 3;
+                  
+                  // Add subtle pulsing glow
+                  ctx.shadowColor = 'rgba(86, 184, 134, 0.6)';
+                  ctx.shadowBlur = 5;
+              } else if (!node.visited && !targetNode.visited) {
+                  // Unavailable path - very subtle gray
+                  ctx.strokeStyle = 'rgba(100, 100, 110, 0.15)';
+                  ctx.lineWidth = 1;
+              } else {
+                  // Default - used but can't continue
+                  ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
+                  ctx.lineWidth = 2;
+              }
+              
+              // Draw the path with rounded ends
+              ctx.beginPath();
+              ctx.moveTo(startX, startY);
+              ctx.lineTo(endX, endY);
+              ctx.lineCap = 'round';
+              ctx.stroke();
+              
+              // Reset shadow
+              ctx.shadowBlur = 0;
+          });
       }
-    },
-    // Add to map-renderer.js
-    isPointOnLine: function(x1, y1, x2, y2, px, py, tolerance = 5) {
-      // Calculate distance from point to line
-      const A = py - y1;
-      const B = px - x1;
-      const C = y2 - y1;
-      const D = x2 - x1;
-      
-      const dot = A * C + B * D;
-      const lenSq = C * C + D * D;
-      let param = -1;
-      
-      if (lenSq !== 0) param = dot / lenSq;
-      
-      let xx, yy;
-      
-      if (param < 0) {
-        xx = x1;
-        yy = y1;
-      } else if (param > 1) {
-        xx = x2;
-        yy = y2;
-      } else {
-        xx = x1 + param * D;
-        yy = y1 + param * C;
-      }
-      
-      const dx = px - xx;
-      const dy = py - yy;
-      
-      return Math.sqrt(dx * dx + dy * dy) < tolerance;
-    },
-    // Draw a node on the canvas
-    drawNode: function(ctx, node, width, height, bottomUp = false) {
-      const nodeColors = {
-        'start': '#4CAF50',    // Green
-        'boss': '#F44336',     // Red
-        'question': '#2196F3', // Blue
-        'elite': '#E91E63',    // Pink
-        'treasure': '#FFC107', // Amber
-        'rest': '#9C27B0',     // Purple
-        'shop': '#00BCD4',     // Cyan
-        'event': '#FF9800',    // Orange
-        'gamble': '#CDDC39'    // Lime
-      };
-      
+  },
+  
+  // Updated drawNode function with better visuals and no titles
+  drawNode: function(ctx, node, width, height, bottomUp = false) {
       // Calculate node position (adjust for bottom-up layout)
       let y;
       if (bottomUp) {
-        // Invert Y position for bottom-up layout
-        y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+          // Invert Y position for bottom-up layout
+          y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
       } else {
-        y = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+          y = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
       }
       
       const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-      const radius = 20;
+      const radius = 18; // Slightly smaller radius
       
-      // Draw node circle
+      // Draw node circle with improved styling
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       
       // Style based on status
       if (gameState.currentNode === node.id) {
-        // Current node - add highlight/glow
-        ctx.fillStyle = nodeColors[node.type] || '#333';
-        ctx.shadowColor = '#FFF';
-        ctx.shadowBlur = 15;
+          // Current node - add glow effect
+          const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
+          ctx.fillStyle = nodeColor;
+          ctx.shadowColor = nodeColor;
+          ctx.shadowBlur = 10;
       } else if (node.visited) {
-        // Visited node
-        ctx.fillStyle = '#888'; // Gray
+          // Visited node - gray but slightly translucent
+          ctx.fillStyle = 'rgba(100, 100, 110, 0.7)';
       } else if (this.canVisitNode(node.id)) {
-        // Available node
-        ctx.fillStyle = nodeColors[node.type] || '#333';
-        // Add subtle pulse for available nodes
-        ctx.shadowColor = nodeColors[node.type] || '#333';
-        ctx.shadowBlur = 5;
+          // Available node - use color with subtle glow
+          const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
+          ctx.fillStyle = nodeColor;
+          ctx.shadowColor = nodeColor;
+          ctx.shadowBlur = 3;
       } else {
-        // Unavailable node - fade out
-        const color = nodeColors[node.type] || '#333';
-        ctx.fillStyle = this.dimColor(color, 0.3); // More transparent
+          // Unavailable node - dimmed version of the color
+          const baseColor = this.nodeColors[node.type] || '#5b8dd9';
+          ctx.fillStyle = this.dimColor(baseColor, 0.25);
       }
       
       ctx.fill();
       
       // Draw border
       if (gameState.currentNode === node.id) {
-        // Current node - bold border
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 3;
+          // Current node - bold white border
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2.5;
       } else if (node.visited) {
-        // Visited node
-        ctx.strokeStyle = '#555';
-        ctx.lineWidth = 2;
+          // Visited node - subtle gray border
+          ctx.strokeStyle = 'rgba(100, 100, 110, 0.9)';
+          ctx.lineWidth = 1.5;
       } else if (this.canVisitNode(node.id)) {
-        // Available node
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
+          // Available node - white border
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.lineWidth = 1.5;
       } else {
-        // Unavailable node
-        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-        ctx.lineWidth = 1;
+          // Unavailable node - subtle border
+          ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
+          ctx.lineWidth = 1;
       }
       
       ctx.stroke();
       
-      // Draw node icon/symbol based on type
+      // Draw node icon/symbol
       if (gameState.currentNode === node.id || node.visited || this.canVisitNode(node.id)) {
-        ctx.fillStyle = '#fff'; // Bright white for better visibility
+          ctx.fillStyle = '#fff'; // Bright white for better visibility
       } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.5)'; // Faded white
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // Faded white
       }
       
-      ctx.font = 'bold 16px Arial';
+      ctx.font = 'bold 14px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Different symbols for different node types
-      const symbols = {
-        'start': 'S',
-        'boss': 'B',
-        'question': '?',
-        'elite': '!',
-        'treasure': 'T',
-        'rest': 'R',
-        'shop': '$',
-        'event': 'E',
-        'gamble': 'G'
-      };
-      
-      ctx.fillText(symbols[node.type] || '?', x, y);
+      const symbol = this.nodeSymbols[node.type] || '?';
+      ctx.fillText(symbol, x, y);
       
       // Add difficulty indicator for question and elite nodes
       if ((node.type === 'question' || node.type === 'elite') && node.difficulty) {
-        if (this.canVisitNode(node.id) || node.visited) {
-          ctx.fillStyle = '#fff';
-        } else {
-          ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        }
-        ctx.font = '10px Arial';
-        ctx.fillText('★'.repeat(node.difficulty), x, y + radius + 10);
+          if (this.canVisitNode(node.id) || node.visited) {
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          } else {
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          }
+          ctx.font = '9px "Press Start 2P", monospace';
+          ctx.fillText('★'.repeat(node.difficulty), x, y + radius + 10);
       }
       
-      // Add node title below
-      if (node.title) {
-        if (this.canVisitNode(node.id) || node.visited || gameState.currentNode === node.id) {
-          ctx.fillStyle = '#fff';
-        } else {
-          ctx.fillStyle = 'rgba(255,255,255,0.5)';
-        }
-        ctx.font = '12px Arial';
-        ctx.fillText(node.title, x, y + radius + 25);
-      }
+      // No title display to declutter the map
       
       // Reset shadow
       ctx.shadowBlur = 0;
-    },
+  },
+  
+  isPointOnLine: function(x1, y1, x2, y2, px, py, tolerance = 5) {
+    // Calculate distance from point to line
+    const A = py - y1;
+    const B = px - x1;
+    const C = y2 - y1;
+    const D = x2 - x1;
     
-    // Fix the handleMapClick function to use the correct 'this' reference
-    handleMapClick: function(event) {
-      const canvas = event.target;
-      const rect = canvas.getBoundingClientRect();
-      const clickX = event.clientX - rect.left;
-      const clickY = event.clientY - rect.top;
-      
-      const mapData = gameState.map;
-      if (!mapData) return;
-      
-      // Check if click is on any node
-      const allNodes = { ...mapData.nodes };
-      if (mapData.start) allNodes['start'] = mapData.start;
-      if (mapData.boss) allNodes['boss'] = mapData.boss;
-      
-      const width = canvas.width;
-      const height = canvas.height;
-      
-      for (const nodeId in allNodes) {
-        const node = allNodes[nodeId];
-        
-        // Skip start node (can't be clicked)
-        if (nodeId === 'start') continue;
-        
-        // Skip already visited nodes
-        if (node.visited) continue;
-        
-        // Calculate node position (adjust for bottom-up layout)
-        // Use this.config instead of MapRenderer.config
-        let y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-        const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-        
-        // Check if click is within node radius
-        const dx = clickX - x;
-        const dy = clickY - y;
-        const distance = Math.sqrt(dx*dx + dy*dy);
-        
-        // Use this instead of MapRenderer
-        if (distance <= 20 && this.canVisitNode(nodeId)) { // 20 is the node radius
-          console.log("Clicked on node:", nodeId);
-          
-          // Add visual feedback for click
-          const ctx = canvas.getContext('2d');
-          ctx.beginPath();
-          ctx.arc(x, y, 30, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.fill();
-          
-          // After a short delay, visit the node
-          setTimeout(() => {
-            Nodes.visitNode(nodeId);
-          }, 100);
-          
-          break;
-        }
-      }
-    },
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
     
-    // Improved function to determine if a node can be visited
-    canVisitNode: function(nodeId) {
-      if (nodeId === 'start') return false; // Can't revisit start
+    if (lenSq !== 0) param = dot / lenSq;
+    
+    let xx, yy;
+    
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * D;
+      yy = y1 + param * C;
+    }
+    
+    const dx = px - xx;
+    const dy = py - yy;
+    
+    return Math.sqrt(dx * dx + dy * dy) < tolerance;
+  },
+  
+  // Handle map click event
+  handleMapClick: function(event) {
+    const canvas = event.target;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+    
+    const mapData = gameState.map;
+    if (!mapData) return;
+    
+    // Check if click is on any node
+    const allNodes = { ...mapData.nodes };
+    if (mapData.start) allNodes['start'] = mapData.start;
+    if (mapData.boss) allNodes['boss'] = mapData.boss;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    for (const nodeId in allNodes) {
+      const node = allNodes[nodeId];
       
-      // Get the map data
-      const mapData = gameState.map;
-      if (!mapData) return false;
+      // Skip start node (can't be clicked)
+      if (nodeId === 'start') continue;
       
-      // If this is the current node, it can't be visited
-      if (this.getCurrentNode() === nodeId) return false;
+      // Skip already visited nodes
+      if (node.visited) continue;
       
-      // Get the node
-      const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
-      if (!node || node.visited) return false;
+      // Calculate node position (adjust for bottom-up layout)
+      // Use this.config instead of MapRenderer.config
+      let y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+      const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
       
-      // Check if there's a path to this node from a visited node
-      const allNodes = { ...mapData.nodes };
-      if (mapData.start) allNodes['start'] = mapData.start;
-      if (mapData.boss) allNodes['boss'] = mapData.boss;
+      // Check if click is within node radius
+      const dx = clickX - x;
+      const dy = clickY - y;
+      const distance = Math.sqrt(dx*dx + dy*dy);
       
-      for (const sourceId in allNodes) {
-        const sourceNode = allNodes[sourceId];
-        if ((sourceNode.visited || sourceId === 'start') && sourceNode.paths && sourceNode.paths.includes(nodeId)) {
-          return true;
-        }
+      // Use this instead of MapRenderer
+      if (distance <= 20 && this.canVisitNode(nodeId)) { // 20 is the node radius
+        console.log("Clicked on node:", nodeId);
+        
+        // Add visual feedback for click
+        const ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.arc(x, y, 30, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fill();
+        
+        // After a short delay, visit the node
+        setTimeout(() => {
+          Nodes.visitNode(nodeId);
+        }, 100);
+        
+        break;
       }
-    },
-    // Helper function to get the current node (if any)
+    }
+  },
+  
+  // Improved function to determine if a node can be visited
+  canVisitNode: function(nodeId) {
+    if (nodeId === 'start') return false; // Can't revisit start
+    
+    // Get the map data
+    const mapData = gameState.map;
+    if (!mapData) return false;
+    
+    // If this is the current node, it can't be visited
+    if (this.getCurrentNode() === nodeId) return false;
+    
+    // Get the node
+    const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
+    if (!node || node.visited) return false;
+    
+    // Check if there's a path to this node from a visited node
+    const allNodes = { ...mapData.nodes };
+    if (mapData.start) allNodes['start'] = mapData.start;
+    if (mapData.boss) allNodes['boss'] = mapData.boss;
+    
+    for (const sourceId in allNodes) {
+      const sourceNode = allNodes[sourceId];
+      if ((sourceNode.visited || sourceId === 'start') && sourceNode.paths && sourceNode.paths.includes(nodeId)) {
+        return true;
+      }
+    }
+    
+    return false;
+  },
+  
+  // Helper function to get the current node (if any)
   getCurrentNode: function() {
     return gameState.currentNode || null;
   },
