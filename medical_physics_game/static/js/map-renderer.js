@@ -760,49 +760,40 @@ window.MapRenderer = {
     }
   },
   
-  // Replace canVisitNode function in map-renderer.js with the following
+  // Simplified canVisitNode function - replace entirely
   canVisitNode: function(nodeId) {
-    // Can't visit the start node
+    // Can't visit start node
     if (nodeId === 'start') return false;
     
-    // Get map data
+    // Get map data and node
     const mapData = gameState.map;
     if (!mapData) return false;
     
-    // Get the node
     const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
     if (!node) return false;
     
-    // Already visited or current node cannot be visited
-    if (node.visited || gameState.currentNode === nodeId) return false;
+    // Already visited nodes can't be visited again
+    if (node.visited) return false;
     
-    // Get node's row
-    const nodeRow = node.position.row;
-    
-    // Check if there's a path to this node from a previously visited node
-    const previousRowNodes = [];
-    
-    // For row 1, only start node is previous
-    if (nodeRow === 1) {
-        if (mapData.start) previousRowNodes.push(mapData.start);
-    } else {
-        // For other rows, get all nodes from the previous row
-        Object.values(mapData.nodes).forEach(n => {
-            if (n.position && n.position.row === nodeRow - 1) {
-                previousRowNodes.push(n);
-            }
-        });
+    // If no current node (just starting), only row 1 nodes can be visited
+    if (!gameState.currentNode) {
+      return node.position.row === 1;
     }
     
-    // Check if any of the previous row nodes is visited and has a path to this node
-    for (const prevNode of previousRowNodes) {
-        if ((prevNode.visited || prevNode.id === 'start') && 
-            prevNode.paths && prevNode.paths.includes(nodeId)) {
-            return true;
-        }
+    // Get current node
+    const currentNode = mapData.nodes[gameState.currentNode] || 
+                      (gameState.currentNode === 'boss' ? mapData.boss : null) ||
+                      (gameState.currentNode === 'start' ? mapData.start : null);
+    
+    if (!currentNode) return false;
+    
+    // Can only visit nodes in the NEXT row
+    if (node.position.row !== currentNode.position.row + 1) {
+      return false;
     }
     
-    return false;
+    // Must have a path from current node
+    return currentNode.paths && currentNode.paths.includes(nodeId);
   },
   
   // Add these helper functions to MapRenderer in map-renderer.js

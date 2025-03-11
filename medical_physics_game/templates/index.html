@@ -173,29 +173,6 @@
             // Insert at the beginning of the map container
             mapContainer.insertBefore(debugButton, mapContainer.firstChild);
         }
-    // Add this to the debug button creation code in index.html
-    const debugVisualButton = document.createElement('button');
-    debugVisualButton.className = 'btn btn-info mt-2 mb-2 ms-2';
-    debugVisualButton.textContent = 'Toggle Visual Debug';
-    debugVisualButton.style.fontSize = '0.7rem';
-    debugVisualButton.style.padding = '2px 8px';
-    debugVisualButton.style.opacity = '0.7';
-
-    // Add a global flag for visual debugging
-    window.visualDebugEnabled = false;
-
-    debugVisualButton.addEventListener('click', function() {
-        window.visualDebugEnabled = !window.visualDebugEnabled;
-        debugVisualButton.textContent = window.visualDebugEnabled ? 'Hide Visual Debug' : 'Show Visual Debug';
-        
-        // Re-render map to show/hide debug info
-        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
-            MapRenderer.renderFloorMap(gameState.map, 'floor-map');
-        }
-    });
-
-    // Insert after the debug button
-    mapContainer.insertBefore(debugVisualButton, debugButton.nextSibling);
     });
     </script>
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
