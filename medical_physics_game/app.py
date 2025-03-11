@@ -20,10 +20,6 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    
-# Initialize data when the app starts
-init_data_files()
-init_db()
 
 # Near the top of app.py, after imports
 from datetime import timedelta
@@ -45,7 +41,8 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Call this at app startup
+# Initialize data when the app starts
+init_data_files()
 init_db()
 
 # Dictionary to store saved games
@@ -366,6 +363,26 @@ def mark_node_visited():
         "all_nodes_visited": all_visited
     })
 
+@app.route('/api/save-inventory', methods=['POST'])
+def save_inventory():
+    """Save the player's inventory"""
+    data = request.json
+    game_id = get_game_id()
+    
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
+        return jsonify({"error": "Game not found"}), 404
+    
+    # Update inventory
+    game_state['inventory'] = data.get('inventory', [])
+    
+    # Update game state
+    game_state['last_updated'] = datetime.now().isoformat()
+    save_game_state(game_id, game_state)
+    
+    return jsonify({"success": True})
+
 @app.route('/api/next-floor', methods=['POST'])
 def next_floor():
     """Advance to the next floor"""
@@ -378,6 +395,11 @@ def next_floor():
     
     # Increment floor number
     game_state["current_floor"] += 1
+    
+    # Reset special ability uses for the new floor
+    if "character" in game_state and "special_ability" in game_state["character"] and game_state["character"]["special_ability"]:
+        uses_per_floor = game_state["character"]["special_ability"].get("uses_per_floor", 1)
+        game_state["character"]["special_ability"]["remaining_uses"] = uses_per_floor
     
     # Potentially restore some lives when advancing floors
     game_config = load_json_data('game_config.json')

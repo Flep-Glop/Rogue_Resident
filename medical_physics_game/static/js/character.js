@@ -310,107 +310,112 @@ window.Character = {
       // Update lives visualization
       this.updateLivesDisplay(character.lives, character.max_lives);
       
-      // Add this to character.js to implement the updateSpecialAbility function
-      updateSpecialAbility: function(specialAbility) {
-        if (!specialAbility) return;
-        
-        // Find the special ability container or create it if it doesn't exist
-        let abilityContainer = document.getElementById('special-ability');
-        if (!abilityContainer) {
-            const charInfoElement = document.getElementById('character-info');
-            if (!charInfoElement) return;
-            
-            abilityContainer = document.createElement('div');
-            abilityContainer.id = 'special-ability';
-            abilityContainer.className = 'special-ability-container mt-3';
-            charInfoElement.appendChild(abilityContainer);
-        }
-        
-        // Initialize remaining uses if not set
-        if (specialAbility.remaining_uses === undefined) {
-            specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
-        }
-        
-        // Update the ability display
-        abilityContainer.innerHTML = `
-            <h4>Special Ability</h4>
-            <p><strong>${specialAbility.name}</strong></p>
-            <p>${specialAbility.description}</p>
-            <button class="btn btn-outline-secondary btn-sm use-ability-btn" id="use-ability-btn">
-                Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})
-            </button>
-        `;
-        
-        // Add event listener for using the ability
-        const useAbilityBtn = document.getElementById('use-ability-btn');
-        if (useAbilityBtn) {
-            useAbilityBtn.addEventListener('click', () => {
-                this.useSpecialAbility(specialAbility);
-            });
-            
-            // Disable button if no uses left
-            if (specialAbility.remaining_uses <= 0) {
-                useAbilityBtn.disabled = true;
-                useAbilityBtn.textContent = 'No uses remaining';
-            }
-        }
+      // Update special ability if exists
+      if (character.special_ability) {
+        this.updateSpecialAbility(character.special_ability);
       }
+    },
 
-      // Add this function to use the special ability
-      useSpecialAbility: function(specialAbility) {
-        if (!specialAbility || !specialAbility.name) return;
-        
-        // Check if there are uses remaining
-        if (specialAbility.remaining_uses <= 0) {
-            UiUtils.showFloatingText('No uses remaining!', 'warning');
-            return;
-        }
-        
-        // Decrease remaining uses
-        specialAbility.remaining_uses--;
-        
-        // Handle ability based on type
-        switch (specialAbility.name) {
-            case 'Literature Review':
-                // Skip question node implementation
-                UiUtils.showFloatingText('Skipped node without penalty', 'success');
-                // Mark current node as visited and return to map
-                if (gameState.currentNode) {
-                    Nodes.markNodeVisited(gameState.currentNode);
-                    Nodes.showContainer(CONTAINER_TYPES.MAP);
-                }
-                break;
-                
-            case 'Peer Review':
-                // Reveal correct answer implementation
-                if (gameState.currentQuestion) {
-                    Nodes.applyQuestionHint();
-                    UiUtils.showFloatingText('Revealed correct answer', 'success');
-                } else {
-                    UiUtils.showFloatingText('No active question', 'warning');
-                    // Return the use since it wasn't applicable
-                    specialAbility.remaining_uses++;
-                }
-                break;
-                
-            default:
-                console.warn('Unknown special ability:', specialAbility.name);
-        }
-        
-        // Update the button state
-        const useAbilityBtn = document.getElementById('use-ability-btn');
-        if (useAbilityBtn) {
-            useAbilityBtn.textContent = `Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})`;
-            if (specialAbility.remaining_uses <= 0) {
-                useAbilityBtn.disabled = true;
-                useAbilityBtn.textContent = 'No uses remaining';
-            }
-        }
-        
-        // Update character info to save the remaining uses
-        if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-            ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
-        }
+    // Update special ability display
+    updateSpecialAbility: function(specialAbility) {
+      if (!specialAbility) return;
+      
+      // Find the special ability container or create it if it doesn't exist
+      let abilityContainer = document.getElementById('special-ability');
+      if (!abilityContainer) {
+          const charInfoElement = document.getElementById('character-info');
+          if (!charInfoElement) return;
+          
+          abilityContainer = document.createElement('div');
+          abilityContainer.id = 'special-ability';
+          abilityContainer.className = 'special-ability-container mt-3';
+          charInfoElement.appendChild(abilityContainer);
+      }
+      
+      // Initialize remaining uses if not set
+      if (specialAbility.remaining_uses === undefined) {
+          specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
+      }
+      
+      // Update the ability display
+      abilityContainer.innerHTML = `
+          <h4>Special Ability</h4>
+          <p><strong>${specialAbility.name}</strong></p>
+          <p>${specialAbility.description}</p>
+          <button class="btn btn-outline-secondary btn-sm use-ability-btn" id="use-ability-btn">
+              Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})
+          </button>
+      `;
+      
+      // Add event listener for using the ability
+      const useAbilityBtn = document.getElementById('use-ability-btn');
+      if (useAbilityBtn) {
+          useAbilityBtn.addEventListener('click', () => {
+              this.useSpecialAbility(specialAbility);
+          });
+          
+          // Disable button if no uses left
+          if (specialAbility.remaining_uses <= 0) {
+              useAbilityBtn.disabled = true;
+              useAbilityBtn.textContent = 'No uses remaining';
+          }
+      }
+    },
+
+    // Function to use the special ability
+    useSpecialAbility: function(specialAbility) {
+      if (!specialAbility || !specialAbility.name) return;
+      
+      // Check if there are uses remaining
+      if (specialAbility.remaining_uses <= 0) {
+          UiUtils.showFloatingText('No uses remaining!', 'warning');
+          return;
+      }
+      
+      // Decrease remaining uses
+      specialAbility.remaining_uses--;
+      
+      // Handle ability based on type
+      switch (specialAbility.name) {
+          case 'Literature Review':
+              // Skip question node implementation
+              UiUtils.showFloatingText('Skipped node without penalty', 'success');
+              // Mark current node as visited and return to map
+              if (gameState.currentNode) {
+                  Nodes.markNodeVisited(gameState.currentNode);
+                  Nodes.showContainer(CONTAINER_TYPES.MAP);
+              }
+              break;
+              
+          case 'Peer Review':
+              // Reveal correct answer implementation
+              if (gameState.currentQuestion) {
+                  Nodes.applyQuestionHint();
+                  UiUtils.showFloatingText('Revealed correct answer', 'success');
+              } else {
+                  UiUtils.showFloatingText('No active question', 'warning');
+                  // Return the use since it wasn't applicable
+                  specialAbility.remaining_uses++;
+              }
+              break;
+              
+          default:
+              console.warn('Unknown special ability:', specialAbility.name);
+      }
+      
+      // Update the button state
+      const useAbilityBtn = document.getElementById('use-ability-btn');
+      if (useAbilityBtn) {
+          useAbilityBtn.textContent = `Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})`;
+          if (specialAbility.remaining_uses <= 0) {
+              useAbilityBtn.disabled = true;
+              useAbilityBtn.textContent = 'No uses remaining';
+          }
+      }
+      
+      // Update character info to save the remaining uses
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+          ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
       }
     },
     
@@ -461,6 +466,13 @@ window.Character = {
       }
     },
     
+    // Add this function to the Character object
+    saveInventory: function() {
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+        ApiClient.saveGame().catch(err => console.error("Failed to save inventory:", err));
+      }
+    },
+
     // Improved showCharacterSelection function in Character.js
     showCharacterSelection: function() {
       console.log("Showing character selection");

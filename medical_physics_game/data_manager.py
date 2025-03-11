@@ -1,8 +1,8 @@
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 # data_manager.py - JSON data loading/saving
 import json
 import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Data loading functions
 def load_json_data(filename):

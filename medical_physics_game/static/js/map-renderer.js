@@ -296,7 +296,7 @@ window.MapRenderer = {
       // Use proper binding to maintain context
       canvas.removeEventListener('click', this._currentClickHandler);
       // Explicitly bind "this" to the callback
-      const boundClickHandler = mapClickHandler.bind(this);
+      const boundClickHandler = handleMapClick.bind(this);
       canvas.addEventListener('click', boundClickHandler);
       this._currentClickHandler = boundClickHandler; // Store reference for future removal
     },
