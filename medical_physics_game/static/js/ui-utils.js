@@ -2,25 +2,35 @@
 
 window.UiUtils = {
     // Helper function to show floating text feedback
+    // Helper function to show floating text feedback
     showFloatingText: function(text, type = 'info') {
       const floatingText = document.createElement('div');
       floatingText.className = `floating-text floating-text-${type}`;
-      floatingText.textContent = text;
+      
+      // Add icons based on type
+      let icon = '';
+      switch(type) {
+          case 'success': icon = '✓ '; break;
+          case 'danger': icon = '✗ '; break;
+          case 'warning': icon = '⚠ '; break;
+          case 'info': icon = 'ℹ '; break;
+      }
+      
+      floatingText.innerHTML = `<span class="float-icon">${icon}</span>${text}`;
       document.body.appendChild(floatingText);
       
-      // Remove after animation completes
+      // Add animation classes gradually for better effect
       setTimeout(() => {
-        floatingText.classList.add('floating-text-fade');
-        setTimeout(() => {
-          document.body.removeChild(floatingText);
-        }, 1000);
-      }, 1000);
-    },
-    
-    // Show error message
-    showError: function(message) {
-      console.error(message);
-      alert(message);
+          floatingText.classList.add('floating-text-active');
+          
+          // Remove after animation completes
+          setTimeout(() => {
+              floatingText.classList.add('floating-text-fade');
+              setTimeout(() => {
+                  document.body.removeChild(floatingText);
+              }, 1000);
+          }, 1500);
+      }, 10);
     },
     
     // Floor transition animation

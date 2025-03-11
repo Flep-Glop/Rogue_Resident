@@ -139,3 +139,42 @@
     90% { opacity: 0.9; }
     100% { opacity: 0.7; }
   }
+  
+  /* Event effect animations */
+  .insight-gain-animation {
+    animation: pulse-green 0.5s ease-in-out;
+  }
+
+  .insight-loss-animation {
+    animation: pulse-red 0.5s ease-in-out;
+  }
+
+  .life-gain-animation {
+    animation: pulse-green 0.5s ease-in-out;
+  }
+
+  .life-loss-animation {
+    animation: pulse-red 0.5s ease-in-out;
+  }
+
+  .item-gain-animation {
+    animation: pulse-blue 0.5s ease-in-out;
+  }
+
+  @keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+  }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+  }
+
+  @keyframes pulse-blue {
+    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+  }

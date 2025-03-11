@@ -303,24 +303,6 @@ window.Nodes = {
       // ...
     },
     
-    // Show event node
-    showEvent: function(nodeData) {
-      // Implementation for showing event node
-      // ...
-    },
-    
-    // Handle event option selection
-    handleEventOption: function(nodeId, optionIndex, option) {
-      // Implementation for handling event options
-      // ...
-    },
-    
-    // Apply event effect
-    applyEventEffect: function(effect) {
-      // Implementation for applying event effects
-      // ...
-    },
-    
     // Show shop node
     showShop: function(nodeData) {
       console.log("Showing shop node:", nodeData);
@@ -527,15 +509,15 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.REST);
     },
 
-    // Implement showEvent function
+    // Show event node
     showEvent: function(nodeData) {
       console.log("Showing event node:", nodeData);
       
       const event = nodeData.event;
       if (!event) {
-        console.error("No event data in event node");
-        this.markNodeVisited(nodeData.id);
-        return;
+          console.error("No event data in event node");
+          this.markNodeVisited(nodeData.id);
+          return;
       }
       
       // Set event title and description
@@ -544,148 +526,308 @@ window.Nodes = {
       const eventOptions = document.getElementById('event-options');
       const eventResult = document.getElementById('event-result');
       const continueBtn = document.getElementById('event-continue-btn');
+      const eventIcon = document.querySelector('.event-icon');
+      
+      // Update event icon based on title (simple mapping)
+      if (eventIcon) {
+          const iconMap = {
+              'Unexpected Discovery': '🔍',
+              'Equipment Malfunction': '🔧',
+              'Research Opportunity': '📚',
+              'Conference Invitation': '🎓',
+              'Challenging Patient': '👨‍⚕️',
+              'Broken Dosimeter': '📊',
+              'Protocol Update': '📋',
+              'Late Night Call': '📱'
+          };
+          
+          eventIcon.textContent = iconMap[event.title] || '📝';
+      }
       
       if (eventTitle) eventTitle.textContent = event.title;
       if (eventDescription) eventDescription.textContent = event.description;
       if (eventOptions) {
-        eventOptions.innerHTML = '';
-        
-        // Create option buttons
-        event.options.forEach((option, index) => {
-          const optionBtn = document.createElement('button');
-          optionBtn.classList.add('btn', 'btn-outline-primary', 'mb-2', 'w-100');
-          optionBtn.textContent = option.text;
+          eventOptions.innerHTML = '';
           
-          // Check if option has requirement
-          if (option.requirementType) {
-            let canUseOption = false;
-            
-            // Check different requirement types
-            if (option.requirementType === 'insight_check') {
-              canUseOption = gameState.character.insight >= option.requirementValue;
-            } else if (option.requirementType === 'item_check') {
-              // Check if player has the required item
-              canUseOption = gameState.inventory.some(item => item.id === option.requirementValue);
-            }
-            
-            if (!canUseOption) {
-              optionBtn.classList.add('disabled');
-              optionBtn.disabled = true;
+          // Create option buttons
+          event.options.forEach((option, index) => {
+              const optionBtn = document.createElement('button');
+              optionBtn.classList.add('event-option');
+              optionBtn.textContent = option.text;
               
-              // Add requirement info
-              if (option.requirementType === 'insight_check') {
-                optionBtn.innerHTML += ` <span class="badge bg-secondary">Requires ${option.requirementValue} Insight</span>`;
-              } else if (option.requirementType === 'item_check') {
-                optionBtn.innerHTML += ` <span class="badge bg-secondary">Requires ${option.requirementValue}</span>`;
+              // Check if option has requirement
+              if (option.requirementType) {
+                  let canUseOption = false;
+                  let requirementText = '';
+                  
+                  // Check different requirement types
+                  if (option.requirementType === 'insight_check') {
+                      canUseOption = gameState.character.insight >= option.requirementValue;
+                      requirementText = `${option.requirementValue} Insight`;
+                  } else if (option.requirementType === 'item_check') {
+                      // Check if player has the required item
+                      const hasItem = gameState.inventory && 
+                                    gameState.inventory.some(item => item.id === option.requirementValue);
+                      canUseOption = hasItem;
+                      
+                      // Get item name instead of ID for display
+                      let itemName = option.requirementValue;
+                      if (hasItem) {
+                          const item = gameState.inventory.find(item => item.id === option.requirementValue);
+                          if (item && item.name) {
+                              itemName = item.name;
+                          }
+                      }
+                      requirementText = itemName;
+                  }
+                  
+                  if (!canUseOption) {
+                      optionBtn.classList.add('disabled');
+                      optionBtn.disabled = true;
+                      
+                      // Add requirement info
+                      const reqSpan = document.createElement('span');
+                      reqSpan.className = 'event-requirement';
+                      reqSpan.textContent = `Requires: ${requirementText}`;
+                      optionBtn.appendChild(reqSpan);
+                  } else {
+                      // Add visual indicator for available special options
+                      const specialSpan = document.createElement('span');
+                      specialSpan.className = 'event-requirement event-special';
+                      specialSpan.textContent = '✓ Available';
+                      optionBtn.appendChild(specialSpan);
+                  }
               }
-            }
-          }
-          
-          // Add click handler
-          optionBtn.addEventListener('click', () => {
-            this.handleEventOption(nodeData.id, index, option);
+              
+              // Add click handler
+              optionBtn.addEventListener('click', () => {
+                  this.handleEventOption(nodeData.id, index, option);
+              });
+              
+              eventOptions.appendChild(optionBtn);
           });
-          
-          eventOptions.appendChild(optionBtn);
-        });
       }
       
       // Reset result and hide continue button
       if (eventResult) eventResult.style.display = 'none';
       if (continueBtn) continueBtn.style.display = 'none';
       
-      // Show the event container
+      // Show the event container with a fade-in effect
+      const container = document.getElementById(CONTAINER_TYPES.EVENT);
+      container.style.opacity = '0';
       this.showContainer(CONTAINER_TYPES.EVENT);
+      
+      // Fade in animation
+      setTimeout(() => {
+          container.style.transition = 'opacity 0.5s';
+          container.style.opacity = '1';
+      }, 50);
     },
 
-    // Implement handleEventOption function
+    // Handle event option selection
     handleEventOption: function(nodeId, optionIndex, option) {
       console.log(`Selected event option ${optionIndex} for node ${nodeId}:`, option);
       
+      // Play selection sound (if you have one)
+      // UiUtils.playSound('click');
+      
       // Disable all option buttons
       const optionButtons = document.querySelectorAll('#event-options button');
-      optionButtons.forEach(btn => btn.disabled = true);
+      optionButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+      });
       
-      // Show the result
-      const eventResult = document.getElementById('event-result');
-      const continueBtn = document.getElementById('event-continue-btn');
-      
-      if (eventResult) {
-        eventResult.innerHTML = `
-          <div class="alert alert-info mt-3">
-            <p>${option.outcome.description}</p>
-          </div>
-        `;
-        eventResult.style.display = 'block';
+      // Highlight selected option
+      const selectedButton = optionButtons[optionIndex];
+      if (selectedButton) {
+          selectedButton.style.opacity = '1';
+          selectedButton.style.borderColor = '#4CAF50';
+          selectedButton.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
       }
       
-      // Apply the effect
+      // Determine result type for styling
+      let resultClass = 'event-result-neutral';
       if (option.outcome.effect) {
-        this.applyEventEffect(option.outcome.effect);
+          const effectType = option.outcome.effect.type;
+          if (effectType === 'insight_gain' || effectType === 'gain_life') {
+              resultClass = 'event-result-success';
+          } else if (effectType === 'insight_loss' || effectType === 'lose_life') {
+              resultClass = 'event-result-negative';
+          }
       }
       
-      // Show continue button
-      if (continueBtn) {
-        continueBtn.style.display = 'block';
-        continueBtn.addEventListener('click', () => {
-          this.markNodeVisited(nodeId);
-          this.showContainer(CONTAINER_TYPES.MAP);
-        });
-      }
+      // Show the result with a slight delay for better UX
+      setTimeout(() => {
+          const eventResult = document.getElementById('event-result');
+          const continueBtn = document.getElementById('event-continue-btn');
+          
+          if (eventResult) {
+              eventResult.className = `alert mt-3 ${resultClass}`;
+              eventResult.innerHTML = `
+                  <p>${option.outcome.description}</p>
+                  ${this.getEffectHTML(option.outcome.effect)}
+              `;
+              
+              // Fade in the result
+              eventResult.style.opacity = '0';
+              eventResult.style.display = 'block';
+              
+              setTimeout(() => {
+                  eventResult.style.transition = 'opacity 0.5s';
+                  eventResult.style.opacity = '1';
+              }, 50);
+          }
+          
+          // Apply the effect after showing the result
+          if (option.outcome.effect) {
+              setTimeout(() => {
+                  this.applyEventEffect(option.outcome.effect);
+              }, 500);
+          }
+          
+          // Show continue button after a short delay
+          setTimeout(() => {
+              if (continueBtn) {
+                  continueBtn.style.display = 'block';
+                  continueBtn.addEventListener('click', () => {
+                      this.markNodeVisited(nodeId);
+                      this.showContainer(CONTAINER_TYPES.MAP);
+                  });
+              }
+          }, 1200);
+      }, 600);
     },
 
-    // Implement applyEventEffect function
+    // Helper function to generate HTML for effect display
+    getEffectHTML: function(effect) {
+      if (!effect || !effect.type) return '';
+      
+      let iconClass = '';
+      let text = '';
+      
+      switch (effect.type) {
+          case 'insight_gain':
+              iconClass = 'text-success';
+              text = `+${effect.value} Insight`;
+              break;
+          case 'insight_loss':
+              iconClass = 'text-danger';
+              text = `-${effect.value} Insight`;
+              break;
+          case 'gain_life':
+              iconClass = 'text-success';
+              text = `+${effect.value} Life`;
+              break;
+          case 'lose_life':
+              iconClass = 'text-danger';
+              text = `-${effect.value} Life`;
+              break;
+          case 'gain_item':
+              iconClass = 'text-primary';
+              text = `Gained item: ${effect.value}`;
+              break;
+          default:
+              return '';
+      }
+      
+      return `<div class="effect-display ${iconClass}"><strong>${text}</strong></div>`;
+    },
+
+    // Apply event effect
     applyEventEffect: function(effect) {
       console.log("Applying event effect:", effect);
       
       if (!effect || !effect.type) return;
       
+      // Add some visual flair based on effect type
+      let animationClass = '';
+      let floatingTextType = '';
+      
       switch (effect.type) {
-        case 'insight_gain':
-          gameState.character.insight += effect.value;
-          UiUtils.showFloatingText(`+${effect.value} Insight`, 'success');
-          break;
-          
-        case 'insight_loss':
-          gameState.character.insight = Math.max(0, gameState.character.insight - effect.value);
-          UiUtils.showFloatingText(`-${effect.value} Insight`, 'danger');
-          break;
-          
-        case 'gain_life':
-          if (gameState.character.lives < gameState.character.max_lives) {
-            gameState.character.lives += effect.value;
-            UiUtils.showFloatingText(`+${effect.value} Life`, 'success');
-          }
-          break;
-          
-        case 'lose_life':
-          gameState.character.lives -= effect.value;
-          UiUtils.showFloatingText(`-${effect.value} Life`, 'danger');
-          
-          // Check for game over
-          if (gameState.character.lives <= 0) {
-            setTimeout(() => {
-              this.showGameOver();
-            }, 1500);
-          }
-          break;
-          
-        case 'gain_item':
-          // Find the item by id
-          fetch(`/api/item/${effect.value}`)
-            .then(response => response.json())
-            .then(itemData => {
-              if (itemData) {
-                Character.addItemToInventory(itemData);
+          case 'insight_gain':
+              gameState.character.insight += effect.value;
+              animationClass = 'insight-gain-animation';
+              floatingTextType = 'success';
+              break;
+              
+          case 'insight_loss':
+              gameState.character.insight = Math.max(0, gameState.character.insight - effect.value);
+              animationClass = 'insight-loss-animation';
+              floatingTextType = 'danger';
+              break;
+              
+          case 'gain_life':
+              if (gameState.character.lives < gameState.character.max_lives) {
+                  gameState.character.lives += effect.value;
+                  animationClass = 'life-gain-animation';
+                  floatingTextType = 'success';
+              } else {
+                  // Already at max lives
+                  UiUtils.showFloatingText('Already at max lives!', 'warning');
+                  return;
               }
-            })
-            .catch(error => console.error('Error fetching item:', error));
-          break;
+              break;
+              
+          case 'lose_life':
+              gameState.character.lives -= effect.value;
+              animationClass = 'life-loss-animation';
+              floatingTextType = 'danger';
+              
+              // Check for game over
+              if (gameState.character.lives <= 0) {
+                  setTimeout(() => {
+                      this.showGameOver();
+                  }, 1500);
+              }
+              break;
+              
+          case 'gain_item':
+              // Find the item by id
+              fetch(`/api/item/${effect.value}`)
+                  .then(response => response.json())
+                  .then(itemData => {
+                      if (itemData) {
+                          const added = Character.addItemToInventory(itemData);
+                          if (added) {
+                              animationClass = 'item-gain-animation';
+                              UiUtils.showFloatingText(`Gained ${itemData.name}!`, 'success');
+                          }
+                      }
+                  })
+                  .catch(error => console.error('Error fetching item:', error));
+              return; // Early return since this is async
+      }
+      
+      // Apply animation to character info section
+      const characterInfo = document.querySelector('.character-stats');
+      if (characterInfo && animationClass) {
+          characterInfo.classList.add(animationClass);
+          setTimeout(() => {
+              characterInfo.classList.remove(animationClass);
+          }, 1000);
+      }
+      
+      // Show floating text for the effect
+      let effectText = '';
+      if (effect.type === 'insight_gain') effectText = `+${effect.value} Insight`;
+      else if (effect.type === 'insight_loss') effectText = `-${effect.value} Insight`;
+      else if (effect.type === 'gain_life') effectText = `+${effect.value} Life`;
+      else if (effect.type === 'lose_life') effectText = `-${effect.value} Life`;
+      
+      if (effectText) {
+          UiUtils.showFloatingText(effectText, floatingTextType);
       }
       
       // Update character display
       Character.updateCharacterInfo(gameState.character);
+      
+      // Save game state to server
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+          ApiClient.saveGame().catch(err => console.error("Failed to save game after event effect:", err));
+      }
     },
+
     // Show game over screen
     showGameOver: function() {
       // Update final score
