@@ -1,1062 +1,1027 @@
-// nodes.js - Node interaction (questions, treasure, etc)
+// nodes.js - Node interaction (questions, treasure, rest areas, etc.)
 
 window.Nodes = {
-    // Function to hide all containers
-    hideAllInteractionContainers: function() {
-      // Hide all interaction containers
-      const containers = document.querySelectorAll('.interaction-container');
-      containers.forEach(container => {
-        container.style.display = 'none';
-      });
-      
-      // Game over is not an interaction container but should be hidden initially
-      const gameOverContainer = document.getElementById(CONTAINER_TYPES.GAME_OVER);
-      if (gameOverContainer) {
-        gameOverContainer.style.display = 'none';
-      }
-      
-      // Make sure the game board is visible
-      const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
-      if (gameBoardContainer) {
-        gameBoardContainer.style.display = 'block';
-      }
-    },
+  // Function to hide all interaction containers
+  hideAllInteractionContainers: function() {
+    // Hide all interaction containers
+    const containers = document.querySelectorAll('.interaction-container');
+    containers.forEach(container => {
+      container.style.display = 'none';
+    });
     
-    // Function to show a specific container and hide others
-    showContainer: function(containerId) {
-      this.hideAllInteractionContainers();
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.style.display = 'block';
-      } else {
-        console.error(`Container not found: ${containerId}`);
-      }
-    },
+    // Game over is not an interaction container but should be hidden initially
+    const gameOverContainer = document.getElementById(CONTAINER_TYPES.GAME_OVER);
+    if (gameOverContainer) {
+      gameOverContainer.style.display = 'none';
+    }
     
-    // Improved clearEventListeners function in nodes.js
-    clearEventListeners: function() {
-      // Store references to all buttons that need listeners cleared
-      const elements = [
-          'continue-btn',
-          'treasure-continue-btn',
-          'rest-heal-btn',
-          'rest-study-btn',
-          'rest-continue-btn',
-          'event-continue-btn',
-          'collect-item-btn'
-      ];
-      
-      // Clone and replace each element to remove all event listeners
-      elements.forEach(id => {
-          const element = document.getElementById(id);
-          if (element) {
-              const newElement = element.cloneNode(true);
-              element.parentNode.replaceChild(newElement, element);
-          }
-      });
-      
-      // Also clear option buttons if they exist
-      const optionsContainer = document.getElementById('options-container');
-      if (optionsContainer) {
-          optionsContainer.innerHTML = '';
-      }
-      
-      // Clear event options
-      const eventOptions = document.getElementById('event-options');
-      if (eventOptions) {
-          eventOptions.innerHTML = '';
-      }
-    },
+    // Make sure the game board is visible
+    const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
+    if (gameBoardContainer) {
+      gameBoardContainer.style.display = 'block';
+    }
+  },
+  
+  // Function to show a specific container and hide others
+  showContainer: function(containerId) {
+    this.hideAllInteractionContainers();
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.style.display = 'block';
+    } else {
+      console.error(`Container not found: ${containerId}`);
+    }
+  },
+  
+  // Clear event listeners to prevent duplicates
+  clearEventListeners: function() {
+    // Store references to all buttons that need listeners cleared
+    const elements = [
+      'continue-btn',
+      'treasure-continue-btn',
+      'rest-heal-btn',
+      'rest-study-btn',
+      'rest-continue-btn',
+      'event-continue-btn',
+      'collect-item-btn'
+    ];
     
-    // Replace the visitNode function in nodes.js
-    visitNode: function(nodeId) {
-      console.log(`Visiting node: ${nodeId}`);
-      
-      // First, clear any existing event listeners to prevent duplicates
-      this.clearEventListeners();
-      
-      // Make sure the node can be visited
-      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.canVisitNode === 'function') {
-          if (!MapRenderer.canVisitNode(nodeId)) {
-              console.warn(`Node ${nodeId} cannot be visited now`);
-              UiUtils.showToast("This node cannot be visited at this time", "warning");
-              return;
-          }
+    // Clone and replace each element to remove all event listeners
+    elements.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        const newElement = element.cloneNode(true);
+        element.parentNode.replaceChild(newElement, element);
       }
-      
-      // Set this as the current node using our helper
-      this.setCurrentNode(nodeId);
-      
-      // Update the map to reflect current node status
-      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-      }
-      
-      // Request node data from server
-      fetch(`/api/node/${nodeId}`)
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error(`Server responded with status: ${response.status}`);
-              }
-              return response.json();
-          })
-          .then(nodeData => {
-              console.log("Node data received:", nodeData);
-              
-              // Handle different node types
-              if (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss') {
-                  console.log("Showing question node");
-                  this.showQuestion(nodeData);
-              } else if (nodeData.type === 'treasure') {
-                  console.log("Showing treasure node");
-                  this.showTreasure(nodeData);
-              } else if (nodeData.type === 'rest') {
-                  console.log("Showing rest node");
-                  this.showRestNode(nodeData);
-              } else if (nodeData.type === 'event') {
-                  console.log("Showing event node");
-                  this.showEvent(nodeData);
-              } else if (nodeData.type === 'shop') {
-                  console.log("Showing shop node");
-                  this.showShop(nodeData);
-              } else if (nodeData.type === 'gamble') {
-                  console.log("Showing gamble node");
-                  this.showGamble(nodeData);
-              } else {
-                  // Unknown node type
-                  console.error(`Unknown node type: ${nodeData.type}`);
-                  UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
-                  this.markNodeVisited(nodeId);
-              }
-          })
-          .catch(error => {
-              console.error('Error visiting node:', error);
-              UiUtils.showToast(`Failed to load node: ${error.message}`, 'danger');
-              
-              // Clear current node state on error
-              this.setCurrentNode(null);
-          });
-    },
+    });
     
-    // Show question node
-    showQuestion: function(nodeData) {
-      const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
-      const questionText = document.getElementById('question-text');
-      const optionsContainer = document.getElementById('options-container');
-      const resultDiv = document.getElementById('question-result');
-      
-      // Store current question for potential item use
-      gameState.currentQuestion = nodeData.question;
-      
-      // Reset previous question state
-      questionText.textContent = nodeData.question.text;
+    // Clear option buttons if they exist
+    const optionsContainer = document.getElementById('options-container');
+    if (optionsContainer) {
       optionsContainer.innerHTML = '';
-      resultDiv.style.display = 'none';
-      
-      const continueBtn = document.getElementById('continue-btn');
-      if (continueBtn) {
-        continueBtn.style.display = 'none';
+    }
+    
+    // Clear event options
+    const eventOptions = document.getElementById('event-options');
+    if (eventOptions) {
+      eventOptions.innerHTML = '';
+    }
+  },
+  
+  // Centralized function to visit a node - improved logic
+  visitNode: function(nodeId) {
+    console.log(`Visiting node: ${nodeId}`);
+    
+    // First, clear any existing event listeners
+    this.clearEventListeners();
+    
+    // Check if node can be visited
+    if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.canVisitNode === 'function') {
+      if (!MapRenderer.canVisitNode(gameState.map, nodeId)) {
+        console.warn(`Node ${nodeId} cannot be visited now`);
+        UiUtils.showToast("This node cannot be visited at this time", "warning");
+        return;
       }
-      
-      // Add options
+    }
+    
+    // Set this as the current node
+    this.setCurrentNode(nodeId);
+    
+    // Update the map to reflect current node status
+    if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+      MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+    }
+    
+    // Request node data from server
+    fetch(`/api/node/${nodeId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(nodeData => {
+        console.log("Node data received:", nodeData);
+        
+        // Handle different node types
+        if (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss') {
+          console.log("Showing question node");
+          this.showQuestion(nodeData);
+        } else if (nodeData.type === 'treasure') {
+          console.log("Showing treasure node");
+          this.showTreasure(nodeData);
+        } else if (nodeData.type === 'rest') {
+          console.log("Showing rest node");
+          this.showRestNode(nodeData);
+        } else if (nodeData.type === 'event') {
+          console.log("Showing event node");
+          this.showEvent(nodeData);
+        } else if (nodeData.type === 'shop') {
+          console.log("Showing shop node");
+          this.showShop(nodeData);
+        } else if (nodeData.type === 'gamble') {
+          console.log("Showing gamble node");
+          this.showGamble(nodeData);
+        } else {
+          // Unknown node type
+          console.error(`Unknown node type: ${nodeData.type}`);
+          UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
+          this.completeNode(nodeId);
+        }
+      })
+      .catch(error => {
+        console.error('Error visiting node:', error);
+        UiUtils.showToast(`Failed to load node: ${error.message}`, 'danger');
+        
+        // Clear current node state on error
+        this.setCurrentNode(null);
+      });
+  },
+  
+  // IMPROVED: Core function to complete a node
+  completeNode: function(nodeId) {
+    console.log(`Completing node: ${nodeId}`);
+    
+    // 1. Mark as completed in local state
+    let nodeUpdated = false;
+    
+    if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
+      console.log(`Marking node ${nodeId} as completed in local state`);
+      gameState.map.nodes[nodeId].visited = true;
+      gameState.map.nodes[nodeId].current = false;
+      nodeUpdated = true;
+    } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
+      console.log(`Marking boss ${nodeId} as completed in local state`);
+      gameState.map.boss.visited = true;
+      gameState.map.boss.current = false;
+      nodeUpdated = true;
+    }
+    
+    if (!nodeUpdated) {
+      console.error(`Could not find node ${nodeId} to mark as completed!`);
+      return;
+    }
+    
+    // 2. Clear current node
+    gameState.currentNode = null;
+    
+    // 3. Update server state
+    ApiClient.markNodeVisited(nodeId)
+      .then(data => {
+        console.log("Server confirmed node completion:", nodeId);
+        
+        // Check if all nodes are completed
+        if (data.all_nodes_visited) {
+          console.log("All nodes completed, showing next floor button");
+          const nextFloorBtn = document.getElementById('next-floor-btn');
+          if (nextFloorBtn) {
+            nextFloorBtn.style.display = 'block';
+          }
+        }
+        
+        // Update map display
+        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+        }
+        
+        // Return to map view
+        this.showContainer(CONTAINER_TYPES.MAP);
+        
+        // Save game state
+        ApiClient.saveGame()
+          .catch(err => console.error("Failed to save game after node completion:", err));
+      })
+      .catch(error => {
+        console.error('Error completing node:', error);
+        // Still update UI even if server fails
+        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+        }
+        this.showContainer(CONTAINER_TYPES.MAP);
+      });
+  },
+  
+  // Show question node with improved event handling
+  showQuestion: function(nodeData) {
+    const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
+    const questionTitle = document.getElementById('question-title');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const resultDiv = document.getElementById('question-result');
+    
+    // Store current question for potential hint use
+    gameState.currentQuestion = nodeData.question;
+    
+    // Set question title if element exists
+    if (questionTitle) {
+      questionTitle.textContent = nodeData.title || 'Question';
+    }
+    
+    // Reset previous question state
+    if (questionText) questionText.textContent = nodeData.question.text;
+    if (optionsContainer) optionsContainer.innerHTML = '';
+    if (resultDiv) {
+      resultDiv.style.display = 'none';
+      resultDiv.innerHTML = '';
+    }
+    
+    const continueBtn = document.getElementById('continue-btn');
+    if (continueBtn) {
+      continueBtn.style.display = 'none';
+    }
+    
+    // Add options with clean event handling
+    if (optionsContainer && nodeData.question.options) {
       nodeData.question.options.forEach((option, index) => {
         const optionBtn = document.createElement('button');
         optionBtn.classList.add('btn', 'btn-outline-primary', 'option-btn', 'mb-2', 'w-100');
         optionBtn.textContent = option;
+        
+        // Use a clean approach to event handling
         optionBtn.addEventListener('click', () => {
           this.answerQuestion(nodeData.id, index, nodeData.question);
         });
+        
         optionsContainer.appendChild(optionBtn);
       });
-      
-      // Show the question container
-      this.showContainer(CONTAINER_TYPES.QUESTION);
-    },
+    }
     
-    applyQuestionHint: function() {
-      const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
-      if (!questionContainer || questionContainer.style.display !== 'block') return false;
+    // Show the question container
+    this.showContainer(CONTAINER_TYPES.QUESTION);
+  },
+  
+  // Apply question hint - for items that eliminate wrong answers
+  applyQuestionHint: function() {
+    const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
+    if (!questionContainer || questionContainer.style.display !== 'block') return false;
+    
+    // Get all option buttons
+    const options = document.querySelectorAll('.option-btn');
+    if (!options.length) return false;
+    
+    // Get correct answer from current question
+    const currentQuestion = gameState.currentQuestion;
+    if (!currentQuestion) return false;
+    
+    // Find wrong answers to eliminate (not the correct one)
+    let wrongIndexes = [];
+    for (let i = 0; i < options.length; i++) {
+      if (i !== currentQuestion.correct) {
+        wrongIndexes.push(i);
+      }
+    }
+    
+    // Randomly select one wrong answer to eliminate
+    if (wrongIndexes.length > 0) {
+      const randomWrongIndex = wrongIndexes[Math.floor(Math.random() * wrongIndexes.length)];
+      const wrongOption = options[randomWrongIndex];
       
-      // Get all option buttons
-      const options = document.querySelectorAll('.option-btn');
-      if (!options.length) return false;
-      
-      // Get correct answer from current question
-      const currentQuestion = gameState.currentQuestion;
-      if (!currentQuestion) return false;
-      
-      // Find wrong answers to eliminate (not the correct one)
-      let wrongIndexes = [];
-      for (let i = 0; i < options.length; i++) {
-          if (i !== currentQuestion.correct) {
-              wrongIndexes.push(i);
-          }
+      // Check if this option is already eliminated
+      if (wrongOption.classList.contains('eliminated-option')) {
+        // Try to find another option that's not eliminated
+        const nonEliminatedWrong = wrongIndexes.find(idx => 
+          !options[idx].classList.contains('eliminated-option')
+        );
+        
+        if (nonEliminatedWrong !== undefined) {
+          const newWrongOption = options[nonEliminatedWrong];
+          // Cross out the wrong option
+          newWrongOption.classList.add('eliminated-option');
+          newWrongOption.innerHTML = `<s>${newWrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
+          newWrongOption.disabled = true;
+        } else {
+          // All wrong options already eliminated
+          UiUtils.showFloatingText("All wrong answers already eliminated!", "warning");
+          return false;
+        }
+      } else {
+        // Cross out the wrong option
+        wrongOption.classList.add('eliminated-option');
+        wrongOption.innerHTML = `<s>${wrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
+        wrongOption.disabled = true;
       }
       
-      // Randomly select one wrong answer to eliminate
-      if (wrongIndexes.length > 0) {
-          const randomWrongIndex = wrongIndexes[Math.floor(Math.random() * wrongIndexes.length)];
-          const wrongOption = options[randomWrongIndex];
-          
-          // Check if this option is already eliminated
-          if (wrongOption.classList.contains('eliminated-option')) {
-              // Try to find another option that's not eliminated
-              const nonEliminatedWrong = wrongIndexes.find(idx => 
-                  !options[idx].classList.contains('eliminated-option')
-              );
-              
-              if (nonEliminatedWrong !== undefined) {
-                  const newWrongOption = options[nonEliminatedWrong];
-                  // Cross out the wrong option
-                  newWrongOption.classList.add('eliminated-option');
-                  newWrongOption.innerHTML = `<s>${newWrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
-                  newWrongOption.disabled = true;
-              } else {
-                  // All wrong options already eliminated
-                  UiUtils.showFloatingText("All wrong answers already eliminated!", "warning");
-                  return false;
-              }
-          } else {
-              // Cross out the wrong option
-              wrongOption.classList.add('eliminated-option');
-              wrongOption.innerHTML = `<s>${wrongOption.textContent}</s> <span class="badge bg-danger">Incorrect</span>`;
-              wrongOption.disabled = true;
-          }
-          
-          // Show feedback
-          UiUtils.showFloatingText("Eliminated one wrong answer!", "success");
-          return true;
-      }
-      
-      return false;
-    },
+      // Show feedback
+      UiUtils.showFloatingText("Eliminated one wrong answer!", "success");
+      return true;
+    }
     
-    // Answer a question
-    answerQuestion: function(nodeId, answerIndex, question) {
-      console.log(`Answering question for node ${nodeId}, selected option ${answerIndex}`);
-      
-      // Disable all options to prevent multiple submissions
-      const options = document.querySelectorAll('.option-btn');
-      options.forEach(opt => opt.disabled = true);
-      
-      ApiClient.answerQuestion(nodeId, answerIndex, question)
-        .then(data => {
-          // Show result
-          this.showQuestionResult(data, answerIndex, question);
-          
-          // Update game state
-          if (data.game_state && data.game_state.character) {
-            gameState.character = data.game_state.character;
-            Character.updateCharacterInfo(gameState.character);
-          }
-          
-          // Check for game over
-          if (gameState.character.lives <= 0) {
-            // Set timeout to show the result before game over
-            setTimeout(() => {
-              this.showGameOver();
-            }, 2000);
-          } else {
-            // Set up continue button to mark node as visited
-            this.setupContinueButton(() => {
-              this.markNodeVisited(nodeId);
-              this.showContainer(CONTAINER_TYPES.MAP); // Return to map
+    return false;
+  },
+  
+  // Answer a question with improved completion logic
+  answerQuestion: function(nodeId, answerIndex, question) {
+    console.log(`Answering question for node ${nodeId}, selected option ${answerIndex}`);
+    
+    // Disable all options to prevent multiple submissions
+    const options = document.querySelectorAll('.option-btn');
+    options.forEach(opt => opt.disabled = true);
+    
+    ApiClient.answerQuestion(nodeId, answerIndex, question)
+      .then(data => {
+        // Show result
+        this.showQuestionResult(data, answerIndex, question);
+        
+        // Update game state
+        if (data.game_state && data.game_state.character) {
+          gameState.character = data.game_state.character;
+          Character.updateCharacterInfo(gameState.character);
+        }
+        
+        // Check for game over
+        if (gameState.character.lives <= 0) {
+          // Set timeout to show the result before game over
+          setTimeout(() => {
+            this.showGameOver();
+          }, 2000);
+        } else {
+          // Set up continue button to mark node as completed
+          const continueBtn = document.getElementById('continue-btn');
+          if (continueBtn) {
+            continueBtn.style.display = 'block';
+            continueBtn.addEventListener('click', () => {
+              this.completeNode(nodeId);
             });
           }
-        })
-        .catch(error => {
-          console.error('Error answering question:', error);
-          UiUtils.showError(`Error submitting answer: ${error.message}`);
-          
-          // Re-enable options
-          options.forEach(opt => opt.disabled = false);
-        });
-    },
-    
-    // Show question result
-    showQuestionResult: function(data, selectedIndex, question) {
-      const resultDiv = document.getElementById('question-result');
-      const continueBtn = document.getElementById('continue-btn');
-      
-      // Create result message
-      resultDiv.innerHTML = `
-        <div class="alert ${data.correct ? 'alert-success' : 'alert-danger'} mt-3">
-          <strong>${data.correct ? 'Correct!' : 'Incorrect!'}</strong>
-          <p>${data.explanation}</p>
-          <div class="mt-2">
-            ${data.correct 
-              ? `<span class="badge bg-success">+${data.insight_gained || 10} Insight</span>` 
-              : `<span class="badge bg-danger">-1 Life</span>`}
-          </div>
-        </div>
-      `;
-      
-      // Show floating feedback
-      if (data.correct) {
-        UiUtils.showFloatingText(`+${data.insight_gained || 10} Insight`, 'success');
-      } else {
-        UiUtils.showFloatingText('-1 Life', 'danger');
-      }
-      
-      // Highlight the selected option
-      const options = document.querySelectorAll('.option-btn');
-      if (options[selectedIndex]) {
-        options[selectedIndex].classList.add(data.correct ? 'btn-success' : 'btn-danger');
-        options[selectedIndex].classList.remove('btn-outline-primary');
-      }
-      
-      // Highlight the correct answer if the user was wrong
-      if (!data.correct && question.correct !== selectedIndex) {
-        options[question.correct].classList.add('btn-success');
-        options[question.correct].classList.remove('btn-outline-primary');
-      }
-      
-      // Show result and continue button
-      resultDiv.style.display = 'block';
-      if (continueBtn) {
-        continueBtn.style.display = 'block';
-      }
-    },
-    
-    // Replace the showRestNode function in nodes.js
-    showRestNode: function(nodeData) {
-      console.log("Showing rest node:", nodeData);
-      
-      // First show the container so elements exist in the DOM
-      this.showContainer(CONTAINER_TYPES.REST);
-      
-      // Get button elements after the container is shown
-      const healBtn = document.getElementById('rest-heal-btn');
-      const studyBtn = document.getElementById('rest-study-btn');
-      const continueBtn = document.getElementById('rest-continue-btn');
-      
-      // Remove ALL existing event listeners by cloning parent element and replacing content
-      const restOptions = document.getElementById('rest-options');
-      if (restOptions) {
-          const newRestOptions = restOptions.cloneNode(false); // Clone without children
-          
-          // Recreate the buttons
-          newRestOptions.innerHTML = `
-              <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
-              <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
-          `;
-          
-          // Replace the old container
-          restOptions.parentNode.replaceChild(newRestOptions, restOptions);
-          
-          // Get the new buttons
-          const newHealBtn = document.getElementById('rest-heal-btn');
-          const newStudyBtn = document.getElementById('rest-study-btn');
-          
-          // Add event listeners to new buttons
-          if (newHealBtn) {
-              newHealBtn.addEventListener('click', function() {
-                  console.log("Heal button clicked");
-                  if (gameState.character.lives < gameState.character.max_lives) {
-                      gameState.character.lives += 1;
-                      Character.updateCharacterInfo(gameState.character);
-                      UiUtils.showFloatingText('+1 Life', 'success');
-                      this.disabled = true;
-                  } else {
-                      UiUtils.showFloatingText('Already at full health!', 'warning');
-                  }
-              });
-          }
-          
-          if (newStudyBtn) {
-              newStudyBtn.addEventListener('click', function() {
-                  console.log("Study button clicked");
-                  gameState.character.insight += 5;
-                  Character.updateCharacterInfo(gameState.character);
-                  UiUtils.showFloatingText('+5 Insight', 'success');
-                  this.disabled = true;
-              });
-          }
-      }
-      
-      // Reset and add event listener for continue button - THIS IS THE CRITICAL PART
-      if (continueBtn) {
-          // Clone and replace to remove old event listeners
-          const newContinueBtn = continueBtn.cloneNode(true);
-          continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
-          
-          // Add new event listener with PROPER NODE COMPLETION
-          newContinueBtn.addEventListener('click', () => {
-            console.log("Continue button clicked - completing rest node");
-            if (gameState.currentNode) {
-              this.forceCompleteNode(gameState.currentNode);
-            }
-          });
-      }
-      
-      console.log("Rest node setup complete, buttons should be working");
-    },
-    
-    // Show shop node
-    showShop: function(nodeData) {
-      console.log("Showing shop node:", nodeData);
-      
-      // Implementation for future shop functionality
-      const shopContainer = document.getElementById(CONTAINER_TYPES.SHOP);
-      if (!shopContainer) {
-        console.error("Shop container not found");
-        this.markNodeVisited(nodeData.id);
-        return;
-      }
-      
-      // Placeholder shop content
-      shopContainer.innerHTML = `
-        <div class="card mb-3">
-          <div class="card-header bg-info">
-            <h4>${nodeData.title || 'Department Store'}</h4>
-          </div>
-          <div class="card-body">
-            <p>The shop will be implemented in a future update.</p>
-            <button id="shop-continue-btn" class="btn btn-primary">Continue</button>
-          </div>
-        </div>
-      `;
-      
-      // Add event listener for continue button
-      const continueBtn = document.getElementById('shop-continue-btn');
-      if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
-          this.markNodeVisited(nodeData.id);
-          this.showContainer(CONTAINER_TYPES.MAP);
-        });
-      }
-      
-      // Show shop container
-      this.showContainer(CONTAINER_TYPES.SHOP);
-    },
-    
-    // Show gamble node
-    showGamble: function(nodeData) {
-      console.log("Showing gamble node:", nodeData);
-      
-      // Implementation for future gamble functionality
-      const gambleContainer = document.getElementById(CONTAINER_TYPES.GAMBLE);
-      if (!gambleContainer) {
-        console.error("Gamble container not found");
-        this.markNodeVisited(nodeData.id);
-        return;
-      }
-      
-      // Placeholder gamble content
-      gambleContainer.innerHTML = `
-        <div class="card mb-3">
-          <div class="card-header bg-warning">
-            <h4>${nodeData.title || 'Research Roulette'}</h4>
-          </div>
-          <div class="card-body">
-            <p>The gamble node will be implemented in a future update.</p>
-            <button id="gamble-continue-btn" class="btn btn-primary">Continue</button>
-          </div>
-        </div>
-      `;
-      
-      // Add event listener for continue button
-      const continueBtn = document.getElementById('gamble-continue-btn');
-      if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
-          this.markNodeVisited(nodeData.id);
-          this.showContainer(CONTAINER_TYPES.MAP);
-        });
-      }
-      
-      // Show gamble container
-      this.showContainer(CONTAINER_TYPES.GAMBLE);
-    },
-    
-    // Replace markNodeVisited function in nodes.js
-    markNodeVisited: function(nodeId) {
-      console.log(`Marking node ${nodeId} as visited`);
-      
-      // Immediately update LOCAL state first
-      if (gameState.map) {
-        // Mark the specific node as visited in local state
-        if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
-          gameState.map.nodes[nodeId].visited = true;
-          gameState.map.nodes[nodeId].current = false;
-        } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
-          gameState.map.boss.visited = true;
-          gameState.map.boss.current = false;
         }
-      }
-      
-      // Clear current node
-      gameState.currentNode = null;
-      
-      // Now update server (which will also check if all nodes are visited)
-      ApiClient.markNodeVisited(nodeId)
-        .then(data => {
-          console.log("Server confirmed node visited:", nodeId);
-          
-          // Check if all nodes are visited for next floor button
-          if (data.all_nodes_visited) {
-            console.log("All nodes visited, showing next floor button");
-            const nextFloorBtn = document.getElementById('next-floor-btn');
-            if (nextFloorBtn) {
-              nextFloorBtn.style.display = 'block';
-            }
-          }
-          
-          // Render map AFTER server response
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-          
-          // Return to map view
-          this.showContainer(CONTAINER_TYPES.MAP);
-          
-          // Save game state
-          ApiClient.saveGame()
-            .catch(err => console.error("Failed to save game:", err));
-        })
-        .catch(error => {
-          console.error('Error marking node as visited:', error);
-          // Re-render map anyway
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-          this.showContainer(CONTAINER_TYPES.MAP);
-        });
-    },
+      })
+      .catch(error => {
+        console.error('Error answering question:', error);
+        UiUtils.showToast(`Error: ${error.message}`, "danger");
+        
+        // Re-enable options
+        options.forEach(opt => opt.disabled = false);
+      });
+  },
+  
+  // Show question result
+  showQuestionResult: function(data, selectedIndex, question) {
+    const resultDiv = document.getElementById('question-result');
     
-    // Go to the next floor
-    goToNextFloor: function() {
-      console.log("Going to next floor...");
-      
-      ApiClient.goToNextFloor()
-        .then(data => {
-          // Update global game state
-          gameState.character = data.character;
-          gameState.currentFloor = data.current_floor;
-          gameState.currentNode = null;
-          gameState.map = null;  // Clear map so new one will be generated
-          
-          // Update UI
-          Character.updateCharacterInfo(data.character);
-          document.getElementById('current-floor').textContent = data.current_floor;
-          
-          // Hide next floor button
-          const nextFloorBtn = document.getElementById('next-floor-btn');
-          if (nextFloorBtn) {
-            nextFloorBtn.style.display = 'none';
-          }
-          
-          // Show floor transition
-          UiUtils.showFloorTransition(data.current_floor);
-          
-          // Initialize new floor map
-          MapRenderer.initializeFloorMap();
-        })
-        .catch(error => {
-          console.error('Error going to next floor:', error);
-          UiUtils.showError(`Failed to advance to next floor: ${error.message}`);
-        });
-    },
-    // Update the final part of the showTreasure function in nodes.js
-    // Find this function and update just the "Continue" button code
-    showTreasure: function(nodeData) {
-      console.log("Showing treasure node:", nodeData);
-      
-      // Get item data from node
-      const item = nodeData.item;
-      if (!item) {
-          console.error("No item data in treasure node");
-          this.markNodeVisited(nodeData.id);
-          return;
-      }
-      
-      // Create treasure content
-      const treasureContent = document.getElementById('treasure-content');
-      if (!treasureContent) return;
-      
-      // Display item information
-      treasureContent.innerHTML = `
-          <div class="card mb-3">
-              <div class="card-header bg-warning">
-                  <h4>${item.name}</h4>
-                  <span class="badge bg-secondary">${item.rarity || 'common'}</span>
-              </div>
-              <div class="card-body">
-                  <p>${item.description}</p>
-                  <div class="alert alert-info">
-                      <strong>Effect:</strong> ${Character.getEffectDescription(item.effect)}
-                  </div>
-                  <button id="collect-item-btn" class="btn btn-success">Add to Inventory</button>
-              </div>
+    if (!resultDiv) return;
+    
+    // Create result message
+    resultDiv.innerHTML = `
+      <div class="alert ${data.correct ? 'alert-success' : 'alert-danger'} mt-3">
+        <strong>${data.correct ? 'Correct!' : 'Incorrect!'}</strong>
+        <p>${data.explanation}</p>
+        <div class="mt-2">
+          ${data.correct 
+            ? `<span class="badge bg-success">+${data.insight_gained || 10} Insight</span>` 
+            : `<span class="badge bg-danger">-1 Life</span>`}
+        </div>
+      </div>
+    `;
+    
+    // Show floating feedback
+    if (data.correct) {
+      UiUtils.showFloatingText(`+${data.insight_gained || 10} Insight`, 'success');
+    } else {
+      UiUtils.showFloatingText('-1 Life', 'danger');
+    }
+    
+    // Highlight the selected option
+    const options = document.querySelectorAll('.option-btn');
+    if (options[selectedIndex]) {
+      options[selectedIndex].classList.add(data.correct ? 'btn-success' : 'btn-danger');
+      options[selectedIndex].classList.remove('btn-outline-primary');
+    }
+    
+    // Highlight the correct answer if the user was wrong
+    if (!data.correct && question.correct !== selectedIndex && options[question.correct]) {
+      options[question.correct].classList.add('btn-success');
+      options[question.correct].classList.remove('btn-outline-primary');
+    }
+    
+    // Show result
+    resultDiv.style.display = 'block';
+  },
+  
+  // Show treasure node with clean continue handling
+  showTreasure: function(nodeData) {
+    console.log("Showing treasure node:", nodeData);
+    
+    // Get item data from node
+    const item = nodeData.item;
+    if (!item) {
+      console.error("No item data in treasure node");
+      this.completeNode(nodeData.id);
+      return;
+    }
+    
+    // Create treasure content
+    const treasureContent = document.getElementById('treasure-content');
+    if (!treasureContent) {
+      this.completeNode(nodeData.id);
+      return;
+    }
+    
+    // Display item information
+    treasureContent.innerHTML = `
+      <div class="card mb-3">
+        <div class="card-header bg-warning">
+          <h4>${item.name}</h4>
+          <span class="badge bg-secondary">${item.rarity || 'common'}</span>
+        </div>
+        <div class="card-body">
+          <p>${item.description}</p>
+          <div class="alert alert-info">
+            <strong>Effect:</strong> ${Character.getEffectDescription ? Character.getEffectDescription(item.effect) : JSON.stringify(item.effect)}
           </div>
+          <button id="collect-item-btn" class="btn btn-success">Add to Inventory</button>
+        </div>
+      </div>
+    `;
+    
+    // Set up event listener for the collect button
+    const collectBtn = document.getElementById('collect-item-btn');
+    if (collectBtn) {
+      collectBtn.addEventListener('click', () => {
+        // Add item to inventory
+        const added = Character.addItemToInventory ? Character.addItemToInventory(item) : false;
+        
+        if (added) {
+          // Disable the button to prevent multiple collections
+          collectBtn.disabled = true;
+          collectBtn.textContent = "Added to Inventory";
+        }
+      });
+    }
+    
+    // Show the treasure container
+    this.showContainer(CONTAINER_TYPES.TREASURE);
+    
+    // Set up event listener for continue button
+    const continueBtn = document.getElementById('treasure-continue-btn');
+    if (continueBtn) {
+      // Clone and replace to remove old listeners
+      const newContinueBtn = continueBtn.cloneNode(true);
+      continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+      
+      // Add new event listener to complete the node
+      newContinueBtn.addEventListener('click', () => {
+        console.log("Treasure continue button clicked - completing node");
+        this.completeNode(nodeData.id);
+      });
+    }
+  },
+  
+  // Show rest node with improved button handling
+  showRestNode: function(nodeData) {
+    console.log("Showing rest node:", nodeData);
+    
+    // First show the container so elements exist in the DOM
+    this.showContainer(CONTAINER_TYPES.REST);
+    
+    // Replace the rest options container to clear event listeners
+    const restOptions = document.getElementById('rest-options');
+    if (restOptions) {
+      const newRestOptions = restOptions.cloneNode(false);
+      
+      // Recreate buttons
+      newRestOptions.innerHTML = `
+        <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
+        <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
       `;
       
-      // Set up event listener for the collect button
-      const collectBtn = document.getElementById('collect-item-btn');
-      if (collectBtn) {
-          collectBtn.addEventListener('click', () => {
-              // Add item to inventory
-              const added = Character.addItemToInventory(item);
-              
-              if (added) {
-                  // Disable the button to prevent multiple collections
-                  collectBtn.disabled = true;
-                  collectBtn.textContent = "Added to Inventory";
-              }
-          });
+      // Replace container
+      restOptions.parentNode.replaceChild(newRestOptions, restOptions);
+      
+      // Add event listeners to new buttons
+      const healBtn = document.getElementById('rest-heal-btn');
+      if (healBtn) {
+        healBtn.addEventListener('click', function() {
+          if (gameState.character.lives < gameState.character.max_lives) {
+            gameState.character.lives += 1;
+            Character.updateCharacterInfo(gameState.character);
+            UiUtils.showFloatingText('+1 Life', 'success');
+            this.disabled = true;
+          } else {
+            UiUtils.showFloatingText('Already at full health!', 'warning');
+          }
+        });
       }
       
-      // Show the treasure container
-      this.showContainer(CONTAINER_TYPES.TREASURE);
+      const studyBtn = document.getElementById('rest-study-btn');
+      if (studyBtn) {
+        studyBtn.addEventListener('click', function() {
+          gameState.character.insight += 5;
+          Character.updateCharacterInfo(gameState.character);
+          UiUtils.showFloatingText('+5 Insight', 'success');
+          this.disabled = true;
+        });
+      }
+    }
+    
+    // Set up continue button
+    const continueBtn = document.getElementById('rest-continue-btn');
+    if (continueBtn) {
+      // Clone and replace
+      const newContinueBtn = continueBtn.cloneNode(true);
+      continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
       
-      // UPDATED CODE FOR CONTINUE BUTTON:
-      // Set up event listener for continue button
-      const continueBtn = document.getElementById('treasure-continue-btn');
-      if (continueBtn) {
-          // Clone and replace to remove old event listeners
-          const newContinueBtn = continueBtn.cloneNode(true);
-          continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+      // Add event listener
+      newContinueBtn.addEventListener('click', () => {
+        console.log("Rest continue button clicked - completing node");
+        if (gameState.currentNode) {
+          this.completeNode(gameState.currentNode);
+        }
+      });
+    }
+  },
+  
+  // Show event node with improved handling
+  showEvent: function(nodeData) {
+    console.log("Showing event node:", nodeData);
+    
+    const event = nodeData.event;
+    if (!event) {
+      console.error("No event data in event node");
+      this.completeNode(nodeData.id);
+      return;
+    }
+    
+    // Get UI elements
+    const eventTitle = document.getElementById('event-title');
+    const eventDescription = document.getElementById('event-description');
+    const eventOptions = document.getElementById('event-options');
+    const eventResult = document.getElementById('event-result');
+    const continueBtn = document.getElementById('event-continue-btn');
+    const eventIcon = document.querySelector('.event-icon');
+    
+    // Update event icon based on title
+    if (eventIcon) {
+      const iconMap = {
+        'Unexpected Discovery': '🔍',
+        'Equipment Malfunction': '🔧',
+        'Research Opportunity': '📚',
+        'Conference Invitation': '🎓',
+        'Challenging Patient': '👨‍⚕️',
+        'Broken Dosimeter': '📊',
+        'Protocol Update': '📋',
+        'Late Night Call': '📱'
+      };
+      
+      eventIcon.textContent = iconMap[event.title] || '📝';
+    }
+    
+    // Set event details
+    if (eventTitle) eventTitle.textContent = event.title;
+    if (eventDescription) eventDescription.textContent = event.description;
+    
+    // Clear previous event state
+    if (eventOptions) eventOptions.innerHTML = '';
+    if (eventResult) eventResult.style.display = 'none';
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    // Create option buttons
+    if (eventOptions && event.options) {
+      event.options.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.classList.add('event-option');
+        optionBtn.textContent = option.text;
+        
+        // Check if option has a requirement
+        if (option.requirementType) {
+          let canUseOption = false;
+          let requirementText = '';
           
-          // Add event listener with proper node completion
-          newContinueBtn.addEventListener('click', () => {
-            console.log("Treasure continue button clicked - completing node");
-            if (gameState.currentNode) {
-              this.forceCompleteNode(gameState.currentNode);
+          // Check different requirement types
+          if (option.requirementType === 'insight_check') {
+            canUseOption = gameState.character.insight >= option.requirementValue;
+            requirementText = `${option.requirementValue} Insight`;
+          } else if (option.requirementType === 'item_check') {
+            // Check if player has the required item
+            const hasItem = gameState.inventory && 
+                          gameState.inventory.some(item => item.id === option.requirementValue);
+            canUseOption = hasItem;
+            
+            // Get item name for display
+            let itemName = option.requirementValue;
+            if (hasItem) {
+              const item = gameState.inventory.find(item => item.id === option.requirementValue);
+              if (item && item.name) {
+                itemName = item.name;
+              }
             }
-          });
-      }
-    },
-
-    // Show event node
-    showEvent: function(nodeData) {
-      console.log("Showing event node:", nodeData);
-      
-      const event = nodeData.event;
-      if (!event) {
-          console.error("No event data in event node");
-          this.markNodeVisited(nodeData.id);
-          return;
-      }
-      
-      // Set event title and description
-      const eventTitle = document.getElementById('event-title');
-      const eventDescription = document.getElementById('event-description');
-      const eventOptions = document.getElementById('event-options');
-      const eventResult = document.getElementById('event-result');
-      const continueBtn = document.getElementById('event-continue-btn');
-      const eventIcon = document.querySelector('.event-icon');
-      
-      // Update event icon based on title (simple mapping)
-      if (eventIcon) {
-          const iconMap = {
-              'Unexpected Discovery': '🔍',
-              'Equipment Malfunction': '🔧',
-              'Research Opportunity': '📚',
-              'Conference Invitation': '🎓',
-              'Challenging Patient': '👨‍⚕️',
-              'Broken Dosimeter': '📊',
-              'Protocol Update': '📋',
-              'Late Night Call': '📱'
-          };
+            requirementText = itemName;
+          }
           
-          eventIcon.textContent = iconMap[event.title] || '📝';
-      }
-      
-      if (eventTitle) eventTitle.textContent = event.title;
-      if (eventDescription) eventDescription.textContent = event.description;
-      if (eventOptions) {
-          eventOptions.innerHTML = '';
-          
-          // Create option buttons
-          event.options.forEach((option, index) => {
-              const optionBtn = document.createElement('button');
-              optionBtn.classList.add('event-option');
-              optionBtn.textContent = option.text;
-              
-              // Check if option has requirement
-              if (option.requirementType) {
-                  let canUseOption = false;
-                  let requirementText = '';
-                  
-                  // Check different requirement types
-                  if (option.requirementType === 'insight_check') {
-                      canUseOption = gameState.character.insight >= option.requirementValue;
-                      requirementText = `${option.requirementValue} Insight`;
-                  } else if (option.requirementType === 'item_check') {
-                      // Check if player has the required item
-                      const hasItem = gameState.inventory && 
-                                    gameState.inventory.some(item => item.id === option.requirementValue);
-                      canUseOption = hasItem;
-                      
-                      // Get item name instead of ID for display
-                      let itemName = option.requirementValue;
-                      if (hasItem) {
-                          const item = gameState.inventory.find(item => item.id === option.requirementValue);
-                          if (item && item.name) {
-                              itemName = item.name;
-                          }
-                      }
-                      requirementText = itemName;
-                  }
-                  
-                  if (!canUseOption) {
-                      optionBtn.classList.add('disabled');
-                      optionBtn.disabled = true;
-                      
-                      // Add requirement info
-                      const reqSpan = document.createElement('span');
-                      reqSpan.className = 'event-requirement';
-                      reqSpan.textContent = `Requires: ${requirementText}`;
-                      optionBtn.appendChild(reqSpan);
-                  } else {
-                      // Add visual indicator for available special options
-                      const specialSpan = document.createElement('span');
-                      specialSpan.className = 'event-requirement event-special';
-                      specialSpan.textContent = '✓ Available';
-                      optionBtn.appendChild(specialSpan);
-                  }
-              }
-              
-              // Add click handler
-              optionBtn.addEventListener('click', () => {
-                  this.handleEventOption(nodeData.id, index, option);
-              });
-              
-              eventOptions.appendChild(optionBtn);
-          });
-      }
-      
-      // Reset result and hide continue button
-      if (eventResult) eventResult.style.display = 'none';
-      if (continueBtn) continueBtn.style.display = 'none';
-      
-      // Show the event container with a fade-in effect
-      const container = document.getElementById(CONTAINER_TYPES.EVENT);
+          if (!canUseOption) {
+            optionBtn.classList.add('disabled');
+            optionBtn.disabled = true;
+            
+            // Add requirement info
+            const reqSpan = document.createElement('span');
+            reqSpan.className = 'event-requirement';
+            reqSpan.textContent = `Requires: ${requirementText}`;
+            optionBtn.appendChild(reqSpan);
+          } else {
+            // Add visual indicator for available special options
+            const specialSpan = document.createElement('span');
+            specialSpan.className = 'event-requirement event-special';
+            specialSpan.textContent = '✓ Available';
+            optionBtn.appendChild(specialSpan);
+          }
+        }
+        
+        // Add click handler
+        optionBtn.addEventListener('click', () => {
+          this.handleEventOption(nodeData.id, index, option);
+        });
+        
+        eventOptions.appendChild(optionBtn);
+      });
+    }
+    
+    // Show the event container with a fade-in effect
+    const container = document.getElementById(CONTAINER_TYPES.EVENT);
+    if (container) {
       container.style.opacity = '0';
       this.showContainer(CONTAINER_TYPES.EVENT);
       
       // Fade in animation
       setTimeout(() => {
-          container.style.transition = 'opacity 0.5s';
-          container.style.opacity = '1';
+        container.style.transition = 'opacity 0.5s';
+        container.style.opacity = '1';
       }, 50);
-    },
-
-    // Handle event option selection
-    handleEventOption: function(nodeId, optionIndex, option) {
-      console.log(`Selected event option ${optionIndex} for node ${nodeId}:`, option);
-      
-      // Play selection sound (if you have one)
-      // UiUtils.playSound('click');
-      
-      // Disable all option buttons
-      const optionButtons = document.querySelectorAll('#event-options button');
-      optionButtons.forEach(btn => {
-          btn.disabled = true;
-          btn.style.opacity = '0.5';
-      });
-      
-      // Highlight selected option
-      const selectedButton = optionButtons[optionIndex];
-      if (selectedButton) {
-          selectedButton.style.opacity = '1';
-          selectedButton.style.borderColor = '#4CAF50';
-          selectedButton.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-      }
-      
-      // Determine result type for styling
-      let resultClass = 'event-result-neutral';
-      if (option.outcome.effect) {
-          const effectType = option.outcome.effect.type;
-          if (effectType === 'insight_gain' || effectType === 'gain_life') {
-              resultClass = 'event-result-success';
-          } else if (effectType === 'insight_loss' || effectType === 'lose_life') {
-              resultClass = 'event-result-negative';
-          }
-      }
-      
-      // Show the result with a slight delay for better UX
-      setTimeout(() => {
-          const eventResult = document.getElementById('event-result');
-          const continueBtn = document.getElementById('event-continue-btn');
-          
-          if (eventResult) {
-              eventResult.className = `alert mt-3 ${resultClass}`;
-              eventResult.innerHTML = `
-                  <p>${option.outcome.description}</p>
-                  ${this.getEffectHTML(option.outcome.effect)}
-              `;
-              
-              // Fade in the result
-              eventResult.style.opacity = '0';
-              eventResult.style.display = 'block';
-              
-              setTimeout(() => {
-                  eventResult.style.transition = 'opacity 0.5s';
-                  eventResult.style.opacity = '1';
-              }, 50);
-          }
-          
-          // Apply the effect after showing the result
-          if (option.outcome.effect) {
-              setTimeout(() => {
-                  this.applyEventEffect(option.outcome.effect);
-              }, 500);
-          }
-          
-          // Show continue button after a short delay
-          setTimeout(() => {
-              if (continueBtn) {
-                  continueBtn.style.display = 'block';
-                  continueBtn.addEventListener('click', () => {
-                      this.markNodeVisited(nodeId);
-                      this.showContainer(CONTAINER_TYPES.MAP);
-                  });
-              }
-          }, 1200);
-      }, 600);
-    },
-
-    // Helper function to generate HTML for effect display
-    getEffectHTML: function(effect) {
-      if (!effect || !effect.type) return '';
-      
-      let iconClass = '';
-      let text = '';
-      
-      switch (effect.type) {
-          case 'insight_gain':
-              iconClass = 'text-success';
-              text = `+${effect.value} Insight`;
-              break;
-          case 'insight_loss':
-              iconClass = 'text-danger';
-              text = `-${effect.value} Insight`;
-              break;
-          case 'gain_life':
-              iconClass = 'text-success';
-              text = `+${effect.value} Life`;
-              break;
-          case 'lose_life':
-              iconClass = 'text-danger';
-              text = `-${effect.value} Life`;
-              break;
-          case 'gain_item':
-              iconClass = 'text-primary';
-              text = `Gained item: ${effect.value}`;
-              break;
-          default:
-              return '';
-      }
-      
-      return `<div class="effect-display ${iconClass}"><strong>${text}</strong></div>`;
-    },
-
-    // Apply event effect
-    applyEventEffect: function(effect) {
-      console.log("Applying event effect:", effect);
-      
-      if (!effect || !effect.type) return;
-      
-      // Add some visual flair based on effect type
-      let animationClass = '';
-      let floatingTextType = '';
-      
-      switch (effect.type) {
-          case 'insight_gain':
-              gameState.character.insight += effect.value;
-              animationClass = 'insight-gain-animation';
-              floatingTextType = 'success';
-              break;
-              
-          case 'insight_loss':
-              gameState.character.insight = Math.max(0, gameState.character.insight - effect.value);
-              animationClass = 'insight-loss-animation';
-              floatingTextType = 'danger';
-              break;
-              
-          case 'gain_life':
-              if (gameState.character.lives < gameState.character.max_lives) {
-                  gameState.character.lives += effect.value;
-                  animationClass = 'life-gain-animation';
-                  floatingTextType = 'success';
-              } else {
-                  // Already at max lives
-                  UiUtils.showFloatingText('Already at max lives!', 'warning');
-                  return;
-              }
-              break;
-              
-          case 'lose_life':
-              gameState.character.lives -= effect.value;
-              animationClass = 'life-loss-animation';
-              floatingTextType = 'danger';
-              
-              // Check for game over
-              if (gameState.character.lives <= 0) {
-                  setTimeout(() => {
-                      this.showGameOver();
-                  }, 1500);
-              }
-              break;
-              
-          case 'gain_item':
-              // Find the item by id
-              fetch(`/api/item/${effect.value}`)
-                  .then(response => response.json())
-                  .then(itemData => {
-                      if (itemData) {
-                          const added = Character.addItemToInventory(itemData);
-                          if (added) {
-                              animationClass = 'item-gain-animation';
-                              UiUtils.showFloatingText(`Gained ${itemData.name}!`, 'success');
-                          }
-                      }
-                  })
-                  .catch(error => console.error('Error fetching item:', error));
-              return; // Early return since this is async
-      }
-      
-      // Apply animation to character info section
-      const characterInfo = document.querySelector('.character-stats');
-      if (characterInfo && animationClass) {
-          characterInfo.classList.add(animationClass);
-          setTimeout(() => {
-              characterInfo.classList.remove(animationClass);
-          }, 1000);
-      }
-      
-      // Show floating text for the effect
-      let effectText = '';
-      if (effect.type === 'insight_gain') effectText = `+${effect.value} Insight`;
-      else if (effect.type === 'insight_loss') effectText = `-${effect.value} Insight`;
-      else if (effect.type === 'gain_life') effectText = `+${effect.value} Life`;
-      else if (effect.type === 'lose_life') effectText = `-${effect.value} Life`;
-      
-      if (effectText) {
-          UiUtils.showFloatingText(effectText, floatingTextType);
-      }
-      
-      // Update character display
-      Character.updateCharacterInfo(gameState.character);
-      
-      // Save game state to server
-      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-          ApiClient.saveGame().catch(err => console.error("Failed to save game after event effect:", err));
-      }
-    },
-
-    // Show game over screen
-    showGameOver: function() {
-      // Update final score
-      const finalScoreElement = document.getElementById('final-score');
-      if (finalScoreElement) {
-        finalScoreElement.textContent = gameState.character.insight;
-      }
-      
-      // Hide game board
-      const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
-      if (gameBoardContainer) {
-        gameBoardContainer.style.display = 'none';
-      }
-      
-      // Show game over
-      const gameOverContainer = document.getElementById(CONTAINER_TYPES.GAME_OVER);
-      if (gameOverContainer) {
-        gameOverContainer.style.display = 'block';
-      }
-    },
-    
-    // Generic event handler for continue button
-    setupContinueButton: function(onContinue) {
-      const continueBtn = document.getElementById('continue-btn');
-      if (!continueBtn) return;
-      
-      continueBtn.style.display = 'block';
-      continueBtn.addEventListener('click', onContinue);
-    },
-    // Replace setCurrentNode function in nodes.js with the following
-    setCurrentNode: function(nodeId) {
-      console.log(`Setting current node to ${nodeId}`);
-      
-      // Clear current status from all nodes
-      if (gameState.map && gameState.map.nodes) {
-          Object.values(gameState.map.nodes).forEach(node => {
-              node.current = false;
-          });
-      }
-      
-      if (gameState.map && gameState.map.boss) {
-          gameState.map.boss.current = false;
-      }
-      
-      if (gameState.map && gameState.map.start) {
-          gameState.map.start.current = false;
-      }
-      
-      // Set current node
-      if (nodeId) {
-          if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-              gameState.map.nodes[nodeId].current = true;
-          } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
-              gameState.map.boss.current = true;
-          } else if (gameState.map && gameState.map.start && gameState.map.start.id === nodeId) {
-              gameState.map.start.current = true;
-          }
-      }
-      
-      // Set in game state
-      gameState.currentNode = nodeId;
-      
-      // Render the map to show the current node
-      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-      }
-    },
-    // Add this function to nodes.js
-    forceCompleteNode: function(nodeId) {
-      console.log(`FORCE COMPLETING NODE: ${nodeId}`);
-      
-      // 1. Mark as visited in local state
-      let nodeUpdated = false;
-      
-      if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-        console.log(`Marking ${nodeId} as VISITED in local state`);
-        gameState.map.nodes[nodeId].visited = true;
-        gameState.map.nodes[nodeId].current = false;
-        nodeUpdated = true;
-      } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
-        console.log(`Marking boss ${nodeId} as VISITED in local state`);
-        gameState.map.boss.visited = true;
-        gameState.map.boss.current = false;
-        nodeUpdated = true;
-      }
-      
-      if (!nodeUpdated) {
-        console.error(`Could not find node ${nodeId} to mark as visited!`);
-      }
-      
-      // 2. Clear current node
-      gameState.currentNode = null;
-      
-      // 3. Update server
-      ApiClient.markNodeVisited(nodeId)
-        .then(data => {
-          console.log("Server marked node visited:", nodeId);
-          
-          // Show next floor button if needed
-          if (data.all_nodes_visited) {
-            const nextFloorBtn = document.getElementById('next-floor-btn');
-            if (nextFloorBtn) nextFloorBtn.style.display = 'block';
-          }
-          
-          // Re-render map and return to map view
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-          this.showContainer(CONTAINER_TYPES.MAP);
-          
-          // Save game
-          ApiClient.saveGame();
-        })
-        .catch(error => {
-          console.error('Server error:', error);
-          // Still update UI even if server fails
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-          this.showContainer(CONTAINER_TYPES.MAP);
-        });
     }
-  };
+  },
+  
+  // Handle event option selection
+  handleEventOption: function(nodeId, optionIndex, option) {
+    console.log(`Selected event option ${optionIndex} for node ${nodeId}:`, option);
+    
+    // Disable all option buttons
+    const optionButtons = document.querySelectorAll('#event-options button');
+    optionButtons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    });
+    
+    // Highlight selected option
+    const selectedButton = optionButtons[optionIndex];
+    if (selectedButton) {
+      selectedButton.style.opacity = '1';
+      selectedButton.style.borderColor = '#4CAF50';
+      selectedButton.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+    }
+    
+    // Determine result type for styling
+    let resultClass = 'event-result-neutral';
+    if (option.outcome && option.outcome.effect) {
+      const effectType = option.outcome.effect.type;
+      if (effectType === 'insight_gain' || effectType === 'gain_life') {
+        resultClass = 'event-result-success';
+      } else if (effectType === 'insight_loss' || effectType === 'lose_life') {
+        resultClass = 'event-result-negative';
+      }
+    }
+    
+    // Show the result with a slight delay for better UX
+    setTimeout(() => {
+      const eventResult = document.getElementById('event-result');
+      const continueBtn = document.getElementById('event-continue-btn');
+      
+      if (eventResult && option.outcome) {
+        eventResult.className = `alert mt-3 ${resultClass}`;
+        eventResult.innerHTML = `
+          <p>${option.outcome.description}</p>
+          ${this.getEffectHTML(option.outcome.effect)}
+        `;
+        
+        // Fade in the result
+        eventResult.style.opacity = '0';
+        eventResult.style.display = 'block';
+        
+        setTimeout(() => {
+          eventResult.style.transition = 'opacity 0.5s';
+          eventResult.style.opacity = '1';
+        }, 50);
+      }
+      
+      // Apply the effect after showing the result
+      if (option.outcome && option.outcome.effect) {
+        setTimeout(() => {
+          this.applyEventEffect(option.outcome.effect);
+        }, 500);
+      }
+      
+      // Show continue button after a short delay
+      setTimeout(() => {
+        if (continueBtn) {
+          continueBtn.style.display = 'block';
+          
+          // Clone and replace to remove old event listeners
+          const newContinueBtn = continueBtn.cloneNode(true);
+          continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+          
+          // Add new event listener
+          newContinueBtn.addEventListener('click', () => {
+            this.completeNode(nodeId);
+          });
+        }
+      }, 1200);
+    }, 600);
+  },
+  
+  // Helper function to generate HTML for effect display
+  getEffectHTML: function(effect) {
+    if (!effect || !effect.type) return '';
+    
+    let iconClass = '';
+    let text = '';
+    
+    switch (effect.type) {
+      case 'insight_gain':
+        iconClass = 'text-success';
+        text = `+${effect.value} Insight`;
+        break;
+      case 'insight_loss':
+        iconClass = 'text-danger';
+        text = `-${effect.value} Insight`;
+        break;
+      case 'gain_life':
+        iconClass = 'text-success';
+        text = `+${effect.value} Life`;
+        break;
+      case 'lose_life':
+        iconClass = 'text-danger';
+        text = `-${effect.value} Life`;
+        break;
+      case 'gain_item':
+        iconClass = 'text-primary';
+        text = `Gained item: ${effect.value}`;
+        break;
+      default:
+        return '';
+    }
+    
+    return `<div class="effect-display ${iconClass}"><strong>${text}</strong></div>`;
+  },
+  
+  // Apply event effect
+  applyEventEffect: function(effect) {
+    console.log("Applying event effect:", effect);
+    
+    if (!effect || !effect.type) return;
+    
+    // Add visual feedback based on effect type
+    let animationClass = '';
+    let floatingTextType = '';
+    
+    switch (effect.type) {
+      case 'insight_gain':
+        gameState.character.insight += effect.value;
+        animationClass = 'insight-gain-animation';
+        floatingTextType = 'success';
+        break;
+        
+      case 'insight_loss':
+        gameState.character.insight = Math.max(0, gameState.character.insight - effect.value);
+        animationClass = 'insight-loss-animation';
+        floatingTextType = 'danger';
+        break;
+        
+      case 'gain_life':
+        if (gameState.character.lives < gameState.character.max_lives) {
+          gameState.character.lives += effect.value;
+          animationClass = 'life-gain-animation';
+          floatingTextType = 'success';
+        } else {
+          // Already at max lives
+          UiUtils.showFloatingText('Already at max lives!', 'warning');
+          return;
+        }
+        break;
+        
+      case 'lose_life':
+        gameState.character.lives -= effect.value;
+        animationClass = 'life-loss-animation';
+        floatingTextType = 'danger';
+        
+        // Check for game over
+        if (gameState.character.lives <= 0) {
+          setTimeout(() => {
+            this.showGameOver();
+          }, 1500);
+        }
+        break;
+        
+      case 'gain_item':
+        // Find the item by id
+        fetch(`/api/item/${effect.value}`)
+          .then(response => response.json())
+          .then(itemData => {
+            if (itemData) {
+              const added = Character.addItemToInventory ? Character.addItemToInventory(itemData) : false;
+              if (added) {
+                animationClass = 'item-gain-animation';
+                UiUtils.showFloatingText(`Gained ${itemData.name}!`, 'success');
+              }
+            }
+          })
+          .catch(error => console.error('Error fetching item:', error));
+        return; // Early return since this is async
+    }
+    
+    // Apply animation to character info section
+    const characterInfo = document.querySelector('.character-stats');
+    if (characterInfo && animationClass) {
+      characterInfo.classList.add(animationClass);
+      setTimeout(() => {
+        characterInfo.classList.remove(animationClass);
+      }, 1000);
+    }
+    
+    // Show floating text for the effect
+    let effectText = '';
+    if (effect.type === 'insight_gain') effectText = `+${effect.value} Insight`;
+    else if (effect.type === 'insight_loss') effectText = `-${effect.value} Insight`;
+    else if (effect.type === 'gain_life') effectText = `+${effect.value} Life`;
+    else if (effect.type === 'lose_life') effectText = `-${effect.value} Life`;
+    
+    if (effectText) {
+      UiUtils.showFloatingText(effectText, floatingTextType);
+    }
+    
+    // Update character display
+    if (Character.updateCharacterInfo) {
+      Character.updateCharacterInfo(gameState.character);
+    }
+    
+    // Save game state to server
+    if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+      ApiClient.saveGame().catch(err => console.error("Failed to save game after event effect:", err));
+    }
+  },
+  
+  // Show shop node (placeholder implementation)
+  showShop: function(nodeData) {
+    console.log("Showing shop node:", nodeData);
+    
+    // Implementation for shop
+    const shopContainer = document.getElementById(CONTAINER_TYPES.SHOP);
+    if (!shopContainer) {
+      console.error("Shop container not found");
+      this.completeNode(nodeData.id);
+      return;
+    }
+    
+    // Placeholder shop content
+    shopContainer.innerHTML = `
+      <div class="card mb-3">
+        <div class="card-header bg-info">
+          <h4>${nodeData.title || 'Department Store'}</h4>
+        </div>
+        <div class="card-body">
+          <p>The shop will be implemented in a future update.</p>
+          <button id="shop-continue-btn" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listener for continue button
+    const continueBtn = document.getElementById('shop-continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', () => {
+        this.completeNode(nodeData.id);
+      });
+    }
+    
+    // Show shop container
+    this.showContainer(CONTAINER_TYPES.SHOP);
+  },
+  
+  // Show gamble node (placeholder implementation)
+  showGamble: function(nodeData) {
+    console.log("Showing gamble node:", nodeData);
+    
+    // Implementation for gamble
+    const gambleContainer = document.getElementById(CONTAINER_TYPES.GAMBLE);
+    if (!gambleContainer) {
+      console.error("Gamble container not found");
+      this.completeNode(nodeData.id);
+      return;
+    }
+    
+    // Placeholder gamble content
+    gambleContainer.innerHTML = `
+      <div class="card mb-3">
+        <div class="card-header bg-warning">
+          <h4>${nodeData.title || 'Research Roulette'}</h4>
+        </div>
+        <div class="card-body">
+          <p>The gamble node will be implemented in a future update.</p>
+          <button id="gamble-continue-btn" class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+    `;
+    
+    // Add event listener for continue button
+    const continueBtn = document.getElementById('gamble-continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', () => {
+        this.completeNode(nodeData.id);
+      });
+    }
+    
+    // Show gamble container
+    this.showContainer(CONTAINER_TYPES.GAMBLE);
+  },
+  
+  // Set current node with clean state management
+  setCurrentNode: function(nodeId) {
+    console.log(`Setting current node to ${nodeId}`);
+    
+    // Clear current status from all nodes
+    if (gameState.map) {
+      if (gameState.map.nodes) {
+        Object.values(gameState.map.nodes).forEach(node => {
+          node.current = false;
+        });
+      }
+      
+      if (gameState.map.boss) {
+        gameState.map.boss.current = false;
+      }
+      
+      if (gameState.map.start) {
+        gameState.map.start.current = false;
+      }
+      
+      // Set new current node
+      if (nodeId) {
+        if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
+          gameState.map.nodes[nodeId].current = true;
+        } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
+          gameState.map.boss.current = true;
+        }
+      }
+    }
+    
+    // Set in game state
+    gameState.currentNode = nodeId;
+  },
+  
+  // Go to the next floor
+  goToNextFloor: function() {
+    console.log("Going to next floor...");
+    
+    ApiClient.goToNextFloor()
+      .then(data => {
+        // Update global game state
+        gameState.character = data.character;
+        gameState.currentFloor = data.current_floor;
+        gameState.currentNode = null;
+        gameState.map = null;  // Clear map so new one will be generated
+        
+        // Update UI
+        Character.updateCharacterInfo(data.character);
+        document.getElementById('current-floor').textContent = data.current_floor;
+        
+        // Hide next floor button
+        const nextFloorBtn = document.getElementById('next-floor-btn');
+        if (nextFloorBtn) {
+          nextFloorBtn.style.display = 'none';
+        }
+        
+        // Show floor transition
+        UiUtils.showFloorTransition(data.current_floor);
+        
+        // Initialize new floor map
+        setTimeout(() => {
+          if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initializeFloorMap === 'function') {
+            MapRenderer.initializeFloorMap();
+          }
+        }, 1000); // Wait for transition animation
+      })
+      .catch(error => {
+        console.error('Error going to next floor:', error);
+        UiUtils.showToast('Failed to proceed to next floor', 'danger');
+      });
+  },
+  
+  // Show game over screen
+  showGameOver: function() {
+    console.log("Game over!");
+    
+    // Update final score
+    const finalScoreElement = document.getElementById('final-score');
+    if (finalScoreElement) {
+      finalScoreElement.textContent = gameState.character.insight;
+    }
+    
+    // Hide game board
+    const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
+    if (gameBoardContainer) {
+      gameBoardContainer.style.display = 'none';
+    }
+    
+    // Show game over screen
+    const gameOverContainer = document.getElementById(CONTAINER_TYPES.GAME_OVER);
+    if (gameOverContainer) {
+      gameOverContainer.style.display = 'block';
+    }
+  }
+};
