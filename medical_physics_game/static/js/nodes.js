@@ -68,7 +68,7 @@ window.Nodes = {
       }
     },
     
-    // Node visit handling
+    // Update the visitNode function in nodes.js
     visitNode: function(nodeId) {
       console.log(`Visiting node: ${nodeId}`);
       
@@ -78,43 +78,50 @@ window.Nodes = {
       // Mark this as the current node
       gameState.currentNode = nodeId;
       
+      // Add visual indication of current node
+      if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
+          gameState.map.nodes[nodeId].current = true;
+      } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
+          gameState.map.boss.current = true;
+      }
+      
       fetch(`/api/node/${nodeId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(nodeData => {
-          console.log("Node data:", nodeData);
-          
-          // Handle different node types
-          if (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss') {
-            this.showQuestion(nodeData);
-          } else if (nodeData.type === 'treasure') {
-            this.showTreasure(nodeData);
-          } else if (nodeData.type === 'rest') {
-            this.showRestNode(nodeData);
-          } else if (nodeData.type === 'event') {
-            this.showEvent(nodeData);
-          } else if (nodeData.type === 'shop') {
-            this.showShop(nodeData);
-          } else if (nodeData.type === 'gamble') {
-            this.showGamble(nodeData);
-          } else {
-            // Unknown node type
-            console.error(`Unknown node type: ${nodeData.type}`);
-            alert(`Unknown node type: ${nodeData.type}`);
-            this.markNodeVisited(nodeId);
-          }
-          
-          // Update map to highlight current node
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-        })
-        .catch(error => {
-          console.error('Error visiting node:', error);
-          UiUtils.showError(`Failed to load node: ${error.message}`);
-        });
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Server responded with status: ${response.status}`);
+              }
+              return response.json();
+          })
+          .then(nodeData => {
+              console.log("Node data:", nodeData);
+              
+              // Handle different node types
+              if (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss') {
+                  this.showQuestion(nodeData);
+              } else if (nodeData.type === 'treasure') {
+                  this.showTreasure(nodeData);
+              } else if (nodeData.type === 'rest') {
+                  this.showRestNode(nodeData);
+              } else if (nodeData.type === 'event') {
+                  this.showEvent(nodeData);
+              } else if (nodeData.type === 'shop') {
+                  this.showShop(nodeData);
+              } else if (nodeData.type === 'gamble') {
+                  this.showGamble(nodeData);
+              } else {
+                  // Unknown node type
+                  console.error(`Unknown node type: ${nodeData.type}`);
+                  UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
+                  this.markNodeVisited(nodeId);
+              }
+              
+              // Update map to highlight current node
+              MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+          })
+          .catch(error => {
+              console.error('Error visiting node:', error);
+              UiUtils.showToast(`Failed to load node: ${error.message}`, 'danger');
+          });
     },
     
     // Show question node
@@ -297,10 +304,73 @@ window.Nodes = {
       }
     },
     
-    // Show rest node
+    // Replace the existing showRestNode function in nodes.js with this implementation
     showRestNode: function(nodeData) {
-      // Implementation for showing rest node
-      // ...
+      console.log("Showing rest node:", nodeData);
+      
+      // Reset buttons state
+      const healBtn = document.getElementById('rest-heal-btn');
+      const studyBtn = document.getElementById('rest-study-btn');
+      const continueBtn = document.getElementById('rest-continue-btn');
+      
+      if (healBtn) healBtn.disabled = false;
+      if (studyBtn) studyBtn.disabled = false;
+      
+      // Add event listeners for rest options
+      if (healBtn) {
+          // Remove any existing event listeners
+          const newHealBtn = healBtn.cloneNode(true);
+          healBtn.parentNode.replaceChild(newHealBtn, healBtn);
+          
+          // Add new event listener
+          newHealBtn.addEventListener('click', () => {
+              // Only heal if not at max health
+              if (gameState.character.lives < gameState.character.max_lives) {
+                  gameState.character.lives += 1;
+                  Character.updateCharacterInfo(gameState.character);
+                  UiUtils.showFloatingText('+1 Life', 'success');
+                  newHealBtn.disabled = true;
+              } else {
+                  UiUtils.showFloatingText('Already at full health!', 'warning');
+              }
+          });
+      }
+      
+      if (studyBtn) {
+          // Remove any existing event listeners
+          const newStudyBtn = studyBtn.cloneNode(true);
+          studyBtn.parentNode.replaceChild(newStudyBtn, studyBtn);
+          
+          // Add new event listener
+          newStudyBtn.addEventListener('click', () => {
+              gameState.character.insight += 5;
+              Character.updateCharacterInfo(gameState.character);
+              UiUtils.showFloatingText('+5 Insight', 'success');
+              newStudyBtn.disabled = true;
+          });
+      }
+      
+      if (continueBtn) {
+          // Remove any existing event listeners
+          const newContinueBtn = continueBtn.cloneNode(true);
+          continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+          
+          // Add new event listener
+          newContinueBtn.addEventListener('click', () => {
+              if (gameState.currentNode) {
+                  this.markNodeVisited(gameState.currentNode);
+                  this.showContainer(CONTAINER_TYPES.MAP);
+                  
+                  // Save game state
+                  if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+                      ApiClient.saveGame().catch(err => console.error("Failed to save game after rest:", err));
+                  }
+              }
+          });
+      }
+      
+      // Show the rest container
+      this.showContainer(CONTAINER_TYPES.REST);
     },
     
     // Show shop node
@@ -379,13 +449,23 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.GAMBLE);
     },
     
-    // Function to mark a node as visited
+    // Update the markNodeVisited function in nodes.js
     markNodeVisited: function(nodeId) {
+      // Clear current node indicator
+      if (gameState.map && gameState.map.nodes) {
+          Object.values(gameState.map.nodes).forEach(node => {
+              node.current = false;
+          });
+      }
+      if (gameState.map && gameState.map.boss) {
+          gameState.map.boss.current = false;
+      }
+
       // Update local game state
       if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-        gameState.map.nodes[nodeId].visited = true;
+          gameState.map.nodes[nodeId].visited = true;
       } else if (gameState.map && gameState.map.boss && gameState.map.boss.id === nodeId) {
-        gameState.map.boss.visited = true;
+          gameState.map.boss.visited = true;
       }
       
       // Clear current node
@@ -393,20 +473,25 @@ window.Nodes = {
       
       // Update on server
       ApiClient.markNodeVisited(nodeId)
-        .then(data => {
-          // Check if all nodes are visited
-          if (data.all_nodes_visited) {
-            // Show next floor button
-            const nextFloorBtn = document.getElementById('next-floor-btn');
-            if (nextFloorBtn) {
-              nextFloorBtn.style.display = 'block';
-            }
-          }
-          
-          // Render the updated map
-          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-        })
-        .catch(error => console.error('Error marking node as visited:', error));
+          .then(data => {
+              // Check if all nodes are visited
+              if (data.all_nodes_visited) {
+                  // Show next floor button
+                  const nextFloorBtn = document.getElementById('next-floor-btn');
+                  if (nextFloorBtn) {
+                      nextFloorBtn.style.display = 'block';
+                  }
+              }
+              
+              // Render the updated map
+              MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+              
+              // Save game state
+              if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+                  ApiClient.saveGame().catch(err => console.error("Failed to save game after marking node visited:", err));
+              }
+          })
+          .catch(error => console.error('Error marking node as visited:', error));
     },
     
     // Go to the next floor

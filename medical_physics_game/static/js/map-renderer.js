@@ -720,7 +720,7 @@ window.MapRenderer = {
     }
   },
   
-  // Improved function to determine if a node can be visited
+  // Replace the existing canVisitNode function in map-renderer.js
   canVisitNode: function(nodeId) {
     if (nodeId === 'start') return false; // Can't revisit start
     
@@ -740,16 +740,64 @@ window.MapRenderer = {
     if (mapData.start) allNodes['start'] = mapData.start;
     if (mapData.boss) allNodes['boss'] = mapData.boss;
     
-    for (const sourceId in allNodes) {
-      const sourceNode = allNodes[sourceId];
-      if ((sourceNode.visited || sourceId === 'start') && sourceNode.paths && sourceNode.paths.includes(nodeId)) {
-        return true;
-      }
+    // Check if we've already chosen a node on this row (floor)
+    const nodesInSameRow = Object.values(allNodes).filter(n => 
+        n.position.row === node.position.row && n.visited);
+    
+    if (nodesInSameRow.length > 0) {
+        // If we've already visited a node on this row, we can't visit any other nodes on the same row
+        return false;
     }
     
-    return false;
+    // Check if there's a path to this node from a visited node
+    let canVisit = false;
+    for (const sourceId in allNodes) {
+        const sourceNode = allNodes[sourceId];
+        if ((sourceNode.visited || sourceId === 'start') && 
+            sourceNode.paths && 
+            sourceNode.paths.includes(nodeId)) {
+            canVisit = true;
+            break;
+        }
+    }
+    
+    return canVisit;
   },
   
+  // Add these helper functions to MapRenderer in map-renderer.js
+
+  // Helper function to get all nodes in a specific row (floor)
+  getNodesInRow: function(row) {
+    if (!gameState.map || !gameState.map.nodes) return [];
+    
+    const nodesInRow = [];
+    
+    // Add regular nodes in the row
+    for (const nodeId in gameState.map.nodes) {
+        const node = gameState.map.nodes[nodeId];
+        if (node.position && node.position.row === row) {
+            nodesInRow.push(node);
+        }
+    }
+    
+    // Check for special nodes (start/boss) in the row
+    if (gameState.map.start && gameState.map.start.position && gameState.map.start.position.row === row) {
+        nodesInRow.push(gameState.map.start);
+    }
+    
+    if (gameState.map.boss && gameState.map.boss.position && gameState.map.boss.position.row === row) {
+        nodesInRow.push(gameState.map.boss);
+    }
+    
+    return nodesInRow;
+  },
+
+  // Helper function to check if a row has any visited nodes
+  hasVisitedNodesInRow: function(row) {
+    const nodesInRow = this.getNodesInRow(row);
+    return nodesInRow.some(node => node.visited);
+  },
+
   // Helper function to get the current node (if any)
   getCurrentNode: function() {
     return gameState.currentNode || null;
