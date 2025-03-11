@@ -4,15 +4,23 @@ import os
 import json
 import uuid
 from datetime import datetime
+import copy
 
 # Import modules
 from data_manager import load_json_data, save_json_data, init_data_files
-from game_state import get_game_id, create_default_game_state, game_states
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
+from game_state import create_default_game_state, get_game_id
+from db_utils import save_game_state, load_game_state, delete_game_state
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 
+
+# Make session permanent
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    
 # Initialize data when the app starts
 init_data_files()
 
@@ -21,13 +29,6 @@ from datetime import timedelta
 
 # In the Flask app initialization
 app.permanent_session_lifetime = timedelta(days=7)  # Sessions last 7 days
-
-# In get_game_id function (in game_state.py)
-def get_game_id():
-    if 'game_id' not in session:
-        session.permanent = True  # Make the session persistent
-        session['game_id'] = str(uuid.uuid4())
-    return session['game_id']
 
 # Option: Use SQLite instead of in-memory storage
 import sqlite3
@@ -46,28 +47,8 @@ def init_db():
 # Call this at app startup
 init_db()
 
-# Then modify the storage functions in game_state.py to use SQLite
-def save_game_state(game_id, state):
-    conn = sqlite3.connect('game_data.db')
-    c = conn.cursor()
-    c.execute(
-        "INSERT OR REPLACE INTO game_states VALUES (?, ?, ?)",
-        (game_id, json.dumps(state), datetime.now().isoformat())
-    )
-    conn.commit()
-    conn.close()
-
-def load_game_state(game_id):
-    conn = sqlite3.connect('game_data.db')
-    c = conn.cursor()
-    c.execute("SELECT game_state FROM game_states WHERE game_id = ?", (game_id,))
-    result = c.fetchone()
-    conn.close()
-    
-    if result:
-        return json.loads(result[0])
-    return None
-
+# Dictionary to store saved games
+saved_games = {}
 # Routes
 @app.route('/')
 def landing():
@@ -85,14 +66,14 @@ def get_game_state():
     """Return the current game state"""
     game_id = get_game_id()
     
-    # Return existing game state or create new one
-    if game_id in game_states:
-        return jsonify(game_states[game_id])
-    else:
+    # Load from database or create new state
+    game_state = load_game_state(game_id)
+    if not game_state:
         # Create a new default game state
-        default_game_state = create_default_game_state()
-        game_states[game_id] = default_game_state
-        return jsonify(default_game_state)
+        game_state = create_default_game_state()
+        save_game_state(game_id, game_state)
+    
+    return jsonify(game_state)
 
 @app.route('/character-select')
 def character_select():
@@ -147,10 +128,11 @@ def new_game():
         "last_updated": datetime.now().isoformat()
     }
     
-    # Store the game state
-    game_states[game_id] = game_state
-    
-    return jsonify(game_state)
+    # Store the game state in the database
+    if save_game_state(game_id, game_state):
+        return jsonify(game_state)
+    else:
+        return jsonify({"error": "Failed to save game state"}), 500
 
 @app.route('/api/floor/<int:floor_id>')
 def get_floor(floor_id):
@@ -169,11 +151,11 @@ def generate_floor_map():
     data = request.json or {}
     game_id = get_game_id()
     
-    # Get the game state
-    if game_id not in game_states:
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = game_states[game_id]
     floor_number = data.get('floor_number', game_state.get('current_floor', 1))
     
     # Load floor data
@@ -203,7 +185,7 @@ def generate_floor_map():
     # Update game state with the map
     game_state['map'] = map_layout
     game_state['last_updated'] = datetime.now().isoformat()
-    game_states[game_id] = game_state
+    save_game_state(game_id, game_state)
     
     return jsonify(map_layout)
 
@@ -214,11 +196,10 @@ def get_node(node_id):
     
     game_id = get_game_id()
     
-    # Get the game state
-    if game_id not in game_states:
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "Game not found"}), 404
-    
-    game_state = game_states[game_id]
     
     if 'map' not in game_state:
         return jsonify({"error": "No map generated yet"}), 400
@@ -273,11 +254,10 @@ def answer_question():
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid answer index"}), 400
     
-    # Get the game state
-    if game_id not in game_states:
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "Game not found"}), 404
-    
-    game_state = game_states[game_id]
     
     node_id = data.get('node_id')
     answer_index = data.get('answer_index')
@@ -303,7 +283,7 @@ def answer_question():
     
     # Update game state
     game_state['last_updated'] = datetime.now().isoformat()
-    game_states[game_id] = game_state
+    save_game_state(game_id, game_state)
     
     return jsonify({
         "correct": is_correct,
@@ -318,11 +298,10 @@ def mark_node_visited():
     data = request.json
     game_id = get_game_id()
     
-    # Get the game state
-    if game_id not in game_states:
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "Game not found"}), 404
-    
-    game_state = game_states[game_id]
     
     if 'map' not in game_state:
         return jsonify({"error": "No map generated yet"}), 400
@@ -350,7 +329,7 @@ def mark_node_visited():
     
     # Update game state
     game_state['last_updated'] = datetime.now().isoformat()
-    game_states[game_id] = game_state
+    save_game_state(game_id, game_state)
     
     return jsonify({
         "game_state": game_state,
@@ -362,11 +341,10 @@ def next_floor():
     """Advance to the next floor"""
     game_id = get_game_id()
     
-    # Get the game state
-    if game_id not in game_states:
+    # Get the game state from database
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "Game not found"}), 404
-    
-    game_state = game_states[game_id]
     
     # Increment floor number
     game_state["current_floor"] += 1
@@ -387,7 +365,7 @@ def next_floor():
     
     # Update game state
     game_state['last_updated'] = datetime.now().isoformat()
-    game_states[game_id] = game_state
+    save_game_state(game_id, game_state)
     
     return jsonify(game_state)
 
@@ -397,33 +375,74 @@ def reset_game():
     game_id = get_game_id()
     
     # Create a new default game state
-    game_states[game_id] = create_default_game_state()
+    game_state = create_default_game_state()
     
-    return jsonify(game_states[game_id])
+    # Save to database
+    if save_game_state(game_id, game_state):
+        return jsonify(game_state)
+    else:
+        return jsonify({"error": "Failed to reset game"}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-# Add to app.py
 @app.route('/api/save-game', methods=['POST'])
 def save_game():
     game_id = get_game_id()
-    if game_id not in game_states:
+    
+    # Load current game state
+    game_state = load_game_state(game_id)
+    if not game_state:
         return jsonify({"error": "No active game to save"}), 404
     
     # Create a save ID that's different from the session game ID
     save_id = str(uuid.uuid4())
-    saved_games[save_id] = copy.deepcopy(game_states[game_id])
     
-    return jsonify({"save_id": save_id})
+    # Copy the game state and save with the new ID
+    if save_game_state(save_id, game_state):
+        return jsonify({"save_id": save_id})
+    else:
+        return jsonify({"error": "Failed to save game"}), 500
 
 @app.route('/api/load-game/<save_id>', methods=['GET'])
-def load_game():
-    if save_id not in saved_games:
+def load_game(save_id):
+    # Load the saved game
+    saved_game = load_game_state(save_id)
+    if not saved_game:
         return jsonify({"error": "Saved game not found"}), 404
     
     # Load the saved game into the current session
     game_id = get_game_id()
-    game_states[game_id] = copy.deepcopy(saved_games[save_id])
+    if save_game_state(game_id, saved_game):
+        return jsonify(saved_game)
+    else:
+        return jsonify({"error": "Failed to load game"}), 500
     
-    return jsonify(game_states[game_id])
+@app.route('/api/test-db')
+def test_db():
+    """Test the database connection and operations"""
+    try:
+        # Create test game state
+        test_id = "test-" + str(uuid.uuid4())
+        test_state = {
+            "test": True,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Test save
+        save_result = save_game_state(test_id, test_state)
+        
+        # Test load
+        load_result = load_game_state(test_id)
+        
+        # Test delete
+        delete_result = delete_game_state(test_id)
+        
+        return jsonify({
+            "success": True,
+            "save_result": save_result,
+            "load_result": load_result,
+            "delete_result": delete_result
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })

@@ -6,6 +6,7 @@
 :root {
   --pixel-size: 4px;
   /* Other variables... */
+}
 /* Override container for game content */
 .container {
     width: 100%;
@@ -252,4 +253,4 @@
       font-size: 0.65rem;
       padding: 8px;
     }
-  }}
+  }

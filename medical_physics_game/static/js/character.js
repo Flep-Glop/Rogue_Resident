@@ -131,8 +131,57 @@ window.Character = {
     
     // Show dialog for full inventory
     showInventoryFullDialog: function(newItem) {
-      // Implementation of inventory full dialog
-      // ...
+      // Create a modal dialog
+      const dialogHTML = `
+        <div id="inventory-full-modal" class="game-modal" style="display:flex;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Inventory Full!</h3>
+              <button class="close-modal" id="close-inv-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p>Your inventory is full. Would you like to discard an item to make room for ${newItem.name}?</p>
+              <div id="current-items-list" class="mt-3"></div>
+              <div class="mt-3">
+                <button id="cancel-new-item" class="btn btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add to DOM
+      document.body.insertAdjacentHTML('beforeend', dialogHTML);
+      
+      // Display current inventory items
+      const itemsList = document.getElementById('current-items-list');
+      gameState.inventory.forEach((item, index) => {
+        const itemBtn = document.createElement('button');
+        itemBtn.className = 'btn btn-outline-primary mb-2 w-100 text-start';
+        itemBtn.innerHTML = `
+          <strong>${item.name}</strong> (${item.rarity || 'common'}) 
+          <br><small>${Character.getEffectDescription(item.effect)}</small>
+        `;
+        
+        // Add click event to replace this item
+        itemBtn.addEventListener('click', () => {
+          gameState.inventory.splice(index, 1);
+          this.addItemToInventory(newItem);
+          document.getElementById('inventory-full-modal').remove();
+        });
+        
+        itemsList.appendChild(itemBtn);
+      });
+      
+      // Add cancel button event
+      document.getElementById('cancel-new-item').addEventListener('click', () => {
+        document.getElementById('inventory-full-modal').remove();
+      });
+      
+      // Add close button event
+      document.getElementById('close-inv-modal').addEventListener('click', () => {
+        document.getElementById('inventory-full-modal').remove();
+      });
     },
     
     // Use an item from inventory
@@ -266,8 +315,111 @@ window.Character = {
     
     // Show character selection screen
     showCharacterSelection: function() {
-      // Implementation for character selection screen
-      // ...
+      console.log("Showing character selection");
+      
+      // Create character selection modal
+      const charSelectHTML = `
+        <div id="character-select-modal" class="game-modal" style="display:flex;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Select Your Character</h3>
+              <button class="close-modal" id="close-char-select">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div id="char-select-container">Loading characters...</div>
+              <div class="mt-3">
+                <button id="start-with-char" class="btn btn-success" disabled>Begin Residency</button>
+                <button id="cancel-char-select" class="btn btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add to DOM
+      document.body.insertAdjacentHTML('beforeend', charSelectHTML);
+      
+      // Load characters from API
+      fetch('/api/characters')
+        .then(response => response.json())
+        .then(data => {
+          const container = document.getElementById('char-select-container');
+          container.innerHTML = '';
+          
+          let selectedChar = null;
+          
+          // Create character cards
+          data.characters.forEach(character => {
+            const charCard = document.createElement('div');
+            charCard.className = 'card mb-3';
+            charCard.innerHTML = `
+              <div class="card-header">
+                <h4>${character.name}</h4>
+              </div>
+              <div class="card-body">
+                <p>${character.description || ""}</p>
+                <p><strong>Starting Stats:</strong></p>
+                <ul>
+                  <li>Level: ${character.starting_stats.level}</li>
+                  <li>Lives: ${character.starting_stats.lives}</li>
+                  <li>Insight: ${character.starting_stats.insight}</li>
+                </ul>
+                <p><strong>${character.special_ability.name}:</strong> ${character.special_ability.description}</p>
+              </div>
+            `;
+            
+            // Add selection behavior
+            charCard.addEventListener('click', function() {
+              // Remove selected class from all cards
+              document.querySelectorAll('#char-select-container .card').forEach(c => {
+                c.classList.remove('border-primary', 'bg-light');
+              });
+              
+              // Add selected class to this card
+              this.classList.add('border-primary', 'bg-light');
+              
+              // Save selected character
+              selectedChar = character.id;
+              
+              // Enable start button
+              document.getElementById('start-with-char').disabled = false;
+            });
+            
+            container.appendChild(charCard);
+          });
+          
+          // Add event listeners for buttons
+          document.getElementById('start-with-char').addEventListener('click', function() {
+            if (selectedChar) {
+              // Start new game with selected character
+              ApiClient.startNewGame(selectedChar)
+                .then(() => {
+                  // Remove modal
+                  document.getElementById('character-select-modal').remove();
+                  
+                  // Reload page to start game
+                  window.location.reload();
+                })
+                .catch(error => {
+                  console.error('Error starting new game:', error);
+                  alert('Failed to start new game. Please try again.');
+                });
+            }
+          });
+          
+          document.getElementById('cancel-char-select').addEventListener('click', function() {
+            document.getElementById('character-select-modal').remove();
+          });
+          
+          document.getElementById('close-char-select').addEventListener('click', function() {
+            document.getElementById('character-select-modal').remove();
+          });
+        })
+        .catch(error => {
+          console.error('Error loading characters:', error);
+          const container = document.getElementById('char-select-container');
+          container.innerHTML = '<div class="alert alert-danger">Failed to load characters. Please try again.</div>';
+        });
     },
     
     // ASCII character animation
