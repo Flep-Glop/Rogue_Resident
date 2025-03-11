@@ -68,11 +68,20 @@ window.Nodes = {
     }
   },
   
-  // Centralized function to visit a node - improved logic
+  // Replace the visitNode function in nodes.js with this version:
+
+  // Centralized function to visit a node
   visitNode: function(nodeId) {
-    console.log(`Visiting node: ${nodeId}`);
+    console.log(`Attempting to visit node: ${nodeId}`);
     
-    // First, clear any existing event listeners
+    // First check if there's already a current node
+    if (gameState.currentNode) {
+      console.warn(`Cannot visit node ${nodeId} - must complete current node ${gameState.currentNode} first`);
+      UiUtils.showToast("Complete current node before moving to a new one", "warning");
+      return;
+    }
+    
+    // Clear any existing event listeners
     this.clearEventListeners();
     
     // Check if node can be visited
@@ -83,6 +92,8 @@ window.Nodes = {
         return;
       }
     }
+    
+    console.log(`Visiting node: ${nodeId}`);
     
     // Set this as the current node
     this.setCurrentNode(nodeId);
@@ -138,7 +149,9 @@ window.Nodes = {
       });
   },
   
-  // IMPROVED: Core function to complete a node
+  // Replace the completeNode function in nodes.js with this version:
+
+  // Core function to complete a node
   completeNode: function(nodeId) {
     console.log(`Completing node: ${nodeId}`);
     
@@ -182,6 +195,11 @@ window.Nodes = {
         // Update map display
         if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
           MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+          
+          // Call a function to update node states
+          if (typeof MapRenderer.updateNodeStates === 'function') {
+            MapRenderer.updateNodeStates(gameState.map);
+          }
         }
         
         // Return to map view

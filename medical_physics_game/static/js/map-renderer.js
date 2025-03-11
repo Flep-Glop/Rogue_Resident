@@ -497,25 +497,43 @@ window.MapRenderer = {
     }
   },
   
-  // Check if a node can be visited (simplified core logic)
+  // Check if a node can be visited (enforcing forward-only progression)
   canVisitNode: function(mapData, nodeId) {
     // Can't visit the start node
     if (nodeId === 'start') return false;
+    
+    // Can't visit if current node exists (must complete current node first)
+    if (gameState.currentNode) return false;
     
     // Get the node
     const node = this.getNodeById(mapData, nodeId);
     if (!node) return false;
     
-    // Already visited or current node cannot be visited
-    if (node.visited || gameState.currentNode === nodeId) return false;
+    // Already visited nodes cannot be visited again
+    if (node.visited) return false;
     
-    // Check if there's a path to this node from a previously visited node
-    const connectedNodes = this.getConnectedNodes(mapData, nodeId);
+    // Get node's row (to enforce forward progression)
+    const nodeRow = node.position.row;
     
-    // A node can be visited if at least one connected node is visited or is start
-    return connectedNodes.some(connectedNode => 
-      connectedNode.visited || connectedNode.id === 'start'
+    // Get all nodes in previous row that have been visited
+    const previousRowVisitedNodes = this.getAllNodes(mapData).filter(prevNode => 
+      prevNode.position.row === nodeRow - 1 && prevNode.visited
     );
+    
+    // Add start node if we're looking at row 1
+    if (nodeRow === 1 && mapData.start) {
+      previousRowVisitedNodes.push(mapData.start);
+    }
+    
+    // A node is available if any previous row node that has been visited has a path to it
+    for (const prevNode of previousRowVisitedNodes) {
+      if (prevNode.paths && prevNode.paths.includes(nodeId)) {
+        return true;
+      }
+    }
+    
+    // Otherwise, node cannot be visited
+    return false;
   },
   
   // Get all nodes that have paths leading to this node
