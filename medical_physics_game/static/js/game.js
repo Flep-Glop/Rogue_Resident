@@ -1,5 +1,22 @@
 // game.js - Main game logic
+// Add at the top of game.js
+console.log("Game.js loaded");
 
+// Modify loadGameState function to include debugging
+function loadGameState() {
+    console.log("loadGameState called");
+    fetch('/api/game-state')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Game state loaded:", data);
+            // Rest of your code...
+        })
+        .catch(error => console.error('Error loading game state:', error));
+}
+
+// Add debugging to showRoentgenIntroScene
+function showRoentgenIntroScene() {
+    console.log("Showing Roentgen intro scene");
 // Define all container types for easier management
 const CONTAINER_TYPES = {
     QUESTION: 'question-container',
@@ -2578,25 +2595,57 @@ const CONTAINER_TYPES = {
       }, 500);
     });
   }
-
-  // Modified floor transition to include description
-  function showFloorTransition(floorNumber, floorName, floorDescription) {
-    const transitionScreen = document.createElement('div');
-    transitionScreen.className = 'floor-transition-screen';
+  // Add this to ensure a character is selected before game starts
+  function ensureCharacterSelected() {
+    console.log("Checking if character is selected");
     
-    transitionScreen.innerHTML = `
-      <h1 class="floor-title">Floor ${floorNumber}</h1>
-      <h2 class="floor-subtitle">${floorName}</h2>
-      <p class="floor-description">${floorDescription}</p>
-    `;
-    
-    document.body.appendChild(transitionScreen);
-    
-    // Remove after animation completes
-    setTimeout(() => {
-      transitionScreen.remove();
-    }, 3000);
+    // If no character in gameState, select default
+    if (!gameState.character || !gameState.character.name) {
+        console.log("No character selected, using default");
+        
+        // Call the API to initialize with default character
+        fetch('/api/new-game', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ character_id: 'resident' }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("New game started with default character");
+            gameState = data;
+            updateCharacterInfo(gameState.character);
+            document.getElementById('current-floor').textContent = gameState.current_floor;
+            
+            // Now show the intro scene
+            setTimeout(showRoentgenIntroScene, 500);
+        })
+        .catch(error => console.error('Error starting new game:', error));
+    } else {
+        // Character exists, proceed normally
+        console.log("Character already selected:", gameState.character.name);
+        setTimeout(showRoentgenIntroScene, 500);
+    }
   }
+    // Modified floor transition to include description
+    function showFloorTransition(floorNumber, floorName, floorDescription) {
+      const transitionScreen = document.createElement('div');
+      transitionScreen.className = 'floor-transition-screen';
+      
+      transitionScreen.innerHTML = `
+        <h1 class="floor-title">Floor ${floorNumber}</h1>
+        <h2 class="floor-subtitle">${floorName}</h2>
+        <p class="floor-description">${floorDescription}</p>
+      `;
+      
+      document.body.appendChild(transitionScreen);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        transitionScreen.remove();
+      }, 3000);
+    }
 
   // Hook into game initialization to show intro
   document.addEventListener('DOMContentLoaded', function() {
@@ -2616,3 +2665,4 @@ const CONTAINER_TYPES = {
       }
     };
   });
+}
