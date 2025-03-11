@@ -14,7 +14,7 @@ window.Character = {
       this.renderInventory();
     },
     
-    // Render inventory items in the UI
+    // Render inventory items in the UI with improved styling
     renderInventory: function() {
       const inventoryContainer = document.getElementById('inventory-items');
       if (!inventoryContainer) return;
@@ -25,67 +25,123 @@ window.Character = {
       // Update inventory count
       const inventoryCount = document.getElementById('inventory-count');
       if (inventoryCount) {
-        inventoryCount.textContent = `${gameState.inventory.length}/${gameState.maxInventorySize}`;
+          inventoryCount.textContent = `${gameState.inventory?.length || 0}/${gameState.maxInventorySize || 5}`;
       }
       
       // If inventory is empty, show a message
       if (!gameState.inventory || gameState.inventory.length === 0) {
-        inventoryContainer.innerHTML = '<p class="text-muted">No items yet</p>';
-        return;
+          inventoryContainer.innerHTML = '<div class="empty-inventory">No items yet</div>';
+          return;
       }
       
-      // Create item elements
+      // Create grid layout for items
+      const inventoryGrid = document.createElement('div');
+      inventoryGrid.className = 'inventory-grid';
+      
+      // Create item elements with improved styling
       gameState.inventory.forEach((item, index) => {
-        const itemElement = document.createElement('div');
-        itemElement.className = `inventory-item ${item.rarity || 'common'}`;
-        itemElement.setAttribute('data-index', index);
-        
-        // Item icon based on type
-        const itemIcon = this.getItemIcon(item);
-        itemElement.innerHTML = itemIcon;
-        
-        // Add tooltip with item details
-        const tooltip = document.createElement('div');
-        tooltip.className = 'inventory-tooltip';
-        tooltip.innerHTML = `
-          <div class="tooltip-title">${item.name}</div>
-          <div class="tooltip-desc">${item.description}</div>
-          <div class="tooltip-effect">${this.getEffectDescription(item.effect)}</div>
-          <div class="tooltip-usage">Click to use</div>
-        `;
-        
-        itemElement.appendChild(tooltip);
-        
-        // Add click event to use the item
-        itemElement.addEventListener('click', () => this.useInventoryItem(index));
-        
-        inventoryContainer.appendChild(itemElement);
+          const itemElement = document.createElement('div');
+          itemElement.className = `inventory-item ${item.rarity || 'common'}`;
+          itemElement.setAttribute('data-index', index);
+          
+          // Item icon based on type
+          const itemIcon = this.getItemIcon(item);
+          
+          // Create inner content with icon and border
+          itemElement.innerHTML = `
+              <div class="item-inner">
+                  <div class="item-icon">${itemIcon}</div>
+                  <div class="item-glow"></div>
+              </div>
+          `;
+          
+          // Add tooltip with item details
+          const tooltip = document.createElement('div');
+          tooltip.className = 'item-tooltip';
+          tooltip.innerHTML = `
+              <div class="tooltip-header ${item.rarity || 'common'}">
+                  <div class="tooltip-title">${item.name}</div>
+                  <div class="tooltip-rarity">${item.rarity || 'common'}</div>
+              </div>
+              <div class="tooltip-body">
+                  <div class="tooltip-desc">${item.description}</div>
+                  <div class="tooltip-effect">${this.getEffectDescription(item.effect)}</div>
+                  <div class="tooltip-usage">Click to use</div>
+              </div>
+          `;
+          
+          itemElement.appendChild(tooltip);
+          
+          // Add pixel border effect
+          this.addPixelBorder(itemElement, item.rarity);
+          
+          // Add click event to use the item
+          itemElement.addEventListener('click', () => this.useInventoryItem(index));
+          
+          // Add to grid
+          inventoryGrid.appendChild(itemElement);
       });
+      
+      // Add empty slots to complete the grid
+      for (let i = gameState.inventory.length; i < gameState.maxInventorySize; i++) {
+          const emptySlot = document.createElement('div');
+          emptySlot.className = 'inventory-item empty';
+          emptySlot.innerHTML = '<div class="item-inner"></div>';
+          
+          // Add pixel border effect for empty slots
+          this.addPixelBorder(emptySlot, 'empty');
+          
+          inventoryGrid.appendChild(emptySlot);
+      }
+      
+      inventoryContainer.appendChild(inventoryGrid);
     },
-    
-    // Get an appropriate icon for an item based on its type
+
+    // Add pixelated border effect to inventory items
+    addPixelBorder: function(element, rarity) {
+      const borderElement = document.createElement('div');
+      borderElement.className = `pixel-border ${rarity || 'common'}`;
+      
+      // Create pixelated corners
+      ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(corner => {
+          const cornerElement = document.createElement('div');
+          cornerElement.className = `pixel-corner ${corner}`;
+          borderElement.appendChild(cornerElement);
+      });
+      
+      element.appendChild(borderElement);
+    },
+
+    // Get a themed icon for an item based on its type
     getItemIcon: function(item) {
       if (!item) return '?';
       
       const itemIcons = {
-        'textbook': '📚',
-        'coffee': '☕',
-        'dosimeter': '📊',
-        'tg51': '📋',
-        'badge': '🔰',
-        // Other item icons...
+          'textbook': '📚',
+          'coffee': '☕',
+          'energy_drink': '🧃',
+          'dosimeter': '📊',
+          'cheat_sheet': '📝',
+          'tg51': '📋',
+          'reference_manual': '📔',
+          'emergency_protocol': '🚨',
+          'badge': '🔰',
+          'farmer_chamber': '🔋',
+          'lead_apron': '🛡️'
       };
       
       // Classify by effect type if no specific icon
       if (!itemIcons[item.id]) {
-        switch (item.effect?.type) {
-          case 'insight_boost': return '💡';
-          case 'restore_life': return '❤️';
-          case 'question_hint': return '❓';
-          case 'category_boost': return '📈';
-          case 'extra_life': return '💖';
-          default: return '🔮';
-        }
+          switch (item.effect?.type) {
+              case 'insight_boost': return '💡';
+              case 'restore_life': return '❤️';
+              case 'question_hint': return '❓';
+              case 'category_boost': return '📈';
+              case 'extra_life': return '💖';
+              case 'defense': return '🛡️';
+              case 'special': return '✨';
+              default: return '🔮';
+          }
       }
       
       return itemIcons[item.id];
@@ -301,73 +357,160 @@ window.Character = {
       }
     },
 
-    // Update character info display
+    // Update the character display to be larger and centered
     updateCharacterInfo: function(character) {
       if (!character) return;
       
-      const charInfoHtml = `
-        <p><strong>Name:</strong> ${character.name}</p>
-        <p><strong>Level:</strong> ${character.level}</p>
-        <p><strong>Insight:</strong> ${character.insight}</p>
-      `;
-      
-      const charInfoElement = document.getElementById('character-info');
-      if (charInfoElement) {
-        charInfoElement.innerHTML = charInfoHtml;
-      }
-      
-      // Update lives visualization
-      this.updateLivesDisplay(character.lives, character.max_lives);
-      
-      // Update special ability if exists
-      if (character.special_ability) {
-        this.updateSpecialAbility(character.special_ability);
-      }
+      // Get character data including ASCII art
+      this.getCharacterData(character.name).then(characterData => {
+          // Create HTML for character display
+          const asciiArt = characterData?.ascii_art || this.getDefaultAsciiArt();
+          
+          // Create styled ASCII art
+          const styledAsciiArt = this.styleAsciiArt(asciiArt, character.name);
+          
+          const charInfoHtml = `
+              <div class="character-avatar-container">
+                  <div class="character-avatar">
+                      <pre class="ascii-character bobbing">${styledAsciiArt}</pre>
+                  </div>
+              </div>
+              <div class="character-details">
+                  <p><strong>${character.name}</strong></p>
+                  <div class="insight-bar-container">
+                      <div class="insight-bar-label">Insight</div>
+                      <div class="insight-bar">
+                          <div class="insight-bar-fill" style="width: ${Math.min(100, character.insight / 2)}%"></div>
+                          <span class="insight-value">${character.insight}</span>
+                      </div>
+                  </div>
+                  <p><strong>Level:</strong> ${character.level}</p>
+              </div>
+          `;
+          
+          // Update the character info element
+          const charInfoElement = document.getElementById('character-info');
+          if (charInfoElement) {
+              charInfoElement.innerHTML = charInfoHtml;
+          }
+          
+          // Update lives visualization
+          this.updateLivesDisplay(character.lives, character.max_lives);
+          
+          // Update special ability if exists
+          if (character.special_ability) {
+              this.updateSpecialAbility(character.special_ability);
+          }
+      });
     },
 
-    updateSpecialAbility: function(specialAbility) {
-      if (!specialAbility) return;
-      
-      // Find the special ability container or create it if it doesn't exist
-      let abilityContainer = document.getElementById('special-ability');
-      if (!abilityContainer) {
-          const charInfoElement = document.getElementById('character-info');
-          if (!charInfoElement) return;
-          
-          abilityContainer = document.createElement('div');
-          abilityContainer.id = 'special-ability';
-          abilityContainer.className = 'special-ability-container mt-3';
-          charInfoElement.appendChild(abilityContainer);
+    // Get character data from the server or use cached data
+    getCharacterData: function(characterName) {
+      // Check if we have cached the character data
+      if (this.characterDataCache && this.characterDataCache[characterName]) {
+          return Promise.resolve(this.characterDataCache[characterName]);
       }
       
-      // Initialize remaining uses if not set
-      if (specialAbility.remaining_uses === undefined) {
-          specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
-      }
-      
-      // Update the ability display
-      abilityContainer.innerHTML = `
-          <h4>Special Ability</h4>
-          <p><strong>${specialAbility.name}</strong></p>
-          <p>${specialAbility.description}</p>
-          <button class="btn btn-outline-secondary btn-sm use-ability-btn" id="use-ability-btn">
-              Use Ability (${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1})
-          </button>
-      `;
-      
-      // Add event listener for using the ability
-      const useAbilityBtn = document.getElementById('use-ability-btn');
-      if (useAbilityBtn) {
-          useAbilityBtn.addEventListener('click', () => {
-              this.useSpecialAbility(specialAbility);
+      // If not cached, fetch from server
+      return fetch('/api/characters')
+          .then(response => response.json())
+          .then(data => {
+              // Initialize cache if needed
+              if (!this.characterDataCache) {
+                  this.characterDataCache = {};
+              }
+              
+              // Find the matching character
+              const character = data.characters.find(c => c.name === characterName);
+              
+              // Cache all characters for future use
+              data.characters.forEach(c => {
+                  this.characterDataCache[c.name] = c;
+              });
+              
+              return character;
+          })
+          .catch(error => {
+              console.error('Error fetching character data:', error);
+              return null;
           });
-          
-          // Disable button if no uses left
-          if (specialAbility.remaining_uses <= 0) {
-              useAbilityBtn.disabled = true;
-              useAbilityBtn.textContent = 'No uses remaining';
-          }
+    },
+
+    // Get default ASCII art for when character data is not available
+    getDefaultAsciiArt: function() {
+      return `  O
+    /|\\
+    / \\`;
+    },
+
+    // Style ASCII art based on character type
+    styleAsciiArt: function(asciiArt, characterName) {
+      // Add color based on character type
+      let color = '#5b8dd9'; // Default blue for resident
+      
+      if (characterName.includes('Physicist')) {
+          color = '#56b886'; // Green for physicist
+      } else if (characterName.includes('QA')) {
+          color = '#f0c866'; // Yellow for QA specialist
+      } else if (characterName.includes('Regulatory')) {
+          color = '#e67e73'; // Red for regulatory specialist
       }
+      
+      // Add color styling to ASCII art for terminal-like effect
+      const coloredArt = asciiArt
+          .split('\n')
+          .map((line, index) => {
+              // Add slight color variation for each line for a more dynamic look
+              const shade = Math.min(100, 80 + index * 5);
+              return `<span style="color: ${color}; filter: brightness(${shade}%)">${line}</span>`;
+          })
+          .join('\n');
+      
+      return coloredArt;
+    },
+
+    // Update special ability display with a simpler button and hover info
+    updateSpecialAbility: function(specialAbility) {
+        if (!specialAbility) return;
+        
+        // Find the special ability container or create it if it doesn't exist
+        let abilityContainer = document.getElementById('special-ability');
+        if (!abilityContainer) {
+            const charInfoElement = document.getElementById('character-info');
+            if (!charInfoElement) return;
+            
+            abilityContainer = document.createElement('div');
+            abilityContainer.id = 'special-ability';
+            abilityContainer.className = 'special-ability-container mt-3';
+            charInfoElement.appendChild(abilityContainer);
+        }
+        
+        // Initialize remaining uses if not set
+        if (specialAbility.remaining_uses === undefined) {
+            specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
+        }
+        
+        // Update the ability display with a simplified button and tooltip
+        abilityContainer.innerHTML = `
+            <button class="special-ability-btn ${specialAbility.remaining_uses <= 0 ? 'disabled' : ''}" id="use-ability-btn">
+                ${specialAbility.name}
+                <span class="use-count">${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1}</span>
+                <div class="ability-tooltip">${specialAbility.description}</div>
+            </button>
+        `;
+        
+        // Add event listener for using the ability
+        const useAbilityBtn = document.getElementById('use-ability-btn');
+        if (useAbilityBtn) {
+            useAbilityBtn.addEventListener('click', () => {
+                this.useSpecialAbility(specialAbility);
+            });
+            
+            // Disable button if no uses left
+            if (specialAbility.remaining_uses <= 0) {
+                useAbilityBtn.disabled = true;
+            }
+        }
     },
 
     // Function to use the special ability

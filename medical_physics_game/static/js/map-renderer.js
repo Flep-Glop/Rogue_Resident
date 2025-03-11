@@ -321,176 +321,313 @@ window.MapRenderer = {
     canvas.addEventListener('click', this._currentClickHandler);
   },
   
-  // Draw connections between nodes with improved visuals
+  // Update the drawConnections function for better path rendering
   drawConnections: function(ctx, mapData, width, height, bottomUp = false) {
-      const allNodes = { ...mapData.nodes };
-      if (mapData.start) allNodes['start'] = mapData.start;
-      if (mapData.boss) allNodes['boss'] = mapData.boss;
-      
-      // Draw all connections
-      for (const nodeId in allNodes) {
-          const node = allNodes[nodeId];
-          if (!node.paths || node.paths.length === 0) continue;
-          
-          // Calculate node position
-          let startY;
-          if (bottomUp) {
-              startY = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-          } else {
-              startY = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-          }
-          
-          const startX = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-          
-          node.paths.forEach(targetId => {
-              const targetNode = allNodes[targetId];
-              if (!targetNode) return;
-              
-              // Calculate target position
-              let endY;
-              if (bottomUp) {
-                  endY = height - height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
-              } else {
-                  endY = height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
-              }
-              
-              const endX = width * ((targetNode.position.col + 1) / (this.config.nodesPerRow + 1));
-              
-              // Draw path with gradient for better visual effect
-              const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-              
-              // Style the path based on status
-              if (node.visited && targetNode.visited) {
-                  // Path has been used - soft green gradient
-                  gradient.addColorStop(0, 'rgba(86, 184, 134, 0.8)');
-                  gradient.addColorStop(1, 'rgba(86, 184, 134, 0.6)');
-                  ctx.strokeStyle = gradient;
-                  ctx.lineWidth = 4;
-              } else if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
-                  // Available path - glowing green gradient
-                  gradient.addColorStop(0, 'rgba(86, 184, 134, 0.9)');
-                  gradient.addColorStop(1, 'rgba(86, 184, 134, 0.7)');
-                  ctx.strokeStyle = gradient;
-                  ctx.lineWidth = 3;
-                  
-                  // Add subtle pulsing glow
-                  ctx.shadowColor = 'rgba(86, 184, 134, 0.6)';
-                  ctx.shadowBlur = 5;
-              } else if (!node.visited && !targetNode.visited) {
-                  // Unavailable path - very subtle gray
-                  ctx.strokeStyle = 'rgba(100, 100, 110, 0.15)';
-                  ctx.lineWidth = 1;
-              } else {
-                  // Default - used but can't continue
-                  ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
-                  ctx.lineWidth = 2;
-              }
-              
-              // Draw the path with rounded ends
-              ctx.beginPath();
-              ctx.moveTo(startX, startY);
-              ctx.lineTo(endX, endY);
-              ctx.lineCap = 'round';
-              ctx.stroke();
-              
-              // Reset shadow
-              ctx.shadowBlur = 0;
-          });
-      }
+    const allNodes = { ...mapData.nodes };
+    if (mapData.start) allNodes['start'] = mapData.start;
+    if (mapData.boss) allNodes['boss'] = mapData.boss;
+    
+    // Draw all connections
+    for (const nodeId in allNodes) {
+        const node = allNodes[nodeId];
+        if (!node.paths || node.paths.length === 0) continue;
+        
+        // Calculate node position
+        let startY;
+        if (bottomUp) {
+            startY = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+        } else {
+            startY = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+        }
+        
+        const startX = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
+        
+        node.paths.forEach(targetId => {
+            const targetNode = allNodes[targetId];
+            if (!targetNode) return;
+            
+            // Calculate target position
+            let endY;
+            if (bottomUp) {
+                endY = height - height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+            } else {
+                endY = height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
+            }
+            
+            const endX = width * ((targetNode.position.col + 1) / (this.config.nodesPerRow + 1));
+            
+            // Save context for path styling
+            ctx.save();
+            
+            // Create pixelated path effect
+            // This creates a slightly jagged line for retro effect
+            ctx.lineCap = 'round';
+            
+            // Calculate path length and angle
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            
+            // Number of segments for pixelated effect
+            const segments = Math.max(10, Math.floor(distance / 15));
+            
+            // Path offset variables for pixel effect
+            const maxOffset = 1.5; // Maximum pixel offset
+            
+            // Style the path based on status
+            if (node.visited && targetNode.visited) {
+                // Path has been used - soft green with pixelated effect
+                ctx.strokeStyle = '#56b886'; // Secondary color - green
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.8;
+            } else if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
+                // Available path - glowing green with animation
+                ctx.strokeStyle = '#56b886'; // Secondary color - green
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#56b886';
+                ctx.shadowBlur = 5;
+                ctx.globalAlpha = 0.9;
+                
+                // Animate available paths
+                const time = Date.now() / 1000;
+                const pulseRate = 1.5; // Pulse every 1.5 seconds
+                const pulseAmount = 0.2; // Amount to pulse (20% opacity change)
+                
+                // Create pulsing effect
+                ctx.globalAlpha = 0.7 + Math.sin(time * pulseRate * Math.PI) * pulseAmount;
+            } else if (!node.visited && !targetNode.visited) {
+                // Unavailable path - very subtle gray
+                ctx.strokeStyle = 'rgba(100, 100, 110, 0.15)';
+                ctx.lineWidth = 1;
+            } else {
+                // Default - used but can't continue
+                ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
+                ctx.lineWidth = 2;
+            }
+            
+            // Draw pixelated path
+            ctx.beginPath();
+            
+            // Start at source node
+            ctx.moveTo(startX, startY);
+            
+            // Create slightly jagged line for pixelated effect
+            for (let i = 1; i < segments; i++) {
+                const t = i / segments;
+                const x = startX + dx * t;
+                const y = startY + dy * t;
+                
+                // Add small random offset for pixelated look
+                // More pronounced for visited paths, subtle for others
+                let offset = maxOffset;
+                if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
+                    // Animated paths get less offset to appear more "active"
+                    offset = maxOffset * 0.5;
+                } else if (!node.visited && !targetNode.visited) {
+                    // Unavailable paths get more offset to look "broken"
+                    offset = maxOffset * 1.2;
+                }
+                
+                // Generate deterministic offset based on position and nodeId
+                // This ensures the jagged effect stays consistent
+                const seed = (x * 100 + y) + nodeId.charCodeAt(0);
+                const offsetX = (Math.sin(seed) * offset);
+                const offsetY = (Math.cos(seed * 2) * offset);
+                
+                ctx.lineTo(x + offsetX, y + offsetY);
+            }
+            
+            // End at target node
+            ctx.lineTo(endX, endY);
+            
+            // Draw the path
+            ctx.stroke();
+            
+            // Reset context
+            ctx.restore();
+        });
+    }
   },
   
-  // Updated drawNode function with better visuals and no titles
+  // Update the drawNode function for better looking nodes
   drawNode: function(ctx, node, width, height, bottomUp = false) {
-      // Calculate node position (adjust for bottom-up layout)
-      let y;
-      if (bottomUp) {
-          // Invert Y position for bottom-up layout
-          y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-      } else {
-          y = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
-      }
-      
-      const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-      const radius = 18; // Slightly smaller radius
-      
-      // Draw node circle with improved styling
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      
-      // Style based on status
-      if (gameState.currentNode === node.id) {
-          // Current node - add glow effect
-          const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
-          ctx.fillStyle = nodeColor;
-          ctx.shadowColor = nodeColor;
-          ctx.shadowBlur = 10;
-      } else if (node.visited) {
-          // Visited node - gray but slightly translucent
-          ctx.fillStyle = 'rgba(100, 100, 110, 0.7)';
-      } else if (this.canVisitNode(node.id)) {
-          // Available node - use color with subtle glow
-          const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
-          ctx.fillStyle = nodeColor;
-          ctx.shadowColor = nodeColor;
-          ctx.shadowBlur = 3;
-      } else {
-          // Unavailable node - dimmed version of the color
-          const baseColor = this.nodeColors[node.type] || '#5b8dd9';
-          ctx.fillStyle = this.dimColor(baseColor, 0.25);
-      }
-      
-      ctx.fill();
-      
-      // Draw border
-      if (gameState.currentNode === node.id) {
-          // Current node - bold white border
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 2.5;
-      } else if (node.visited) {
-          // Visited node - subtle gray border
-          ctx.strokeStyle = 'rgba(100, 100, 110, 0.9)';
-          ctx.lineWidth = 1.5;
-      } else if (this.canVisitNode(node.id)) {
-          // Available node - white border
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-          ctx.lineWidth = 1.5;
-      } else {
-          // Unavailable node - subtle border
-          ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
-          ctx.lineWidth = 1;
-      }
-      
-      ctx.stroke();
-      
-      // Draw node icon/symbol
-      if (gameState.currentNode === node.id || node.visited || this.canVisitNode(node.id)) {
-          ctx.fillStyle = '#fff'; // Bright white for better visibility
-      } else {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // Faded white
-      }
-      
-      ctx.font = 'bold 14px "Press Start 2P", monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      const symbol = this.nodeSymbols[node.type] || '?';
-      ctx.fillText(symbol, x, y);
-      
-      // Add difficulty indicator for question and elite nodes
-      if ((node.type === 'question' || node.type === 'elite') && node.difficulty) {
-          if (this.canVisitNode(node.id) || node.visited) {
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          } else {
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-          }
-          ctx.font = '9px "Press Start 2P", monospace';
-          ctx.fillText('★'.repeat(node.difficulty), x, y + radius + 10);
-      }
-      
-      // No title display to declutter the map
-      
-      // Reset shadow
-      ctx.shadowBlur = 0;
+    // Calculate node position (adjust for bottom-up layout)
+    let y;
+    if (bottomUp) {
+        y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+    } else {
+        y = height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+    }
+    
+    const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
+    const radius = 20; // Slightly larger radius
+    
+    // Create rounded pixel effect for nodes
+    ctx.save();
+    
+    // Add subtle outer glow first
+    if (this.canVisitNode(node.id) || gameState.currentNode === node.id) {
+        const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
+        const glowSize = gameState.currentNode === node.id ? 15 : 8;
+        const glowAlpha = gameState.currentNode === node.id ? 0.4 : 0.2;
+        
+        const gradient = ctx.createRadialGradient(
+            x, y, radius - 5,
+            x, y, radius + glowSize
+        );
+        gradient.addColorStop(0, `rgba(${this.hexToRgb(nodeColor)}, ${glowAlpha})`);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius + glowSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Create pixelated node shape
+    // We'll simulate a pixelated circle by drawing a slightly jagged circle
+    const pixelSize = 2; // Size of our "pixels"
+    const angleSteps = 18; // Number of segments to create pixelated look
+    
+    ctx.beginPath();
+    
+    // Draw pixelated circle
+    for (let i = 0; i < angleSteps; i++) {
+        const angle = (i / angleSteps) * Math.PI * 2;
+        const nextAngle = ((i + 1) / angleSteps) * Math.PI * 2;
+        
+        // Add slight variation for pixelated effect
+        const r1 = radius - (Math.random() * pixelSize);
+        const r2 = radius - (Math.random() * pixelSize);
+        
+        const x1 = x + Math.cos(angle) * r1;
+        const y1 = y + Math.sin(angle) * r1;
+        const x2 = x + Math.cos(nextAngle) * r2;
+        const y2 = y + Math.sin(nextAngle) * r2;
+        
+        if (i === 0) {
+            ctx.moveTo(x1, y1);
+        }
+        ctx.lineTo(x2, y2);
+    }
+    
+    ctx.closePath();
+    
+    // Create inner gradient for more depth
+    const innerGradient = ctx.createRadialGradient(
+        x - radius/4, y - radius/4, 1,
+        x, y, radius
+    );
+    
+    // Style based on status
+    if (gameState.currentNode === node.id) {
+        // Current node styling
+        const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
+        const lighterColor = this.lightenColor(nodeColor, 30);
+        const darkerColor = this.darkenColor(nodeColor, 20);
+        
+        innerGradient.addColorStop(0, lighterColor);
+        innerGradient.addColorStop(1, darkerColor);
+        
+        ctx.fillStyle = innerGradient;
+        ctx.shadowColor = nodeColor;
+        ctx.shadowBlur = 10;
+    } else if (node.visited) {
+        // Visited node - soft gray gradient
+        innerGradient.addColorStop(0, 'rgba(120, 120, 130, 0.9)');
+        innerGradient.addColorStop(1, 'rgba(90, 90, 100, 0.7)');
+        ctx.fillStyle = innerGradient;
+    } else if (this.canVisitNode(node.id)) {
+        // Available node - vibrant color with gradient
+        const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
+        const lighterColor = this.lightenColor(nodeColor, 20);
+        
+        innerGradient.addColorStop(0, lighterColor);
+        innerGradient.addColorStop(1, nodeColor);
+        
+        ctx.fillStyle = innerGradient;
+    } else {
+        // Unavailable node - dimmed version with gradient
+        const baseColor = this.nodeColors[node.type] || '#5b8dd9';
+        const dimColor = this.dimColor(baseColor, 0.3);
+        const dimmerColor = this.dimColor(baseColor, 0.2);
+        
+        innerGradient.addColorStop(0, dimColor);
+        innerGradient.addColorStop(1, dimmerColor);
+        
+        ctx.fillStyle = innerGradient;
+    }
+    
+    ctx.fill();
+    
+    // Draw border with pixelated effect
+    ctx.lineWidth = gameState.currentNode === node.id ? 3 : 2;
+    
+    if (gameState.currentNode === node.id) {
+        // Current node - bold white border with slight glow
+        ctx.strokeStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 3;
+    } else if (node.visited) {
+        // Visited node - subtle gray border
+        ctx.strokeStyle = 'rgba(150, 150, 160, 0.6)';
+    } else if (this.canVisitNode(node.id)) {
+        // Available node - white border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    } else {
+        // Unavailable node - very subtle border
+        ctx.strokeStyle = 'rgba(100, 100, 110, 0.3)';
+        ctx.lineWidth = 1;
+    }
+    
+    ctx.stroke();
+    
+    // Draw node icon/symbol with pixelated style
+    if (gameState.currentNode === node.id || node.visited || this.canVisitNode(node.id)) {
+        ctx.fillStyle = '#fff'; // Bright white for better visibility
+    } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // Faded white
+    }
+    
+    // Use pixelated font for the symbol
+    ctx.font = 'bold 15px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const symbol = this.nodeSymbols[node.type] || '?';
+    
+    // Draw text with slight pixelated offset for retro feel
+    if (gameState.currentNode === node.id) {
+        // Current node - add slight bounce effect
+        const bounceOffset = Math.sin(Date.now() / 300) * 2;
+        ctx.fillText(symbol, x, y + bounceOffset);
+    } else {
+        ctx.fillText(symbol, x, y);
+    }
+    
+    // Add difficulty indicator for question and elite nodes
+    if ((node.type === 'question' || node.type === 'elite') && node.difficulty) {
+        // Position stars below the node
+        const starsY = y + radius + 10;
+        
+        if (this.canVisitNode(node.id) || node.visited) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        }
+        
+        // Use smaller font for the stars
+        ctx.font = '8px "Press Start 2P", monospace';
+        
+        // Draw pixelated stars
+        const stars = '★'.repeat(node.difficulty);
+        ctx.fillText(stars, x, starsY);
+    }
+    
+    // Reset shadow and restore context
+    ctx.shadowBlur = 0;
+    ctx.restore();
   },
   
   isPointOnLine: function(x1, y1, x2, y2, px, py, tolerance = 5) {
@@ -635,5 +772,54 @@ window.MapRenderer = {
       const hex = x.toString(16);
       return hex.length === 1 ? '0' + hex : hex;
     }).join('');
-  }
+  },
+  // Add helper functions for color manipulation
+hexToRgb: function(hex) {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Parse hex values
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  return `${r}, ${g}, ${b}`;
+},
+
+lightenColor: function(hex, percent) {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Parse hex values
+  let r = parseInt(hex.substring(0, 2), 16);
+  let g = parseInt(hex.substring(2, 4), 16);
+  let b = parseInt(hex.substring(4, 6), 16);
+  
+  // Lighten by percent
+  r = Math.min(255, r + Math.floor(r * (percent / 100)));
+  g = Math.min(255, g + Math.floor(g * (percent / 100)));
+  b = Math.min(255, b + Math.floor(b * (percent / 100)));
+  
+  // Convert back to hex
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+},
+
+darkenColor: function(hex, percent) {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Parse hex values
+  let r = parseInt(hex.substring(0, 2), 16);
+  let g = parseInt(hex.substring(2, 4), 16);
+  let b = parseInt(hex.substring(4, 6), 16);
+  
+  // Darken by percent
+  r = Math.max(0, r - Math.floor(r * (percent / 100)));
+  g = Math.max(0, g - Math.floor(g * (percent / 100)));
+  b = Math.max(0, b - Math.floor(b * (percent / 100)));
+  
+  // Convert back to hex
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
 };
+
