@@ -1,4 +1,11 @@
 // map-renderer.js - Map rendering and node display
+// Define proper node states
+const NODE_STATE = {
+  LOCKED: 'locked',     // Cannot be visited yet (previous row not completed)
+  AVAILABLE: 'available', // Can be visited now
+  CURRENT: 'current',   // Currently being visited
+  COMPLETED: 'completed' // Already visited and completed
+};
 
 window.MapRenderer = {
   // Map configuration
@@ -132,51 +139,66 @@ window.MapRenderer = {
     }
   },
   
-  // Draw all connections between nodes
+  // Draw connections with states based on rows
   drawConnections: function(ctx, mapData, width, height) {
     if (!mapData) return;
     
-    // Get all nodes including start and boss
+    // First update all node states
+    this.updateNodeStates(mapData);
+    
+    // Get all nodes
     const allNodes = this.getAllNodes(mapData);
     
     // For each node, draw paths to connected nodes
-    allNodes.forEach(sourceNode => {
-      if (!sourceNode.paths || sourceNode.paths.length === 0) return;
+    for (const sourceNode of allNodes) {
+      if (!sourceNode.paths || sourceNode.paths.length === 0) continue;
       
       // Calculate source position
       const startY = height - height * ((sourceNode.position.row + 0.5) / (this.config.rowCount + 2));
       const startX = width * ((sourceNode.position.col + 1) / (this.config.nodesPerRow + 1));
       
       // Draw paths to each connected node
-      sourceNode.paths.forEach(targetId => {
+      for (const targetId of sourceNode.paths) {
         const targetNode = this.getNodeById(mapData, targetId);
-        if (!targetNode) return;
+        if (!targetNode) continue;
         
         // Calculate target position
         const endY = height - height * ((targetNode.position.row + 0.5) / (this.config.rowCount + 2));
         const endX = width * ((targetNode.position.col + 1) / (this.config.nodesPerRow + 1));
         
-        // Determine connection state based on node states
+        // Determine connection state based on node states and row completion
         let connectionState = "locked";
         
-        if (sourceNode.current || targetNode.current) {
-          // Current path - gold
+        // Check if source is start node (special case)
+        if (sourceNode.id === 'start') {
+          if (targetNode.state === NODE_STATE.CURRENT) {
+            connectionState = "current";
+          } else if (targetNode.state === NODE_STATE.COMPLETED) {
+            connectionState = "completed";
+          } else if (targetNode.state === NODE_STATE.AVAILABLE) {
+            connectionState = "available";
+          }
+        }
+        // Current node's connections
+        else if (sourceNode.state === NODE_STATE.CURRENT || targetNode.state === NODE_STATE.CURRENT) {
           connectionState = "current";
-        } else if (sourceNode.visited && targetNode.visited) {
-          // Completed path - dimmed green
+        }
+        // Both nodes completed 
+        else if (sourceNode.state === NODE_STATE.COMPLETED && targetNode.state === NODE_STATE.COMPLETED) {
           connectionState = "completed";
-        } else if (sourceNode.visited && this.canVisitNode(mapData, targetId)) {
-          // Available path - bright green
-          connectionState = "available";
-        } else if (sourceNode.id === 'start' && this.canVisitNode(mapData, targetId)) {
-          // Path from start - available
-          connectionState = "available";
+        }
+        // Source completed and target available
+        else if (sourceNode.state === NODE_STATE.COMPLETED && targetNode.state === NODE_STATE.AVAILABLE) {
+          // Only if target node is in the next row (enforce forward progression)
+          if (targetNode.position.row === sourceNode.position.row + 1) {
+            connectionState = "available";
+          }
         }
         
         // Draw the connection with appropriate styling
         this.drawConnection(ctx, startX, startY, endX, endY, connectionState);
-      });
-    });
+      }
+    }
   },
   
   // Draw a single connection with appropriate styling
@@ -497,12 +519,12 @@ window.MapRenderer = {
     }
   },
   
-  // Check if a node can be visited (enforcing forward-only progression)
+  // Core function to check if a node can be visited
   canVisitNode: function(mapData, nodeId) {
     // Can't visit the start node
     if (nodeId === 'start') return false;
     
-    // Can't visit if current node exists (must complete current node first)
+    // Can't visit if there's already a current node
     if (gameState.currentNode) return false;
     
     // Get the node
@@ -512,30 +534,39 @@ window.MapRenderer = {
     // Already visited nodes cannot be visited again
     if (node.visited) return false;
     
-    // Get node's row (to enforce forward progression)
+    // Get node's row
     const nodeRow = node.position.row;
     
-    // Get all nodes in previous row that have been visited
-    const previousRowVisitedNodes = this.getAllNodes(mapData).filter(prevNode => 
-      prevNode.position.row === nodeRow - 1 && prevNode.visited
+    // Row 1 nodes are always available if start exists
+    if (nodeRow === 1 && mapData.start) {
+      const startNode = mapData.start;
+      return startNode.paths && startNode.paths.includes(nodeId);
+    }
+    
+    // For rows > 1, check if previous row is FULLY completed
+    const previousRowIsComplete = this.isRowCompleted(mapData, nodeRow - 1);
+    if (!previousRowIsComplete) return false;
+    
+    // Check if there's a direct path from a completed node in the previous row
+    const connectedNodes = this.getConnectedNodes(mapData, nodeId);
+    return connectedNodes.some(prevNode => 
+      prevNode.position.row === nodeRow - 1 && 
+      (prevNode.visited || prevNode.id === 'start')
+    );
+  },
+  // Check if an entire row is completed
+  isRowCompleted: function(mapData, rowNumber) {
+    // Get all nodes in the row
+    const nodesInRow = this.getAllNodes(mapData).filter(node => 
+      node.position && node.position.row === rowNumber
     );
     
-    // Add start node if we're looking at row 1
-    if (nodeRow === 1 && mapData.start) {
-      previousRowVisitedNodes.push(mapData.start);
-    }
+    // If no nodes found in this row, consider it complete (empty row)
+    if (nodesInRow.length === 0) return true;
     
-    // A node is available if any previous row node that has been visited has a path to it
-    for (const prevNode of previousRowVisitedNodes) {
-      if (prevNode.paths && prevNode.paths.includes(nodeId)) {
-        return true;
-      }
-    }
-    
-    // Otherwise, node cannot be visited
-    return false;
+    // Check if all nodes in the row are visited
+    return nodesInRow.every(node => node.visited);
   },
-  
   // Get all nodes that have paths leading to this node
   getConnectedNodes: function(mapData, targetNodeId) {
     const connectedNodes = [];
@@ -570,19 +601,42 @@ window.MapRenderer = {
     return mapData.nodes && mapData.nodes[nodeId] ? mapData.nodes[nodeId] : null;
   },
   
-  // Update node states in the map
+  // Update all node states in the map
   updateNodeStates: function(mapData) {
     if (!mapData) return;
     
-    // Make sure all nodes can check their availability
+    // Process all nodes
     const allNodes = this.getAllNodes(mapData);
     
     for (const node of allNodes) {
       // Skip start node
       if (node.id === 'start') continue;
       
-      // Just update the 'available' property for simpler logic
-      node.available = this.canVisitNode(mapData, node.id);
+      // Set current node
+      if (node.id === gameState.currentNode) {
+        node.state = NODE_STATE.CURRENT;
+        continue;
+      }
+      
+      // Set completed nodes
+      if (node.visited) {
+        node.state = NODE_STATE.COMPLETED;
+        continue;
+      }
+      
+      // Check if the node is available or locked
+      node.state = this.canVisitNode(mapData, node.id) ? 
+        NODE_STATE.AVAILABLE : NODE_STATE.LOCKED;
+    }
+    
+    // Check if all nodes are completed (for next floor button)
+    const allNodesCompleted = allNodes.every(node => 
+      node.id === 'start' || node.visited
+    );
+    
+    if (allNodesCompleted && !gameState.currentNode) {
+      const nextFloorBtn = document.getElementById('next-floor-btn');
+      if (nextFloorBtn) nextFloorBtn.style.display = 'block';
     }
   },
   

@@ -948,38 +948,25 @@ window.Nodes = {
     this.showContainer(CONTAINER_TYPES.GAMBLE);
   },
   
-  // Set current node with clean state management
+  // Modified setCurrentNode to handle state properly
   setCurrentNode: function(nodeId) {
     console.log(`Setting current node to ${nodeId}`);
     
-    // Clear current status from all nodes
-    if (gameState.map) {
-      if (gameState.map.nodes) {
-        Object.values(gameState.map.nodes).forEach(node => {
-          node.current = false;
-        });
+    // Update game state
+    gameState.currentNode = nodeId;
+    
+    // Update node states - if MapRenderer is available
+    if (typeof MapRenderer !== 'undefined') {
+      // Update all node states
+      if (typeof MapRenderer.updateNodeStates === 'function') {
+        MapRenderer.updateNodeStates(gameState.map);
       }
       
-      if (gameState.map.boss) {
-        gameState.map.boss.current = false;
-      }
-      
-      if (gameState.map.start) {
-        gameState.map.start.current = false;
-      }
-      
-      // Set new current node
-      if (nodeId) {
-        if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
-          gameState.map.nodes[nodeId].current = true;
-        } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
-          gameState.map.boss.current = true;
-        }
+      // Re-render the map
+      if (typeof MapRenderer.renderFloorMap === 'function') {
+        MapRenderer.renderFloorMap(gameState.map, 'floor-map');
       }
     }
-    
-    // Set in game state
-    gameState.currentNode = nodeId;
   },
   
   // Go to the next floor
