@@ -213,7 +213,59 @@ const CONTAINER_TYPES = {
         showCharacterSelection();
       });
   });
+  // Add right after document.addEventListener('DOMContentLoaded', function() {...
+
+// Centralized game initialization
+function initializeGame() {
+  // Show loading indicator
+  const boardContainer = document.getElementById('game-board-container');
+  if (boardContainer) {
+      boardContainer.innerHTML += '<div id="loading-indicator" class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading game...</p></div>';
+  }
   
+  // Load game state from the backend
+  fetch('/api/game-state')
+      .then(response => response.json())
+      .then(data => {
+          gameState = data;
+          updateCharacterInfo(data.character);
+          document.getElementById('current-floor').textContent = data.current_floor || 1;
+          
+          // Fetch floor configuration
+          return fetch(`/api/floor/${data.current_floor || 1}`);
+      })
+      .then(response => response.json())
+      .then(floorData => {
+          // Generate floor map based on floor data
+          const mapData = generateFloorMap(gameState.current_floor, floorData);
+          gameState.map = mapData;
+          
+          // Remove loading indicator
+          const loadingIndicator = document.getElementById('loading-indicator');
+          if (loadingIndicator) {
+              loadingIndicator.remove();
+          }
+          
+          // Render the map
+          renderFloorMap(mapData, 'floor-map');
+          
+          // Handle nodes that might be hidden in map view
+          document.getElementById('nodes-container').style.display = 'none';
+      })
+      .catch(error => {
+          console.error('Error initializing game:', error);
+          // Show error message to user
+          const errorHtml = `
+              <div class="alert alert-danger">
+                  <h4>Error Loading Game</h4>
+                  <p>There was a problem initializing the game. Please try refreshing the page.</p>
+                  <button onclick="window.location.reload()" class="btn btn-primary">Refresh</button>
+              </div>
+          `;
+          
+          document.getElementById('game-board-container').innerHTML = errorHtml;
+      });
+}
   // Setup main button event listeners
   function setupMainEventListeners() {
     // Next floor button
@@ -1856,28 +1908,33 @@ const CONTAINER_TYPES = {
   
   // Floor transition animation
   function showFloorTransition(floorNumber) {
-    // Create transition element
+    // Create transition screen
     const transitionDiv = document.createElement('div');
-    transitionDiv.className = 'floor-transition-screen';
+    transitionDiv.className = 'floor-transition-screen'; // Changed from 'floor-transition'
     
-    // Get floor data for description
-    const floorData = getFloorData(floorNumber);
-    const floorTitle = floorData.name || `Floor ${floorNumber}`;
-    const floorDescription = floorData.description || "Advancing to next floor...";
+    // Get floor data to show description
+    fetch(`/api/floor/${floorNumber}`)
+        .then(response => response.json())
+        .then(floorData => {
+            transitionDiv.innerHTML = `
+                <h2 class="floor-title">Floor ${floorNumber}: ${floorData.name || ''}</h2>
+                <p class="floor-description">${floorData.description || ''}</p>
+            `;
+        })
+        .catch(error => {
+            // Fallback if API fails
+            transitionDiv.innerHTML = `
+                <h2 class="floor-title">Floor ${floorNumber}</h2>
+            `;
+        });
     
-    transitionDiv.innerHTML = `
-      <div class="floor-title">${floorTitle}</div>
-      <div class="floor-description">${floorDescription}</div>
-    `;
-    
-    // Add to DOM
     document.body.appendChild(transitionDiv);
     
-    // Remove after animation completes
+    // Automatically remove after animation finishes
     setTimeout(() => {
-      transitionDiv.remove();
-    }, 3000);
-  }
+        transitionDiv.remove();
+    }, 3000); // Match animation duration in CSS
+}
   
   // Update character info display
   function updateCharacterInfo(character) {

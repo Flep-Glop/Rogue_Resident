@@ -88,6 +88,17 @@ def get_game_state():
         default_game_state = create_default_game_state()
         game_states[game_id] = default_game_state
         return jsonify(default_game_state)
+    
+@app.route('/character-select')
+def character_select():
+    """Render the character selection page"""
+    return render_template('character_select.html')
+
+@app.route('/api/characters')
+def get_characters():
+    """Return all available characters"""
+    characters_data = load_json_data('characters.json')
+    return jsonify(characters_data)
 
 def create_default_game_state():
     """Create a default game state for new games"""
@@ -160,6 +171,17 @@ def new_game():
     game_states[game_id] = game_state
     
     return jsonify(game_state)
+
+@app.route('/api/floor/<int:floor_id>')
+def get_floor(floor_id):
+    """Get floor data by ID"""
+    floors_data = load_json_data('floors.json')
+    floor = next((f for f in floors_data.get('floors', []) if f.get('id') == floor_id), None)
+    
+    if not floor:
+        return jsonify({"name": "Unknown Floor", "description": ""}), 404
+        
+    return jsonify(floor)
 
 @app.route('/api/generate-floor-map', methods=['POST'])
 def generate_floor_map():

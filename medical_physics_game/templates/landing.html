@@ -82,10 +82,10 @@
                 // sound.play();
             }
             
-            // Button event listeners
+            // Change this in landing.html
             document.getElementById('start-game').addEventListener('click', function() {
                 playButtonSound();
-                showCharacterSelectionFromLanding();
+                window.location.href = '/character-select'; // Changed from '/game' to '/character-select'
             });
             
             document.getElementById('continue-game').addEventListener('click', function() {
