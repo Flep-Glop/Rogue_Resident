@@ -35,7 +35,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Create better pixel decorations
+            // Create pixel decorations
             const decorationContainer = document.getElementById('pixel-decorations');
             if (!decorationContainer) return;
             
@@ -93,6 +93,44 @@
                     decorationContainer.appendChild(decoration);
                 }
             }
+            
+            // Button sound effect
+            function playButtonSound() {
+                // When we add audio files, we'll uncomment this
+                // const sound = new Audio('/static/audio/click.mp3');
+                // sound.volume = 0.3;
+                // sound.play();
+            }
+            
+            // IMPORTANT: Make sure these event listeners are preserved!
+            document.getElementById('start-game').addEventListener('click', function() {
+                playButtonSound();
+                window.location.href = '/character-select'; 
+            });
+            
+            document.getElementById('continue-game').addEventListener('click', function() {
+                playButtonSound();
+                // For now just redirect to game
+                window.location.href = '/game';
+            });
+            
+            document.getElementById('options').addEventListener('click', function() {
+                playButtonSound();
+                alert('Options will be available in the next update!');
+            });
+            
+            document.getElementById('help').addEventListener('click', function() {
+                playButtonSound();
+                alert('Welcome to Medical Physics Residency! Navigate through each floor, answer questions correctly to gain insight, and avoid losing all your lives. Good luck!');
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    playButtonSound();
+                    window.location.href = '/game';
+                }
+            });
         });
     </script>
 </body>

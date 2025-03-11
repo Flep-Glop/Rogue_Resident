@@ -69,6 +69,8 @@ body {
   margin-bottom: 40px;
   max-width: 300px;
   width: 100%;
+  position: relative;
+  z-index: 10;
 }
 
 .retro-btn {
@@ -80,10 +82,12 @@ body {
   color: #fff;
   cursor: pointer;
   position: relative;
+  z-index: 10;
   transition: all 0.2s ease;
   box-shadow: 
     0 var(--pixel-size) 0 0 var(--primary-dark),
     0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
+  
 }
 
 .retro-btn:hover {
@@ -219,10 +223,16 @@ body {
 }
 
 .pixel-decoration {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    z-index: -1;
-    opacity: 0.7;
-    box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  z-index: 1; /* Increase this from -1 */
+  opacity: 0.7;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+  pointer-events: none; /* Ensure they don't block button clicks */
+}
+
+.pixel-container {
+  position: relative; /* Make sure this is set */
+  overflow: hidden; /* Contain the animations */
 }
