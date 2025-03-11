@@ -496,3 +496,27 @@ def test_db():
             "success": False,
             "error": str(e)
         })
+    
+
+@app.route('/character-select')
+def character_select():
+    """Render the character selection page"""
+    return render_template('character_select.html')
+
+@app.route('/api/save-game', methods=['POST'])
+def save_game():
+    game_id = get_game_id()
+    
+    # Load current game state
+    game_state = load_game_state(game_id)
+    if not game_state:
+        return jsonify({"error": "No active game to save"}), 404
+    
+    # Create a save ID that's different from the session game ID
+    save_id = str(uuid.uuid4())
+    
+    # Copy the game state and save with the new ID
+    if save_game_state(save_id, game_state):
+        return jsonify({"save_id": save_id})
+    else:
+        return jsonify({"error": "Failed to save game"}), 500

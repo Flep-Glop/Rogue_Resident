@@ -170,5 +170,16 @@ window.ApiClient = {
           reject(error);
         });
       });
+    },
+    saveGame: function() {
+      return fetch('/api/save-game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to save game');
+        return response.json();
+      });
     }
   };

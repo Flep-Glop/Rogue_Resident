@@ -125,7 +125,10 @@ window.Character = {
       
       // Update inventory display
       this.renderInventory();
-      
+
+      // Save inventory to server
+      this.saveInventory();
+
       return true;
     },
     
@@ -291,7 +294,13 @@ window.Character = {
       
       return success;
     },
-    
+
+    saveInventory: function() {
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+        ApiClient.saveGame().catch(err => console.error("Failed to save inventory:", err));
+      }
+    },
+
     // Update character info display
     updateCharacterInfo: function(character) {
       if (!character) return;
@@ -316,7 +325,6 @@ window.Character = {
       }
     },
 
-    // Update special ability display
     updateSpecialAbility: function(specialAbility) {
       if (!specialAbility) return;
       

@@ -152,7 +152,6 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.QUESTION);
     },
     
-    // Add this to the Nodes object to improve applyQuestionHint
     applyQuestionHint: function() {
       const questionContainer = document.getElementById(CONTAINER_TYPES.QUESTION);
       if (!questionContainer || questionContainer.style.display !== 'block') return false;
@@ -296,12 +295,6 @@ window.Nodes = {
       if (continueBtn) {
         continueBtn.style.display = 'block';
       }
-    },
-    
-    // Show treasure node
-    showTreasure: function(nodeData) {
-      // Implementation for showing treasure node
-      // ...
     },
     
     // Show rest node
