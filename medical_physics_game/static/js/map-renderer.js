@@ -360,14 +360,12 @@ window.MapRenderer = {
             ctx.save();
             
             // Create pixelated path effect
-            // This creates a slightly jagged line for retro effect
             ctx.lineCap = 'round';
             
             // Calculate path length and angle
             const dx = endX - startX;
             const dy = endY - startY;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx);
             
             // Number of segments for pixelated effect
             const segments = Math.max(10, Math.floor(distance / 15));
@@ -379,57 +377,85 @@ window.MapRenderer = {
             const isCurrentPath = node.current === true;
             const isTargetCurrent = targetNode.current === true;
             
-            // Style the path based on status
+            // Determine path styling
+            let pathStyle = {
+                strokeStyle: 'rgba(100, 100, 110, 0.15)',
+                lineWidth: 1,
+                globalAlpha: 0.5,
+                shadowBlur: 0,
+                offset: maxOffset * 1.2
+            };
+            
+            // LOGIC FOR PATH COLORS:
+            
+            // 1. Current path being traveled (yellow/gold)
             if (isCurrentPath || isTargetCurrent) {
-                // Current node to target or target to current - highlight this path
-                ctx.strokeStyle = '#f0c866'; // Bright yellow/gold for current path
-                ctx.lineWidth = 4;
-                ctx.shadowColor = '#f0c866';
-                ctx.shadowBlur = 8;
-                ctx.globalAlpha = 0.9;
-                
-                // Add animation effect
-                const time = Date.now() / 1000;
-                const pulseRate = 2; // Pulse every 2 seconds
-                const pulseAmount = 0.3; // Amount to pulse (30% opacity change)
-                
-                // Create pulsing effect
-                ctx.globalAlpha = 0.7 + Math.sin(time * pulseRate * Math.PI) * pulseAmount;
+                pathStyle = {
+                    strokeStyle: '#f0c866', // Gold
+                    lineWidth: 4,
+                    globalAlpha: 0.9,
+                    shadowColor: '#f0c866',
+                    shadowBlur: 8,
+                    offset: maxOffset * 0.3,
+                    animate: true,
+                    pulseRate: 2,
+                    pulseAmount: 0.3
+                };
             }
+            // 2. Completed paths (solid green)
             else if (node.visited && targetNode.visited) {
-                // Path has been used - soft green with pixelated effect
-                ctx.strokeStyle = '#56b886'; // Secondary color - green
-                ctx.lineWidth = 3;
-                ctx.globalAlpha = 0.8;
-            } else if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
-                // Available path - glowing green with animation
-                ctx.strokeStyle = '#56b886'; // Secondary color - green
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#56b886';
-                ctx.shadowBlur = 5;
-                ctx.globalAlpha = 0.9;
-                
-                // Animate available paths
+                pathStyle = {
+                    strokeStyle: '#56b886', // Green
+                    lineWidth: 3,
+                    globalAlpha: 0.8,
+                    shadowBlur: 0,
+                    offset: maxOffset * 0.7
+                };
+            }
+            // 3. Available paths (animated green)
+            else if ((node.visited || nodeId === 'start') && this.canVisitNode(targetId)) {
+                pathStyle = {
+                    strokeStyle: '#56b886', // Green 
+                    lineWidth: 3,
+                    globalAlpha: 0.9,
+                    shadowColor: '#56b886',
+                    shadowBlur: 5,
+                    offset: maxOffset * 0.5,
+                    animate: true,
+                    pulseRate: 1.5,
+                    pulseAmount: 0.2
+                };
+            }
+            // 4. Unavailable paths (faded gray)
+            else {
+                pathStyle = {
+                    strokeStyle: 'rgba(100, 100, 110, 0.15)',
+                    lineWidth: 1,
+                    globalAlpha: 0.5,
+                    shadowBlur: 0,
+                    offset: maxOffset * 1.2
+                };
+            }
+            
+            // Apply the styles
+            ctx.strokeStyle = pathStyle.strokeStyle;
+            ctx.lineWidth = pathStyle.lineWidth;
+            ctx.globalAlpha = pathStyle.globalAlpha;
+            
+            if (pathStyle.shadowBlur > 0) {
+                ctx.shadowColor = pathStyle.shadowColor;
+                ctx.shadowBlur = pathStyle.shadowBlur;
+            }
+            
+            // Add animation if needed
+            if (pathStyle.animate) {
                 const time = Date.now() / 1000;
-                const pulseRate = 1.5; // Pulse every 1.5 seconds
-                const pulseAmount = 0.2; // Amount to pulse (20% opacity change)
-                
-                // Create pulsing effect
-                ctx.globalAlpha = 0.7 + Math.sin(time * pulseRate * Math.PI) * pulseAmount;
-            } else if (!node.visited && !targetNode.visited) {
-                // Unavailable path - very subtle gray
-                ctx.strokeStyle = 'rgba(100, 100, 110, 0.15)';
-                ctx.lineWidth = 1;
-            } else {
-                // Default - used but can't continue
-                ctx.strokeStyle = 'rgba(100, 100, 110, 0.4)';
-                ctx.lineWidth = 2;
+                const pulseEffect = Math.sin(time * pathStyle.pulseRate * Math.PI) * pathStyle.pulseAmount;
+                ctx.globalAlpha = Math.max(0.5, Math.min(1.0, pathStyle.globalAlpha + pulseEffect));
             }
             
             // Draw pixelated path
             ctx.beginPath();
-            
-            // Start at source node
             ctx.moveTo(startX, startY);
             
             // Create slightly jagged line for pixelated effect
@@ -438,22 +464,10 @@ window.MapRenderer = {
                 const x = startX + dx * t;
                 const y = startY + dy * t;
                 
-                // Add small random offset for pixelated look
-                // More pronounced for visited paths, subtle for others
-                let offset = maxOffset;
-                if ((node.visited || nodeId === 'start') && !targetNode.visited && this.canVisitNode(targetId)) {
-                    // Animated paths get less offset to appear more "active"
-                    offset = maxOffset * 0.5;
-                } else if (!node.visited && !targetNode.visited) {
-                    // Unavailable paths get more offset to look "broken"
-                    offset = maxOffset * 1.2;
-                }
-                
                 // Generate deterministic offset based on position and nodeId
-                // This ensures the jagged effect stays consistent
                 const seed = (x * 100 + y) + nodeId.charCodeAt(0);
-                const offsetX = (Math.sin(seed) * offset);
-                const offsetY = (Math.cos(seed * 2) * offset);
+                const offsetX = (Math.sin(seed) * pathStyle.offset);
+                const offsetY = (Math.cos(seed * 2) * pathStyle.offset);
                 
                 ctx.lineTo(x + offsetX, y + offsetY);
             }
@@ -790,37 +804,49 @@ window.MapRenderer = {
         return false;
     }
     
-    // Check if the previous row has any visited nodes
-    const prevRow = nodeRow - 1;
+    // Check if this node can be reached from a previously visited node
+    // First, find all visited nodes
+    let visitedNodes = [];
     
-    // For the first row of nodes, check if start is "visited" (it's always considered visited)
-    if (prevRow === 0) {
-        // First row can always be visited if no other node in that row is visited
-        console.log('First row node can be visited if no other node in row is visited');
-        return visitedNodesInRow.length === 0;
+    // Add start node (always considered "visited")
+    if (mapData.start) {
+        visitedNodes.push(mapData.start);
     }
     
-    // For other rows, check if there's a visited node in the previous row that has a path to this node
-    const visitedNodesInPrevRow = Object.values(mapData.nodes)
-        .filter(n => n.position.row === prevRow && n.visited);
+    // Add all visited regular nodes
+    Object.values(mapData.nodes).forEach(n => {
+        if (n.visited) {
+            visitedNodes.push(n);
+        }
+    });
     
-    // Also include the start node if it's in the previous row
-    if (mapData.start && mapData.start.position && mapData.start.position.row === prevRow) {
-        visitedNodesInPrevRow.push(mapData.start);
+    // Add boss if visited
+    if (mapData.boss && mapData.boss.visited) {
+        visitedNodes.push(mapData.boss);
     }
     
-    console.log(`Found ${visitedNodesInPrevRow.length} visited nodes in previous row`);
-    
-    // Check if any of the visited nodes in the previous row have a path to this node
-    for (const prevNode of visitedNodesInPrevRow) {
-        if (prevNode.paths && prevNode.paths.includes(nodeId)) {
-            console.log(`Node ${nodeId} can be visited from ${prevNode.id}`);
-            return true;
+    // Check if any visited node has a path to this node
+    let canReach = false;
+    for (const visitedNode of visitedNodes) {
+        if (visitedNode.paths && visitedNode.paths.includes(nodeId)) {
+            // Add a check to prevent backward movement - ensure target row is greater than current row
+            if (node.position.row <= visitedNode.position.row) {
+                console.log(`Cannot move backward or laterally from row ${visitedNode.position.row} to ${node.position.row}`);
+                continue;
+            }
+            
+            console.log(`Node ${nodeId} can be reached from visited node ${visitedNode.id}`);
+            canReach = true;
+            break;
         }
     }
     
-    console.log(`No path to node ${nodeId} from any visited node in previous row`);
-    return false;
+    if (!canReach) {
+        console.log(`No path to node ${nodeId} from any visited node`);
+        return false;
+    }
+    
+    return true;
   },
   
   // Add these helper functions to MapRenderer in map-renderer.js
@@ -927,6 +953,62 @@ darkenColor: function(hex, percent) {
   
   // Convert back to hex
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+},
+
+// Add this function to MapRenderer in map-renderer.js
+debugNodeStatus: function() {
+  if (!gameState.map) {
+      console.log("No map data available for debugging");
+      return;
+  }
+  
+  console.group("Map Status Debug");
+  console.log("Current Node:", gameState.currentNode);
+  
+  // Group nodes by row
+  const nodesByRow = {};
+  
+  // Add regular nodes
+  Object.values(gameState.map.nodes).forEach(node => {
+      const row = node.position.row;
+      if (!nodesByRow[row]) nodesByRow[row] = [];
+      nodesByRow[row].push(node);
+  });
+  
+  // Add special nodes
+  if (gameState.map.start) {
+      const row = gameState.map.start.position.row;
+      if (!nodesByRow[row]) nodesByRow[row] = [];
+      nodesByRow[row].push(gameState.map.start);
+  }
+  
+  if (gameState.map.boss) {
+      const row = gameState.map.boss.position.row;
+      if (!nodesByRow[row]) nodesByRow[row] = [];
+      nodesByRow[row].push(gameState.map.boss);
+  }
+  
+  // Log each row
+  const rows = Object.keys(nodesByRow).sort((a, b) => Number(a) - Number(b));
+  rows.forEach(row => {
+      console.group(`Row ${row} Nodes`);
+      nodesByRow[row].forEach(node => {
+          const statusFlags = [
+              node.visited ? "VISITED" : "",
+              node.current ? "CURRENT" : "",
+              this.canVisitNode(node.id) ? "AVAILABLE" : ""
+          ].filter(Boolean).join(", ");
+          
+          console.log(`Node ${node.id} (${node.type}): ${statusFlags}`);
+          if (node.paths && node.paths.length > 0) {
+              console.log(`  → Paths to: ${node.paths.join(", ")}`);
+          }
+      });
+      console.groupEnd();
+  });
+  
+  console.groupEnd();
 }
+
 };
 

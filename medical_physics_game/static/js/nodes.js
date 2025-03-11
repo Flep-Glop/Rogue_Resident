@@ -75,9 +75,24 @@ window.Nodes = {
       // First, clear any existing event listeners to prevent duplicates
       this.clearEventListeners();
       
+      // Make sure the node can be visited
+      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.canVisitNode === 'function') {
+          if (!MapRenderer.canVisitNode(nodeId)) {
+              console.warn(`Node ${nodeId} cannot be visited now`);
+              UiUtils.showToast("This node cannot be visited at this time", "warning");
+              return;
+          }
+      }
+      
       // Set this as the current node using our helper
       this.setCurrentNode(nodeId);
       
+      // Update the map to reflect current node status
+      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+      }
+      
+      // Request node data from server
       fetch(`/api/node/${nodeId}`)
           .then(response => {
               if (!response.ok) {
@@ -86,20 +101,26 @@ window.Nodes = {
               return response.json();
           })
           .then(nodeData => {
-              console.log("Node data:", nodeData);
+              console.log("Node data received:", nodeData);
               
               // Handle different node types
               if (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss') {
+                  console.log("Showing question node");
                   this.showQuestion(nodeData);
               } else if (nodeData.type === 'treasure') {
+                  console.log("Showing treasure node");
                   this.showTreasure(nodeData);
               } else if (nodeData.type === 'rest') {
+                  console.log("Showing rest node");
                   this.showRestNode(nodeData);
               } else if (nodeData.type === 'event') {
+                  console.log("Showing event node");
                   this.showEvent(nodeData);
               } else if (nodeData.type === 'shop') {
+                  console.log("Showing shop node");
                   this.showShop(nodeData);
               } else if (nodeData.type === 'gamble') {
+                  console.log("Showing gamble node");
                   this.showGamble(nodeData);
               } else {
                   // Unknown node type
@@ -111,6 +132,9 @@ window.Nodes = {
           .catch(error => {
               console.error('Error visiting node:', error);
               UiUtils.showToast(`Failed to load node: ${error.message}`, 'danger');
+              
+              // Clear current node state on error
+              this.setCurrentNode(null);
           });
     },
     
