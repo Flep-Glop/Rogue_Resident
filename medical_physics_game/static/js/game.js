@@ -1,31 +1,6 @@
-// game.js - Main entry point, initialization
+// game.js - Main game initialization and startup
 
-// Define global container types
-const CONTAINER_TYPES = {
-  QUESTION: 'question-container',
-  TREASURE: 'treasure-container',
-  REST: 'rest-container',
-  EVENT: 'event-container',
-  SHOP: 'shop-container',
-  GAMBLE: 'gamble-container',
-  GAME_OVER: 'game-over-container',
-  GAME_BOARD: 'game-board-container',
-  NODES: 'nodes-container',
-  MAP: 'floor-map'
-};
-
-// Global game state
-window.gameState = {
-  character: null,
-  currentFloor: 1,
-  currentNode: null,
-  map: null,
-  inventory: [],
-  statusEffects: [],
-  currentQuestion: null
-};
-
-// Initialize game when document is ready
+// Initialize game when document is loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Game initializing...");
   
@@ -34,21 +9,32 @@ document.addEventListener('DOMContentLoaded', function() {
     UiUtils.showFloatingText("Welcome to Medical Physics Residency!", "success");
   }, 1000);
   
-  // Hide all interaction containers
-  Nodes.hideAllInteractionContainers();
-  
-  // Set up event listeners for main buttons
-  setupMainEventListeners();
+  // Create UI object to hold UI management functions
+  window.UI = {
+    showMapView: function() {
+      // Show game board
+      const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
+      if (gameBoardContainer) {
+        gameBoardContainer.style.display = 'block';
+      }
+      
+      // Hide all interaction containers
+      if (typeof NodeInteraction !== 'undefined' && 
+          typeof NodeInteraction.hideAllContainers === 'function') {
+        NodeInteraction.hideAllContainers();
+      }
+    }
+  };
   
   // Check for character selection parameter
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('select') === 'true') {
-    // Remove the parameter from URL
+    // Remove the parameter from URL to avoid showing selection again on refresh
     window.history.replaceState({}, document.title, '/game');
     
     // Show character selection
     setTimeout(() => {
-      if (typeof Character.showCharacterSelection === 'function') {
+      if (typeof Character !== 'undefined' && typeof Character.showCharacterSelection === 'function') {
         Character.showCharacterSelection();
       } else {
         console.error("Character selection function not implemented");
@@ -61,16 +47,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Setup main event listeners for game UI elements
-function setupMainEventListeners() {
+// Setup event listeners for game UI elements
+function setupEventListeners() {
   console.log("Setting up event listeners...");
   
   // Next floor button
   const nextFloorBtn = document.getElementById('next-floor-btn');
   if (nextFloorBtn) {
     nextFloorBtn.addEventListener('click', function() {
-      if (typeof Nodes !== 'undefined' && typeof Nodes.goToNextFloor === 'function') {
-        Nodes.goToNextFloor();
+      // Use GameState to handle floor advancement
+      if (typeof GameState !== 'undefined' && 
+          typeof GameState.goToNextFloor === 'function') {
+        GameState.goToNextFloor()
+          .catch(error => {
+            console.error('Error going to next floor:', error);
+            UiUtils.showToast('Failed to proceed to next floor', 'danger');
+          });
       }
     });
   }
@@ -89,87 +81,99 @@ function setupMainEventListeners() {
         });
     });
   }
+  
+  // Debug button
+  const debugBtn = document.createElement('button');
+  debugBtn.className = 'btn btn-secondary mt-2 mb-2';
+  debugBtn.textContent = 'Debug Map';
+  debugBtn.style.fontSize = '0.7rem';
+  debugBtn.style.padding = '2px 8px';
+  debugBtn.style.opacity = '0.7';
+  
+  debugBtn.addEventListener('click', function() {
+    console.clear();
+    console.log("=== DEBUG MAP STATE ===");
+    
+    if (typeof GameState !== 'undefined' && typeof GameState.debugState === 'function') {
+      GameState.debugState();
+    }
+    
+    if (typeof EventSystem !== 'undefined' && typeof EventSystem.debugEvents === 'function') {
+      EventSystem.debugEvents();
+    }
+    
+    console.log("Game State:", JSON.stringify(GameState.getState(), null, 2));
+  });
+  
+  // Add debug button to map container
+  const mapContainer = document.querySelector('.map-container');
+  if (mapContainer) {
+    mapContainer.insertBefore(debugBtn, mapContainer.firstChild);
+  }
 }
 
-// Centralized game initialization
+// Initialize the game
 function initializeGame() {
   // Show loading indicator
   showLoadingIndicator();
   
-  // Load game state from the backend
-  ApiClient.loadGameState()
-    .then(data => {
-      console.log("Game state loaded:", data);
-      
-      // Update global game state
-      gameState.character = data.character;
-      gameState.currentFloor = data.current_floor || 1;
-      gameState.inventory = data.inventory || [];
-      
-      // Update character info in UI
-      if (typeof Character !== 'undefined' && typeof Character.updateCharacterInfo === 'function') {
-        Character.updateCharacterInfo(data.character);
-      }
-      
-      // Update floor number display
-      const floorElement = document.getElementById('current-floor');
-      if (floorElement) {
-        floorElement.textContent = data.current_floor || 1;
-      }
-      
-      // Initialize inventory system
-      if (typeof Character !== 'undefined' && typeof Character.initializeInventory === 'function') {
-        Character.initializeInventory();
-      }
-      
-      // Request map generation from server
-      return fetch('/api/generate-floor-map', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          floor_number: data.current_floor || 1
-        }),
+  // Initialize event system first
+  if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
+    EventSystem.initialize();
+  }
+  
+  // Initialize progression manager
+  if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
+    ProgressionManager.initialize(PROGRESSION_TYPE.ROW_BASED);
+  }
+  
+  // Initialize node interaction system
+  if (typeof NodeInteraction !== 'undefined' && typeof NodeInteraction.initialize === 'function') {
+    NodeInteraction.initialize();
+  }
+  
+  // Initialize game state
+  if (typeof GameState !== 'undefined' && typeof GameState.initialize === 'function') {
+    GameState.initialize()
+      .then(() => {
+        // Initialize map renderer
+        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
+          MapRenderer.initialize('floor-map');
+        }
+        
+        // Initialize inventory system
+        if (typeof Character !== 'undefined' && typeof Character.initializeInventory === 'function') {
+          Character.initializeInventory();
+        }
+        
+        // Remove loading indicator
+        removeLoadingIndicator();
+        
+        // Set up event listeners for UI
+        setupEventListeners();
+        
+        // Validate map structure
+        if (typeof ProgressionManager !== 'undefined' && 
+            typeof ProgressionManager.validateMapStructure === 'function') {
+          ProgressionManager.validateMapStructure();
+        }
+        
+        // Emit game initialized event
+        if (typeof EventSystem !== 'undefined') {
+          EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
+        }
+      })
+      .catch(error => {
+        console.error('Error initializing game:', error);
+        showErrorMessage(error.message);
       });
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(mapData => {
-      console.log("Map data received:", mapData);
-      
-      // Store map in game state
-      gameState.map = mapData;
-      
-      // Remove loading indicator
-      removeLoadingIndicator();
-      
-      // Render the map
-      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
-        MapRenderer.renderFloorMap(mapData, 'floor-map');
-      } else {
-        console.error("Map renderer not available");
-      }
-      
-      // Check if next floor button should be shown
-      checkNextFloorButton(mapData);
-    })
-    .catch(error => {
-      console.error('Error initializing game:', error);
-      
-      // Remove loading indicator
-      removeLoadingIndicator();
-      
-      // Show error message
-      showErrorMessage(error.message);
-    });
+  } else {
+    console.error("Game state manager not available");
+    showErrorMessage("Game state manager not available");
+  }
 }
 
-// Show loading indicator
+// Helper functions for UI
 function showLoadingIndicator() {
   const boardContainer = document.getElementById('game-board-container');
   if (boardContainer) {
@@ -182,7 +186,6 @@ function showLoadingIndicator() {
   }
 }
 
-// Remove loading indicator
 function removeLoadingIndicator() {
   const loadingIndicator = document.getElementById('loading-indicator');
   if (loadingIndicator) {
@@ -190,8 +193,11 @@ function removeLoadingIndicator() {
   }
 }
 
-// Show error message
 function showErrorMessage(message) {
+  // Remove loading indicator
+  removeLoadingIndicator();
+  
+  // Show error message
   const errorHtml = `
     <div class="alert alert-danger">
       <h4>Error Loading Game</h4>
@@ -205,62 +211,3 @@ function showErrorMessage(message) {
     gameBoardContainer.innerHTML = errorHtml;
   }
 }
-
-// Check if next floor button should be shown
-function checkNextFloorButton(mapData) {
-  if (!mapData) return;
-  
-  // Check if all nodes are visited
-  let allVisited = true;
-  
-  // Check regular nodes
-  if (mapData.nodes) {
-    Object.values(mapData.nodes).forEach(node => {
-      if (!node.visited) {
-        allVisited = false;
-      }
-    });
-  }
-  
-  // Check boss node
-  if (mapData.boss && !mapData.boss.visited) {
-    allVisited = false;
-  }
-  
-  // Show next floor button if all nodes are visited
-  if (allVisited) {
-    const nextFloorBtn = document.getElementById('next-floor-btn');
-    if (nextFloorBtn) {
-      nextFloorBtn.style.display = 'block';
-    }
-  }
-}
-
-// Add debug button for troubleshooting (can be removed in production)
-document.addEventListener('DOMContentLoaded', function() {
-  const mapContainer = document.querySelector('.map-container');
-  if (mapContainer) {
-    const debugButton = document.createElement('button');
-    debugButton.className = 'btn btn-secondary mt-2 mb-2';
-    debugButton.textContent = 'Debug Map';
-    debugButton.style.fontSize = '0.7rem';
-    debugButton.style.padding = '2px 8px';
-    debugButton.style.opacity = '0.7';
-    
-    debugButton.addEventListener('click', function() {
-      console.clear();
-      console.log("=== DEBUG MAP STATE ===");
-      
-      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.debugNodeStatus === 'function') {
-        MapRenderer.debugNodeStatus();
-      } else {
-        console.log("MapRenderer debug functions not available");
-      }
-      
-      console.log("Game State:", JSON.parse(JSON.stringify(gameState)));
-    });
-    
-    // Insert at the beginning of the map container
-    mapContainer.insertBefore(debugButton, mapContainer.firstChild);
-  }
-});
