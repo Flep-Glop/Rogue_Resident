@@ -1,0 +1,249 @@
+/* retro-game.css - Applies retro styling to main game elements */
+
+/* Override container for game content */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+  }
+  
+  /* Character stats panel with retro styling */
+  .character-stats {
+    background-color: #000;
+    color: var(--light);
+    border: 4px solid var(--primary);
+    border-radius: 0;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  
+  .character-stats h3 {
+    color: var(--primary);
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+  
+  /* Lives display */
+  #lives-container {
+    margin: 10px 0;
+  }
+  
+  .life-icon {
+    font-size: 16px;
+    margin-right: 5px;
+  }
+  
+  /* Inventory styling */
+  .inventory-container {
+    background-color: #000;
+    color: var(--light);
+    border: 4px solid var(--secondary);
+    border-radius: 0;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+  }
+  
+  .inventory-title {
+    color: var(--secondary);
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+  
+  .inventory-item {
+    background-color: #333;
+    border: 2px solid #555;
+    border-radius: 0;
+  }
+  
+  .inventory-item.common { border-color: #aaa; }
+  .inventory-item.uncommon { border-color: var(--primary); }
+  .inventory-item.rare { border-color: var(--warning); }
+  .inventory-item.epic { border-color: var(--secondary); }
+  
+  /* Game controls */
+  .card {
+    background-color: #000;
+    color: var(--light);
+    border: 4px solid var(--dark);
+    border-radius: 0;
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    background-color: var(--dark);
+    color: var(--light);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+  
+  /* Button styling */
+  .btn {
+    font-family: 'Press Start 2P', cursive;
+    border-radius: 0;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    transition: all 0.1s ease;
+  }
+  
+  .btn-primary {
+    background-color: var(--primary);
+    border: none;
+    box-shadow: 
+      0 var(--pixel-size) 0 0 #2980b9,
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+  }
+  
+  .btn-success {
+    background-color: var(--secondary);
+    border: none;
+    box-shadow: 
+      0 var(--pixel-size) 0 0 #27ae60,
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+  }
+  
+  .btn-danger {
+    background-color: var(--danger);
+    border: none;
+    box-shadow: 
+      0 var(--pixel-size) 0 0 #c0392b,
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+  }
+  
+  .btn-warning {
+    background-color: var(--warning);
+    border: none;
+    box-shadow: 
+      0 var(--pixel-size) 0 0 #f39c12,
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+  }
+  
+  .btn-secondary {
+    background-color: var(--dark);
+    border: none;
+    box-shadow: 
+      0 var(--pixel-size) 0 0 #1a252f,
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.9);
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .btn:active {
+    transform: translateY(var(--pixel-size));
+    box-shadow: none;
+  }
+  
+  /* Map container */
+  .map-container {
+    background-color: #0a0a0a;
+    border: 4px solid var(--primary);
+    border-radius: 0;
+    padding: 15px;
+    image-rendering: pixelated;
+  }
+  
+  /* Question container */
+  .interaction-container {
+    background-color: #000;
+    color: var(--light);
+    border: 4px solid var(--primary);
+    border-radius: 0;
+    padding: 15px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  
+  /* Question styling */
+  #question-container h3 {
+    color: var(--light);
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+  
+  .option-btn {
+    text-align: left;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    border: 2px solid var(--primary);
+    background-color: #000;
+    color: var(--light);
+  }
+  
+  .option-btn:hover:not(:disabled) {
+    background-color: var(--primary);
+    color: #fff;
+    transform: translateX(5px);
+  }
+  
+  /* Alert styling */
+  .alert {
+    background-color: #000;
+    border: 2px solid;
+    border-radius: 0;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+  }
+  
+  .alert-success {
+    border-color: var(--secondary);
+    color: var(--secondary);
+  }
+  
+  .alert-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  
+  .alert-info {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  
+  .alert-warning {
+    border-color: var(--warning);
+    color: var(--warning);
+  }
+  
+  /* Game over screen */
+  .game-over-screen {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: var(--light);
+    border: 4px solid var(--danger);
+    padding: 30px;
+    text-align: center;
+    font-family: 'Press Start 2P', cursive;
+    line-height: 1.5;
+  }
+  
+  .game-over-screen h2 {
+    color: var(--danger);
+    font-size: 2rem;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .character-stats, .inventory-container, .interaction-container {
+      font-size: 0.7rem;
+    }
+    
+    .btn {
+      font-size: 0.65rem;
+      padding: 8px;
+    }
+  }

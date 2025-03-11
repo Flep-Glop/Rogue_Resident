@@ -188,7 +188,7 @@ window.MapRenderer = {
       return titles[nodeType] ? titles[nodeType][Math.floor(Math.random() * titles[nodeType].length)] : 'Unknown';
     },
     
-    // Render the map to canvas
+    // Fix for the handleMapClick event binding
     renderFloorMap: function(mapData, canvasId) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) {
@@ -222,9 +222,67 @@ window.MapRenderer = {
         this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
       }
       
+      // Properly bind the event handler to maintain 'this' context
+      const self = this;
+      const mapClickHandler = function(event) {
+        const canvas = event.target;
+        const rect = canvas.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        
+        const mapData = gameState.map;
+        if (!mapData) return;
+        
+        // Check if click is on any node
+        const allNodes = { ...mapData.nodes };
+        if (mapData.start) allNodes['start'] = mapData.start;
+        if (mapData.boss) allNodes['boss'] = mapData.boss;
+        
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        for (const nodeId in allNodes) {
+          const node = allNodes[nodeId];
+          
+          // Skip start node (can't be clicked)
+          if (nodeId === 'start') continue;
+          
+          // Skip already visited nodes
+          if (node.visited) continue;
+          
+          // Calculate node position (adjust for bottom-up layout)
+          let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
+          const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
+          
+          // Check if click is within node radius
+          const dx = clickX - x;
+          const dy = clickY - y;
+          const distance = Math.sqrt(dx*dx + dy*dy);
+          
+          if (distance <= 20 && self.canVisitNode(nodeId)) { // 20 is the node radius
+            console.log("Clicked on node:", nodeId);
+            
+            // Add visual feedback for click
+            const ctx = canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fill();
+            
+            // After a short delay, visit the node
+            setTimeout(() => {
+              Nodes.visitNode(nodeId);
+            }, 100);
+            
+            break;
+          }
+        }
+      };
+      
       // Remove any previous click handlers and add a new one
-      canvas.removeEventListener('click', this.handleMapClick);
-      canvas.addEventListener('click', this.handleMapClick);
+      canvas.removeEventListener('click', this._currentClickHandler);
+      canvas.addEventListener('click', mapClickHandler);
+      this._currentClickHandler = mapClickHandler; // Store reference for future removal
     },
     
     // Draw connections between nodes

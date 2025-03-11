@@ -25,17 +25,9 @@ window.gameState = {
   currentQuestion: null
 };
 
-// Initialize when DOM is loaded
+// Update the document ready function to properly initialize the game
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Game initializing...");
-  
-  // Add character selection CSS
-  if (!document.getElementById('character-selection-style')) {
-    const styleElement = document.createElement('style');
-    styleElement.id = 'character-selection-style';
-    styleElement.textContent = CHARACTER_SELECTION_CSS;
-    document.head.appendChild(styleElement);
-  }
   
   // Hide all interaction containers
   Nodes.hideAllInteractionContainers();
@@ -44,19 +36,24 @@ document.addEventListener('DOMContentLoaded', function() {
   setupMainEventListeners();
   
   // Check for character selection parameter
-  checkShowCharacterSelection();
-  
-  // Load game state
-  ApiClient.loadGameState()
-    .then(data => {
-      initializeGameDisplay(data);
-      Character.initializeInventory(); // Initialize inventory system
-    })
-    .catch(error => {
-      console.error("Failed to load game state:", error);
-      // Show character selection if no game state
-      Character.showCharacterSelection();
-    });
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('select') === 'true') {
+    // Remove the parameter from URL to avoid showing selection again on refresh
+    window.history.replaceState({}, document.title, '/game');
+    // Show character selection
+    setTimeout(() => {
+      if (typeof Character.showCharacterSelection === 'function') {
+        Character.showCharacterSelection();
+      } else {
+        console.error("Character selection function not implemented");
+        // Fallback to normal game initialization
+        initializeGame();
+      }
+    }, 500); // Short delay to ensure everything is loaded
+  } else {
+    // Initialize the game directly
+    initializeGame();
+  }
 });
 
 // Centralized game initialization
@@ -70,9 +67,16 @@ function initializeGame() {
   // Load game state from the backend
   ApiClient.loadGameState()
     .then(data => {
-      gameState = data;
+      // Update global game state
+      gameState.character = data.character;
+      gameState.currentFloor = data.current_floor || 1;
+      
+      // Update character info in UI
       Character.updateCharacterInfo(data.character);
       document.getElementById('current-floor').textContent = data.current_floor || 1;
+      
+      // Initialize inventory system
+      Character.initializeInventory();
       
       // Fetch floor configuration and continue initialization
       return fetch(`/api/floor/${data.current_floor || 1}`);
@@ -80,7 +84,22 @@ function initializeGame() {
     .then(response => response.json())
     .then(floorData => {
       // Generate floor map based on floor data
-      const mapData = MapRenderer.generateFloorMap(gameState.current_floor, floorData);
+      console.log("Floor data:", floorData);
+      
+      // Request map generation from the server
+      return fetch('/api/generate-floor-map', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          floor_number: gameState.currentFloor || 1
+        }),
+      });
+    })
+    .then(response => response.json())
+    .then(mapData => {
+      console.log("Map data received from server:", mapData);
       gameState.map = mapData;
       
       // Remove loading indicator
@@ -90,10 +109,17 @@ function initializeGame() {
       }
       
       // Render the map
-      MapRenderer.renderFloorMap(mapData, 'floor-map');
+      if (typeof MapRenderer.renderFloorMap === 'function') {
+        MapRenderer.renderFloorMap(mapData, 'floor-map');
+      } else {
+        console.error("Map renderer function not available");
+      }
       
-      // Handle nodes that might be hidden in map view
-      document.getElementById('nodes-container').style.display = 'none';
+      // Hide the nodes container (if it exists)
+      const nodesContainer = document.getElementById('nodes-container');
+      if (nodesContainer) {
+        nodesContainer.style.display = 'none';
+      }
     })
     .catch(error => {
       console.error('Error initializing game:', error);
@@ -109,76 +135,3 @@ function initializeGame() {
       document.getElementById('game-board-container').innerHTML = errorHtml;
     });
 }
-
-// Setup main button event listeners
-function setupMainEventListeners() {
-  // Next floor button
-  const nextFloorBtn = document.getElementById('next-floor-btn');
-  if (nextFloorBtn) {
-    nextFloorBtn.addEventListener('click', Nodes.goToNextFloor);
-  }
-  
-  // Restart button in game over screen
-  const restartBtn = document.getElementById('restart-btn');
-  if (restartBtn) {
-    restartBtn.addEventListener('click', function() {
-      window.location.href = '/';
-    });
-  }
-}
-
-// Initialize the game display
-function initializeGameDisplay(gameData) {
-  // Update character info
-  Character.updateCharacterInfo(gameData.character);
-  
-  // Update floor display
-  const floorDisplay = document.getElementById('current-floor');
-  if (floorDisplay) {
-    floorDisplay.textContent = gameData.current_floor;
-  }
-  
-  // Initialize the floor map
-  MapRenderer.initializeFloorMap();
-  
-  // Hide loading screens if any
-  const loadingElements = document.querySelectorAll('.loading-screen');
-  loadingElements.forEach(element => {
-    element.style.display = 'none';
-  });
-}
-
-// Check if the character selection should be shown on load
-function checkShowCharacterSelection() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('select') === 'true') {
-    // Remove the parameter from URL to avoid showing selection again on refresh
-    window.history.replaceState({}, document.title, '/game');
-    // Show character selection
-    setTimeout(() => {
-      Character.showCharacterSelection();
-    }, 500); // Short delay to ensure everything is loaded
-  }
-}
-
-// CSS for character selection screen - should be moved to CSS file in production
-const CHARACTER_SELECTION_CSS = `
-  .character-selection-screen {
-    background-color: rgba(0, 0, 0, 0.85);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  
-  /* Rest of the CSS for character selection... */
-`;
