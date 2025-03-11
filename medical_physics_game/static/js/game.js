@@ -182,37 +182,28 @@ const CONTAINER_TYPES = {
   
   // Initialize when DOM is loaded
   document.addEventListener('DOMContentLoaded', function() {
-    console.log("Game initializing...");
+    console.log("DOM loaded, initializing game");
     
-    // Add character selection CSS
-    if (!document.getElementById('character-selection-style')) {
-      const styleElement = document.createElement('style');
-      styleElement.id = 'character-selection-style';
-      styleElement.textContent = CHARACTER_SELECTION_CSS;
-      document.head.appendChild(styleElement);
+    // Clear any previous session storage to force intro
+    sessionStorage.removeItem('introShown');
+    
+    // First load game state
+    loadGameState();
+    
+    // Then check if character is selected and show intro
+    setTimeout(ensureCharacterSelected, 1000);
+    
+    // Set up next floor button
+    document.getElementById('next-floor-btn').addEventListener('click', function() {
+        goToNextFloor();
+    });
+    
+    // Add test button for debugging
+    const gameTitle = document.querySelector('.game-title');
+    if (gameTitle) {
+        gameTitle.innerHTML += '<button onclick="showRoentgenIntroScene()" class="btn btn-info btn-sm" style="position:absolute;right:10px;top:10px">Test Intro</button>';
     }
-    
-    // Hide all interaction containers
-    hideAllInteractionContainers();
-    
-    // Set up event listeners for main buttons
-    setupMainEventListeners();
-    
-    // Check for character selection parameter
-    checkShowCharacterSelection();
-    
-    // Load game state
-    loadGameState()
-      .then(data => {
-        initializeGameDisplay(data);
-        initializeInventory(); // Initialize inventory system
-      })
-      .catch(error => {
-        console.error("Failed to load game state:", error);
-        // Show character selection if no game state
-        showCharacterSelection();
-      });
-  });
+});
   
   // Setup main button event listeners
   function setupMainEventListeners() {
