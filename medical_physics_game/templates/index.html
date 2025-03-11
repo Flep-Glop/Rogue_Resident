@@ -145,6 +145,36 @@
     <script src="/static/js/nodes.js"></script>
     <script src="/static/js/game.js"></script>
     <script src="/static/js/achievements.js"></script>
+    <script>
+    // Add a debug button to help with troubleshooting
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapContainer = document.querySelector('.map-container');
+        if (mapContainer) {
+            const debugButton = document.createElement('button');
+            debugButton.className = 'btn btn-secondary mt-2 mb-2';
+            debugButton.textContent = 'Debug Map';
+            debugButton.style.fontSize = '0.7rem';
+            debugButton.style.padding = '2px 8px';
+            debugButton.style.opacity = '0.7';
+            
+            debugButton.addEventListener('click', function() {
+                console.clear();
+                console.log("=== DEBUG MAP STATE ===");
+                
+                if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.debugNodeStatus === 'function') {
+                    MapRenderer.debugNodeStatus();
+                } else {
+                    console.log("MapRenderer debug functions not available");
+                }
+                
+                console.log("Game State:", JSON.parse(JSON.stringify(gameState)));
+            });
+            
+            // Insert at the beginning of the map container
+            mapContainer.insertBefore(debugButton, mapContainer.firstChild);
+        }
+    });
+    </script>
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 </body>
 </html>

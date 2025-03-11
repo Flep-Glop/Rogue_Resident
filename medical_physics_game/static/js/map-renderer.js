@@ -214,111 +214,76 @@ window.MapRenderer = {
     return titles[nodeType] ? titles[nodeType][Math.floor(Math.random() * titles[nodeType].length)] : 'Unknown';
   },
   
-  // Improved renderFloorMap function with better visuals
+  // Replace the renderFloorMap function in map-renderer.js
   renderFloorMap: function(mapData, canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error("Canvas element not found:", canvasId);
-        return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Fix for high-DPI displays
-    const dpr = window.devicePixelRatio || 1;
-    
-    // Set canvas dimensions based on map size
-    const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
-    const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
-    
-    // Set the canvas size with DPI adjustment
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    
-    // Scale context for high-DPI displays
-    ctx.scale(dpr, dpr);
-    
-    // Clear the canvas
-    ctx.clearRect(0, 0, width, height);
-    
-    // Draw connections first (so they appear behind nodes)
-    this.drawConnections(ctx, mapData, width, height, true); // true for bottom-up
-    
-    // Draw all regular nodes
-    for (const nodeId in mapData.nodes) {
-        this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
-    }
-    
-    // Draw start and boss nodes
-    this.drawNode(ctx, mapData.start, width, height, true); // true for bottom-up
-    if (mapData.boss) {
-        this.drawNode(ctx, mapData.boss, width, height, true); // true for bottom-up
-    }
-    
-    // Properly bind the event handler to maintain 'this' context
-    const self = this;
-    const handleMapClick = function(event) {
-        const rect = canvas.getBoundingClientRect();
-        
-        // Calculate click coordinates, adjusting for any CSS scaling and DPI
-        const clickX = (event.clientX - rect.left) * (canvas.width / rect.width / dpr);
-        const clickY = (event.clientY - rect.top) * (canvas.height / rect.height / dpr);
-        
-        if (!gameState.map) return;
-        
-        // Check if click is on any node
-        const allNodes = { ...gameState.map.nodes };
-        if (gameState.map.start) allNodes['start'] = gameState.map.start;
-        if (gameState.map.boss) allNodes['boss'] = gameState.map.boss;
-        
-        for (const nodeId in allNodes) {
-            const node = allNodes[nodeId];
-            
-            // Skip start node (can't be clicked)
-            if (nodeId === 'start') continue;
-            
-            // Skip already visited nodes
-            if (node.visited) continue;
-            
-            // Calculate node position (adjust for bottom-up layout)
-            let y = height - height * ((node.position.row + 0.5) / (self.config.rowCount + 2));
-            const x = width * ((node.position.col + 1) / (self.config.nodesPerRow + 1));
-            
-            // Check if click is within node radius
-            const dx = clickX - x;
-            const dy = clickY - y;
-            const distance = Math.sqrt(dx*dx + dy*dy);
-            
-            if (distance <= 25 && self.canVisitNode(nodeId)) { // Slightly increased radius for better usability
-                console.log("Clicked on node:", nodeId);
-                
-                // Add visual feedback for click
-                ctx.beginPath();
-                ctx.arc(x, y, 30, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.fill();
-                
-                // After a short delay, visit the node
-                setTimeout(() => {
-                    Nodes.visitNode(nodeId);
-                }, 100);
-                
-                break;
-            }
-        }
-    };
-    // Remove previous click handler to avoid duplicates
-    if (this._currentClickHandler) {
-      canvas.removeEventListener('click', this._currentClickHandler);
-    }
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+          console.error("Canvas element not found:", canvasId);
+          return;
+      }
+      
+      const ctx = canvas.getContext('2d');
+      
+      // Fix for high-DPI displays
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Set canvas dimensions based on map size
+      const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
+      const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
+      
+      // Set the canvas size with DPI adjustment
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      
+      // Scale context for high-DPI displays
+      ctx.scale(dpr, dpr);
+      
+      // Clear the canvas
+      ctx.clearRect(0, 0, width, height);
+      
+      // First, precalculate which nodes are available to visit
+      if (mapData.nodes) {
+          Object.values(mapData.nodes).forEach(node => {
+              if (!node.visited && node.id !== gameState.currentNode) {
+                  node.available = this.canVisitNode(node.id);
+              }
+          });
+      }
+      
+      if (mapData.boss && !mapData.boss.visited && mapData.boss.id !== gameState.currentNode) {
+          mapData.boss.available = this.canVisitNode(mapData.boss.id);
+      }
+      
+      // Draw connections first (so they appear behind nodes)
+      this.drawConnections(ctx, mapData, width, height, true); // true for bottom-up
+      
+      // Draw all regular nodes
+      for (const nodeId in mapData.nodes) {
+          this.drawNode(ctx, mapData.nodes[nodeId], width, height, true); // true for bottom-up
+      }
+      
+      // Draw start and boss nodes
+      if (mapData.start) {
+          this.drawNode(ctx, mapData.start, width, height, true);
+      }
+      
+      if (mapData.boss) {
+          this.drawNode(ctx, mapData.boss, width, height, true);
+      }
+      
+      // Re-bind the event handler to maintain 'this' context
+      // Remove previous click handler to avoid duplicates
+      if (this._currentClickHandler) {
+          canvas.removeEventListener('click', this._currentClickHandler);
+      }
 
-    // Create bound handler that maintains the correct 'this' context
-    this._currentClickHandler = handleMapClick.bind(this);
+      // Create a bound handler and store it
+      this._currentClickHandler = this.handleMapClick.bind(this);
 
-    // Add the new event listener
-    canvas.addEventListener('click', this._currentClickHandler);
+      // Add the new event listener
+      canvas.addEventListener('click', this._currentClickHandler);
   },
   
   // Replace the drawConnections function in map-renderer.js
@@ -326,6 +291,14 @@ window.MapRenderer = {
     const allNodes = { ...mapData.nodes };
     if (mapData.start) allNodes['start'] = mapData.start;
     if (mapData.boss) allNodes['boss'] = mapData.boss;
+    
+    // Temporarily force all nodes to recalculate availability
+    for (const nodeId in allNodes) {
+        if (nodeId !== 'start') {
+            const canVisit = this.canVisitNode(nodeId);
+            allNodes[nodeId].available = canVisit;
+        }
+    }
     
     // Draw all connections
     for (const nodeId in allNodes) {
@@ -373,25 +346,27 @@ window.MapRenderer = {
             // Path offset variables for pixel effect
             const maxOffset = 1.5; // Maximum pixel offset
             
-            // Check if this is a current active path (from current node)
-            const isCurrentPath = node.current === true;
-            const isTargetCurrent = targetNode.current === true;
+            // Determine path color based on game state:
             
-            // Determine path styling
+            // FIXED COLOR LOGIC: (This is the key fix!)
+            
+            // 1. YELLOW/GOLD PATH: Currently being traveled path (when node.current or targetNode.current)
+            // 2. GREEN PATH: Completed paths (visited nodes) AND available paths (can visit)
+            // 3. GRAY PATH: Unavailable paths
+            
             let pathStyle = {
-                strokeStyle: 'rgba(100, 100, 110, 0.15)',
+                strokeStyle: 'rgba(100, 100, 110, 0.15)', // Default: gray
                 lineWidth: 1,
                 globalAlpha: 0.5,
                 shadowBlur: 0,
                 offset: maxOffset * 1.2
             };
             
-            // LOGIC FOR PATH COLORS:
-            
-            // 1. Current path being traveled (yellow/gold)
-            if (isCurrentPath || isTargetCurrent) {
+            // Check if this is the current path being traversed
+            if (node.current === true || targetNode.current === true) {
+                // Gold for current path
                 pathStyle = {
-                    strokeStyle: '#f0c866', // Gold
+                    strokeStyle: '#f0c866', // Gold color
                     lineWidth: 4,
                     globalAlpha: 0.9,
                     shadowColor: '#f0c866',
@@ -402,20 +377,11 @@ window.MapRenderer = {
                     pulseAmount: 0.3
                 };
             }
-            // 2. Completed paths (solid green)
-            else if (node.visited && targetNode.visited) {
+            // Check if the target node is available to visit
+            else if (node.visited && targetNode.available === true) {
+                // Green for available paths
                 pathStyle = {
-                    strokeStyle: '#56b886', // Green
-                    lineWidth: 3,
-                    globalAlpha: 0.8,
-                    shadowBlur: 0,
-                    offset: maxOffset * 0.7
-                };
-            }
-            // 3. Available paths (animated green)
-            else if ((node.visited || nodeId === 'start') && this.canVisitNode(targetId)) {
-                pathStyle = {
-                    strokeStyle: '#56b886', // Green 
+                    strokeStyle: '#56b886', // Green color
                     lineWidth: 3,
                     globalAlpha: 0.9,
                     shadowColor: '#56b886',
@@ -426,14 +392,15 @@ window.MapRenderer = {
                     pulseAmount: 0.2
                 };
             }
-            // 4. Unavailable paths (faded gray)
-            else {
+            // Check if path connects two visited nodes
+            else if (node.visited && targetNode.visited) {
+                // Muted green for completed paths
                 pathStyle = {
-                    strokeStyle: 'rgba(100, 100, 110, 0.15)',
-                    lineWidth: 1,
-                    globalAlpha: 0.5,
+                    strokeStyle: '#56b886', // Green color
+                    lineWidth: 3,
+                    globalAlpha: 0.8,
                     shadowBlur: 0,
-                    offset: maxOffset * 1.2
+                    offset: maxOffset * 0.7
                 };
             }
             
@@ -484,7 +451,7 @@ window.MapRenderer = {
     }
   },
   
-  // Update the drawNode function for better looking nodes
+  // Replace the drawNode function in map-renderer.js
   drawNode: function(ctx, node, width, height, bottomUp = false) {
     // Calculate node position (adjust for bottom-up layout)
     let y;
@@ -495,22 +462,44 @@ window.MapRenderer = {
     }
     
     const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
-    const radius = 20; // Slightly larger radius
+    const radius = 20; // Node radius
+    
+    // First, check if this node is available to visit (for non-start, non-visited nodes)
+    if (node.id !== 'start' && !node.visited && !node.current) {
+        node.available = this.canVisitNode(node.id);
+    }
     
     // Create rounded pixel effect for nodes
     ctx.save();
     
-    // Add subtle outer glow first
-    if (this.canVisitNode(node.id) || gameState.currentNode === node.id) {
+    // Add outer glow effect for current and available nodes
+    if (node.current) {
+        // Current node - bright gold glow
         const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
-        const glowSize = gameState.currentNode === node.id ? 15 : 8;
-        const glowAlpha = gameState.currentNode === node.id ? 0.4 : 0.2;
+        const glowSize = 15;
+        const glowAlpha = 0.5;
         
         const gradient = ctx.createRadialGradient(
             x, y, radius - 5,
             x, y, radius + glowSize
         );
-        gradient.addColorStop(0, `rgba(${this.hexToRgb(nodeColor)}, ${glowAlpha})`);
+        gradient.addColorStop(0, `rgba(240, 200, 102, ${glowAlpha})`); // Gold glow
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius + glowSize, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (node.available) {
+        // Available node - green glow
+        const glowSize = 10;
+        const glowAlpha = 0.3;
+        
+        const gradient = ctx.createRadialGradient(
+            x, y, radius - 5,
+            x, y, radius + glowSize
+        );
+        gradient.addColorStop(0, `rgba(86, 184, 134, ${glowAlpha})`); // Green glow
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
         
         ctx.fillStyle = gradient;
@@ -520,7 +509,6 @@ window.MapRenderer = {
     }
     
     // Create pixelated node shape
-    // We'll simulate a pixelated circle by drawing a slightly jagged circle
     const pixelSize = 2; // Size of our "pixels"
     const angleSteps = 18; // Number of segments to create pixelated look
     
@@ -554,25 +542,26 @@ window.MapRenderer = {
         x, y, radius
     );
     
-    // Style based on status
-    if (gameState.currentNode === node.id) {
-        // Current node styling
-        const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
-        const lighterColor = this.lightenColor(nodeColor, 30);
-        const darkerColor = this.darkenColor(nodeColor, 20);
+    // Style based on status - UPDATED LOGIC
+    if (node.current) {
+        // Current node - bright glowing blue/white
+        const lighterColor = '#ffffff'; 
+        const baseColor = this.nodeColors[node.type] || '#5b8dd9';
         
         innerGradient.addColorStop(0, lighterColor);
-        innerGradient.addColorStop(1, darkerColor);
+        innerGradient.addColorStop(1, baseColor);
         
         ctx.fillStyle = innerGradient;
-        ctx.shadowColor = nodeColor;
+        ctx.shadowColor = baseColor;
         ctx.shadowBlur = 10;
-    } else if (node.visited) {
+    } 
+    else if (node.visited) {
         // Visited node - soft gray gradient
         innerGradient.addColorStop(0, 'rgba(120, 120, 130, 0.9)');
         innerGradient.addColorStop(1, 'rgba(90, 90, 100, 0.7)');
         ctx.fillStyle = innerGradient;
-    } else if (this.canVisitNode(node.id)) {
+    } 
+    else if (node.available) {
         // Available node - vibrant color with gradient
         const nodeColor = this.nodeColors[node.type] || '#5b8dd9';
         const lighterColor = this.lightenColor(nodeColor, 20);
@@ -581,8 +570,9 @@ window.MapRenderer = {
         innerGradient.addColorStop(1, nodeColor);
         
         ctx.fillStyle = innerGradient;
-    } else {
-        // Unavailable node - dimmed version with gradient
+    } 
+    else {
+        // Unavailable node - dimmed version
         const baseColor = this.nodeColors[node.type] || '#5b8dd9';
         const dimColor = this.dimColor(baseColor, 0.3);
         const dimmerColor = this.dimColor(baseColor, 0.2);
@@ -596,20 +586,23 @@ window.MapRenderer = {
     ctx.fill();
     
     // Draw border with pixelated effect
-    ctx.lineWidth = gameState.currentNode === node.id ? 3 : 2;
+    ctx.lineWidth = node.current ? 3 : 2;
     
-    if (gameState.currentNode === node.id) {
-        // Current node - bold white border with slight glow
+    if (node.current) {
+        // Current node - bold white border with glow
         ctx.strokeStyle = '#ffffff';
         ctx.shadowColor = '#ffffff';
         ctx.shadowBlur = 3;
-    } else if (node.visited) {
+    } 
+    else if (node.visited) {
         // Visited node - subtle gray border
         ctx.strokeStyle = 'rgba(150, 150, 160, 0.6)';
-    } else if (this.canVisitNode(node.id)) {
+    } 
+    else if (node.available) {
         // Available node - white border
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    } else {
+    } 
+    else {
         // Unavailable node - very subtle border
         ctx.strokeStyle = 'rgba(100, 100, 110, 0.3)';
         ctx.lineWidth = 1;
@@ -618,8 +611,8 @@ window.MapRenderer = {
     ctx.stroke();
     
     // Draw node icon/symbol with pixelated style
-    if (gameState.currentNode === node.id || node.visited || this.canVisitNode(node.id)) {
-        ctx.fillStyle = '#fff'; // Bright white for better visibility
+    if (node.current || node.visited || node.available) {
+        ctx.fillStyle = '#fff'; // Bright white for visibility
     } else {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // Faded white
     }
@@ -632,7 +625,7 @@ window.MapRenderer = {
     const symbol = this.nodeSymbols[node.type] || '?';
     
     // Draw text with slight pixelated offset for retro feel
-    if (gameState.currentNode === node.id) {
+    if (node.current) {
         // Current node - add slight bounce effect
         const bounceOffset = Math.sin(Date.now() / 300) * 2;
         ctx.fillText(symbol, x, y + bounceOffset);
@@ -645,7 +638,7 @@ window.MapRenderer = {
         // Position stars below the node
         const starsY = y + radius + 10;
         
-        if (this.canVisitNode(node.id) || node.visited) {
+        if (node.available || node.visited) {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         } else {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
@@ -756,97 +749,53 @@ window.MapRenderer = {
   
   // Replace the canVisitNode function in map-renderer.js
   canVisitNode: function(nodeId) {
-    console.log(`Checking if node ${nodeId} can be visited`);
+    // Can't visit the start node
+    if (nodeId === 'start') return false;
     
-    if (nodeId === 'start') {
-        console.log('Cannot revisit start node');
-        return false; // Can't revisit start
-    }
-    
-    // Get the map data
+    // Get map data
     const mapData = gameState.map;
-    if (!mapData) {
-        console.log('No map data available');
-        return false;
-    }
-    
-    // If this is the current node, it can't be visited
-    if (gameState.currentNode === nodeId) {
-        console.log('This is the current node, cannot visit');
-        return false;
-    }
+    if (!mapData) return false;
     
     // Get the node
     const node = mapData.nodes[nodeId] || (nodeId === 'boss' ? mapData.boss : null);
-    if (!node) {
-        console.log('Node not found');
-        return false;
-    }
+    if (!node) return false;
     
-    // If the node is already visited, it can't be visited again
-    if (node.visited) {
-        console.log('Node already visited');
-        return false;
-    }
+    // Already visited or current node cannot be visited
+    if (node.visited || gameState.currentNode === nodeId) return false;
     
-    // Get the row number for this node
+    // Get node's row
     const nodeRow = node.position.row;
     
-    // DEBUG: Log node position information
-    console.log(`Node ${nodeId} is in row ${nodeRow}`);
+    // First, check if any node in this row has been visited - if so, no other nodes in this row can be visited
+    const nodesInSameRow = Object.values(mapData.nodes).filter(n => 
+        n.position && n.position.row === nodeRow && n.id !== nodeId && n.visited);
     
-    // Check if any node in this row has been visited
-    const visitedNodesInRow = Object.values(mapData.nodes)
-        .filter(n => n.position.row === nodeRow && n.visited);
+    if (nodesInSameRow.length > 0) return false;
     
-    if (visitedNodesInRow.length > 0) {
-        console.log(`Row ${nodeRow} already has visited nodes, cannot visit another in this row`);
-        return false;
-    }
+    // Check if there's a path to this node from a previously visited node
+    const previousRowNodes = [];
     
-    // Check if this node can be reached from a previously visited node
-    // First, find all visited nodes
-    let visitedNodes = [];
-    
-    // Add start node (always considered "visited")
-    if (mapData.start) {
-        visitedNodes.push(mapData.start);
-    }
-    
-    // Add all visited regular nodes
-    Object.values(mapData.nodes).forEach(n => {
-        if (n.visited) {
-            visitedNodes.push(n);
-        }
-    });
-    
-    // Add boss if visited
-    if (mapData.boss && mapData.boss.visited) {
-        visitedNodes.push(mapData.boss);
-    }
-    
-    // Check if any visited node has a path to this node
-    let canReach = false;
-    for (const visitedNode of visitedNodes) {
-        if (visitedNode.paths && visitedNode.paths.includes(nodeId)) {
-            // Add a check to prevent backward movement - ensure target row is greater than current row
-            if (node.position.row <= visitedNode.position.row) {
-                console.log(`Cannot move backward or laterally from row ${visitedNode.position.row} to ${node.position.row}`);
-                continue;
+    // For row 1, only start node is previous
+    if (nodeRow === 1) {
+        if (mapData.start) previousRowNodes.push(mapData.start);
+    } else {
+        // For other rows, get all nodes from the previous row
+        Object.values(mapData.nodes).forEach(n => {
+            if (n.position && n.position.row === nodeRow - 1) {
+                previousRowNodes.push(n);
             }
-            
-            console.log(`Node ${nodeId} can be reached from visited node ${visitedNode.id}`);
-            canReach = true;
-            break;
+        });
+    }
+    
+    // Check if any of the previous row nodes is visited and has a path to this node
+    for (const prevNode of previousRowNodes) {
+        if ((prevNode.visited || prevNode.id === 'start') && 
+            prevNode.paths && prevNode.paths.includes(nodeId)) {
+            return true;
         }
     }
     
-    if (!canReach) {
-        console.log(`No path to node ${nodeId} from any visited node`);
-        return false;
-    }
-    
-    return true;
+    return false;
   },
   
   // Add these helper functions to MapRenderer in map-renderer.js
