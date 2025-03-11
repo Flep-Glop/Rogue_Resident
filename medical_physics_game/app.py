@@ -16,6 +16,58 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 # Initialize data when the app starts
 init_data_files()
 
+# Near the top of app.py, after imports
+from datetime import timedelta
+
+# In the Flask app initialization
+app.permanent_session_lifetime = timedelta(days=7)  # Sessions last 7 days
+
+# In get_game_id function (in game_state.py)
+def get_game_id():
+    if 'game_id' not in session:
+        session.permanent = True  # Make the session persistent
+        session['game_id'] = str(uuid.uuid4())
+    return session['game_id']
+
+# Option: Use SQLite instead of in-memory storage
+import sqlite3
+
+# Initialize database
+def init_db():
+    conn = sqlite3.connect('game_data.db')
+    c = conn.cursor()
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS game_states
+    (game_id TEXT PRIMARY KEY, game_state TEXT, last_updated TEXT)
+    ''')
+    conn.commit()
+    conn.close()
+
+# Call this at app startup
+init_db()
+
+# Then modify the storage functions in game_state.py to use SQLite
+def save_game_state(game_id, state):
+    conn = sqlite3.connect('game_data.db')
+    c = conn.cursor()
+    c.execute(
+        "INSERT OR REPLACE INTO game_states VALUES (?, ?, ?)",
+        (game_id, json.dumps(state), datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+def load_game_state(game_id):
+    conn = sqlite3.connect('game_data.db')
+    c = conn.cursor()
+    c.execute("SELECT game_state FROM game_states WHERE game_id = ?", (game_id,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result:
+        return json.loads(result[0])
+    return None
+
 # Routes
 @app.route('/')
 def landing():
@@ -52,6 +104,17 @@ def get_characters():
     """Return all available characters"""
     characters_data = load_json_data('characters.json')
     return jsonify(characters_data)
+
+@app.route('/api/item/<item_id>')
+def get_item(item_id):
+    """Get item data by ID"""
+    items_data = load_json_data('items.json')
+    item = next((item for item in items_data.get('items', []) if item.get('id') == item_id), None)
+    
+    if not item:
+        return jsonify({"error": f"Item with id '{item_id}' not found"}), 404
+        
+    return jsonify(item)
 
 @app.route('/api/new-game', methods=['POST'])
 def new_game():
@@ -197,6 +260,18 @@ def answer_question():
     """Process an answer to a question"""
     data = request.json
     game_id = get_game_id()
+
+    # Validate required fields
+    if not all(k in data for k in ('node_id', 'answer_index', 'question')):
+        return jsonify({"error": "Missing required fields"}), 400
+        
+    # Validate answer_index is an integer and within range
+    try:
+        answer_index = int(data.get('answer_index'))
+        if answer_index < 0 or answer_index >= len(data.get('question', {}).get('options', [])):
+            return jsonify({"error": "Answer index out of range"}), 400
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid answer index"}), 400
     
     # Get the game state
     if game_id not in game_states:
@@ -328,3 +403,27 @@ def reset_game():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# Add to app.py
+@app.route('/api/save-game', methods=['POST'])
+def save_game():
+    game_id = get_game_id()
+    if game_id not in game_states:
+        return jsonify({"error": "No active game to save"}), 404
+    
+    # Create a save ID that's different from the session game ID
+    save_id = str(uuid.uuid4())
+    saved_games[save_id] = copy.deepcopy(game_states[game_id])
+    
+    return jsonify({"save_id": save_id})
+
+@app.route('/api/load-game/<save_id>', methods=['GET'])
+def load_game():
+    if save_id not in saved_games:
+        return jsonify({"error": "Saved game not found"}), 404
+    
+    # Load the saved game into the current session
+    game_id = get_game_id()
+    game_states[game_id] = copy.deepcopy(saved_games[save_id])
+    
+    return jsonify(game_states[game_id])

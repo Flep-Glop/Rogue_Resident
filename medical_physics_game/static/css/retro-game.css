@@ -1,5 +1,11 @@
 /* retro-game.css - Applies retro styling to main game elements */
+/* In your CSS file, ensure this import is at the top */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+/* Then ensure this variable is set */
+:root {
+  --pixel-size: 4px;
+  /* Other variables... */
 /* Override container for game content */
 .container {
     width: 100%;
@@ -246,4 +252,4 @@
       font-size: 0.65rem;
       padding: 8px;
     }
-  }
+  }}

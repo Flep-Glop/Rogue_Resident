@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Physics Residency: The Roguelike Challenge</title>
     <!-- Add the retro CSS link first -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/retro.css" rel="stylesheet">
     <!-- Keep existing stylesheets, but they'll be overridden by retro where needed -->
     <link href="/static/css/main.css" rel="stylesheet">
@@ -12,6 +13,7 @@
     <link href="/static/css/nodes.css" rel="stylesheet">
     <link href="/static/css/inventory.css" rel="stylesheet">
     <link href="/static/css/animations.css" rel="stylesheet">
+    <link href="/static/css/retro-game.css" rel="stylesheet">
 </head>
 <body>
     <div class="pixel-container">
@@ -20,28 +22,106 @@
         <div class="crt-effect"></div>
         
         <div class="container">
-            <!-- Update game title with retro styling -->
+            <!-- Game title with retro styling -->
             <div class="game-title">
                 <h1 class="game-title">Medical Physics Residency</h1>
                 <p class="subtitle">The Roguelike Challenge</p>
             </div>
             
-            <!-- Rest of your game content, but with retro classes -->
+            <!-- Main game board container -->
             <div id="game-board-container">
                 <div class="row">
-                    <!-- Rest of the content remains the same, but update classes -->
+                    <!-- Character panel -->
+                    <div class="col-md-3">
+                        <div class="character-stats">
+                            <h3>Character Info</h3>
+                            <div id="character-info">
+                                <p>Loading character...</p>
+                            </div>
+                            <div>
+                                <h4>Lives</h4>
+                                <div id="lives-container"></div>
+                            </div>
+                            <div>
+                                <p><strong>Floor:</strong> <span id="current-floor">1</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="inventory-container">
+                            <div class="inventory-title">
+                                <h3>Inventory</h3>
+                                <span id="inventory-count">0/5</span>
+                            </div>
+                            <div id="inventory-items" class="inventory-items">
+                                <p class="text-muted">No items yet</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game map and interaction area -->
+                    <div class="col-md-9">
+                        <div class="map-container">
+                            <h3>Floor Map</h3>
+                            <canvas id="floor-map" width="800" height="600"></canvas>
+                            <button id="next-floor-btn" style="display: none;" class="btn btn-success mt-3">Go to Next Floor</button>
+                        </div>
+                        
+                        <!-- Interaction containers for different node types -->
+                        <div id="question-container" class="interaction-container">
+                            <h3 id="question-title">Question</h3>
+                            <p id="question-text"></p>
+                            <div id="options-container">
+                                <!-- Options will be added dynamically -->
+                            </div>
+                            <div id="question-result" style="display: none;"></div>
+                            <button id="continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
+                        </div>
+                        
+                        <div id="treasure-container" class="interaction-container">
+                            <h3>Treasure Found!</h3>
+                            <div id="treasure-content"></div>
+                            <button id="treasure-continue-btn" class="btn btn-primary mt-3">Continue</button>
+                        </div>
+                        
+                        <div id="rest-container" class="interaction-container">
+                            <h3>Rest Area</h3>
+                            <p>Take a moment to rest and recuperate.</p>
+                            <div id="rest-options">
+                                <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
+                                <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
+                            </div>
+                            <button id="rest-continue-btn" class="btn btn-secondary mt-3">Continue</button>
+                        </div>
+                        
+                        <div id="event-container" class="interaction-container">
+                            <h3 id="event-title">Event</h3>
+                            <p id="event-description"></p>
+                            <div id="event-options"></div>
+                            <div id="event-result" style="display: none;"></div>
+                            <button id="event-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <!-- Game over screen -->
+            <div id="game-over-container" class="game-over-screen">
+                <h2>Game Over</h2>
+                <p>Your residency has come to an end.</p>
+                <p>Final Insight Score: <span id="final-score">0</span></p>
+                <button id="restart-btn" class="retro-btn start">Start New Residency</button>
+                <a href="/" class="retro-btn options">Back to Menu</a>
             </div>
         </div>
     </div>
     
-    <!-- Load your existing scripts -->
-    <script src="/static/js/game.js"></script>
+    <!-- Load your scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/api-client.js"></script>
     <script src="/static/js/ui-utils.js"></script>
     <script src="/static/js/character.js"></script>
     <script src="/static/js/map-renderer.js"></script>
     <script src="/static/js/nodes.js"></script>
+    <script src="/static/js/game.js"></script>
 </body>
 </html>

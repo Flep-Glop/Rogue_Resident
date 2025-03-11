@@ -129,7 +129,28 @@ window.ApiClient = {
         });
       });
     },
-    
+    // Add to api-client.js
+    saveGame: function() {
+      return fetch('/api/save-game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to save game');
+        return response.json();
+      });
+    },
+
+    loadGame: function(savedGameId) {
+      return fetch(`/api/load-game/${savedGameId}`, {
+        method: 'GET'
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to load game');
+        return response.json();
+      });
+    },
     // Reset the game
     resetGame: function() {
       return new Promise((resolve, reject) => {

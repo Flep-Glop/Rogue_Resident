@@ -364,7 +364,232 @@ window.Nodes = {
           UiUtils.showError(`Failed to advance to next floor: ${error.message}`);
         });
     },
-    
+    // Implement complete showTreasure function 
+    showTreasure: function(nodeData) {
+      console.log("Showing treasure node:", nodeData);
+      
+      // Get item data from node
+      const item = nodeData.item;
+      if (!item) {
+        console.error("No item data in treasure node");
+        this.markNodeVisited(nodeData.id);
+        return;
+      }
+      
+      // Create treasure content
+      const treasureContent = document.getElementById('treasure-content');
+      if (!treasureContent) return;
+      
+      // Display item information
+      treasureContent.innerHTML = `
+        <div class="card mb-3">
+          <div class="card-header bg-warning">
+            <h4>${item.name}</h4>
+            <span class="badge bg-secondary">${item.rarity || 'common'}</span>
+          </div>
+          <div class="card-body">
+            <p>${item.description}</p>
+            <div class="alert alert-info">
+              <strong>Effect:</strong> ${Character.getEffectDescription(item.effect)}
+            </div>
+            <button id="collect-item-btn" class="btn btn-success">Add to Inventory</button>
+          </div>
+        </div>
+      `;
+      
+      // Set up event listener for the collect button
+      const collectBtn = document.getElementById('collect-item-btn');
+      if (collectBtn) {
+        collectBtn.addEventListener('click', () => {
+          // Add item to inventory
+          const added = Character.addItemToInventory(item);
+          
+          if (added) {
+            // Disable the button to prevent multiple collections
+            collectBtn.disabled = true;
+            collectBtn.textContent = "Added to Inventory";
+          }
+        });
+      }
+      
+      // Show the treasure container
+      this.showContainer(CONTAINER_TYPES.TREASURE);
+    },
+
+    // Implement showRestNode function
+    showRestNode: function(nodeData) {
+      console.log("Showing rest node:", nodeData);
+      
+      // Reset buttons state
+      const healBtn = document.getElementById('rest-heal-btn');
+      const studyBtn = document.getElementById('rest-study-btn');
+      
+      if (healBtn) healBtn.disabled = false;
+      if (studyBtn) studyBtn.disabled = false;
+      
+      // Show the rest container
+      this.showContainer(CONTAINER_TYPES.REST);
+    },
+
+    // Implement showEvent function
+    showEvent: function(nodeData) {
+      console.log("Showing event node:", nodeData);
+      
+      const event = nodeData.event;
+      if (!event) {
+        console.error("No event data in event node");
+        this.markNodeVisited(nodeData.id);
+        return;
+      }
+      
+      // Set event title and description
+      const eventTitle = document.getElementById('event-title');
+      const eventDescription = document.getElementById('event-description');
+      const eventOptions = document.getElementById('event-options');
+      const eventResult = document.getElementById('event-result');
+      const continueBtn = document.getElementById('event-continue-btn');
+      
+      if (eventTitle) eventTitle.textContent = event.title;
+      if (eventDescription) eventDescription.textContent = event.description;
+      if (eventOptions) {
+        eventOptions.innerHTML = '';
+        
+        // Create option buttons
+        event.options.forEach((option, index) => {
+          const optionBtn = document.createElement('button');
+          optionBtn.classList.add('btn', 'btn-outline-primary', 'mb-2', 'w-100');
+          optionBtn.textContent = option.text;
+          
+          // Check if option has requirement
+          if (option.requirementType) {
+            let canUseOption = false;
+            
+            // Check different requirement types
+            if (option.requirementType === 'insight_check') {
+              canUseOption = gameState.character.insight >= option.requirementValue;
+            } else if (option.requirementType === 'item_check') {
+              // Check if player has the required item
+              canUseOption = gameState.inventory.some(item => item.id === option.requirementValue);
+            }
+            
+            if (!canUseOption) {
+              optionBtn.classList.add('disabled');
+              optionBtn.disabled = true;
+              
+              // Add requirement info
+              if (option.requirementType === 'insight_check') {
+                optionBtn.innerHTML += ` <span class="badge bg-secondary">Requires ${option.requirementValue} Insight</span>`;
+              } else if (option.requirementType === 'item_check') {
+                optionBtn.innerHTML += ` <span class="badge bg-secondary">Requires ${option.requirementValue}</span>`;
+              }
+            }
+          }
+          
+          // Add click handler
+          optionBtn.addEventListener('click', () => {
+            this.handleEventOption(nodeData.id, index, option);
+          });
+          
+          eventOptions.appendChild(optionBtn);
+        });
+      }
+      
+      // Reset result and hide continue button
+      if (eventResult) eventResult.style.display = 'none';
+      if (continueBtn) continueBtn.style.display = 'none';
+      
+      // Show the event container
+      this.showContainer(CONTAINER_TYPES.EVENT);
+    },
+
+    // Implement handleEventOption function
+    handleEventOption: function(nodeId, optionIndex, option) {
+      console.log(`Selected event option ${optionIndex} for node ${nodeId}:`, option);
+      
+      // Disable all option buttons
+      const optionButtons = document.querySelectorAll('#event-options button');
+      optionButtons.forEach(btn => btn.disabled = true);
+      
+      // Show the result
+      const eventResult = document.getElementById('event-result');
+      const continueBtn = document.getElementById('event-continue-btn');
+      
+      if (eventResult) {
+        eventResult.innerHTML = `
+          <div class="alert alert-info mt-3">
+            <p>${option.outcome.description}</p>
+          </div>
+        `;
+        eventResult.style.display = 'block';
+      }
+      
+      // Apply the effect
+      if (option.outcome.effect) {
+        this.applyEventEffect(option.outcome.effect);
+      }
+      
+      // Show continue button
+      if (continueBtn) {
+        continueBtn.style.display = 'block';
+        continueBtn.addEventListener('click', () => {
+          this.markNodeVisited(nodeId);
+          this.showContainer(CONTAINER_TYPES.MAP);
+        });
+      }
+    },
+
+    // Implement applyEventEffect function
+    applyEventEffect: function(effect) {
+      console.log("Applying event effect:", effect);
+      
+      if (!effect || !effect.type) return;
+      
+      switch (effect.type) {
+        case 'insight_gain':
+          gameState.character.insight += effect.value;
+          UiUtils.showFloatingText(`+${effect.value} Insight`, 'success');
+          break;
+          
+        case 'insight_loss':
+          gameState.character.insight = Math.max(0, gameState.character.insight - effect.value);
+          UiUtils.showFloatingText(`-${effect.value} Insight`, 'danger');
+          break;
+          
+        case 'gain_life':
+          if (gameState.character.lives < gameState.character.max_lives) {
+            gameState.character.lives += effect.value;
+            UiUtils.showFloatingText(`+${effect.value} Life`, 'success');
+          }
+          break;
+          
+        case 'lose_life':
+          gameState.character.lives -= effect.value;
+          UiUtils.showFloatingText(`-${effect.value} Life`, 'danger');
+          
+          // Check for game over
+          if (gameState.character.lives <= 0) {
+            setTimeout(() => {
+              this.showGameOver();
+            }, 1500);
+          }
+          break;
+          
+        case 'gain_item':
+          // Find the item by id
+          fetch(`/api/item/${effect.value}`)
+            .then(response => response.json())
+            .then(itemData => {
+              if (itemData) {
+                Character.addItemToInventory(itemData);
+              }
+            })
+            .catch(error => console.error('Error fetching item:', error));
+          break;
+      }
+      
+      // Update character display
+      Character.updateCharacterInfo(gameState.character);
+    },
     // Show game over screen
     showGameOver: function() {
       // Update final score

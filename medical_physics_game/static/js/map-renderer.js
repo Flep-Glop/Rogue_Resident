@@ -356,7 +356,38 @@ window.MapRenderer = {
         });
       }
     },
-    
+    // Add to map-renderer.js
+    isPointOnLine: function(x1, y1, x2, y2, px, py, tolerance = 5) {
+      // Calculate distance from point to line
+      const A = py - y1;
+      const B = px - x1;
+      const C = y2 - y1;
+      const D = x2 - x1;
+      
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      let param = -1;
+      
+      if (lenSq !== 0) param = dot / lenSq;
+      
+      let xx, yy;
+      
+      if (param < 0) {
+        xx = x1;
+        yy = y1;
+      } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+      } else {
+        xx = x1 + param * D;
+        yy = y1 + param * C;
+      }
+      
+      const dx = px - xx;
+      const dy = py - yy;
+      
+      return Math.sqrt(dx * dx + dy * dy) < tolerance;
+    },
     // Draw a node on the canvas
     drawNode: function(ctx, node, width, height, bottomUp = false) {
       const nodeColors = {
@@ -483,7 +514,7 @@ window.MapRenderer = {
       ctx.shadowBlur = 0;
     },
     
-    // Map click handler
+    // Fix the handleMapClick function to use the correct 'this' reference
     handleMapClick: function(event) {
       const canvas = event.target;
       const rect = canvas.getBoundingClientRect();
@@ -511,15 +542,17 @@ window.MapRenderer = {
         if (node.visited) continue;
         
         // Calculate node position (adjust for bottom-up layout)
-        let y = height - height * ((node.position.row + 0.5) / (MapRenderer.config.rowCount + 2));
-        const x = width * ((node.position.col + 1) / (MapRenderer.config.nodesPerRow + 1));
+        // Use this.config instead of MapRenderer.config
+        let y = height - height * ((node.position.row + 0.5) / (this.config.rowCount + 2));
+        const x = width * ((node.position.col + 1) / (this.config.nodesPerRow + 1));
         
         // Check if click is within node radius
         const dx = clickX - x;
         const dy = clickY - y;
         const distance = Math.sqrt(dx*dx + dy*dy);
         
-        if (distance <= 20 && MapRenderer.canVisitNode(nodeId)) { // 20 is the node radius
+        // Use this instead of MapRenderer
+        if (distance <= 20 && this.canVisitNode(nodeId)) { // 20 is the node radius
           console.log("Clicked on node:", nodeId);
           
           // Add visual feedback for click
