@@ -330,14 +330,78 @@ window.Nodes = {
     
     // Show shop node
     showShop: function(nodeData) {
-      // Implementation for showing shop node
-      // ...
+      console.log("Showing shop node:", nodeData);
+      
+      // Implementation for future shop functionality
+      const shopContainer = document.getElementById(CONTAINER_TYPES.SHOP);
+      if (!shopContainer) {
+        console.error("Shop container not found");
+        this.markNodeVisited(nodeData.id);
+        return;
+      }
+      
+      // Placeholder shop content
+      shopContainer.innerHTML = `
+        <div class="card mb-3">
+          <div class="card-header bg-info">
+            <h4>${nodeData.title || 'Department Store'}</h4>
+          </div>
+          <div class="card-body">
+            <p>The shop will be implemented in a future update.</p>
+            <button id="shop-continue-btn" class="btn btn-primary">Continue</button>
+          </div>
+        </div>
+      `;
+      
+      // Add event listener for continue button
+      const continueBtn = document.getElementById('shop-continue-btn');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+          this.markNodeVisited(nodeData.id);
+          this.showContainer(CONTAINER_TYPES.MAP);
+        });
+      }
+      
+      // Show shop container
+      this.showContainer(CONTAINER_TYPES.SHOP);
     },
     
     // Show gamble node
     showGamble: function(nodeData) {
-      // Implementation for showing gamble node
-      // ...
+      console.log("Showing gamble node:", nodeData);
+      
+      // Implementation for future gamble functionality
+      const gambleContainer = document.getElementById(CONTAINER_TYPES.GAMBLE);
+      if (!gambleContainer) {
+        console.error("Gamble container not found");
+        this.markNodeVisited(nodeData.id);
+        return;
+      }
+      
+      // Placeholder gamble content
+      gambleContainer.innerHTML = `
+        <div class="card mb-3">
+          <div class="card-header bg-warning">
+            <h4>${nodeData.title || 'Research Roulette'}</h4>
+          </div>
+          <div class="card-body">
+            <p>The gamble node will be implemented in a future update.</p>
+            <button id="gamble-continue-btn" class="btn btn-primary">Continue</button>
+          </div>
+        </div>
+      `;
+      
+      // Add event listener for continue button
+      const continueBtn = document.getElementById('gamble-continue-btn');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+          this.markNodeVisited(nodeData.id);
+          this.showContainer(CONTAINER_TYPES.MAP);
+        });
+      }
+      
+      // Show gamble container
+      this.showContainer(CONTAINER_TYPES.GAMBLE);
     },
     
     // Function to mark a node as visited

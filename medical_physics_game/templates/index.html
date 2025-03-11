@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Physics Residency: The Roguelike Challenge</title>
-    <!-- Add the retro CSS link first -->
+    <!-- Add Bootstrap CSS first -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/retro.css" rel="stylesheet">
-    <!-- Keep existing stylesheets, but they'll be overridden by retro where needed -->
+    <!-- Add base styles -->
     <link href="/static/css/main.css" rel="stylesheet">
+    <!-- Add component styles -->
     <link href="/static/css/map.css" rel="stylesheet">
     <link href="/static/css/nodes.css" rel="stylesheet">
     <link href="/static/css/inventory.css" rel="stylesheet">
     <link href="/static/css/animations.css" rel="stylesheet">
+    <!-- Add retro styles last to override other styles -->
+    <link href="/static/css/retro.css" rel="stylesheet">
     <link href="/static/css/retro-game.css" rel="stylesheet">
 </head>
 <body>
@@ -112,6 +114,15 @@
                 <button id="restart-btn" class="retro-btn start">Start New Residency</button>
                 <a href="/" class="retro-btn options">Back to Menu</a>
             </div>
+        </div>
+        <div id="shop-container" class="interaction-container">
+            <h3>Department Store</h3>
+            <div id="shop-content"></div>
+        </div>
+        
+        <div id="gamble-container" class="interaction-container">
+            <h3>Research Roulette</h3>
+            <div id="gamble-content"></div>
         </div>
     </div>
     

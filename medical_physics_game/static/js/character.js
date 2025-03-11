@@ -433,12 +433,6 @@ window.Character = {
       }
     },
     
-    // Update special ability display
-    updateSpecialAbility: function(specialAbility) {
-      // Implementation for special ability display
-      // ...
-    },
-    
     // Add starting relic based on character
     addStartingRelic: function(characterId) {
       let relic = null;
@@ -465,7 +459,7 @@ window.Character = {
         this.addItemToInventory(relic);
       }
     },
-    
+
     // Add this function to the Character object
     saveInventory: function() {
       if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {

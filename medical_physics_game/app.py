@@ -45,8 +45,6 @@ def init_db():
 init_data_files()
 init_db()
 
-# Dictionary to store saved games
-saved_games = {}
 # Routes
 @app.route('/')
 def landing():

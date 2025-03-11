@@ -287,18 +287,12 @@ window.MapRenderer = {
       if (this._currentClickHandler) {
         canvas.removeEventListener('click', this._currentClickHandler);
       }
-      
-      // Store reference to current handler so we can remove it later
-      this._currentClickHandler = handleMapClick;
-      
-      // Add new click handler
-      canvas.addEventListener('click', handleMapClick);
-      // Use proper binding to maintain context
-      canvas.removeEventListener('click', this._currentClickHandler);
-      // Explicitly bind "this" to the callback
-      const boundClickHandler = handleMapClick.bind(this);
-      canvas.addEventListener('click', boundClickHandler);
-      this._currentClickHandler = boundClickHandler; // Store reference for future removal
+
+      // Create bound handler that maintains the correct 'this' context
+      this._currentClickHandler = handleMapClick.bind(this);
+
+      // Add the new event listener
+      canvas.addEventListener('click', this._currentClickHandler);
     },
     
     // Draw connections between nodes
