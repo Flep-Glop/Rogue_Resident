@@ -1,10 +1,17 @@
 # app.py - Flask backend
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, session
 import json
 import os
 import random
+import uuid
+from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
+
+# Game state will be stored in an in-memory dictionary for this demo
+# In production, you would use a database
+game_states = {}
 
 # Data loading functions
 def load_json_data(filename):
@@ -50,22 +57,11 @@ def init_data_files():
 # Initialize data when the app starts
 init_data_files()
 
-# Game state (for demo purposes - in production would be stored in a database)
-game_state = {
-    "character": {
-        "name": "Medical Physics Resident",
-        "level": 1,
-        "lives": 3,
-        "max_lives": 3,
-        "insight": 20
-    },
-    "current_floor": 1,
-    "nodes": [
-        {"id": "node1", "type": "question", "title": "Morning Rounds", "difficulty": 1, "visited": False},
-        {"id": "node2", "type": "rest", "title": "Break Room", "difficulty": 0, "visited": False},
-        {"id": "node3", "type": "treasure", "title": "Conference", "difficulty": 1, "visited": False}
-    ]
-}
+# Helper to get session game ID
+def get_game_id():
+    if 'game_id' not in session:
+        session['game_id'] = str(uuid.uuid4())
+    return session['game_id']
 
 # Routes
 @app.route('/')
@@ -82,7 +78,52 @@ def game():
 @app.route('/api/game-state')
 def get_game_state():
     """Return the current game state"""
-    return jsonify(game_state)
+    game_id = get_game_id()
+    
+    # Return existing game state or create new one
+    if game_id in game_states:
+        return jsonify(game_states[game_id])
+    else:
+        # Create a new default game state
+        default_game_state = create_default_game_state()
+        game_states[game_id] = default_game_state
+        return jsonify(default_game_state)
+
+def create_default_game_state():
+    """Create a default game state for new games"""
+    characters = load_json_data('characters.json')
+    character_data = next((c for c in characters.get('characters', []) if c['id'] == 'resident'), None)
+    
+    if not character_data:
+        # Fallback default character
+        character_data = {
+            "name": "Medical Physics Resident",
+            "starting_stats": {
+                "level": 1,
+                "lives": 3,
+                "max_lives": 3,
+                "insight": 20
+            },
+            "special_ability": {
+                "name": "Literature Review",
+                "description": "Once per floor, can skip a question node without penalty.",
+                "uses_per_floor": 1
+            }
+        }
+    
+    return {
+        "character": {
+            "name": character_data['name'],
+            "level": character_data['starting_stats']['level'],
+            "lives": character_data['starting_stats']['lives'],
+            "max_lives": character_data['starting_stats']['max_lives'],
+            "insight": character_data['starting_stats']['insight'],
+            "special_ability": character_data['special_ability']
+        },
+        "current_floor": 1,
+        "created_at": datetime.now().isoformat(),
+        "last_updated": datetime.now().isoformat()
+    }
 
 @app.route('/api/new-game', methods=['POST'])
 def new_game():
@@ -97,8 +138,10 @@ def new_game():
     if not character_data:
         return jsonify({"error": "Character not found"}), 404
     
+    # Get a unique game ID
+    game_id = get_game_id()
+    
     # Set up initial game state
-    global game_state
     game_state = {
         "character": {
             "name": character_data['name'],
@@ -109,286 +152,27 @@ def new_game():
             "special_ability": character_data['special_ability']
         },
         "current_floor": 1,
-        "nodes": generate_floor_nodes(1)  # Generate nodes for the first floor
+        "created_at": datetime.now().isoformat(),
+        "last_updated": datetime.now().isoformat()
     }
     
-    return jsonify(game_state)
-
-def generate_floor_nodes(floor_number):
-    """Generate nodes for a floor based on floor configuration"""
-    floors = load_json_data('floors.json')
-    floor_data = next((f for f in floors.get('floors', []) if f['id'] == floor_number), None)
-    
-    if not floor_data:
-        # Default nodes if floor not found
-        return [
-            {"id": f"node{i}", "type": "question", "title": f"Question {i}", "difficulty": 1, "visited": False}
-            for i in range(1, 5)
-        ]
-    
-    # Determine number of nodes based on floor configuration
-    node_count = random.randint(floor_data['node_count']['min'], floor_data['node_count']['max'])
-    
-    # Generate nodes based on weights
-    nodes = []
-    node_types = floor_data['node_types']
-    
-    # Calculate total weights
-    total_weight = sum(node_type['weight'] for node_type in node_types.values())
-    
-    for i in range(1, node_count + 1):
-        # Select node type based on weights
-        r = random.uniform(0, total_weight)
-        cumulative_weight = 0
-        selected_type = "question"  # Default
-        
-        for node_type, config in node_types.items():
-            cumulative_weight += config['weight']
-            if r <= cumulative_weight:
-                selected_type = node_type
-                break
-        
-        # Determine difficulty
-        if 'difficulty_range' in node_types.get(selected_type, {}):
-            difficulty = random.randint(
-                node_types[selected_type]['difficulty_range'][0],
-                node_types[selected_type]['difficulty_range'][1]
-            )
-        else:
-            difficulty = 1 if selected_type == "question" else 0
-        
-        # Generate node title
-        titles = {
-            "question": ["Morning Rounds", "Case Review", "Patient Consult", "Treatment Planning"],
-            "rest": ["Break Room", "Cafeteria", "Library", "Quiet Corner"],
-            "treasure": ["Conference", "Journal Club", "Grand Rounds", "Workshop"],
-            "elite": ["Physicist Meeting", "Challenging Case", "Equipment Failure", "Accreditation Review"],
-            "boss": ["Department Chair", "Board Exam", "Research Presentation", "Clinical Trial Review"]
-        }
-        
-        title = random.choice(titles.get(selected_type, ["Unknown"]))
-        
-        nodes.append({
-            "id": f"node{i}",
-            "type": selected_type,
-            "title": title,
-            "difficulty": difficulty,
-            "visited": False
-        })
-    
-    # Add boss node if applicable
-    if floor_data.get('boss'):
-        nodes.append({
-            "id": "boss",
-            "type": "boss",
-            "title": floor_data['boss']['name'],
-            "difficulty": floor_data['boss']['difficulty'],
-            "visited": False
-        })
-    
-    return nodes
-
-@app.route('/api/node/<node_id>')
-def get_node(node_id):
-    """Get content for a specific node"""
-    # Find the node
-    node = next((n for n in game_state["nodes"] if n["id"] == node_id), None)
-    
-    if not node:
-        return jsonify({"error": "Node not found"}), 404
-    
-    # If it's a question node, add the question data
-    if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
-        # Select a random question based on difficulty
-        questions_data = load_json_data('questions.json')
-        all_questions = []
-        
-        # Collect questions of appropriate difficulty from all categories
-        for category in questions_data.get('categories', []):
-            for question in category.get('questions', []):
-                if question.get('difficulty', 1) == node['difficulty']:
-                    all_questions.append(question)
-        
-        if not all_questions:
-            # Fallback question if none found with matching difficulty
-            question_data = {
-                "text": "What is the correction factor for temperature and pressure called in TG-51?",
-                "options": ["PTP", "kTP", "CTP", "PTC"],
-                "correct": 1,
-                "explanation": "kTP is the temperature-pressure correction factor in TG-51."
-            }
-        else:
-            # Select a random question of appropriate difficulty
-            question_data = random.choice(all_questions)
-        
-        node_data = {**node, "question": question_data}
-    elif node["type"] == "treasure":
-        # For treasure nodes, select a random item
-        items_data = load_json_data('items.json')
-        all_items = items_data.get('items', [])
-        
-        if all_items:
-            item = random.choice(all_items)
-            node_data = {**node, "item": item}
-        else:
-            node_data = node
-    else:
-        node_data = node
-    
-    return jsonify(node_data)
-
-@app.route('/api/answer-question', methods=['POST'])
-def answer_question():
-    """Process an answer to a question"""
-    data = request.json
-    node_id = data.get('node_id')
-    answer_index = data.get('answer_index')
-    
-    # Find the node
-    node = next((n for n in game_state["nodes"] if n["id"] == node_id), None)
-    
-    if not node:
-        return jsonify({"error": "Node not found"}), 404
-    
-    # Get the question from the request
-    question = data.get('question')
-    if not question:
-        return jsonify({"error": "Question data not provided"}), 400
-    
-    # Check if answer is correct
-    is_correct = (answer_index == question.get('correct'))
-    
-    # Update game state
-    for n in game_state["nodes"]:
-        if n["id"] == node_id:
-            n["visited"] = True
-    
-    # Load game config for rewards/penalties
-    game_config = load_json_data('game_config.json')
-    insight_gain = game_config.get('game_settings', {}).get('insight_per_correct_answer', 10)
-    insight_penalty = game_config.get('game_settings', {}).get('insight_penalty_per_wrong_answer', 5)
-    
-    if is_correct:
-        game_state["character"]["insight"] += insight_gain
-    else:
-        game_state["character"]["lives"] -= 1
-        game_state["character"]["insight"] = max(0, game_state["character"]["insight"] - insight_penalty)
-    
-    # Check if all nodes are visited - if so, allow proceeding to next floor
-    all_visited = all(n["visited"] for n in game_state["nodes"])
-    
-    return jsonify({
-        "correct": is_correct,
-        "explanation": question.get('explanation', ''),
-        "game_state": game_state,
-        "all_nodes_visited": all_visited
-    })
-
-@app.route('/api/next-floor', methods=['POST'])
-def next_floor():
-    """Advance to the next floor"""
-    game_state["current_floor"] += 1
-    game_state["nodes"] = generate_floor_nodes(game_state["current_floor"])
-    
-    # Potentially restore some lives when advancing floors
-    game_config = load_json_data('game_config.json')
-    lives_per_floor = game_config.get('game_settings', {}).get('lives_per_floor', 0)
-    
-    if lives_per_floor > 0:
-        game_state["character"]["lives"] = min(
-            game_state["character"]["lives"] + lives_per_floor,
-            game_state["character"]["max_lives"]
-        )
-    
-    return jsonify(game_state)
-
-# Add these routes to app.py
-
-@app.route('/api/items')
-def get_items():
-    """Return all available items"""
-    items_data = load_json_data('items.json')
-    return jsonify(items_data)
-
-@app.route('/api/item/<item_id>')
-def get_item(item_id):
-    """Return a specific item by ID"""
-    items_data = load_json_data('items.json')
-    item = next((item for item in items_data.get('items', []) if item['id'] == item_id), None)
-    
-    if not item:
-        return jsonify({"error": "Item not found"}), 404
-    
-    return jsonify(item)
-
-@app.route('/api/random-event')
-def get_random_event():
-    """Return a random event"""
-    events_data = load_json_data('events.json')
-    all_events = events_data.get('events', [])
-    
-    if not all_events:
-        return jsonify({"error": "No events found"}), 404
-    
-    # Select random event
-    event = random.choice(all_events)
-    return jsonify(event)
-
-@app.route('/api/mark-node-visited', methods=['POST'])
-def mark_node_visited():
-    """Mark a node as visited"""
-    data = request.json
-    node_id = data.get('node_id')
-    
-    # Update game state
-    for n in game_state["nodes"]:
-        if n["id"] == node_id:
-            n["visited"] = True
-    
-    # Check if all nodes are visited
-    all_visited = all(n["visited"] for n in game_state["nodes"])
-    
-    return jsonify({
-        "game_state": game_state,
-        "all_nodes_visited": all_visited
-    })
-
-@app.route('/api/apply-item', methods=['POST'])
-def apply_item():
-    """Apply an item's effect to the character"""
-    data = request.json
-    item_id = data.get('item_id')
-    
-    # Find the item
-    items_data = load_json_data('items.json')
-    item = next((item for item in items_data.get('items', []) if item['id'] == item_id), None)
-    
-    if not item:
-        return jsonify({"error": "Item not found"}), 404
-    
-    # Apply the effect based on type
-    effect = item.get('effect', {})
-    effect_type = effect.get('type', '')
-    effect_value = effect.get('value', 0)
-    
-    if effect_type == 'insight_boost':
-        game_state["character"]["insight"] += int(effect_value)
-    elif effect_type == 'restore_life':
-        game_state["character"]["lives"] = min(
-            game_state["character"]["lives"] + int(effect_value),
-            game_state["character"]["max_lives"]
-        )
-    elif effect_type == 'extra_life':
-        game_state["character"]["max_lives"] += 1
-        game_state["character"]["lives"] += 1
+    # Store the game state
+    game_states[game_id] = game_state
     
     return jsonify(game_state)
 
 @app.route('/api/generate-floor-map', methods=['POST'])
 def generate_floor_map():
     """Generate a map for the current floor"""
-    # Get the current floor
-    floor_number = game_state["current_floor"]
+    data = request.json or {}
+    game_id = get_game_id()
+    
+    # Get the game state
+    if game_id not in game_states:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = game_states[game_id]
+    floor_number = data.get('floor_number', game_state.get('current_floor', 1))
     
     # Load floor data
     floors_data = load_json_data('floors.json')
@@ -399,32 +183,26 @@ def generate_floor_map():
         floor_data = {
             "node_count": {"min": 5, "max": 8},
             "node_types": {
-                "question": {"weight": 50, "difficulty_range": [1, 2]},
+                "question": {"weight": 50, "difficulty_range": [1, min(floor_number, 3)]},
                 "rest": {"weight": 20},
-                "treasure": {"weight": 15}
+                "treasure": {"weight": 15},
+                "elite": {"weight": 15 if floor_number > 1 else 0, "difficulty_range": [2, 3]}
             },
-            "boss": None
+            "boss": {
+                "name": "Chief Medical Physicist",
+                "description": "The department head has challenging questions about QA procedures.",
+                "difficulty": 3
+            } if floor_number >= 3 else None
         }
     
-    # Generate nodes in a simplified format for now
-    nodes = []
-    for i in range(5):  # Just create 5 nodes for testing
-        nodes.append({
-            "id": f"node_{i}",
-            "type": "question",
-            "position": {"row": 1, "col": i},
-            "paths": [],
-            "visited": False
-        })
+    # Generate the map layout
+    map_layout = generate_floor_layout(floor_number, floor_data)
     
-    # Basic map structure
-    map_layout = {
-        "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 2}, "paths": ["node_0", "node_1", "node_2"]},
-        "nodes": {node["id"]: node for node in nodes},
-        "boss": None
-    }
+    # Update game state with the map
+    game_state['map'] = map_layout
+    game_state['last_updated'] = datetime.now().isoformat()
+    game_states[game_id] = game_state
     
-    # Return the map
     return jsonify(map_layout)
 
 def generate_floor_layout(floor_number, floor_data):
@@ -439,15 +217,20 @@ def generate_floor_layout(floor_number, floor_data):
     map_layout = {
         "start": {"id": "start", "type": "start", "position": {"row": 0, "col": 1}, "paths": []},
         "nodes": {},
-        "boss": floor_data.get('boss') is not None and {
+        "boss": None
+    }
+    
+    # Add boss if specified
+    if floor_data.get('boss'):
+        map_layout["boss"] = {
             "id": "boss", 
             "type": "boss", 
             "position": {"row": 6, "col": 1}, 
             "paths": [],
+            "visited": False,
             "title": floor_data.get('boss', {}).get('name', 'Boss'),
             "difficulty": floor_data.get('boss', {}).get('difficulty', 3)
         }
-    }
     
     # Node positions will be in a grid
     nodes_per_row = min(3, node_count // 2 + 1)  # Limit to 3 nodes per row
@@ -487,8 +270,7 @@ def generate_floor_layout(floor_number, floor_data):
     # Create paths between nodes
     # Connect start to first row
     first_row_nodes = [n for n in map_layout["nodes"].values() if n["position"]["row"] == 1]
-    for node in first_row_nodes:
-        map_layout["start"]["paths"].append(node["id"])
+    map_layout["start"]["paths"] = [node["id"] for node in first_row_nodes]
     
     # Connect intermediate rows
     for row in range(1, rows):
@@ -506,8 +288,7 @@ def generate_floor_layout(floor_number, floor_data):
             next_row_nodes.sort(key=lambda n: abs(n["position"]["col"] - node["position"]["col"]))
             
             # Connect to closest nodes
-            for i in range(min(connection_count, len(next_row_nodes))):
-                node["paths"].append(next_row_nodes[i]["id"])
+            node["paths"] = [next_row_nodes[i]["id"] for i in range(min(connection_count, len(next_row_nodes)))]
     
     # Connect final row to boss if there is one
     if map_layout["boss"]:
@@ -545,6 +326,299 @@ def get_node_title(node_type):
     if node_type in titles:
         return random.choice(titles[node_type])
     return "Unknown"
+
+@app.route('/api/node/<node_id>')
+def get_node(node_id):
+    """Get content for a specific node"""
+    game_id = get_game_id()
+    
+    # Get the game state
+    if game_id not in game_states:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = game_states[game_id]
+    
+    if 'map' not in game_state:
+        return jsonify({"error": "No map generated yet"}), 400
+    
+    # Find the node in the map
+    node = None
+    if node_id == 'start':
+        node = game_state['map']['start']
+    elif node_id == 'boss' and game_state['map']['boss']:
+        node = game_state['map']['boss']
+    elif node_id in game_state['map']['nodes']:
+        node = game_state['map']['nodes'][node_id]
+    
+    if not node:
+        return jsonify({"error": "Node not found"}), 404
+    
+    # Process node based on type
+    if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
+        # Get a question matching the difficulty
+        question_data = get_question_for_node(node)
+        return jsonify({**node, "question": question_data})
+    
+    elif node["type"] == "treasure":
+        # Get a random item
+        item_data = get_random_item()
+        return jsonify({**node, "item": item_data})
+    
+    elif node["type"] == "event":
+        # Get a random event
+        event_data = get_random_event()
+        return jsonify({**node, "event": event_data})
+    
+    else:
+        # Other node types don't need additional data
+        return jsonify(node)
+
+def get_question_for_node(node):
+    """Get a question appropriate for the node's difficulty"""
+    questions_data = load_json_data('questions.json')
+    all_questions = []
+    
+    # Collect questions of appropriate difficulty from all categories
+    for category in questions_data.get('categories', []):
+        for question in category.get('questions', []):
+            if question.get('difficulty', 1) == node.get('difficulty', 1):
+                # Add category info to the question
+                question_with_category = {
+                    **question,
+                    'category': category.get('name', 'Unknown')
+                }
+                all_questions.append(question_with_category)
+    
+    if not all_questions:
+        # Fallback question if none found with matching difficulty
+        return {
+            "text": "What is the correction factor for temperature and pressure called in TG-51?",
+            "options": ["PTP", "kTP", "CTP", "PTC"],
+            "correct": 1,
+            "explanation": "kTP is the temperature-pressure correction factor in TG-51.",
+            "category": "Radiation Physics"
+        }
+    
+    # Return a random question
+    return random.choice(all_questions)
+
+def get_random_item():
+    """Get a random item based on rarity"""
+    items_data = load_json_data('items.json')
+    all_items = items_data.get('items', [])
+    
+    if not all_items:
+        return None
+    
+    # Group items by rarity
+    items_by_rarity = {}
+    for item in all_items:
+        rarity = item.get('rarity', 'common')
+        if rarity not in items_by_rarity:
+            items_by_rarity[rarity] = []
+        items_by_rarity[rarity].append(item)
+    
+    # Rarity weights
+    rarity_weights = {
+        'common': 60,
+        'uncommon': 30,
+        'rare': 9,
+        'epic': 1
+    }
+    
+    # Pick rarity based on weights
+    total_weight = sum(rarity_weights.values())
+    r = random.uniform(0, total_weight)
+    
+    cumulative_weight = 0
+    selected_rarity = 'common'  # Default
+    
+    for rarity, weight in rarity_weights.items():
+        cumulative_weight += weight
+        if r <= cumulative_weight:
+            selected_rarity = rarity
+            break
+    
+    # Get all items of selected rarity
+    items = items_by_rarity.get(selected_rarity, [])
+    
+    # If no items of selected rarity, use any item
+    if not items:
+        items = all_items
+    
+    # Return a random item
+    return random.choice(items)
+
+def get_random_event():
+    """Get a random event"""
+    events_data = load_json_data('events.json')
+    all_events = events_data.get('events', [])
+    
+    if not all_events:
+        # Return a default event if none found
+        return {
+            "title": "Unexpected Discovery",
+            "description": "While reviewing patient data, you notice something unusual.",
+            "options": [
+                {
+                    "text": "Investigate further",
+                    "outcome": {
+                        "description": "Your investigation reveals important information.",
+                        "effect": {
+                            "type": "insight_gain",
+                            "value": 10
+                        }
+                    }
+                },
+                {
+                    "text": "Ignore it",
+                    "outcome": {
+                        "description": "You decide it's not important.",
+                        "effect": {
+                            "type": "insight_loss",
+                            "value": 5
+                        }
+                    }
+                }
+            ]
+        }
+    
+    # Return a random event
+    return random.choice(all_events)
+
+@app.route('/api/answer-question', methods=['POST'])
+def answer_question():
+    """Process an answer to a question"""
+    data = request.json
+    game_id = get_game_id()
+    
+    # Get the game state
+    if game_id not in game_states:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = game_states[game_id]
+    
+    node_id = data.get('node_id')
+    answer_index = data.get('answer_index')
+    question = data.get('question')
+    
+    if not question:
+        return jsonify({"error": "Question data not provided"}), 400
+    
+    # Check if answer is correct
+    is_correct = (answer_index == question.get('correct'))
+    
+    # Load game config for rewards/penalties
+    game_config = load_json_data('game_config.json')
+    insight_gain = game_config.get('game_settings', {}).get('insight_per_correct_answer', 10)
+    insight_penalty = game_config.get('game_settings', {}).get('insight_penalty_per_wrong_answer', 5)
+    
+    # Update character stats
+    if is_correct:
+        game_state["character"]["insight"] += insight_gain
+    else:
+        game_state["character"]["lives"] -= 1
+        game_state["character"]["insight"] = max(0, game_state["character"]["insight"] - insight_penalty)
+    
+    # Update game state
+    game_state['last_updated'] = datetime.now().isoformat()
+    game_states[game_id] = game_state
+    
+    return jsonify({
+        "correct": is_correct,
+        "explanation": question.get('explanation', ''),
+        "insight_gained": insight_gain if is_correct else 0,
+        "game_state": game_state
+    })
+
+@app.route('/api/mark-node-visited', methods=['POST'])
+def mark_node_visited():
+    """Mark a node as visited"""
+    data = request.json
+    game_id = get_game_id()
+    
+    # Get the game state
+    if game_id not in game_states:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = game_states[game_id]
+    
+    if 'map' not in game_state:
+        return jsonify({"error": "No map generated yet"}), 400
+    
+    node_id = data.get('node_id')
+    
+    # Find and mark the node as visited
+    if node_id == 'boss' and game_state['map']['boss']:
+        game_state['map']['boss']['visited'] = True
+    elif node_id in game_state['map']['nodes']:
+        game_state['map']['nodes'][node_id]['visited'] = True
+    else:
+        return jsonify({"error": "Node not found"}), 404
+    
+    # Check if all nodes are visited
+    all_visited = True
+    for node in game_state['map']['nodes'].values():
+        if not node['visited']:
+            all_visited = False
+            break
+    
+    # Include boss in check if present
+    if game_state['map']['boss'] and not game_state['map']['boss']['visited']:
+        all_visited = False
+    
+    # Update game state
+    game_state['last_updated'] = datetime.now().isoformat()
+    game_states[game_id] = game_state
+    
+    return jsonify({
+        "game_state": game_state,
+        "all_nodes_visited": all_visited
+    })
+
+@app.route('/api/next-floor', methods=['POST'])
+def next_floor():
+    """Advance to the next floor"""
+    game_id = get_game_id()
+    
+    # Get the game state
+    if game_id not in game_states:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = game_states[game_id]
+    
+    # Increment floor number
+    game_state["current_floor"] += 1
+    
+    # Potentially restore some lives when advancing floors
+    game_config = load_json_data('game_config.json')
+    lives_per_floor = game_config.get('game_settings', {}).get('lives_per_floor', 0)
+    
+    if lives_per_floor > 0:
+        game_state["character"]["lives"] = min(
+            game_state["character"]["lives"] + lives_per_floor,
+            game_state["character"]["max_lives"]
+        )
+    
+    # Clear current map
+    if 'map' in game_state:
+        del game_state['map']
+    
+    # Update game state
+    game_state['last_updated'] = datetime.now().isoformat()
+    game_states[game_id] = game_state
+    
+    return jsonify(game_state)
+
+@app.route('/api/reset-game', methods=['POST'])
+def reset_game():
+    """Reset the game to a new game state"""
+    game_id = get_game_id()
+    
+    # Create a new default game state
+    game_states[game_id] = create_default_game_state()
+    
+    return jsonify(game_states[game_id])
 
 if __name__ == '__main__':
     app.run(debug=True)

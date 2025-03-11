@@ -65,7 +65,15 @@
                 
                 decorationContainer.appendChild(decoration);
             }
-            
+            function showCharacterSelectionFromLanding() {
+                // If in landing page, go to game page first
+                if (window.location.pathname === '/') {
+                    window.location.href = '/game?select=true';
+                } else {
+                    // If already in game page, show character selection
+                    showCharacterSelection();
+                }
+            }
             // Button sound effect
             function playButtonSound() {
                 // When we add audio files, we'll uncomment this
@@ -77,7 +85,7 @@
             // Button event listeners
             document.getElementById('start-game').addEventListener('click', function() {
                 playButtonSound();
-                window.location.href = '/game';
+                showCharacterSelectionFromLanding();
             });
             
             document.getElementById('continue-game').addEventListener('click', function() {

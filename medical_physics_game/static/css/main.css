@@ -319,3 +319,242 @@
     max-width: 600px;
     text-align: center;
 }
+/* Inventory styling */
+.inventory-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.inventory-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.inventory-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.inventory-item {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.inventory-item:hover {
+    background-color: #e0e0e0;
+}
+
+.inventory-item.common { background-color: #e8e8e8; }
+.inventory-item.uncommon { background-color: #d1ecf1; }
+.inventory-item.rare { background-color: #ece2f9; }
+.inventory-item.epic { background-color: #fff3cd; }
+
+.inventory-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.inventory-item:hover .inventory-tooltip {
+    opacity: 1;
+}
+
+/* Floor transition animation */
+@keyframes floor-transition {
+    0% { transform: translateY(100%); opacity: 0; }
+    10% { transform: translateY(0); opacity: 1; }
+    90% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 0; }
+}
+
+.floor-transition-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: floor-transition 3s ease-in-out forwards;
+}
+
+.floor-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.floor-description {
+    font-size: 24px;
+    max-width: 600px;
+    text-align: center;
+}
+
+/* Game modal styling */
+.game-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Animation for floating text */
+@keyframes float-up {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+
+.floating-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 1000;
+    animation: float-up 2s ease-out;
+    pointer-events: none;
+}
+
+.floating-text-success { color: #28a745; }
+.floating-text-danger { color: #dc3545; }
+.floating-text-info { color: #17a2b8; }
+.floating-text-warning { color: #ffc107; }
+
+.floating-text-fade {
+    opacity: 0;
+    transition: opacity 1s;
+}
+/* ASCII Character animation */
+.ascii-character {
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre;
+    line-height: 1.2;
+    text-align: center;
+    margin: 10px auto;
+    color: #3498db;
+  }
+  
+  .ascii-character.bobbing {
+    animation: bob 1.5s ease-in-out infinite;
+  }
+  
+  .ascii-character.walking {
+    animation: walk-cycle 1s steps(4) infinite;
+  }
+  
+  @keyframes bob {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+  }
+  
+  @keyframes walk-cycle {
+    0% { transform: translateX(-5px); }
+    100% { transform: translateX(5px); }
+  }
+  
+  /* Character frames for walking animation */
+  .ascii-frame {
+    display: none;
+  }
+  
+  .ascii-frame.active {
+    display: block;
+  }
+  
+  /* Add ASCII ghost animation for Roentgen */
+  .ghost-animation {
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre;
+    line-height: 1.2;
+    text-align: center;
+    margin: 20px auto;
+    color: #9b59b6;
+    opacity: 0.8;
+    text-shadow: 0 0 5px #9b59b6;
+    animation: float 3s ease-in-out infinite, flicker 5s linear infinite;
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-5px) translateX(3px); }
+    50% { transform: translateY(0) translateX(0); }
+    75% { transform: translateY(5px) translateX(-3px); }
+    100% { transform: translateY(0) translateX(0); }
+  }
+  
+  @keyframes flicker {
+    0% { opacity: 0.7; }
+    10% { opacity: 0.8; }
+    20% { opacity: 0.7; }
+    30% { opacity: 0.8; }
+    40% { opacity: 0.9; }
+    50% { opacity: 0.7; }
+    60% { opacity: 0.9; }
+    70% { opacity: 0.8; }
+    80% { opacity: 0.7; }
+    90% { opacity: 0.9; }
+    100% { opacity: 0.7; }
+  }
