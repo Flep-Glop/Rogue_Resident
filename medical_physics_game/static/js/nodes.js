@@ -469,78 +469,55 @@ window.Nodes = {
       this.showContainer(CONTAINER_TYPES.GAMBLE);
     },
     
-    // Replace markNodeVisited function in nodes.js with the following
+    // Replace markNodeVisited function in nodes.js
     markNodeVisited: function(nodeId) {
       console.log(`Marking node ${nodeId} as visited`);
       
-      // FORCE server-side update first to ensure the game state is updated properly
+      // Immediately update LOCAL state first
+      if (gameState.map) {
+        // Mark the specific node as visited in local state
+        if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
+          gameState.map.nodes[nodeId].visited = true;
+          gameState.map.nodes[nodeId].current = false;
+        } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
+          gameState.map.boss.visited = true;
+          gameState.map.boss.current = false;
+        }
+      }
+      
+      // Clear current node
+      gameState.currentNode = null;
+      
+      // Now update server (which will also check if all nodes are visited)
       ApiClient.markNodeVisited(nodeId)
-          .then(data => {
-              console.log("Server confirmed node visited:", nodeId);
-              
-              // Now update LOCAL state
-              if (gameState.map) {
-                  // Clear current status from all nodes
-                  if (gameState.map.nodes) {
-                      Object.values(gameState.map.nodes).forEach(node => {
-                          node.current = false;
-                      });
-                  }
-                  
-                  if (gameState.map.boss) {
-                      gameState.map.boss.current = false;
-                  }
-                  
-                  // Mark the specific node as visited in local state
-                  if (gameState.map.nodes && gameState.map.nodes[nodeId]) {
-                      console.log(`Setting node ${nodeId} to visited in local state`);
-                      gameState.map.nodes[nodeId].visited = true;
-                  } else if (gameState.map.boss && gameState.map.boss.id === nodeId) {
-                      console.log(`Setting boss node ${nodeId} to visited in local state`);
-                      gameState.map.boss.visited = true;
-                  }
-              }
-              
-              // Clear current node in game state
-              gameState.currentNode = null;
-              
-              // Check if all nodes are visited for next floor button
-              if (data.all_nodes_visited) {
-                  console.log("All nodes visited, showing next floor button");
-                  const nextFloorBtn = document.getElementById('next-floor-btn');
-                  if (nextFloorBtn) {
-                      nextFloorBtn.style.display = 'block';
-                  }
-              }
-              
-              // IMPORTANT: Re-render the map to reflect changes
-              if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderFloorMap === 'function') {
-                  MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
-              }
-              
-              // Return to map view
-              this.showContainer(CONTAINER_TYPES.MAP);
-              
-              // Save game state
-              if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-                  ApiClient.saveGame()
-                      .then(() => console.log("Game saved after marking node visited"))
-                      .catch(err => console.error("Failed to save game after marking node visited:", err));
-              }
-          })
-          .catch(error => {
-              console.error('Error marking node as visited:', error);
-              // Still try to update local state as a fallback
-              if (gameState.map && gameState.map.nodes && gameState.map.nodes[nodeId]) {
-                  gameState.map.nodes[nodeId].visited = true;
-              }
-              
-              // Clear current node
-              gameState.currentNode = null;
-              
-              // Return to map view
-              this.showContainer(CONTAINER_TYPES.MAP);
-          });
+        .then(data => {
+          console.log("Server confirmed node visited:", nodeId);
+          
+          // Check if all nodes are visited for next floor button
+          if (data.all_nodes_visited) {
+            console.log("All nodes visited, showing next floor button");
+            const nextFloorBtn = document.getElementById('next-floor-btn');
+            if (nextFloorBtn) {
+              nextFloorBtn.style.display = 'block';
+            }
+          }
+          
+          // Render map AFTER server response
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+          
+          // Return to map view
+          this.showContainer(CONTAINER_TYPES.MAP);
+          
+          // Save game state
+          ApiClient.saveGame()
+            .catch(err => console.error("Failed to save game:", err));
+        })
+        .catch(error => {
+          console.error('Error marking node as visited:', error);
+          // Re-render map anyway
+          MapRenderer.renderFloorMap(gameState.map, CONTAINER_TYPES.MAP);
+          this.showContainer(CONTAINER_TYPES.MAP);
+        });
     },
     
     // Go to the next floor
