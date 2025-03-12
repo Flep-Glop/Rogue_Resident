@@ -5,6 +5,9 @@ const FeedbackSystem = {
   // Toast container element
   toastContainer: null,
   
+  // Track if we're currently showing feedback to prevent recursion
+  _isShowingFeedback: false,
+  
   // Initialize feedback system
   initialize: function() {
     console.log("Initializing feedback system...");
@@ -18,8 +21,8 @@ const FeedbackSystem = {
     }
     
     // Register for feedback events
-    EventSystem.on(GAME_EVENTS.UI_TOAST_SHOWN, this.showToast.bind(this));
-    EventSystem.on(GAME_EVENTS.UI_FEEDBACK_SHOWN, this.showFloatingText.bind(this));
+    EventSystem.on(GAME_EVENTS.UI_TOAST_SHOWN, this.handleToastEvent.bind(this));
+    EventSystem.on(GAME_EVENTS.UI_FEEDBACK_SHOWN, this.handleFeedbackEvent.bind(this));
     
     // Override UiUtils methods to use this system
     if (typeof UiUtils !== 'undefined') {
@@ -30,8 +33,42 @@ const FeedbackSystem = {
     return this;
   },
   
+  // Event handler for toast events to prevent recursion
+  handleToastEvent: function(data) {
+    // Only process if we're not already showing a toast from our own code
+    if (!this._isShowingFeedback) {
+      this._showToastImplementation(data.message, data.type, data.duration);
+    }
+  },
+  
+  // Event handler for feedback events to prevent recursion
+  handleFeedbackEvent: function(data) {
+    // Only process if we're not already showing feedback from our own code
+    if (!this._isShowingFeedback) {
+      this._showFloatingTextImplementation(data.text, data.type);
+    }
+  },
+  
   // Show a toast notification
   showToast: function(message, type = 'info', duration = 3000) {
+    // Prevent infinite recursion by checking flag
+    if (this._isShowingFeedback) return;
+    
+    // Set flag to prevent recursion
+    this._isShowingFeedback = true;
+    
+    // Show the toast
+    this._showToastImplementation(message, type, duration);
+    
+    // Emit event (only if called directly, not from an event handler)
+    EventSystem.emit(GAME_EVENTS.UI_TOAST_SHOWN, { message, type, duration });
+    
+    // Reset flag
+    this._isShowingFeedback = false;
+  },
+  
+  // Internal implementation of toast display
+  _showToastImplementation: function(message, type = 'info', duration = 3000) {
     // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} show`;
@@ -69,17 +106,28 @@ const FeedbackSystem = {
         toast.remove();
       });
     }, duration);
-    
-    // Emit event (if not called from event)
-    if (typeof EventSystem !== 'undefined' && 
-        !EventSystem.isHandlingEvent || 
-        !EventSystem.isHandlingEvent(GAME_EVENTS.UI_TOAST_SHOWN)) {
-      EventSystem.emit(GAME_EVENTS.UI_TOAST_SHOWN, { message, type });
-    }
   },
   
   // Show floating text feedback
   showFloatingText: function(text, type = 'info') {
+    // Prevent infinite recursion by checking flag
+    if (this._isShowingFeedback) return;
+    
+    // Set flag to prevent recursion
+    this._isShowingFeedback = true;
+    
+    // Show the floating text
+    this._showFloatingTextImplementation(text, type);
+    
+    // Emit event
+    EventSystem.emit(GAME_EVENTS.UI_FEEDBACK_SHOWN, { text, type });
+    
+    // Reset flag
+    this._isShowingFeedback = false;
+  },
+  
+  // Internal implementation of floating text
+  _showFloatingTextImplementation: function(text, type = 'info') {
     // Create floating text element
     const floatingText = document.createElement('div');
     floatingText.className = `floating-text floating-text-${type}`;
@@ -102,13 +150,6 @@ const FeedbackSystem = {
         }, 1000);
       }, 1500);
     }, 10);
-    
-    // Emit event (if not called from event)
-    if (typeof EventSystem !== 'undefined' && 
-        !EventSystem.isHandlingEvent || 
-        !EventSystem.isHandlingEvent(GAME_EVENTS.UI_FEEDBACK_SHOWN)) {
-      EventSystem.emit(GAME_EVENTS.UI_FEEDBACK_SHOWN, { text, type });
-    }
   },
   
   // Show floor transition animation
