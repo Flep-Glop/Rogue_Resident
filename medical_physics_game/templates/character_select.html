@@ -212,74 +212,51 @@
             padding-left: 10px;
         }
         
-        /* Updated carousel arrow styling */
+        /* Copy this complete CSS and replace the entire .carousel-arrow section in character_select.html */
+
+        /* Carousel navigation arrows - COMPLETE REPLACEMENT */
         .carousel-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background-color: rgba(91, 141, 217, 0.8); /* Slightly transparent blue */
-            color: white;
             width: 40px;
             height: 40px;
-            border-radius: 5px; /* Pixelated corners instead of round */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 18px;
+            font-size: 24px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid white;
             z-index: 10;
+            /* Style with pixelated look */
+            background-color: #5b8dd9;
+            color: white;
+            border: 2px solid #ffffff;
             box-shadow: 
-                0 3px 0 rgba(0, 0, 0, 0.3),
-                0 0 10px rgba(0, 0, 0, 0.5);
+                4px 4px 0 rgba(0, 0, 0, 0.2),
+                0 0 0 2px rgba(0, 0, 0, 0.1);
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
         }
 
         .carousel-arrow:hover {
-            background-color: var(--secondary);
-            transform: translateY(-50%) scale(1.1);
+            background-color: #56b886;
+            transform: translateY(-50%) scale(1.05);
         }
 
-        /* Position arrows closer to character cards */
+        .carousel-arrow:active {
+            transform: translateY(-50%) translateX(2px) translateY(2px);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
         .carousel-arrow.prev {
-            left: 20px; /* Move closer to card */
+            left: 10px; /* Position closer to card */
         }
 
         .carousel-arrow.next {
-            right: 20px; /* Move closer to card */
+            right: 10px; /* Position closer to card */
         }
 
-        /* Add pixelated arrow effect */
-        .carousel-arrow::after {
-            content: "";
-            display: block;
-            width: 10px;
-            height: 10px;
-            border-style: solid;
-            border-width: 0;
-            position: absolute;
-        }
+        /* Make sure the arrows have simple text inside (no ::after pseudo-elements) */
 
-        .carousel-arrow.prev::after {
-            border-right: 3px solid white;
-            border-bottom: 3px solid white;
-            transform: rotate(135deg);
-            left: 16px;
-        }
-
-        .carousel-arrow.next::after {
-            border-right: 3px solid white;
-            border-bottom: 3px solid white;
-            transform: rotate(-45deg);
-            right: 16px;
-        }
-
-        /* Add glow effect when active */
-        .carousel-arrow:active {
-            box-shadow: 0 0 15px var(--primary);
-            transform: translateY(-50%) scale(0.95);
-        }
         /* Carousel indicators */
         .carousel-indicators {
             display: flex;
@@ -394,14 +371,14 @@
             <h1 class="game-title">Select Your Character</h1>
             
             <div class="carousel-container">
-                <button class="carousel-arrow prev" id="prev-character">←</button>
+                <button class="carousel-arrow prev" id="prev-character">◀</button>
                 
                 <div id="character-carousel">
                     <!-- Characters will be loaded here -->
                     <div id="loading-message">Loading characters...</div>
                 </div>
                 
-                <button class="carousel-arrow next" id="next-character">→</button>
+                <button class="carousel-arrow next" id="next-character">▶</button>
             </div>
             
             <div class="carousel-indicators" id="carousel-indicators">
