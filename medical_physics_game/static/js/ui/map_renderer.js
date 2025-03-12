@@ -489,11 +489,13 @@ const MapRenderer = {
       const canvas = event.target;
       const rect = canvas.getBoundingClientRect();
       
-      // CRITICAL FIX: Account for CSS scaling vs actual canvas size
+      // ADD THIS LINE - it was missing in my previous suggestion
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Calculate click position in actual canvas coordinates
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
       
-      // Calculate click position in actual canvas coordinates
       const clickX = (event.clientX - rect.left) * scaleX;
       const clickY = (event.clientY - rect.top) * scaleY;
       
@@ -514,7 +516,7 @@ const MapRenderer = {
           height: canvas.height
         }
       });
-      
+
       // Get map data
       const mapData = GameState.data.map;
       if (!mapData) return;
