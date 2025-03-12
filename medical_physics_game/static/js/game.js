@@ -14,9 +14,32 @@ document.addEventListener('DOMContentLoaded', function() {
     UiUtils.showFloatingText("Welcome to Medical Physics Residency!", "success");
   }, 1000);
   
+  // Find this code in game.js (around line 16-29) and replace it with this version:
+
   // Create UI object to hold UI management functions
   window.UI = {
     showMapView: function() {
+      // Hide the modal overlay if it exists
+      const modalOverlay = document.getElementById('node-modal-overlay');
+      if (modalOverlay) {
+        modalOverlay.style.display = 'none';
+        
+        // Return containers to their original place
+        const modalContent = document.getElementById('node-modal-content');
+        if (modalContent) {
+          // Move all interaction containers back to their original parent
+          const containers = modalContent.querySelectorAll('.interaction-container');
+          const gameBoard = document.querySelector('.col-md-9');
+          
+          if (gameBoard) {
+            containers.forEach(container => {
+              gameBoard.appendChild(container);
+              container.style.display = 'none'; // Hide them
+            });
+          }
+        }
+      }
+
       // Show game board
       const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
       if (gameBoardContainer) {

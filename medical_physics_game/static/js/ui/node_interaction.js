@@ -43,13 +43,13 @@ const CONTAINER_TYPES = {
       }
     },
     
-    // Find this function in node_interaction.js and update it
+    // Fix the showContainer function to preserve event handlers
     showContainer: function(containerId) {
       this.hideAllContainers();
       
       const container = document.getElementById(containerId);
       if (container) {
-        // Create a modal overlay if it doesn't exist already
+        // Create a modal overlay if it doesn't exist
         let modalOverlay = document.getElementById('node-modal-overlay');
         if (!modalOverlay) {
           modalOverlay = document.createElement('div');
@@ -67,10 +67,29 @@ const CONTAINER_TYPES = {
           modalOverlay.appendChild(modalContent);
         }
 
-        // Copy the container content to the modal
-        modalContent.innerHTML = '';
-        modalContent.appendChild(container.cloneNode(true));
-        container.style.display = 'none'; // Hide the original container
+        // INSTEAD OF CLONING, MOVE THE CONTAINER INTO THE MODAL
+        modalContent.innerHTML = ''; // Clear previous content
+        modalContent.appendChild(container);
+        container.style.display = 'block'; // Make sure it's visible
+
+        // Add close button if needed
+        if (!document.getElementById('modal-close-btn')) {
+          const closeBtn = document.createElement('button');
+          closeBtn.id = 'modal-close-btn';
+          closeBtn.className = 'node-modal-close';
+          closeBtn.innerHTML = '×';
+          closeBtn.addEventListener('click', () => {
+            // Return to map on close
+            if (GameState.data.currentNode) {
+              // If there's an active node, call completeNode
+              GameState.completeNode(GameState.data.currentNode);
+            } else {
+              // Otherwise just return to map
+              this.showMapView();
+            }
+          });
+          modalContent.insertBefore(closeBtn, modalContent.firstChild);
+        }
 
         // Show the modal
         modalOverlay.style.display = 'flex';
@@ -82,12 +101,27 @@ const CONTAINER_TYPES = {
       }
     },
     
-    // Update this function to handle the modal properly
+    // Update the showMapView function to match
     showMapView: function() {
       // Hide the modal overlay if it exists
       const modalOverlay = document.getElementById('node-modal-overlay');
       if (modalOverlay) {
         modalOverlay.style.display = 'none';
+        
+        // Return containers to their original place
+        const modalContent = document.getElementById('node-modal-content');
+        if (modalContent) {
+          // Move all interaction containers back to their original parent
+          const containers = modalContent.querySelectorAll('.interaction-container');
+          const gameBoard = document.querySelector('.col-md-9');
+          
+          if (gameBoard) {
+            containers.forEach(container => {
+              gameBoard.appendChild(container);
+              container.style.display = 'none'; // Hide them
+            });
+          }
+        }
       }
       
       // Make sure game board is visible
@@ -95,9 +129,6 @@ const CONTAINER_TYPES = {
       if (gameBoardContainer) {
         gameBoardContainer.style.display = 'block';
       }
-      
-      // Hide all interaction containers
-      this.hideAllContainers();
     },
     
     // Clear all event listeners to prevent duplicates

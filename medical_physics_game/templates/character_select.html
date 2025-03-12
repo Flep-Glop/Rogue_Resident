@@ -12,24 +12,25 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
-        /* Character cards container */
-        .character-cards {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-top: 40px;
+        /* Carousel container */
+        .carousel-container {
+            position: relative;
             width: 100%;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        /* Base character card styling */
+        /* Character card styling */
         .character-card {
             position: relative;
-            width: 280px;
+            width: 320px;
+            min-height: 400px;
             background-color: var(--background-alt);
             border: 4px solid var(--primary);
             border-radius: 8px;
@@ -39,24 +40,39 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            margin: 0 auto;
+            /* Hide cards initially */
+            display: none;
         }
         
-        .character-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--secondary);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        /* Only show active card */
+        .character-card.active {
+            display: flex;
+            animation: card-pulse 3s infinite;
         }
         
         .character-card.selected {
             border-color: var(--secondary);
             background-color: rgba(86, 184, 134, 0.1);
-            transform: translateY(-5px) scale(1.03);
+            animation: selected-pulse 2s infinite;
             box-shadow: 
                 0 10px 25px rgba(0, 0, 0, 0.3),
                 0 0 15px rgba(86, 184, 134, 0.3);
         }
         
-        /* Character header with name and level */
+        @keyframes card-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes selected-pulse {
+            0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(86, 184, 134, 0.7); }
+            100% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
+        }
+        
+        /* Character header with name */
         .character-header {
             background-color: var(--primary);
             color: white;
@@ -82,8 +98,8 @@
             text-align: center;
             margin: 15px auto;
             border-radius: 5px;
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -93,7 +109,7 @@
             font-family: monospace;
             white-space: pre;
             color: white;
-            font-size: 18px;
+            font-size: 16px;
             line-height: 1.2;
             text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
         }
@@ -196,9 +212,72 @@
             padding-left: 10px;
         }
         
+        /* Carousel navigation arrows */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .carousel-arrow:hover {
+            background-color: var(--secondary);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-arrow.prev {
+            left: 0;
+        }
+        
+        .carousel-arrow.next {
+            right: 0;
+        }
+        
+        /* Carousel indicators */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        
+        .carousel-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--background-alt);
+            border: 2px solid var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .carousel-indicator.active {
+            background-color: var(--primary);
+            transform: scale(1.2);
+        }
+        
+        .carousel-indicator.selected {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            transform: scale(1.2);
+        }
+        
         /* Start button enhancements */
         .start-btn {
-            margin-top: 40px;
+            margin-top: 30px;
             padding: 15px 30px;
             font-size: 1rem;
             position: relative;
@@ -263,6 +342,13 @@
         .back-btn {
             margin-top: 20px;
         }
+        
+        /* Character count indicator */
+        .character-counter {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -273,10 +359,22 @@
         <div class="character-selection">
             <h1 class="game-title">Select Your Character</h1>
             
-            <div class="character-cards" id="character-container">
-                <!-- Characters will be loaded here -->
-                <p>Loading characters...</p>
+            <div class="carousel-container">
+                <button class="carousel-arrow prev" id="prev-character">←</button>
+                
+                <div id="character-carousel">
+                    <!-- Characters will be loaded here -->
+                    <div id="loading-message">Loading characters...</div>
+                </div>
+                
+                <button class="carousel-arrow next" id="next-character">→</button>
             </div>
+            
+            <div class="carousel-indicators" id="carousel-indicators">
+                <!-- Indicators will be added here -->
+            </div>
+            
+            <div class="character-counter" id="character-counter"></div>
             
             <button class="retro-btn start start-btn" id="start-game-btn" disabled>Begin Residency</button>
             
@@ -285,14 +383,37 @@
     </div>
 
     <script>
-        // Character selection logic
+        // Character selection logic with carousel functionality
         let selectedCharacter = null;
+        let characters = [];
+        let currentCharacterIndex = 0;
         
         document.addEventListener('DOMContentLoaded', function() {
             fetchCharacters();
             
+            // Set up carousel navigation
+            document.getElementById('prev-character').addEventListener('click', function() {
+                navigateCarousel(-1);
+            });
+            
+            document.getElementById('next-character').addEventListener('click', function() {
+                navigateCarousel(1);
+            });
+            
+            // Set up start button
             document.getElementById('start-game-btn').addEventListener('click', function() {
                 if (selectedCharacter) {
+                    startNewGame(selectedCharacter);
+                }
+            });
+            
+            // Set up keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    navigateCarousel(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateCarousel(1);
+                } else if (e.key === 'Enter' && selectedCharacter) {
                     startNewGame(selectedCharacter);
                 }
             });
@@ -302,23 +423,31 @@
             fetch('/api/characters')
                 .then(response => response.json())
                 .then(data => {
-                    renderCharacters(data.characters);
+                    characters = data.characters;
+                    renderCharacters(characters);
                 })
                 .catch(error => {
                     console.error('Error loading characters:', error);
-                    document.getElementById('character-container').innerHTML = 
+                    document.getElementById('character-carousel').innerHTML = 
                         '<p class="error">Failed to load characters. Please try again.</p>';
                 });
         }
         
         function renderCharacters(characters) {
-            const container = document.getElementById('character-container');
-            container.innerHTML = '';
+            const carousel = document.getElementById('character-carousel');
+            const indicators = document.getElementById('carousel-indicators');
+            const counter = document.getElementById('character-counter');
             
-            characters.forEach(character => {
+            // Clear any existing content
+            carousel.innerHTML = '';
+            indicators.innerHTML = '';
+            
+            // Create cards for each character
+            characters.forEach((character, index) => {
                 const card = document.createElement('div');
-                card.className = 'character-card';
+                card.className = `character-card ${index === 0 ? 'active' : ''}`;
                 card.dataset.characterId = character.id;
+                card.dataset.index = index;
                 
                 // Calculate bar widths based on stats
                 const maxLives = 10; // Normalize to max of 10 lives
@@ -329,13 +458,16 @@
                 const insightPercent = Math.min(100, (character.starting_stats.insight / maxInsight) * 100);
                 const levelPercent = Math.min(100, (character.starting_stats.level / maxLevel) * 100);
                 
+                // Custom ASCII art for each character type
+                let asciiArt = character.ascii_art || getAsciiArt(character.id);
+                
                 card.innerHTML = `
                     <div class="select-indicator">✓</div>
                     <div class="character-header">
                         <h3>${character.name}</h3>
                     </div>
                     <div class="character-avatar">
-                        <pre class="ascii-art">${character.ascii_art || '  O\n /|\\\n / \\'}</pre>
+                        <pre class="ascii-art">${asciiArt}</pre>
                     </div>
                     <div class="character-description">
                         <p>${character.description}</p>
@@ -374,22 +506,103 @@
                     </div>
                 `;
                 
+                // Handle card click
                 card.addEventListener('click', function() {
-                    document.querySelectorAll('.character-card').forEach(c => {
-                        c.classList.remove('selected');
-                    });
-                    this.classList.add('selected');
-                    selectedCharacter = character.id;
-                    document.getElementById('start-game-btn').disabled = false;
-                    
-                    // Add selection sound effect
-                    playSelectionSound();
+                    selectCharacter(character.id, index);
                 });
                 
-                container.appendChild(card);
+                carousel.appendChild(card);
+                
+                // Add indicator
+                const indicator = document.createElement('div');
+                indicator.className = `carousel-indicator ${index === 0 ? 'active' : ''}`;
+                indicator.dataset.index = index;
+                
+                // Handle indicator click
+                indicator.addEventListener('click', function() {
+                    setActiveCharacter(index);
+                    navigateToCharacter(index);
+                });
+                
+                indicators.appendChild(indicator);
+            });
+            
+            // Show counter
+            counter.textContent = `Character 1 of ${characters.length}`;
+            
+            // Set up initial state
+            setActiveCharacter(0);
+        }
+        
+        // Navigate the carousel
+        function navigateCarousel(direction) {
+            const newIndex = (currentCharacterIndex + direction + characters.length) % characters.length;
+            navigateToCharacter(newIndex);
+        }
+        
+        // Navigate to a specific character
+        function navigateToCharacter(index) {
+            // Update current index
+            currentCharacterIndex = index;
+            
+            // Update active state
+            setActiveCharacter(index);
+            
+            // Update counter
+            const counter = document.getElementById('character-counter');
+            counter.textContent = `Character ${index + 1} of ${characters.length}`;
+            
+            // Play sound
+            playNavigationSound();
+        }
+        
+        // Set the active character
+        function setActiveCharacter(index) {
+            // Update cards
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('active');
+                if (parseInt(card.dataset.index) === index) {
+                    card.classList.add('active');
+                }
+            });
+            
+            // Update indicators
+            document.querySelectorAll('.carousel-indicator').forEach(indicator => {
+                indicator.classList.remove('active');
+                if (parseInt(indicator.dataset.index) === index) {
+                    indicator.classList.add('active');
+                }
             });
         }
         
+        // Select a character
+        function selectCharacter(characterId, index) {
+            selectedCharacter = characterId;
+            
+            // Update selected state in cards
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+                if (card.dataset.characterId === characterId) {
+                    card.classList.add('selected');
+                }
+            });
+            
+            // Update selected state in indicators
+            document.querySelectorAll('.carousel-indicator').forEach(indicator => {
+                indicator.classList.remove('selected');
+                if (parseInt(indicator.dataset.index) === index) {
+                    indicator.classList.add('selected');
+                }
+            });
+            
+            // Enable start button
+            document.getElementById('start-game-btn').disabled = false;
+            
+            // Play selection sound
+            playSelectionSound();
+        }
+        
+        // Start new game with selected character
         function startNewGame(characterId) {
             fetch('/api/new-game', {
                 method: 'POST',
@@ -406,11 +619,70 @@
             .catch(error => console.error('Error starting new game:', error));
         }
         
+        // Sound effects
+        function playNavigationSound() {
+            // When we add audio files, we'll uncomment this
+            // const sound = new Audio('/static/audio/navigate.mp3');
+            // sound.volume = 0.2;
+            // sound.play();
+        }
+        
         function playSelectionSound() {
             // When we add audio files, we'll uncomment this
             // const sound = new Audio('/static/audio/select.mp3');
             // sound.volume = 0.3;
             // sound.play();
+        }
+        
+        // Replace the getAsciiArt function with this enhanced version
+        function getAsciiArt(characterId) {
+            switch(characterId) {
+                case 'resident':
+                    // Medical Physics Resident - with lab coat and clipboard
+                    return `   _O_\n  __|__\n   | |\n  / \\ \\`;
+                    
+                case 'physicist':
+                    // Junior Physicist - with equations floating
+                    return `   *o*\n  -\\|/-\n   /|\\\n  / \\ \\`;
+                    
+                case 'qa_specialist':
+                    // QA Specialist - with measurement device
+                    return `   [O]\n  /|=|\\\n  _|_\n  / \\`;
+                    
+                case 'debug_mode':
+                    // Debug Mode - with digital theme
+                    return `   {0}\n  <|01|\\\n   ||\n  /_\\`;
+                    
+                default:
+                    // Default character
+                    return `   O\n  /|\\\n  / \\`;
+            }
+        }
+
+        // Alternate more detailed versions if the above are too simple:
+
+        function getDetailedAsciiArt(characterId) {
+            switch(characterId) {
+                case 'resident':
+                    // Medical Physics Resident - with lab coat and badge
+                    return `    ,+,\n   (o.o)\n  /|\\Y/|\\\n   || ||\n  /|| ||\\\n    ==`;
+                    
+                case 'physicist':
+                    // Junior Physicist - more detailed with some physics symbols
+                    return `    ^o^\n   {o_o}\n  E=mc²\n  /|__|\\\n   d=vt\n  // \\\\`;
+                    
+                case 'qa_specialist':
+                    // QA Specialist - with testing devices
+                    return `    ,+,\n   [o-o]\n  /|\\#/|\\\n   |QA|\n  // \\\\`;
+                    
+                case 'debug_mode':
+                    // Debug Mode - digital themed character
+                    return `   [01]\n  (0_0)\n  <|D|>\n   ||||\n  //\\\\`;
+                    
+                default:
+                    // Default character
+                    return `    O\n   /|\\\n   / \\`;
+            }
         }
     </script>
 </body>
