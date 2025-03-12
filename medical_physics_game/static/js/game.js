@@ -117,7 +117,12 @@ function initializeGame() {
   // Show loading indicator
   showLoadingIndicator();
   
-  // Initialize event system first
+  // Initialize error handler first for robust error handling
+  if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.initialize === 'function') {
+    ErrorHandler.initialize();
+  }
+  
+  // Initialize event system
   if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
     EventSystem.initialize();
   }
@@ -127,9 +132,19 @@ function initializeGame() {
     ProgressionManager.initialize(PROGRESSION_TYPE.ROW_BASED);
   }
   
+  // Initialize UI feedback system
+  if (typeof FeedbackSystem !== 'undefined' && typeof FeedbackSystem.initialize === 'function') {
+    FeedbackSystem.initialize();
+  }
+  
   // Initialize node interaction system
   if (typeof NodeInteraction !== 'undefined' && typeof NodeInteraction.initialize === 'function') {
     NodeInteraction.initialize();
+  }
+  
+  // Initialize special interactions system
+  if (typeof SpecialInteractions !== 'undefined' && typeof SpecialInteractions.initialize === 'function') {
+    SpecialInteractions.initialize();
   }
   
   // Initialize game state
@@ -141,9 +156,24 @@ function initializeGame() {
           MapRenderer.initialize('floor-map');
         }
         
+        // Initialize character panel
+        if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
+          CharacterPanel.initialize();
+        }
+        
         // Initialize inventory system
-        if (typeof Character !== 'undefined' && typeof Character.initializeInventory === 'function') {
-          Character.initializeInventory();
+        if (typeof InventorySystem !== 'undefined' && typeof InventorySystem.initialize === 'function') {
+          InventorySystem.initialize();
+        }
+        
+        // Initialize save manager
+        if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
+          SaveManager.initialize();
+        }
+        
+        // Initialize debug tools if needed
+        if (typeof DebugTools !== 'undefined' && typeof DebugTools.initialize === 'function') {
+          DebugTools.initialize();
         }
         
         // Remove loading indicator
@@ -165,7 +195,11 @@ function initializeGame() {
       })
       .catch(error => {
         console.error('Error initializing game:', error);
-        showErrorMessage(error.message);
+        if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
+          ErrorHandler.handleError(error, 'Initialization');
+        } else {
+          showErrorMessage(error.message);
+        }
       });
   } else {
     console.error("Game state manager not available");
