@@ -788,34 +788,10 @@ const DebugTools = {
 
   // Add or replace this function in static/js/engine/debug_tools.js
 
-// Generate a concise state summary for debugging
+// Replace your entire generateStateSummary function with this one
 generateStateSummary: function() {
   console.log("Generating game state summary...");
   
-  // Add node type status check
-  const nodeTypeStatus = this.checkNodeTypeStatus();
-    
-  // Add to your output string
-  output += "\n===== NODE TYPE STATUS =====\n";
-
-  if (nodeTypeStatus.error) {
-    output += `Error checking node types: ${nodeTypeStatus.error}\n`;
-  } else {
-    output += "Working Types: " + (nodeTypeStatus.working.join(", ") || "None") + "\n";
-    output += "Problem Types: " + (nodeTypeStatus.notWorking.join(", ") || "None") + "\n\n";
-    
-    // Add details for problem types only (to keep it concise)
-    if (nodeTypeStatus.notWorking.length > 0) {
-      output += "Details for problem node types:\n";
-      nodeTypeStatus.notWorking.forEach(type => {
-        const details = nodeTypeStatus.details[type];
-        output += `  ${type}: ${details.status}\n`;
-        output += `    Container: ${details.containerExists ? "Exists" : "Missing"}\n`;
-        output += `    Handler: ${details.handlerExists ? details.handlerName : "Missing"}\n`;
-      });
-    }
-  }
-
   // Verify GameState exists
   if (!window.GameState || !GameState.data) {
     console.error("GameState not available");
@@ -823,16 +799,11 @@ generateStateSummary: function() {
     return "GameState not available";
   }
 
-  // Verify NODE_STATE exists
-  const nodeStates = window.NODE_STATE || {
-    LOCKED: 'locked',
-    AVAILABLE: 'available',
-    CURRENT: 'current',
-    COMPLETED: 'completed'
-  };
+  // Create output string to hold summary text
+  let output = "===== GAME STATE SUMMARY =====\n\n";
   
   try {
-    // Get all nodes for summary (safely)
+    // Get all nodes for summary
     const allNodes = GameState.getAllNodes ? GameState.getAllNodes() : [];
     
     // Current floor info
@@ -841,7 +812,10 @@ generateStateSummary: function() {
       currentNode: GameState.data.currentNode || 'None',
     };
     
-    // Node stats - count by state, type, and row
+    // Add floor info to output
+    output += `Floor: ${floorInfo.currentFloor}, Current Node: ${floorInfo.currentNode || 'None'}\n\n`;
+    
+    // Node stats - count by state
     const nodeStats = {
       byState: {
         locked: 0,
@@ -884,15 +858,15 @@ generateStateSummary: function() {
           
           if (node.visited) {
             nodeStats.byRow[row].completed++;
-          } else if (node.state === nodeStates.AVAILABLE) {
+          } else if (node.state === 'available') {
             nodeStats.byRow[row].available++;
-          } else if (node.state === nodeStates.LOCKED) {
+          } else if (node.state === 'locked') {
             nodeStats.byRow[row].locked++;
           }
         }
         
         // Collect all available nodes
-        if (node.state === nodeStates.AVAILABLE) {
+        if (node.state === 'available') {
           availableNodes.push({
             id: node.id,
             row: node.position?.row,
@@ -902,25 +876,6 @@ generateStateSummary: function() {
         }
       });
     }
-    
-    // Create a pretty-printed summary
-    const summary = {
-      floorInfo,
-      nodeStats,
-      availableNodes,
-      characterStats: {
-        level: GameState.data.character?.level || 0,
-        lives: GameState.data.character?.lives || 0,
-        insight: GameState.data.character?.insight || 0
-      },
-      inventory: (GameState.data.inventory?.length || 0) + " items"
-    };
-    
-    // Create a text output
-    let output = "===== GAME STATE SUMMARY =====\n\n";
-    
-    // Floor info
-    output += `Floor: ${floorInfo.currentFloor}, Current Node: ${floorInfo.currentNode || 'None'}\n\n`;
     
     // Node counts by state
     output += "Node Counts by State:\n";
@@ -950,8 +905,31 @@ generateStateSummary: function() {
     output += "\n";
     
     // Character stats
-    output += `Character: Level ${summary.characterStats.level}, Lives ${summary.characterStats.lives}, Insight ${summary.characterStats.insight}\n`;
-    output += `Inventory: ${summary.inventory}\n`;
+    output += `Character: Level ${GameState.data.character?.level || 0}, Lives ${GameState.data.character?.lives || 0}, Insight ${GameState.data.character?.insight || 0}\n`;
+    output += `Inventory: ${(GameState.data.inventory?.length || 0) + " items"}\n\n`;
+    
+    // Add node type status check
+    const nodeTypeStatus = this.checkNodeTypeStatus();
+    
+    output += "===== NODE TYPE STATUS =====\n";
+    
+    if (nodeTypeStatus.error) {
+      output += `Error checking node types: ${nodeTypeStatus.error}\n`;
+    } else {
+      output += "Working Types: " + (nodeTypeStatus.working.join(", ") || "None") + "\n";
+      output += "Problem Types: " + (nodeTypeStatus.notWorking.join(", ") || "None") + "\n\n";
+      
+      // Add details for problem types only (to keep it concise)
+      if (nodeTypeStatus.notWorking.length > 0) {
+        output += "Details for problem node types:\n";
+        nodeTypeStatus.notWorking.forEach(type => {
+          const details = nodeTypeStatus.details[type];
+          output += `  ${type}: ${details.status}\n`;
+          output += `    Container: ${details.containerExists ? "Exists" : "Missing"}\n`;
+          output += `    Handler: ${details.handlerExists ? details.handlerName : "Missing"}\n`;
+        });
+      }
+    }
     
     console.group("Debug Summary");
     console.log(output);
@@ -967,6 +945,75 @@ generateStateSummary: function() {
     UiUtils.showToast("Error generating debug summary: " + error.message, "danger");
     return "Error: " + error.message;
   }
+},
+
+// Also don't forget to add this function
+checkNodeTypeStatus: function() {
+  const results = {
+    working: [],
+    notWorking: [],
+    details: {}
+  };
+  
+  // Get all node types from the registry
+  if (!window.NodeRegistry || !NodeRegistry.nodeTypes) {
+    return { error: "NodeRegistry not available" };
+  }
+  
+  // Check each node type
+  Object.entries(NodeRegistry.nodeTypes).forEach(([type, config]) => {
+    const status = { type, status: "Unknown" };
+    
+    // Check 1: Does the container exist?
+    const containerId = config.interactionContainer;
+    const containerExists = containerId && document.getElementById(containerId);
+    status.containerExists = !!containerExists;
+    
+    // Check 2: Does the handler function exist?
+    let handlerName;
+    if (type.includes('_')) {
+      // Handle types with underscores (like patient_case -> PatientCase)
+      handlerName = 'show' + type.split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+    } else {
+      // Handle simple types
+      handlerName = 'show' + type.charAt(0).toUpperCase() + type.slice(1);
+    }
+    
+    // Also check for alternate handler (like showRestNode)
+    const altHandlerName = handlerName + 'Node';
+    
+    const hasHandler = (
+      window.NodeInteraction && 
+      (typeof NodeInteraction[handlerName] === 'function' || 
+       typeof NodeInteraction[altHandlerName] === 'function')
+    );
+    
+    status.handlerExists = hasHandler;
+    status.handlerName = hasHandler ? 
+      (typeof NodeInteraction[handlerName] === 'function' ? handlerName : altHandlerName) : 
+      "missing";
+    
+    // Determine overall status
+    if (type === 'start') {
+      // Start node doesn't need a handler or container
+      status.status = "OK (no handler needed)";
+      results.working.push(type);
+    } else if (containerExists && hasHandler) {
+      status.status = "✅ Working";
+      results.working.push(type);
+    } else {
+      status.status = "❌ Not Working";
+      if (!containerExists) status.status += " (container missing)";
+      if (!hasHandler) status.status += " (handler missing)";
+      results.notWorking.push(type);
+    }
+    
+    results.details[type] = status;
+  });
+  
+  return results;
 },
 
 // Helper to find what nodes connect to a given node
