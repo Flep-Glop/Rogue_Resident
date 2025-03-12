@@ -808,3 +808,72 @@
   bottom: 0;
   pointer-events: none;
 }
+/* Make character panel title softer */
+.character-details p strong {
+  color: var(--primary);
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  font-weight: normal;
+}
+
+/* Adjust avatar size to be less empty */
+.character-avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 10px;
+  padding: 5px;
+}
+
+.character-avatar {
+  display: inline-block;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+/* Make lives display more compact without text */
+#lives-container {
+  margin: 5px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+}
+/* Replace or modify the inventory-grid class */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 6px;
+  justify-content: start;
+}
+
+/* Fix tooltip positioning for all items */
+.item-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  max-width: 90vw;
+  background-color: var(--background);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 500; /* Increased z-index */
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* Fix tooltip visibility for top row items */
+.inventory-item:hover .item-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+  /* Ensure it appears on top */
+  z-index: 1000;
+}

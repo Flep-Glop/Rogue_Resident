@@ -33,7 +33,7 @@ const CharacterPanel = {
         const charInfoHtml = `
           <div class="character-avatar-container">
             <div class="character-avatar">
-              <pre class="ascii-character bobbing">${styledAsciiArt}</pre>
+              <pre class="ascii-character walking">${styledAsciiArt}</pre>
             </div>
           </div>
           <div class="character-details">

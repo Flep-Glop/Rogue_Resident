@@ -712,32 +712,37 @@ const MapRenderer = {
     }
   },
   
-  // Draw floor indicator with pixelated numbers
+  // Near line 550-570 (approximate)
   drawFloorIndicator: function(ctx, floorNumber) {
     ctx.save();
     
-    // Create a pixel-style badge in top right corner
+    // Create a larger, more prominent pixel-style badge
     const badgeX = 760;
     const badgeY = 30;
     
     // Draw badge background shadow
     ctx.fillStyle = '#292b36'; // Dark shadow
-    ctx.fillRect(badgeX - 40, badgeY - 10, 80, 30);
+    ctx.fillRect(badgeX - 50, badgeY - 10, 100, 36);
     
     // Draw badge main body
     ctx.fillStyle = '#3d4c60'; // Dark blue background
-    ctx.fillRect(badgeX - 40, badgeY - 14, 80, 30);
+    ctx.fillRect(badgeX - 50, badgeY - 14, 100, 36);
     
     // Badge border
     ctx.strokeStyle = '#5b8dd9'; // Primary color
     ctx.lineWidth = 2;
-    ctx.strokeRect(badgeX - 40, badgeY - 14, 80, 30);
+    ctx.strokeRect(badgeX - 50, badgeY - 14, 100, 36);
     
     // Badge text
-    ctx.font = '14px "Press Start 2P", monospace';
+    ctx.font = '16px "Press Start 2P", monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
     ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 6);
+    
+    // Add a subtle glow effect
+    ctx.shadowColor = '#5b8dd9';
+    ctx.shadowBlur = 8;
+    ctx.strokeRect(badgeX - 50, badgeY - 14, 100, 36);
     
     ctx.restore();
   },

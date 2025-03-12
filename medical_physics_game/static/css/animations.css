@@ -196,3 +196,32 @@
     transform: scale(1.1);
     transition: transform 0.2s;
   }
+  /* Enhanced walking animation */
+.ascii-character.walking {
+  animation: walk-cycle 1.5s steps(4) infinite;
+  position: relative;
+}
+
+@keyframes walk-cycle {
+  0% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  100% { transform: translateX(-3px); }
+}
+
+/* Add leg movement effect */
+.ascii-character.walking:after {
+  content: ".  . ";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  animation: leg-move 0.75s infinite;
+}
+
+@keyframes leg-move {
+  0% { content: ".  . "; }
+  33% { content: " .  ."; }
+  66% { content: "  . ."; }
+  100% { content: ".  . "; }
+}
