@@ -685,3 +685,33 @@
     height: 38px;
   }
 }
+#next-floor-btn {
+  position: relative;
+  font-size: 0.9rem;
+  padding: 10px 15px;
+  margin: 15px auto;
+  display: none; /* Initially hidden */
+  animation: pulse-attention 2s infinite;
+  box-shadow: 
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5),
+    0 0 15px var(--secondary);
+}
+
+#next-floor-btn::before {
+  content: "→";
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+#next-floor-btn::after {
+  content: "→";
+  margin-left: 8px;
+  font-size: 1.2em;
+}
+
+@keyframes pulse-attention {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

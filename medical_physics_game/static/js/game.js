@@ -70,6 +70,69 @@ function setupEventListeners() {
           });
       }
     });
+    // Add this to the setupEventListeners function in game.js
+
+    // Debug section for next-floor functionality
+    const debugNextFloorBtn = document.createElement('button');
+    debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
+    debugNextFloorBtn.textContent = 'Debug: Force Next Floor';
+    debugNextFloorBtn.style.fontSize = '0.7rem';
+    debugNextFloorBtn.style.padding = '2px 8px';
+
+    debugNextFloorBtn.addEventListener('click', function() {
+      console.log("DEBUG: Force proceeding to next floor");
+      
+      // Force floor completion
+      if (typeof GameState !== 'undefined') {
+        // Show the next floor button
+        const nextFloorBtn = document.getElementById('next-floor-btn');
+        if (nextFloorBtn) {
+          nextFloorBtn.style.display = 'block';
+          console.log("Next floor button made visible");
+        }
+        
+        // Direct call to go to next floor
+        if (typeof GameState.goToNextFloor === 'function') {
+          GameState.goToNextFloor()
+            .then(() => {
+              console.log("Successfully advanced to next floor");
+            })
+            .catch(error => {
+              console.error('Error going to next floor:', error);
+              UiUtils.showToast('Failed to proceed to next floor: ' + error.message, 'danger');
+            });
+        }
+      }
+    });
+
+    // Add force complete floor button
+    const debugCompleteFloorBtn = document.createElement('button');
+    debugCompleteFloorBtn.className = 'btn btn-success mt-2 mb-2 ms-2';
+    debugCompleteFloorBtn.textContent = 'Debug: Complete Floor';
+    debugCompleteFloorBtn.style.fontSize = '0.7rem';
+    debugCompleteFloorBtn.style.padding = '2px 8px';
+
+    debugCompleteFloorBtn.addEventListener('click', function() {
+      console.log("DEBUG: Force floor completion");
+      
+      // Force completion event
+      if (typeof EventSystem !== 'undefined') {
+        EventSystem.emit(GAME_EVENTS.FLOOR_COMPLETED, GameState.data.currentFloor);
+        console.log("Floor completion event emitted");
+      }
+    });
+
+    // Add to map container near debug button
+    const mapContainer = document.querySelector('.map-container');
+    if (mapContainer) {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'debug-buttons';
+      headerDiv.style.marginBottom = '10px';
+      headerDiv.appendChild(debugBtn); // This is the existing debug button
+      headerDiv.appendChild(debugCompleteFloorBtn);
+      headerDiv.appendChild(debugNextFloorBtn);
+      mapContainer.insertBefore(headerDiv, mapContainer.firstChild);
+    }
   }
   
   // Restart button in game over screen

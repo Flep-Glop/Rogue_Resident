@@ -49,59 +49,213 @@ const NODE_STATE = {
         });
     },
     
-    // Load map for the current floor
-    loadMap: function(floorNumber) {
-      console.log(`Loading map for floor ${floorNumber}...`);
+    // Enhanced loadMap function with validation and error handling
+loadMap: function(floorNumber) {
+  console.log(`Loading map for floor ${floorNumber}...`);
+  
+  return fetch('/api/generate-floor-map', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ floor_number: floorNumber })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Server responded with status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(mapData => {
+    console.log("Map data received from server:", mapData);
+    
+    // Validate map data
+    if (!mapData || !mapData.nodes || Object.keys(mapData.nodes).length === 0) {
+      console.error("Invalid map data received:", mapData);
+      throw new Error("Map data is invalid or empty");
+    }
+    
+    console.log(`Map for floor ${floorNumber} has ${Object.keys(mapData.nodes).length} nodes and ${mapData.boss ? "a boss" : "no boss"}`);
+    
+    // IMPORTANT: Store the map data properly
+    this.data.map = mapData;
+    
+    // Reset the current node
+    this.data.currentNode = null;
+    
+    // Initialize node states
+    this.updateAllNodeStates();
+    
+    // Emit event that a new floor map is loaded
+    EventSystem.emit(GAME_EVENTS.FLOOR_LOADED, floorNumber);
+    
+    // Force a map render
+    if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderMap === 'function') {
+      setTimeout(() => MapRenderer.renderMap(), 100);
+    }
+    
+    return mapData;
+  });
+},
+
+// Fully redone goToNextFloor implementation
+goToNextFloor: function() {
+  console.log("Going to next floor...");
+  
+  // Inform user we're loading
+  if (typeof UiUtils !== 'undefined' && typeof UiUtils.showToast === 'function') {
+    UiUtils.showToast("Loading next floor...", "info");
+  }
+  
+  // First, disable next floor button to prevent multiple clicks
+  const nextFloorBtn = document.getElementById('next-floor-btn');
+  if (nextFloorBtn) {
+    nextFloorBtn.disabled = true;
+    nextFloorBtn.textContent = "Loading...";
+  }
+  
+  return ApiClient.goToNextFloor()
+    .then(data => {
+      console.log("Next floor API response:", data);
       
-      return fetch('/api/generate-floor-map', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ floor_number: floorNumber })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(mapData => {
-        console.log("Map data received from server:", mapData);
-        
-        // Validate the map data has required structure
-        if (!mapData || !mapData.nodes) {
-          console.error("Invalid map data received:", mapData);
-          throw new Error("Invalid map data structure");
-        }
-        
-        // Check if we have any nodes
-        const nodeCount = Object.keys(mapData.nodes).length;
-        console.log(`Map has ${nodeCount} regular nodes and ${mapData.boss ? 1 : 0} boss nodes`);
-        
-        if (nodeCount === 0) {
-          console.error("Map has no nodes!");
-          throw new Error("Map generation failed - no nodes");
-        }
-        
-        // IMPORTANT: Clear any previous map data completely
-        this.data.map = mapData;
-        
-        // Reset the current node
-        this.data.currentNode = null;
-        
-        // Initialize node states
-        this.updateAllNodeStates();
-        
-        // Emit event that a new floor map is loaded
-        EventSystem.emit(GAME_EVENTS.FLOOR_LOADED, floorNumber);
-        
-        // Force a map render
-        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderMap === 'function') {
-          setTimeout(() => MapRenderer.renderMap(), 100);
-        }
-        
-        return mapData;
-      });
+      // Validate response
+      if (!data || !data.current_floor) {
+        throw new Error("Invalid response from server for next floor");
+      }
+      
+      // Update character stats
+      this.data.character = data.character;
+      
+      // IMPORTANT: Clear current floor data 
+      this.data.currentNode = null;
+      this.data.map = null; // This ensures old nodes are completely gone
+      
+      // Update floor number
+      const newFloor = data.current_floor;
+      console.log(`✨ ADVANCING TO FLOOR ${newFloor} ✨`);
+      this.data.currentFloor = newFloor;
+      
+      // Update floor number display
+      const floorElement = document.getElementById('current-floor');
+      if (floorElement) {
+        floorElement.textContent = newFloor;
+      }
+      
+      // Notify observers before loading new map
+      this.notifyObservers('floorAdvancing', newFloor);
+      EventSystem.emit(GAME_EVENTS.FLOOR_CHANGED, newFloor);
+      
+      // Show floor transition animation
+      if (typeof UiUtils !== 'undefined' && typeof UiUtils.showFloorTransition === 'function') {
+        UiUtils.showFloorTransition(newFloor);
+      }
+      
+      // Add a delay before loading the map for better UX
+      return new Promise(resolve => setTimeout(() => resolve(newFloor), 500));
+    })
+    .then(newFloor => {
+      // Load new floor map
+      return this.loadMap(newFloor)
+        .catch(error => {
+          console.error(`Error loading map for floor ${newFloor}:`, error);
+          
+          // Show error to user
+          if (typeof UiUtils !== 'undefined' && typeof UiUtils.showToast === 'function') {
+            UiUtils.showToast(`Error loading floor ${newFloor}: ${error.message}`, "danger");
+          }
+          
+          // Create a very simple default map as fallback
+          console.log("Creating fallback map");
+          this.data.map = this._createFallbackMap(newFloor);
+          this.updateAllNodeStates();
+          
+          // Force map render
+          if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.renderMap === 'function') {
+            setTimeout(() => MapRenderer.renderMap(), 100);
+          }
+          
+          return this.data.map;
+        });
+    })
+    .then(mapData => {
+      console.log("New floor map loaded:", mapData);
+      
+      // Re-enable next floor button
+      if (nextFloorBtn) {
+        nextFloorBtn.disabled = false;
+        nextFloorBtn.textContent = "Go to Next Floor";
+        nextFloorBtn.style.display = 'none'; // Hide until this floor is complete
+      }
+      
+      return mapData;
+    })
+    .catch(error => {
+      console.error("Critical error during floor advancement:", error);
+      
+      // Re-enable next floor button
+      if (nextFloorBtn) {
+        nextFloorBtn.disabled = false;
+        nextFloorBtn.textContent = "Try Again";
+      }
+      
+      // Show error to user
+      if (typeof UiUtils !== 'undefined' && typeof UiUtils.showToast === 'function') {
+        UiUtils.showToast(`Error going to next floor: ${error.message}. Please try again.`, "danger");
+      }
+      
+      throw error;
+    });
+},
+
+// Create a fallback map in case API call fails
+_createFallbackMap: function(floorNumber) {
+  console.log(`Creating fallback map for floor ${floorNumber}`);
+  
+  // Simple map with a few nodes
+  return {
+    "start": {
+      "id": "start",
+      "type": "start",
+      "position": {"row": 0, "col": 1},
+      "paths": ["node_1", "node_2"],
+      "visited": true
     },
+    "nodes": {
+      "node_1": {
+        "id": "node_1",
+        "type": "question",
+        "title": "Physics Question",
+        "position": {"row": 1, "col": 0},
+        "difficulty": 1,
+        "paths": ["node_3"],
+        "visited": false
+      },
+      "node_2": {
+        "id": "node_2",
+        "type": "treasure",
+        "title": "Equipment Found",
+        "position": {"row": 1, "col": 2},
+        "paths": ["node_3"],
+        "visited": false
+      },
+      "node_3": {
+        "id": "node_3",
+        "type": "rest",
+        "title": "Break Room",
+        "position": {"row": 2, "col": 1},
+        "paths": floorNumber < 3 ? [] : ["boss"],
+        "visited": false
+      }
+    },
+    "boss": floorNumber >= 3 ? {
+      "id": "boss",
+      "type": "boss",
+      "title": "Chief Medical Physicist",
+      "position": {"row": 3, "col": 1},
+      "difficulty": 3,
+      "paths": [],
+      "visited": false
+    } : null
+  };
+},
     
     // In state_manager.js, modify the updateAllNodeStates function:
 
@@ -225,35 +379,56 @@ const NODE_STATE = {
       console.log("Checking floor completion. All nodes:", allNodes.map(node => ({
         id: node.id,
         type: node.type, 
-        visited: node.visited
+        visited: node.visited,
+        state: node.state
       })));
       
-      // Special handling for boss floors
-      const hasBoss = allNodes.some(node => node.id === 'boss');
-      console.log("Floor has boss:", hasBoss);
+      // Count nodes by state
+      const stats = {
+        locked: 0,
+        available: 0,
+        completed: 0,
+        current: 0,
+        total: allNodes.length
+      };
       
-      // Consider floor complete if:
-      // 1. All regular nodes (except start and boss) are visited
-      // 2. If there's a boss node, it must be visited too
-      const regularNodesComplete = allNodes.every(node => 
-        node.id === 'start' || node.visited
+      allNodes.forEach(node => {
+        if (node.state === NODE_STATE.LOCKED) stats.locked++;
+        if (node.state === NODE_STATE.AVAILABLE) stats.available++;
+        if (node.state === NODE_STATE.COMPLETED) stats.completed++;
+        if (node.state === NODE_STATE.CURRENT) stats.current++;
+      });
+      
+      console.log("Floor node stats:", stats);
+      
+      // Floor is complete when:
+      // 1. There are no nodes in the AVAILABLE state
+      // 2. There is no current node
+      // 3. At least one node has been completed (besides start)
+      
+      const hasCompletedNodes = allNodes.some(node => 
+        node.state === NODE_STATE.COMPLETED && node.id !== 'start'
       );
       
-      const isFloorComplete = regularNodesComplete;
+      // Consider floor complete if there are no more available nodes to visit
+      // and there's no current node being visited
+      const isFloorComplete = (stats.available === 0 && !this.data.currentNode && hasCompletedNodes);
       
-      console.log("Floor completion status:", {
-        regularNodesComplete,
-        currentNode: this.data.currentNode,
+      console.log("Floor completion check:", {
+        hasAvailableNodes: stats.available > 0,
+        hasCurrentNode: !!this.data.currentNode,
+        hasCompletedNodes,
         isFloorComplete
       });
       
-      if (isFloorComplete && !this.data.currentNode) {
-        // Floor is complete - notify observers
+      if (isFloorComplete) {
+        console.log(`Floor ${this.data.currentFloor} is COMPLETE!`);
+        
+        // Notify observers
         this.notifyObservers('floorCompleted', this.data.currentFloor);
         
         // Emit event for floor completion
         EventSystem.emit(GAME_EVENTS.FLOOR_COMPLETED, this.data.currentFloor);
-        console.log(`Floor ${this.data.currentFloor} completed! Ready for next floor.`);
         
         // Show the next floor button
         const nextFloorBtn = document.getElementById('next-floor-btn');
@@ -293,6 +468,7 @@ const NODE_STATE = {
       // Mark as visited in local state
       node.visited = true;
       node.current = false;
+      node.state = NODE_STATE.COMPLETED;
       
       // Clear current node
       this.data.currentNode = null;
@@ -307,6 +483,12 @@ const NODE_STATE = {
           
           // Notify observers
           this.notifyObservers('nodeCompleted', nodeId);
+          EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeId);
+          
+          // Explicitly check if the floor is complete now
+          console.log("Checking if floor is complete after node completion");
+          const isFloorComplete = this.checkFloorCompletion();
+          console.log("Floor complete check result:", isFloorComplete);
           
           return true;
         })
@@ -317,6 +499,10 @@ const NODE_STATE = {
           // This ensures the game is still playable if server fails
           this.updateAllNodeStates();
           this.notifyObservers('nodeCompleted', nodeId);
+          EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeId);
+          
+          // Still check floor completion on error
+          this.checkFloorCompletion();
           
           return Promise.reject(error);
         });

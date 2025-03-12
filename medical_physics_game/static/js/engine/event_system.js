@@ -24,7 +24,8 @@ const EventSystem = {
   // Register built-in listeners that connect game systems
   registerBuiltInListeners: function() {
     // Listen for node completion to update UI
-    this.on('nodeCompleted', (nodeId) => {
+    this.on(GAME_EVENTS.NODE_COMPLETED, (nodeId) => {
+      console.log(`Node completed: ${nodeId}`);
       // Show map after node completion
       if (typeof UI !== 'undefined' && typeof UI.showMapView === 'function') {
         UI.showMapView();
@@ -32,23 +33,33 @@ const EventSystem = {
     });
     
     // Listen for floor completion to show next floor button
-    this.on('floorCompleted', (floorNumber) => {
-      console.log(`Floor ${floorNumber} completed!`);
+    this.on(GAME_EVENTS.FLOOR_COMPLETED, (floorNumber) => {
+      console.log(`✨ Floor ${floorNumber} completed! Ready for next floor.`);
       
       // Show next floor button
       const nextFloorBtn = document.getElementById('next-floor-btn');
       if (nextFloorBtn) {
         nextFloorBtn.style.display = 'block';
+        console.log("Next floor button displayed");
+      } else {
+        console.error("Next floor button element not found!");
       }
       
       // Show completion notification
       if (typeof UiUtils !== 'undefined' && typeof UiUtils.showToast === 'function') {
         UiUtils.showToast(`Floor ${floorNumber} completed! You can now proceed to the next floor.`, 'success');
       }
+      
+      // Show floating text feedback
+      if (typeof UiUtils !== 'undefined' && typeof UiUtils.showFloatingText === 'function') {
+        UiUtils.showFloatingText(`Floor ${floorNumber} Complete!`, 'success');
+      }
     });
     
     // Listen for floor change to update UI
-    this.on('floorChanged', (floorNumber) => {
+    this.on(GAME_EVENTS.FLOOR_CHANGED, (floorNumber) => {
+      console.log(`Floor changed to ${floorNumber}`);
+      
       // Update floor number display
       const floorElement = document.getElementById('current-floor');
       if (floorElement) {
