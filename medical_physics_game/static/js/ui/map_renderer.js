@@ -323,7 +323,7 @@ const MapRenderer = {
     ctx.fillRect(0, 0, width, height);
   },
   
-  // Draw enhanced connections between nodes with pixelated styling
+  // Update the drawConnections function
   drawConnections: function(ctx, width, height) {
     const allNodes = GameState.getAllNodes();
     
@@ -333,29 +333,49 @@ const MapRenderer = {
     allNodes.forEach(node => {
       if (!node.paths || node.paths.length === 0) return;
       
-      // Calculate source position
+      // Get nodes in this row for column calculation
+      const nodesInRow = this.getNodesInRow(node.position.row);
+      const columnsInRow = nodesInRow.length;
+      
+      // Calculate the starting x position to center nodes in this row
+      const rowWidth = columnsInRow * 120;
+      const startX = (width - rowWidth) / 2 + 60;
+      
+      // Get column index of this node within its row
+      const colIndex = nodesInRow.indexOf(node);
+      
+      // Calculate source position with centered coordinates
       const sourceRow = node.position.row;
-      const sourceCol = node.position.col;
-      const startX = 100 + (sourceCol * 120);
-      const startY = 100 + (sourceRow * 80);
+      const startNodeX = startX + (colIndex * 120);
+      const startNodeY = 100 + (sourceRow * 80);
       
       // Draw paths to each connected node
       node.paths.forEach(targetId => {
         const targetNode = GameState.getNodeById(targetId);
         if (!targetNode) return;
         
-        // Calculate target position
+        // Get target nodes in their row for column position
+        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
+        const targetColumnsInRow = targetNodesInRow.length;
+        
+        // Calculate target row starting position
+        const targetRowWidth = targetColumnsInRow * 120;
+        const targetStartX = (width - targetRowWidth) / 2 + 60;
+        
+        // Get target's column index
+        const targetColIndex = targetNodesInRow.indexOf(targetNode);
+        
+        // Calculate target position with centered coordinates
         const targetRow = targetNode.position.row;
-        const targetCol = targetNode.position.col;
-        const endX = 100 + (targetCol * 120);
-        const endY = 100 + (targetRow * 80);
+        const endNodeX = targetStartX + (targetColIndex * 120);
+        const endNodeY = 100 + (targetRow * 80);
         
         // Shadow color - always dark
         ctx.strokeStyle = 'rgba(0,0,0,0.5)';
         ctx.lineWidth = 5;
         
         // Draw the shadow with pixelated style
-        this.drawPixelLine(ctx, startX, startY + 4, endX, endY + 4);
+        this.drawPixelLine(ctx, startNodeX, startNodeY + 4, endNodeX, endNodeY + 4);
       });
     });
     
@@ -363,22 +383,42 @@ const MapRenderer = {
     allNodes.forEach(node => {
       if (!node.paths || node.paths.length === 0) return;
       
-      // Calculate source position
+      // Get nodes in this row for column calculation 
+      const nodesInRow = this.getNodesInRow(node.position.row);
+      const columnsInRow = nodesInRow.length;
+      
+      // Calculate the starting x position to center nodes in this row
+      const rowWidth = columnsInRow * 120;
+      const startX = (width - rowWidth) / 2 + 60;
+      
+      // Get column index of this node within its row
+      const colIndex = nodesInRow.indexOf(node);
+      
+      // Calculate source position with centered coordinates
       const sourceRow = node.position.row;
-      const sourceCol = node.position.col;
-      const startX = 100 + (sourceCol * 120);
-      const startY = 100 + (sourceRow * 80);
+      const startNodeX = startX + (colIndex * 120);
+      const startNodeY = 100 + (sourceRow * 80);
       
       // Draw paths to each connected node
       node.paths.forEach(targetId => {
         const targetNode = GameState.getNodeById(targetId);
         if (!targetNode) return;
         
-        // Calculate target position
+        // Get target nodes in their row
+        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
+        const targetColumnsInRow = targetNodesInRow.length;
+        
+        // Calculate target row starting position
+        const targetRowWidth = targetColumnsInRow * 120;
+        const targetStartX = (width - targetRowWidth) / 2 + 60;
+        
+        // Get target's column index
+        const targetColIndex = targetNodesInRow.indexOf(targetNode);
+        
+        // Calculate target position with centered coordinates
         const targetRow = targetNode.position.row;
-        const targetCol = targetNode.position.col;
-        const endX = 100 + (targetCol * 120);
-        const endY = 100 + (targetRow * 80);
+        const endNodeX = targetStartX + (targetColIndex * 120);
+        const endNodeY = 100 + (targetRow * 80);
         
         // Determine path style based on node states
         if (node.visited || node.id === 'start') {
@@ -406,11 +446,11 @@ const MapRenderer = {
         }
         
         // Draw the connection with pixelated style
-        this.drawPixelLine(ctx, startX, startY, endX, endY);
+        this.drawPixelLine(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
         
         // For available paths, add direction indicators
         if (node.visited && targetNode.state === NODE_STATE.AVAILABLE) {
-          this.drawPathArrow(ctx, startX, startY, endX, endY);
+          this.drawPathArrow(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
         }
       });
     });
@@ -747,7 +787,7 @@ const MapRenderer = {
     }
   },
   
-  // Handle map clicks
+  // Update the handleMapClick function
   handleMapClick: function(event) {
     const canvas = event.target;
     const rect = canvas.getBoundingClientRect();
@@ -758,6 +798,7 @@ const MapRenderer = {
     
     // Check if click is on any node
     const allNodes = GameState.getAllNodes();
+    const width = canvas.width;
     
     for (const node of allNodes) {
       // Skip start node (can't be clicked)
@@ -766,15 +807,25 @@ const MapRenderer = {
       // Skip nodes that are already visited
       if (node.visited) continue;
       
-      // Calculate node position
-      const rowSpacing = 80;
-      const colSpacing = 120;
-      const x = 100 + (node.position.col * colSpacing);
-      const y = 100 + (node.position.row * rowSpacing);
+      // Get nodes in this row for column calculation
+      const nodesInRow = this.getNodesInRow(node.position.row);
+      const columnsInRow = nodesInRow.length;
+      
+      // Calculate the starting x position to center nodes in this row
+      const rowWidth = columnsInRow * 120;
+      const startX = (width - rowWidth) / 2 + 60;
+      
+      // Get column index of this node within its row
+      const colIndex = nodesInRow.indexOf(node);
+      
+      // Calculate node center with centered coordinates
+      const nodeRow = node.position.row;
+      const nodeX = startX + (colIndex * 120);
+      const nodeY = 100 + (nodeRow * 80);
       
       // Check distance from click to node center
-      const dx = clickX - x;
-      const dy = clickY - y;
+      const dx = clickX - nodeX;
+      const dy = clickY - nodeY;
       const distance = Math.sqrt(dx*dx + dy*dy);
       const nodeRadius = 25;
       
@@ -785,7 +836,7 @@ const MapRenderer = {
         // If node can be visited, process it
         if (ProgressionManager.canVisitNode(node.id)) {
           // Visual feedback for click
-          this.showClickFeedback(x, y);
+          this.showClickFeedback(nodeX, nodeY);
           
           // Notify that node was selected
           EventSystem.emit(GAME_EVENTS.NODE_SELECTED, node.id);

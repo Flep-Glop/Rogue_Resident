@@ -120,17 +120,44 @@ const CharacterPanel = {
       });
   },
   
-  // Update lives visualization
+  // Find this function in CharacterPanel (static/js/ui/character_panel.js)
+  // and replace it with this version:
+
+  // Update lives visualization to handle large values
   updateLivesDisplay: function(lives, maxLives) {
     const livesContainer = document.getElementById('lives-container');
     if (!livesContainer) return;
     
+    // Clear current content
     livesContainer.innerHTML = '';
-    for (let i = 0; i < maxLives; i++) {
-      const lifeIcon = document.createElement('span');
-      lifeIcon.className = i < lives ? 'life-icon active' : 'life-icon inactive';
-      lifeIcon.innerHTML = i < lives ? '❤️' : '🖤';
-      livesContainer.appendChild(lifeIcon);
+    
+    // Check if we have lots of lives (more than 10)
+    if (maxLives > 10) {
+      // Set attribute for CSS targeting
+      livesContainer.setAttribute('data-lives-count', 'high');
+      
+      // Add a single heart icon
+      const heartIcon = document.createElement('span');
+      heartIcon.className = 'life-icon active';
+      heartIcon.innerHTML = '❤️';
+      livesContainer.appendChild(heartIcon);
+      
+      // Add numeric display
+      const livesCount = document.createElement('span');
+      livesCount.className = 'life-display';
+      livesCount.textContent = ` ${lives}/${maxLives}`;
+      livesContainer.appendChild(livesCount);
+    } else {
+      // Remove any previous attribute
+      livesContainer.removeAttribute('data-lives-count');
+      
+      // Standard heart icons for normal lives count
+      for (let i = 0; i < maxLives; i++) {
+        const lifeIcon = document.createElement('span');
+        lifeIcon.className = i < lives ? 'life-icon active' : 'life-icon inactive';
+        lifeIcon.innerHTML = i < lives ? '❤️' : '🖤';
+        livesContainer.appendChild(lifeIcon);
+      }
     }
   },
   
