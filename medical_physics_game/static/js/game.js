@@ -134,7 +134,7 @@ function initializeGame() {
   
   // Initialize progression manager
   if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
-    ProgressionManager.initialize(PROGRESSION_TYPE.ROW_BASED);
+    ProgressionManager.initialize(PROGRESSION_TYPE.PATH_BASED);
   }
   
   // Initialize UI feedback system
