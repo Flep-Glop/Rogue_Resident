@@ -792,6 +792,30 @@ const DebugTools = {
 generateStateSummary: function() {
   console.log("Generating game state summary...");
   
+  // Add node type status check
+  const nodeTypeStatus = this.checkNodeTypeStatus();
+    
+  // Add to your output string
+  output += "\n===== NODE TYPE STATUS =====\n";
+
+  if (nodeTypeStatus.error) {
+    output += `Error checking node types: ${nodeTypeStatus.error}\n`;
+  } else {
+    output += "Working Types: " + (nodeTypeStatus.working.join(", ") || "None") + "\n";
+    output += "Problem Types: " + (nodeTypeStatus.notWorking.join(", ") || "None") + "\n\n";
+    
+    // Add details for problem types only (to keep it concise)
+    if (nodeTypeStatus.notWorking.length > 0) {
+      output += "Details for problem node types:\n";
+      nodeTypeStatus.notWorking.forEach(type => {
+        const details = nodeTypeStatus.details[type];
+        output += `  ${type}: ${details.status}\n`;
+        output += `    Container: ${details.containerExists ? "Exists" : "Missing"}\n`;
+        output += `    Handler: ${details.handlerExists ? details.handlerName : "Missing"}\n`;
+      });
+    }
+  }
+
   // Verify GameState exists
   if (!window.GameState || !GameState.data) {
     console.error("GameState not available");
@@ -931,7 +955,7 @@ generateStateSummary: function() {
     
     console.group("Debug Summary");
     console.log(output);
-    console.log("Full summary object:", summary);
+    console.log("Full node type status:", nodeTypeStatus);
     console.groupEnd();
     
     // Copy to clipboard
@@ -1049,6 +1073,74 @@ _fallbackCopyToClipboard: function(text) {
     
     // Notify user
     UiUtils.showToast("Debug summary copied to clipboard!", "success");
+  },
+  // Add this function to DebugTools in static/js/engine/debug_tools.js
+  checkNodeTypeStatus: function() {
+    const results = {
+      working: [],
+      notWorking: [],
+      details: {}
+    };
+    
+    // Get all node types from the registry
+    if (!window.NodeRegistry || !NodeRegistry.nodeTypes) {
+      return { error: "NodeRegistry not available" };
+    }
+    
+    // Check each node type
+    Object.entries(NodeRegistry.nodeTypes).forEach(([type, config]) => {
+      const status = { type, status: "Unknown" };
+      
+      // Check 1: Does the container exist?
+      const containerId = config.interactionContainer;
+      const containerExists = containerId && document.getElementById(containerId);
+      status.containerExists = !!containerExists;
+      
+      // Check 2: Does the handler function exist?
+      let handlerName;
+      if (type.includes('_')) {
+        // Handle types with underscores (like patient_case -> PatientCase)
+        handlerName = 'show' + type.split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+      } else {
+        // Handle simple types
+        handlerName = 'show' + type.charAt(0).toUpperCase() + type.slice(1);
+      }
+      
+      // Also check for alternate handler (like showRestNode)
+      const altHandlerName = handlerName + 'Node';
+      
+      const hasHandler = (
+        window.NodeInteraction && 
+        (typeof NodeInteraction[handlerName] === 'function' || 
+        typeof NodeInteraction[altHandlerName] === 'function')
+      );
+      
+      status.handlerExists = hasHandler;
+      status.handlerName = hasHandler ? 
+        (typeof NodeInteraction[handlerName] === 'function' ? handlerName : altHandlerName) : 
+        "missing";
+      
+      // Determine overall status
+      if (type === 'start') {
+        // Start node doesn't need a handler or container
+        status.status = "OK (no handler needed)";
+        results.working.push(type);
+      } else if (containerExists && hasHandler) {
+        status.status = "✅ Working";
+        results.working.push(type);
+      } else {
+        status.status = "❌ Not Working";
+        if (!containerExists) status.status += " (container missing)";
+        if (!hasHandler) status.status += " (handler missing)";
+        results.notWorking.push(type);
+      }
+      
+      results.details[type] = status;
+    });
+    
+    return results;
   }
   };
   
