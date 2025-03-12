@@ -8,6 +8,7 @@ const CONTAINER_TYPES = {
     EVENT: 'event-container',
     SHOP: 'shop-container',
     GAMBLE: 'gamble-container',
+    PATIENT_CASE: 'patient-case-container',
     GAME_OVER: 'game-over-container',
     GAME_BOARD: 'game-board-container',
     MAP: 'floor-map'
@@ -326,7 +327,17 @@ const CONTAINER_TYPES = {
         case 'shop':
           this.showShop(nodeData);
           break;
-          
+        
+        // Add inside the switch statement in processNodeContent
+        case 'patient_case':
+          if (nodeData.patient_case) {
+              this.showPatientCase(nodeData);
+          } else {
+              console.error("Patient case data missing for patient_case node:", nodeData);
+              UiUtils.showToast("Error: Missing patient case data", "danger");
+          }
+          break;
+
         case 'gamble':
           this.showGamble(nodeData);
           break;

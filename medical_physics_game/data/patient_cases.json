@@ -1,0 +1,242 @@
+{
+    "patient_cases": [
+      {
+        "id": "case_lung_sbrt",
+        "title": "Lung SBRT Case",
+        "patient_info": {
+          "age": 72,
+          "gender": "Male",
+          "diagnosis": "Stage I Non-Small Cell Lung Cancer (NSCLC)",
+          "notes": "Patient not a surgical candidate due to COPD. Referred for SBRT treatment."
+        },
+        "case_description": "A 72-year-old male with Stage I NSCLC is being planned for lung SBRT. The tumor is located near the chest wall.",
+        "scenario_image": "ASCII_LUNG_CT_SCAN",
+        "stages": [
+          {
+            "id": "initial_assessment",
+            "question": "What is the most critical organ at risk (OAR) to consider for this case?",
+            "options": [
+              "Spinal cord",
+              "Heart",
+              "Chest wall / ribs",
+              "Contralateral lung"
+            ],
+            "correct": 2,
+            "explanation": "For a tumor near the chest wall, the ribs and chest wall are critical OARs to consider due to the risk of chest wall pain and rib fracture from high dose per fraction treatments.",
+            "insight_gain": 5
+          },
+          {
+            "id": "planning_decision",
+            "question": "Which treatment planning approach would you recommend?",
+            "options": [
+              "Standard 3D conformal plan with 5-7 beams",
+              "IMRT plan with 9-11 beams for maximum conformality",
+              "VMAT arc therapy to improve delivery efficiency",
+              "SBRT-optimized non-coplanar beam arrangement"
+            ],
+            "correct": 3,
+            "explanation": "Non-coplanar beam arrangements are often used for lung SBRT to improve dose fall-off near critical structures while maintaining target coverage. This is especially important for tumors near the chest wall.",
+            "insight_gain": 5,
+            "next_stage_mapping": [0, 2, 1, 3]
+          },
+          {
+            "id": "dose_decision_path_a",
+            "question": "The standard dose prescription for this case would be:",
+            "options": [
+              "60 Gy in 30 fractions (2 Gy/fraction)",
+              "50 Gy in 5 fractions (10 Gy/fraction)",
+              "54 Gy in 3 fractions (18 Gy/fraction)",
+              "36 Gy in 1 fraction (36 Gy/fraction)"
+            ],
+            "correct": 1,
+            "explanation": "For lung SBRT, common dose regimens include 50-60 Gy in 5 fractions for tumors near the chest wall. More hypofractionated regimens (3 fractions or single fraction) are typically used for tumors away from critical structures.",
+            "insight_gain": 10
+          },
+          {
+            "id": "dose_decision_path_b",
+            "question": "For a VMAT approach with a tumor near the chest wall, which dose constraint is most likely to be challenging?",
+            "options": [
+              "Heart mean dose < 26 Gy",
+              "Spinal cord max dose < 30 Gy",
+              "Chest wall V30 < 30 cc",
+              "Contralateral lung V5 < 60%"
+            ],
+            "correct": 2,
+            "explanation": "The chest wall dose constraint (V30 < 30 cc) is often challenging for tumors located near the chest wall, as the high dose gradient needs to be maintained while ensuring adequate target coverage.",
+            "insight_gain": 8
+          },
+          {
+            "id": "dose_decision_path_c",
+            "question": "For an IMRT approach, which technique would best address chest wall doses?",
+            "options": [
+              "Increase the number of beams from all directions",
+              "Use partial arcs avoiding direct chest wall entrance",
+              "Add a bolus to the chest wall",
+              "Create avoidance sectors in the optimization"
+            ],
+            "correct": 3,
+            "explanation": "Creating avoidance sectors in the optimization that limit beam intensity through the chest wall can help reduce chest wall dose while maintaining target coverage.",
+            "insight_gain": 8
+          },
+          {
+            "id": "dose_decision_path_d",
+            "question": "For a non-coplanar approach, which beam arrangement would you recommend?",
+            "options": [
+              "Evenly spaced beams around the patient",
+              "Predominantly anterior and posterior beams",
+              "Concentration of beams ipsilateral to the tumor",
+              "One beam from each major direction (anterior, posterior, lateral)"
+            ],
+            "correct": 2,
+            "explanation": "For lung SBRT with non-coplanar beams, concentrating beams on the ipsilateral side helps minimize dose to contralateral lung while providing adequate angles for chest wall sparing.",
+            "insight_gain": 12
+          },
+          {
+            "id": "image_guidance",
+            "question": "Which image guidance approach would you recommend for this SBRT treatment?",
+            "options": [
+              "Weekly portal images",
+              "Daily kV planar imaging",
+              "Daily CBCT with online correction",
+              "CBCT prior to treatment and midway through delivery"
+            ],
+            "correct": 2,
+            "explanation": "Daily CBCT with online correction is the standard image guidance approach for SBRT treatments due to the high doses per fraction and need for precise targeting.",
+            "insight_gain": 5
+          },
+          {
+            "id": "followup",
+            "question": "The patient returns 6 months later with chest wall pain. The most likely cause is:",
+            "options": [
+              "Tumor progression",
+              "Radiation-induced chest wall injury",
+              "Unrelated musculoskeletal issue",
+              "Pneumonitis extending to the pleura"
+            ],
+            "correct": 1,
+            "explanation": "Chest wall pain is a known side effect of SBRT for tumors near the chest wall, typically occurring 6-12 months after treatment due to rib fracture or chest wall inflammation.",
+            "insight_gain": 5
+          }
+        ]
+      },
+      {
+        "id": "case_prostate_brachytherapy",
+        "title": "Prostate Brachytherapy Case",
+        "patient_info": {
+          "age": 65,
+          "gender": "Male",
+          "diagnosis": "Low-risk prostate cancer",
+          "notes": "PSA: 6.2 ng/mL, Gleason score: 3+3=6, T1c"
+        },
+        "case_description": "A 65-year-old male with low-risk prostate cancer is being considered for LDR brachytherapy as monotherapy.",
+        "scenario_image": "ASCII_PROSTATE_ULTRASOUND",
+        "stages": [
+          {
+            "id": "initial_assessment",
+            "question": "Which of the following would be a contraindication for prostate brachytherapy?",
+            "options": [
+              "Prostate volume of 35 cc",
+              "History of prior TURP (transurethral resection of the prostate)",
+              "PSA of 8.5 ng/mL",
+              "Age 75 years"
+            ],
+            "correct": 1,
+            "explanation": "Prior TURP is a relative contraindication for prostate brachytherapy due to increased risk of urinary toxicity and the potential for source loss through the urethra.",
+            "insight_gain": 5
+          },
+          {
+            "id": "isotope_selection",
+            "question": "Which isotope would you recommend for this patient's LDR brachytherapy?",
+            "options": [
+              "Cs-131 (half-life 9.7 days)",
+              "I-125 (half-life 59.4 days)",
+              "Pd-103 (half-life 17 days)",
+              "Ir-192 (half-life 74 days)"
+            ],
+            "correct": 1,
+            "explanation": "I-125 is the most commonly used isotope for low-risk prostate cancer LDR brachytherapy. Its relatively long half-life (59.4 days) is well-suited for the relatively slow proliferation rate of low-risk prostate cancer cells.",
+            "insight_gain": 8,
+            "next_stage_mapping": [2, 3, 2, 0]
+          },
+          {
+            "id": "dose_planning_path_a",
+            "question": "What is the typical prescription dose for I-125 LDR prostate brachytherapy?",
+            "options": [
+              "125 Gy",
+              "145 Gy",
+              "160 Gy",
+              "180 Gy"
+            ],
+            "correct": 1,
+            "explanation": "The typical prescription dose for I-125 LDR prostate brachytherapy as monotherapy is 145 Gy, as recommended by the American Brachytherapy Society.",
+            "insight_gain": 8
+          },
+          {
+            "id": "dose_planning_path_b",
+            "question": "For Pd-103, what would be the recommended prescription dose?",
+            "options": [
+              "100 Gy",
+              "125 Gy",
+              "145 Gy",
+              "170 Gy"
+            ],
+            "correct": 1,
+            "explanation": "For Pd-103 LDR prostate brachytherapy as monotherapy, the typical prescription dose is 125 Gy. The lower dose compared to I-125 reflects the different biological effectiveness of the isotope due to its shorter half-life and higher dose rate.",
+            "insight_gain": 8
+          },
+          {
+            "id": "dose_planning_path_c",
+            "question": "What is the recommended post-implant dosimetric parameter for evaluation of prostate coverage?",
+            "options": [
+              "D90 > 100% of prescription dose",
+              "V100 > 80%",
+              "V150 < 60%",
+              "D30 to urethra < 150% of prescription"
+            ],
+            "correct": 0,
+            "explanation": "The post-implant D90 (dose covering 90% of the prostate volume) should be greater than 100% of the prescription dose, ideally between 100-120%. This is the most commonly used parameter for evaluating the adequacy of prostate coverage.",
+            "insight_gain": 10
+          },
+          {
+            "id": "dose_planning_path_d",
+            "question": "Which organ at risk constraint is most critical for a prostate brachytherapy plan?",
+            "options": [
+              "Bladder V75 < 1 cc",
+              "Rectum V100 < 1.0 cc",
+              "Femoral heads D2cc < 50 Gy",
+              "Small bowel Dmax < 100 Gy"
+            ],
+            "correct": 1,
+            "explanation": "The rectum V100 (volume receiving 100% of prescription dose) should be less than 1.0 cc to minimize the risk of rectal toxicity, which is one of the most important constraints in prostate brachytherapy planning.",
+            "insight_gain": 10
+          },
+          {
+            "id": "post_implant",
+            "question": "When should the post-implant CT for dosimetric evaluation be performed for I-125 implants?",
+            "options": [
+              "Same day as the implant",
+              "1-3 days post-implant",
+              "2-4 weeks post-implant",
+              "6-8 weeks post-implant"
+            ],
+            "correct": 1,
+            "explanation": "For I-125 implants, post-implant CT for dosimetric evaluation is typically performed at day 1-3 post-implant, which allows for assessment of the implant quality while accounting for initial edema resolution.",
+            "insight_gain": 5
+          },
+          {
+            "id": "followup",
+            "question": "The patient calls 2 weeks after the procedure reporting urinary frequency and dysuria. What would you recommend?",
+            "options": [
+              "Immediate cystoscopy to check for seed migration",
+              "CT scan to assess seed positions",
+              "Alpha-blocker medication and increased fluid intake",
+              "Emergency room evaluation for possible infection"
+            ],
+            "correct": 2,
+            "explanation": "Urinary symptoms such as frequency and dysuria are common in the first few weeks after prostate brachytherapy. First-line management typically includes alpha-blockers to help with urinary flow and increased fluid intake. These symptoms are expected and usually resolve gradually over several weeks to months.",
+            "insight_gain": 5
+          }
+        ]
+      }
+    ]
+  }

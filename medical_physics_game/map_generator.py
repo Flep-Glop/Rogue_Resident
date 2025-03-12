@@ -181,6 +181,7 @@ def get_node_title(node_type):
         "question": "Physics Question",
         "elite": "Challenging Question",
         "boss": "Final Assessment",
+        "patient_case": "Patient Case",
         "treasure": "Equipment Found",
         "rest": "Break Room",
         "shop": "Department Store",
