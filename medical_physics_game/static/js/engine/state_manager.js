@@ -49,8 +49,11 @@ const NODE_STATE = {
         });
     },
     
-    // Load map for a specific floor
+    // In state_manager.js, replace the loadMap function completely:
+
     loadMap: function(floorNumber) {
+      console.log(`Loading map for floor ${floorNumber}...`);
+      
       return fetch('/api/generate-floor-map', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,10 +67,18 @@ const NODE_STATE = {
       })
       .then(mapData => {
         console.log("Map data received from server:", mapData);
+        
+        // IMPORTANT: Clear any previous map data completely
         this.data.map = mapData;
+        
+        // Reset the current node
+        this.data.currentNode = null;
         
         // Initialize node states
         this.updateAllNodeStates();
+        
+        // Emit event that a new floor map is loaded
+        EventSystem.emit(GAME_EVENTS.FLOOR_LOADED, floorNumber);
         
         return mapData;
       });
@@ -251,22 +262,29 @@ const NODE_STATE = {
         });
     },
     
-    // Progress to the next floor
+    // In state_manager.js, modify goToNextFloor as follows:
+
     goToNextFloor: function() {
       console.log("Going to next floor...");
       
       return ApiClient.goToNextFloor()
         .then(data => {
-          // Update game state
+          // Update character stats
           this.data.character = data.character;
-          this.data.currentFloor = data.current_floor;
+          
+          // IMPORTANT: Clear current floor data 
           this.data.currentNode = null;
+          this.data.map = null; // This ensures old nodes are completely gone
+          
+          // Update floor number
+          const newFloor = data.current_floor;
+          this.data.currentFloor = newFloor;
           
           // Notify observers before loading new map
-          this.notifyObservers('floorAdvancing', data.current_floor);
+          this.notifyObservers('floorAdvancing', newFloor);
           
           // Load new floor map
-          return this.loadMap(data.current_floor);
+          return this.loadMap(newFloor);
         })
         .then(mapData => {
           // Notify observers after new map is loaded
