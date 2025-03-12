@@ -1,0 +1,123 @@
+/* Add this to your main.css or create a new CSS file and include it */
+
+/* Modal overlay for node interactions */
+.node-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+    overflow: auto;
+    backdrop-filter: blur(3px);
+    animation: modal-fade-in 0.3s ease-out;
+  }
+  
+  .node-modal-content {
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    background-color: var(--background-alt);
+    border: 4px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    position: relative;
+    overflow: auto;
+    animation: modal-slide-up 0.4s ease-out;
+    transform-origin: center;
+  }
+  
+  /* Style the interaction containers specifically in the modal */
+  .node-modal-content .interaction-container {
+    display: block !important;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Make modal buttons more prominent */
+  .node-modal-content .btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 0.8rem;
+  }
+  
+  /* Add a close button */
+  .node-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  
+  .node-modal-close:hover {
+    color: var(--primary);
+  }
+  
+  /* Node type-specific styling inside modal */
+  .node-modal-content #question-container {
+    border-top: 4px solid var(--primary);
+    padding-top: 15px;
+  }
+  
+  .node-modal-content #treasure-container {
+    border-top: 4px solid var(--warning);
+    padding-top: 15px;
+  }
+  
+  .node-modal-content #event-container {
+    border-top: 4px solid var(--warning);
+    padding-top: 15px;
+  }
+  
+  .node-modal-content #rest-container {
+    border-top: 4px solid var(--secondary);
+    padding-top: 15px;
+  }
+  
+  /* Animations */
+  @keyframes modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes modal-slide-up {
+    from { transform: translateY(30px); opacity: 0.5; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  /* Make continue buttons more prominent and consistent */
+  .node-modal-content #continue-btn,
+  .node-modal-content #treasure-continue-btn,
+  .node-modal-content #rest-continue-btn,
+  .node-modal-content #event-continue-btn,
+  .node-modal-content #shop-continue-btn,
+  .node-modal-content #gamble-continue-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    text-align: center;
+    background-color: var(--secondary);
+    box-shadow: 
+      0 var(--pixel-size) 0 0 var(--secondary-dark),
+      0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
+    font-size: 0.9rem;
+    animation: button-pulse 2s infinite;
+  }
+  
+  @keyframes button-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }

@@ -43,13 +43,37 @@ const CONTAINER_TYPES = {
       }
     },
     
-    // Show a specific container
+    // Find this function in node_interaction.js and update it
     showContainer: function(containerId) {
       this.hideAllContainers();
       
       const container = document.getElementById(containerId);
       if (container) {
-        container.style.display = 'block';
+        // Create a modal overlay if it doesn't exist already
+        let modalOverlay = document.getElementById('node-modal-overlay');
+        if (!modalOverlay) {
+          modalOverlay = document.createElement('div');
+          modalOverlay.id = 'node-modal-overlay';
+          modalOverlay.className = 'node-modal-overlay';
+          document.body.appendChild(modalOverlay);
+        }
+
+        // Create modal content container if it doesn't exist
+        let modalContent = document.getElementById('node-modal-content');
+        if (!modalContent) {
+          modalContent = document.createElement('div');
+          modalContent.id = 'node-modal-content';
+          modalContent.className = 'node-modal-content';
+          modalOverlay.appendChild(modalContent);
+        }
+
+        // Copy the container content to the modal
+        modalContent.innerHTML = '';
+        modalContent.appendChild(container.cloneNode(true));
+        container.style.display = 'none'; // Hide the original container
+
+        // Show the modal
+        modalOverlay.style.display = 'flex';
         
         // Notify of container change
         EventSystem.emit(GAME_EVENTS.UI_CONTAINER_CHANGED, containerId);
@@ -58,8 +82,14 @@ const CONTAINER_TYPES = {
       }
     },
     
-    // Show map view
+    // Update this function to handle the modal properly
     showMapView: function() {
+      // Hide the modal overlay if it exists
+      const modalOverlay = document.getElementById('node-modal-overlay');
+      if (modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
+      
       // Make sure game board is visible
       const gameBoardContainer = document.getElementById(CONTAINER_TYPES.GAME_BOARD);
       if (gameBoardContainer) {

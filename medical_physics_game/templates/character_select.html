@@ -6,61 +6,262 @@
     <title>Select Your Character</title>
     <link href="/static/css/retro.css" rel="stylesheet">
     <style>
+        /* Base container styling */
+        .character-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Character cards container */
         .character-cards {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 30px;
             margin-top: 40px;
+            width: 100%;
         }
         
+        /* Base character card styling */
         .character-card {
-            background-color: rgba(52, 152, 219, 0.2);
-            border: 4px solid #3498db;
-            border-radius: 8px;
-            padding: 20px;
+            position: relative;
             width: 280px;
+            background-color: var(--background-alt);
+            border: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .character-card:hover {
             transform: translateY(-5px);
-            border-color: #2ecc71;
+            border-color: var(--secondary);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
         
         .character-card.selected {
-            border-color: #2ecc71;
-            background-color: rgba(46, 204, 113, 0.2);
+            border-color: var(--secondary);
+            background-color: rgba(86, 184, 134, 0.1);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 
+                0 10px 25px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(86, 184, 134, 0.3);
         }
         
-        .stats {
-            margin-top: 15px;
-            font-size: 14px;
+        /* Character header with name and level */
+        .character-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 15px;
+            text-align: center;
+            position: relative;
         }
         
+        .character-card.selected .character-header {
+            background-color: var(--secondary);
+        }
+        
+        .character-header h3 {
+            margin: 0;
+            font-size: 0.9rem;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ASCII art character visualization */
+        .character-avatar {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: center;
+            margin: 15px auto;
+            border-radius: 5px;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .ascii-art {
+            font-family: monospace;
+            white-space: pre;
+            color: white;
+            font-size: 18px;
+            line-height: 1.2;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Character description area */
+        .character-description {
+            padding: 0 15px 10px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text);
+            flex-grow: 0;
+            line-height: 1.4;
+        }
+        
+        /* Stats display with pixel bars */
+        .character-stats {
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-top: 2px dashed rgba(255, 255, 255, 0.1);
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .stat-label {
+            width: 80px;
+            font-size: 0.7rem;
+            color: var(--text);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        .stat-bar-container {
+            flex-grow: 1;
+            height: 12px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .stat-value {
+            position: absolute;
+            right: 5px;
+            top: 0;
+            font-size: 0.6rem;
+            color: white;
+            line-height: 12px;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+        }
+        
+        .stat-bar {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .stat-bar.lives {
+            background-color: #e67e73; /* danger color */
+        }
+        
+        .stat-bar.insight {
+            background-color: #5b8dd9; /* primary color */
+        }
+        
+        .stat-bar.level {
+            background-color: #f0c866; /* warning color */
+        }
+        
+        /* Special ability section */
         .special-ability {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #f1c40f;
+            padding: 15px;
+            text-align: left;
         }
         
+        .ability-header {
+            font-size: 0.8rem;
+            color: var(--warning);
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+        }
+        
+        .ability-header span {
+            margin-left: 8px;
+            background-color: rgba(0, 0, 0, 0.3);
+            font-size: 0.6rem;
+            padding: 3px 6px;
+            border-radius: 3px;
+        }
+        
+        .ability-description {
+            font-size: 0.7rem;
+            color: var(--text);
+            line-height: 1.4;
+            border-left: 2px solid var(--warning);
+            padding-left: 10px;
+        }
+        
+        /* Start button enhancements */
         .start-btn {
             margin-top: 40px;
+            padding: 15px 30px;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
         }
-        .character-card {
-            background-color: rgba(52, 152, 219, 0.2);
+        
+        .start-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+            cursor: not-allowed;
+        }
+        
+        .start-btn:not(:disabled)::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: button-shine 3s infinite;
+        }
+        
+        @keyframes button-shine {
+            0% {
+                left: -50%;
+                top: -50%;
+            }
+            100% {
+                left: 150%;
+                top: 150%;
+            }
+        }
+        
+        /* Selection indicator */
+        .select-indicator {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            background-color: var(--secondary);
+            border-bottom-left-radius: 8px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
             color: white;
-            font-family: 'Press Start 2P', cursive;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
         }
-
-        .character-card .stats p {
-            font-size: 0.7em;
-            margin-bottom: 0.5em;
+        
+        .character-card.selected .select-indicator {
+            display: flex;
         }
-
-        .character-card .special-ability p {
-            font-size: 0.7em;
+        
+        /* Back button styling */
+        .back-btn {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -69,16 +270,18 @@
         <div class="scanlines"></div>
         <div class="crt-effect"></div>
         
-        <h1 class="game-title">Select Your Character</h1>
-        
-        <div class="character-cards" id="character-container">
-            <!-- Characters will be loaded here -->
-            <p>Loading characters...</p>
+        <div class="character-selection">
+            <h1 class="game-title">Select Your Character</h1>
+            
+            <div class="character-cards" id="character-container">
+                <!-- Characters will be loaded here -->
+                <p>Loading characters...</p>
+            </div>
+            
+            <button class="retro-btn start start-btn" id="start-game-btn" disabled>Begin Residency</button>
+            
+            <a href="/" class="retro-btn options back-btn">Back to Menu</a>
         </div>
-        
-        <button class="retro-btn start start-btn" id="start-game-btn" disabled>Begin Residency</button>
-        
-        <a href="/" class="retro-btn options" style="margin-top: 20px;">Back to Menu</a>
     </div>
 
     <script>
@@ -117,17 +320,57 @@
                 card.className = 'character-card';
                 card.dataset.characterId = character.id;
                 
+                // Calculate bar widths based on stats
+                const maxLives = 10; // Normalize to max of 10 lives
+                const maxInsight = 100; // Normalize to max of 100 insight
+                const maxLevel = 10; // Normalize to max of 10 levels
+                
+                const livesPercent = Math.min(100, (character.starting_stats.lives / maxLives) * 100);
+                const insightPercent = Math.min(100, (character.starting_stats.insight / maxInsight) * 100);
+                const levelPercent = Math.min(100, (character.starting_stats.level / maxLevel) * 100);
+                
                 card.innerHTML = `
-                    <h3>${character.name}</h3>
-                    <p>${character.description}</p>
-                    <div class="stats">
-                        <p>Level: ${character.starting_stats.level}</p>
-                        <p>Lives: ${character.starting_stats.lives}</p>
-                        <p>Insight: ${character.starting_stats.insight}</p>
+                    <div class="select-indicator">✓</div>
+                    <div class="character-header">
+                        <h3>${character.name}</h3>
+                    </div>
+                    <div class="character-avatar">
+                        <pre class="ascii-art">${character.ascii_art || '  O\n /|\\\n / \\'}</pre>
+                    </div>
+                    <div class="character-description">
+                        <p>${character.description}</p>
+                    </div>
+                    <div class="character-stats">
+                        <div class="stat-row">
+                            <div class="stat-label">Lives</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar lives" style="width: ${livesPercent}%"></div>
+                                <div class="stat-value">${character.starting_stats.lives}/${character.starting_stats.max_lives}</div>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label">Insight</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar insight" style="width: ${insightPercent}%"></div>
+                                <div class="stat-value">${character.starting_stats.insight}</div>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label">Level</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar level" style="width: ${levelPercent}%"></div>
+                                <div class="stat-value">${character.starting_stats.level}</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="special-ability">
-                        <p><strong>${character.special_ability.name}</strong></p>
-                        <p>${character.special_ability.description}</p>
+                        <div class="ability-header">
+                            ${character.special_ability.name}
+                            <span>${character.special_ability.uses_per_floor || 1}/floor</span>
+                        </div>
+                        <div class="ability-description">
+                            ${character.special_ability.description}
+                        </div>
                     </div>
                 `;
                 
@@ -138,6 +381,9 @@
                     this.classList.add('selected');
                     selectedCharacter = character.id;
                     document.getElementById('start-game-btn').disabled = false;
+                    
+                    // Add selection sound effect
+                    playSelectionSound();
                 });
                 
                 container.appendChild(card);
@@ -158,6 +404,13 @@
                 window.location.href = '/game';
             })
             .catch(error => console.error('Error starting new game:', error));
+        }
+        
+        function playSelectionSound() {
+            // When we add audio files, we'll uncomment this
+            // const sound = new Audio('/static/audio/select.mp3');
+            // sound.volume = 0.3;
+            // sound.play();
         }
     </script>
 </body>
