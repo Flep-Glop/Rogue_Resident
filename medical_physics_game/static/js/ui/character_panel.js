@@ -17,7 +17,9 @@ const CharacterPanel = {
     return this;
   },
   
-  // Update character display with data
+  // Update the updateCharacterDisplay function in character_panel.js
+  // Replace its HTML construction part:
+
   updateCharacterDisplay: function(character) {
     if (!character) return;
     
@@ -31,13 +33,13 @@ const CharacterPanel = {
         const styledAsciiArt = this.styleAsciiArt(asciiArt, character.name);
         
         const charInfoHtml = `
-          <div class="character-avatar-container">
-            <div class="character-avatar">
-              <pre class="ascii-character walking">${styledAsciiArt}</pre>
-            </div>
-          </div>
           <div class="character-details">
             <p><strong>${character.name}</strong></p>
+            <div class="character-avatar-container">
+              <div class="character-avatar">
+                <pre class="ascii-character walking">${styledAsciiArt}</pre>
+              </div>
+            </div>
             <div class="insight-bar-container">
               <div class="insight-bar-label">Insight</div>
               <div class="insight-bar">
@@ -161,15 +163,51 @@ const CharacterPanel = {
     }
   },
   
-  // Default ASCII art
+  // Replace the getDefaultAsciiArt function in character_panel.js
   getDefaultAsciiArt: function() {
-    return `  O
-    /|\\
-    / \\`;
+    return `    ,+,
+    (o o)
+    /|\\Y/|\\
+    || ||
+    /|| ||\\
+      ==`;
   },
-  
-  // Style ASCII art based on character type
+  // Add this function to character_panel.js
+  getHighResAsciiArt: function(characterName) {
+    if (characterName.includes('Physicist')) {
+      return `    ^o^
+    {o_o}
+    E=mc²
+    /|__|\\
+    d=vt
+    // \\\\`;
+    } else if (characterName.includes('QA')) {
+      return `    ,+,
+    [o-o]
+    /|\\#/|\\
+    |QA|
+    // \\\\`;
+    } else if (characterName.includes('Debug')) {
+      return `   [01]
+    (0_0)
+    <|D|>
+    ||||
+    //\\\\`;
+    } else {
+      // Default for Resident
+      return `    ,+,
+    (o.o)
+    /|\\Y/|\\
+    || ||
+    /|| ||\\
+      ==`;
+    }
+  },
+  // Update the styleAsciiArt function to use high res art
   styleAsciiArt: function(asciiArt, characterName) {
+    // Always use high res art instead of passed-in ASCII
+    const highResArt = this.getHighResAsciiArt(characterName);
+    
     // Add color based on character type
     let color = '#5b8dd9'; // Default blue for resident
     
@@ -182,7 +220,7 @@ const CharacterPanel = {
     }
     
     // Add color styling to ASCII art for terminal-like effect
-    const coloredArt = asciiArt
+    const coloredArt = highResArt
       .split('\n')
       .map((line, index) => {
         // Add slight color variation for each line for a more dynamic look

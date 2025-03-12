@@ -21,20 +21,14 @@
     100% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
   }
   
-  /* Character avatar container */
-  .character-avatar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto var(--spacing-md);
-  }
-  
   .character-avatar {
     display: inline-block;
     padding: var(--spacing-sm);
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radius-sm);
     margin-bottom: var(--spacing-sm);
+    border: 2px solid var(--primary-dark);
+    box-shadow: 0 0 10px rgba(91, 141, 217, 0.2);
   }
   
   .ascii-character {
@@ -43,7 +37,7 @@
     line-height: 1.2;
     text-align: center;
     margin: 0;
-    font-size: 18px;
+    font-size: 16px; /* Slightly reduced from 18px */
     color: var(--text);
   }
   
@@ -52,9 +46,14 @@
     animation: bob 1.5s ease-in-out infinite;
   }
   
-  .ascii-character.walking {
-    animation: walk-cycle 1.5s steps(4) infinite;
-    position: relative;
+  /* Modify the character container to be more compact */
+  .character-avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto var(--spacing-sm);
+    max-height: 120px; /* Limit maximum height */
+    overflow: hidden;
   }
   
   /* Walking animation effect */

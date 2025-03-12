@@ -420,16 +420,15 @@ const MapRenderer = {
         const endNodeX = targetStartX + (targetColIndex * 120);
         const endNodeY = 100 + (targetRow * 80);
         
-        // Determine path style based on node states
         if (node.visited || node.id === 'start') {
           if (targetNode.state === NODE_STATE.AVAILABLE) {
             // VALID PASSABLE PATH - BRIGHT GREEN
             ctx.strokeStyle = '#56b886'; // Use secondary color
             ctx.lineWidth = 3;
           } else if (targetNode.state === NODE_STATE.COMPLETED) {
-            // ALREADY TAKEN PATH - GRAY
-            ctx.strokeStyle = '#6c7a89';
-            ctx.lineWidth = 2;
+            // ALREADY TAKEN PATH - Now using bright BLUE instead of gray
+            ctx.strokeStyle = '#5b8dd9'; // Primary color instead of gray
+            ctx.lineWidth = 3; // Increased from 2 to be more visible
           } else if (targetNode.state === NODE_STATE.CURRENT) {
             // PATH TO CURRENT NODE - BRIGHT BLUE
             ctx.strokeStyle = '#5b8dd9'; // Use primary color
@@ -443,6 +442,12 @@ const MapRenderer = {
           // All other paths - extremely faint
           ctx.strokeStyle = 'rgba(255,255,255,0.05)';
           ctx.lineWidth = 1;
+        }
+        
+        // Also, if BOTH nodes are completed, make the path even more prominent
+        if (node.visited && targetNode.visited) {
+          ctx.strokeStyle = '#9c77db'; // Purple for completed connections
+          ctx.lineWidth = 3;
         }
         
         // Draw the connection with pixelated style
@@ -712,37 +717,41 @@ const MapRenderer = {
     }
   },
   
-  // Near line 550-570 (approximate)
+  // Replace the drawFloorIndicator function in map_renderer.js
   drawFloorIndicator: function(ctx, floorNumber) {
     ctx.save();
     
-    // Create a larger, more prominent pixel-style badge
-    const badgeX = 760;
+    // Move the badge to top-center for better visibility
+    const badgeX = ctx.canvas.width / 2;
     const badgeY = 30;
+    
+    // Make it slightly bigger
+    const badgeWidth = 120;
+    const badgeHeight = 40;
     
     // Draw badge background shadow
     ctx.fillStyle = '#292b36'; // Dark shadow
-    ctx.fillRect(badgeX - 50, badgeY - 10, 100, 36);
+    ctx.fillRect(badgeX - badgeWidth/2 + 4, badgeY - 10 + 4, badgeWidth, badgeHeight);
     
     // Draw badge main body
     ctx.fillStyle = '#3d4c60'; // Dark blue background
-    ctx.fillRect(badgeX - 50, badgeY - 14, 100, 36);
+    ctx.fillRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
     
     // Badge border
     ctx.strokeStyle = '#5b8dd9'; // Primary color
     ctx.lineWidth = 2;
-    ctx.strokeRect(badgeX - 50, badgeY - 14, 100, 36);
+    ctx.strokeRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
     
     // Badge text
-    ctx.font = '16px "Press Start 2P", monospace';
+    ctx.font = '18px "Press Start 2P", monospace'; // Slightly larger font
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 6);
+    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 10);
     
     // Add a subtle glow effect
     ctx.shadowColor = '#5b8dd9';
     ctx.shadowBlur = 8;
-    ctx.strokeRect(badgeX - 50, badgeY - 14, 100, 36);
+    ctx.strokeRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
     
     ctx.restore();
   },
