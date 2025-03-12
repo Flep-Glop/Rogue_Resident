@@ -214,6 +214,72 @@ def get_floor(floor_id):
         
     return jsonify(floor)
 
+# In app.py, find or add this function:
+@app.route('/api/floors-config', methods=['POST'])
+def update_floors_config():
+    """Update the floors configuration for testing"""
+    try:
+        # Generate a series of floors for testing
+        floor_count = request.json.get('floor_count', 10)
+        floors_data = {"floors": []}
+        
+        # Generate floor 1
+        floors_data["floors"].append({
+            "id": 1,
+            "name": "Hospital Basement",
+            "description": "Your first day as a resident. Learn the basics in the safe environment of the basement.",
+            "node_count": {"min": 4, "max": 6},
+            "node_types": {
+                "question": {"weight": 60, "difficulty_range": [1, 1]},
+                "rest": {"weight": 20},
+                "treasure": {"weight": 20}
+            },
+            "boss": None
+        })
+        
+        # Generate floors 2 through floor_count-1
+        for i in range(2, floor_count):
+            floors_data["floors"].append({
+                "id": i,
+                "name": f"Floor {i}",
+                "description": f"Test floor {i} with increasing difficulty.",
+                "node_count": {"min": 5, "max": 7},
+                "node_types": {
+                    "question": {"weight": 50, "difficulty_range": [1, min(i, 3)]},
+                    "elite": {"weight": 15, "difficulty_range": [2, min(i, 3)]},
+                    "rest": {"weight": 15},
+                    "treasure": {"weight": 20}
+                },
+                "boss": None
+            })
+        
+        # Generate final boss floor
+        floors_data["floors"].append({
+            "id": floor_count,
+            "name": "Final Challenge",
+            "description": "The ultimate challenge for your medical physics knowledge.",
+            "node_count": {"min": 6, "max": 8},
+            "node_types": {
+                "question": {"weight": 40, "difficulty_range": [2, 3]},
+                "elite": {"weight": 30, "difficulty_range": [2, 3]},
+                "rest": {"weight": 15},
+                "treasure": {"weight": 15}
+            },
+            "boss": {
+                "name": "Chief Medical Physicist",
+                "description": "The department head has challenging questions about QA procedures.",
+                "difficulty": 3
+            }
+        })
+        
+        # Save to floors.json
+        save_json_data(floors_data, 'floors.json')
+        
+        return jsonify({"success": True, "floor_count": floor_count})
+    except Exception as e:
+        print(f"Error updating floors config: {e}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
 @app.route('/api/generate-floor-map', methods=['POST'])
 def generate_floor_map():
     """Generate a map for the current floor"""
