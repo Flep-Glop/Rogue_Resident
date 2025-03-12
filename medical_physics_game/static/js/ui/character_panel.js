@@ -2,7 +2,7 @@
 
 // CharacterPanel singleton - manages character UI
 const CharacterPanel = {
-  // Initialize character panel
+  // Also update the initialize function to ensure animations are reset on initialization
   initialize: function() {
     console.log("Initializing character panel...");
     
@@ -14,24 +14,48 @@ const CharacterPanel = {
     // Initial character display
     this.updateCharacterDisplay(GameState.data.character);
     
+    // Make sure animation stops when page is hidden
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (this.animationTimer) {
+          clearInterval(this.animationTimer);
+          this.animationTimer = null;
+        }
+      } else {
+        // Resume animation when page becomes visible again
+        this.startCharacterAnimation();
+      }
+    });
+    
     return this;
   },
   
-  // Update the updateCharacterDisplay function in character_panel.js
-  // Replace its HTML construction part:
-
+  // Complete updateCharacterDisplay function
   updateCharacterDisplay: function(character) {
     if (!character) return;
     
     // Get character data
     this.getCharacterData(character.name)
       .then(characterData => {
-        // Create HTML for character display
-        const asciiArt = characterData?.ascii_art || this.getDefaultAsciiArt();
+        // Get initial animation frame from our animation set
+        let initialFrame = this.getHighResAsciiArt(character.name);
+        
+        // If we have animation frames for this character type, use the first one
+        if (character.name.includes('Physicist') && this.animationFrames.physicist) {
+          initialFrame = this.animationFrames.physicist[0];
+        } else if (character.name.includes('QA') && this.animationFrames.qa_specialist) {
+          initialFrame = this.animationFrames.qa_specialist[0];
+        } else if (character.name.includes('Debug') && this.animationFrames.debug_mode) {
+          initialFrame = this.animationFrames.debug_mode[0];
+        } else {
+          // Default to resident
+          initialFrame = this.animationFrames.resident[0];
+        }
         
         // Create styled ASCII art
-        const styledAsciiArt = this.styleAsciiArt(asciiArt, character.name);
+        const styledAsciiArt = this.styleAnimationFrame(initialFrame, character.name);
         
+        // Create HTML for character display
         const charInfoHtml = `
           <div class="character-details">
             <p><strong>${character.name}</strong></p>
@@ -55,6 +79,24 @@ const CharacterPanel = {
         const charInfoElement = document.getElementById('character-info');
         if (charInfoElement) {
           charInfoElement.innerHTML = charInfoHtml;
+          
+          // Add character type class for CSS targeting
+          const characterStats = document.querySelector('.character-stats');
+          if (characterStats) {
+            // Remove any existing character type classes
+            characterStats.classList.remove('debug-physicist', 'resident-character', 'qa-specialist', 'physicist-character');
+            
+            // Add appropriate class based on character name
+            if (character.name.includes('Debug')) {
+              characterStats.classList.add('debug-physicist');
+            } else if (character.name.includes('QA')) {
+              characterStats.classList.add('qa-specialist');
+            } else if (character.name.includes('Physicist')) {
+              characterStats.classList.add('physicist-character');
+            } else {
+              characterStats.classList.add('resident-character');
+            }
+          }
         }
         
         // Update lives visualization
@@ -64,6 +106,9 @@ const CharacterPanel = {
         if (character.special_ability) {
           this.updateSpecialAbility(character.special_ability);
         }
+        
+        // Start the character animation
+        this.startCharacterAnimation();
       });
   },
   
@@ -332,7 +377,179 @@ const CharacterPanel = {
       ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
     }
   },
-  
+  // Add this to character_panel.js
+
+  // Character animation system
+  animationFrames: {
+    // Physicist frames
+    physicist: [
+      // Frame 1: Regular pose
+      `    ^o^
+    {o_o}
+    E=mc²
+    /|__|\\
+    d=vt
+    // \\\\`,
+      // Frame 2: Slight arm movement
+      `    ^o^
+    {o_o}
+    E=mc²
+    /|~_|\\
+    d=vt
+    // \\\\`,
+      // Frame 3: More arm movement
+      `    ^o^
+    {o_o}
+    E=mc²
+    /|_~|\\
+    d=vt
+    // \\\\`,
+    ],
+    
+    // Resident frames
+    resident: [
+      // Frame 1: Regular pose
+      `    ,+,
+    (o.o)
+    /|\\Y/|\\
+    || ||
+    /|| ||\\
+      ==`,
+      // Frame 2: Slight movement
+      `    ,+,
+    (o.o)
+    /|\\Y/|\\
+    || ||
+    /|/ \\|\\
+      ==`,
+      // Frame 3: More movement
+      `    ,+,
+    (o.o)
+    /|\\Y/|\\
+    || ||
+    /|| ||\\
+      ==`,
+    ],
+    
+    // QA Specialist frames
+    qa_specialist: [
+      // Frame 1: Regular pose
+      `    ,+,
+    [o-o]
+    /|\\#/|\\
+    |QA|
+    // \\\\`,
+      // Frame 2: Measurement pose
+      `    ,+,
+    [o-o]
+    /|\\#-|\\
+    |QA|
+    // \\\\`,
+      // Frame 3: Another pose
+      `    ,+,
+    [o-o]
+    /|-#/|\\
+    |QA|
+    // \\\\`,
+    ],
+    
+    // Debug mode frames with binary flickering
+    debug_mode: [
+      // Frame 1: Regular pose
+      `   [01]
+    (0_0)
+    <|D|>
+    ||||
+    //\\\\`,
+      // Frame 2: Binary change
+      `   [10]
+    (0_0)
+    <|D|>
+    ||||
+    //\\\\`,
+      // Frame 3: More binary changes
+      `   [11]
+    (1_0)
+    <|D|>
+    ||||
+    //\\\\`,
+    ]
+  },
+
+  // Current animation frame and timer
+  currentAnimationFrame: 0,
+  animationTimer: null,
+
+  // Start the animation loop
+  startCharacterAnimation: function() {
+    // Clear any existing animation
+    if (this.animationTimer) {
+      clearInterval(this.animationTimer);
+    }
+    
+    // Set up animation interval (change every 500ms)
+    this.animationTimer = setInterval(() => {
+      this.updateCharacterAnimation();
+    }, 500);
+  },
+
+  // Update the character animation frame
+  updateCharacterAnimation: function() {
+    // Get the current character name
+    const character = GameState.data.character;
+    if (!character) return;
+    
+    // Determine which animation set to use
+    let frameSet = this.animationFrames.resident; // Default
+    
+    if (character.name.includes('Physicist')) {
+      frameSet = this.animationFrames.physicist;
+    } else if (character.name.includes('QA')) {
+      frameSet = this.animationFrames.qa_specialist;
+    } else if (character.name.includes('Debug')) {
+      frameSet = this.animationFrames.debug_mode;
+    }
+    
+    // Update the animation frame
+    this.currentAnimationFrame = (this.currentAnimationFrame + 1) % frameSet.length;
+    
+    // Get the new frame
+    const newFrame = frameSet[this.currentAnimationFrame];
+    
+    // Update the character display
+    const characterArt = document.querySelector('.ascii-character');
+    if (characterArt) {
+      // Create styled ASCII frame
+      const styledArt = this.styleAnimationFrame(newFrame, character.name);
+      characterArt.innerHTML = styledArt;
+    }
+  },
+
+  // Style an animation frame
+  styleAnimationFrame: function(frame, characterName) {
+    // Add color based on character type
+    let color = '#5b8dd9'; // Default blue for resident
+    
+    if (characterName.includes('Physicist')) {
+      color = '#56b886'; // Green for physicist
+    } else if (characterName.includes('QA')) {
+      color = '#f0c866'; // Yellow for QA specialist
+    } else if (characterName.includes('Regulatory')) {
+      color = '#e67e73'; // Red for regulatory specialist
+    }
+    
+    // Add color styling to ASCII art
+    const coloredArt = frame
+      .split('\n')
+      .map((line, index) => {
+        // Add slight color variation for each line for a more dynamic look
+        const shade = Math.min(100, 80 + index * 5);
+        return `<span style="color: ${color}; filter: brightness(${shade}%)">${line}</span>`;
+      })
+      .join('\n');
+    
+    return coloredArt;
+  },
   // Initialize inventory system
   initializeInventory: function() {
     InventorySystem.initialize();

@@ -717,17 +717,17 @@ const MapRenderer = {
     }
   },
   
-  // Replace the drawFloorIndicator function in map_renderer.js
+  // Update the drawFloorIndicator function in map_renderer.js to use a smaller font
   drawFloorIndicator: function(ctx, floorNumber) {
     ctx.save();
     
-    // Move the badge to top-center for better visibility
+    // Keep centered position
     const badgeX = ctx.canvas.width / 2;
     const badgeY = 30;
     
-    // Make it slightly bigger
+    // Adjust size to better fit text
     const badgeWidth = 120;
-    const badgeHeight = 40;
+    const badgeHeight = 36;
     
     // Draw badge background shadow
     ctx.fillStyle = '#292b36'; // Dark shadow
@@ -742,11 +742,11 @@ const MapRenderer = {
     ctx.lineWidth = 2;
     ctx.strokeRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
     
-    // Badge text
-    ctx.font = '18px "Press Start 2P", monospace'; // Slightly larger font
+    // Badge text - REDUCED FONT SIZE
+    ctx.font = '14px "Press Start 2P", monospace'; // Smaller font (from 18px to 14px)
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 10);
+    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 8); // Adjust vertical position
     
     // Add a subtle glow effect
     ctx.shadowColor = '#5b8dd9';
