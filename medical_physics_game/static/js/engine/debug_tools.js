@@ -1188,6 +1188,51 @@ _fallbackCopyToClipboard: function(text) {
     });
     
     return results;
+  },
+  // Add this to DebugTools object
+  inspectNode: function(nodeId) {
+    if (!window.GameState || !GameState.getNodeById) {
+      console.error("GameState not available");
+      return null;
+    }
+    
+    const node = GameState.getNodeById(nodeId);
+    if (!node) {
+      console.error(`Node ${nodeId} not found`);
+      return null;
+    }
+    
+    console.group(`Node ${nodeId} Inspection`);
+    console.log("Node data:", node);
+    
+    // Check node type handler
+    const nodeType = node.type;
+    let handlerName;
+    if (nodeType.includes('_')) {
+      handlerName = 'show' + nodeType.split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+    } else {
+      handlerName = 'show' + nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
+    }
+    
+    const altHandlerName = handlerName + 'Node';
+    
+    console.log(`Handler function: ${handlerName} or ${altHandlerName}`);
+    console.log(`Handler exists: ${
+      window.NodeInteraction && 
+      (typeof NodeInteraction[handlerName] === 'function' || 
+      typeof NodeInteraction[altHandlerName] === 'function')
+    }`);
+    
+    // Check container
+    const containerType = NodeRegistry.getNodeType(nodeType).interactionContainer;
+    console.log(`Container: ${containerType}`);
+    console.log(`Container exists: ${!!document.getElementById(containerType)}`);
+    
+    console.groupEnd();
+    
+    return node;
   }
   };
   

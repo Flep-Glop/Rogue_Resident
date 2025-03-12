@@ -482,25 +482,60 @@ const CONTAINER_TYPES = {
       // Show result
       resultDiv.style.display = 'block';
     },
-    
-    // Show a treasure node
+    // Add these functions to NodeInteraction object
+    showElite: function(nodeData) {
+      console.log("Elite node detected - using question handler");
+      // Elite nodes are just harder questions, so use the question handler
+      this.showQuestion(nodeData);
+    },
+
+    showBoss: function(nodeData) {
+      console.log("Boss node detected - using question handler");
+      // Boss nodes are final questions, so use the question handler
+      this.showQuestion(nodeData);
+    },
+    // Replace your showTreasure function with this improved version
     showTreasure: function(nodeData) {
-      console.log("Showing treasure node:", nodeData);
+      console.log("Showing treasure node:", JSON.stringify(nodeData));
       
       // Get item data from node
       const item = nodeData.item;
-      console.log("Item data:", item);
+      
+      // Debug logging
       if (!item) {
-        console.error("No item data in treasure node");
-        console.error("Full node data:", JSON.stringify(nodeData));
-        GameState.completeNode(nodeData.id);
+        console.error("⚠️ No item data in treasure node!");
+        console.error("Node data:", nodeData);
+        
+        // Try to create a default item as a fallback
+        const defaultItem = {
+          id: "emergency_item_" + Date.now(),
+          name: "Emergency Item",
+          description: "An item generated when the treasure node data was missing.",
+          rarity: "common",
+          effect: {
+            type: "insight_boost",
+            value: 5,
+            duration: "instant"
+          }
+        };
+        
+        // Use default item
+        console.log("Using default item as fallback:", defaultItem);
+        this.displayTreasureItem(defaultItem, nodeData.id);
         return;
       }
       
-      // Create treasure content
+      // Display the item
+      this.displayTreasureItem(item, nodeData.id);
+    },
+
+    // New helper function to separate display logic
+    displayTreasureItem: function(item, nodeId) {
+      // Get treasure content container
       const treasureContent = document.getElementById('treasure-content');
       if (!treasureContent) {
-        GameState.completeNode(nodeData.id);
+        console.error("Treasure content container not found!");
+        GameState.completeNode(nodeId);
         return;
       }
       
@@ -525,12 +560,17 @@ const CONTAINER_TYPES = {
       const collectBtn = document.getElementById('collect-item-btn');
       if (collectBtn) {
         collectBtn.addEventListener('click', () => {
-          // Add item to inventory - notify via event system
+          console.log("Adding item to inventory:", item);
+          
+          // Add item to inventory via event system
           EventSystem.emit(GAME_EVENTS.ITEM_ADDED, item);
           
           // Disable the button to prevent multiple collections
           collectBtn.disabled = true;
           collectBtn.textContent = "Added to Inventory";
+          
+          // Add visual feedback
+          UiUtils.showFloatingText(`Added ${item.name} to inventory!`, 'success');
         });
       }
       
@@ -542,8 +582,10 @@ const CONTAINER_TYPES = {
       if (continueBtn) {
         continueBtn.addEventListener('click', () => {
           console.log("Treasure continue button clicked - completing node");
-          GameState.completeNode(nodeData.id);
+          GameState.completeNode(nodeId);
         });
+      } else {
+        console.error("Continue button not found for treasure!");
       }
     },
     
