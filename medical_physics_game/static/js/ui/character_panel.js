@@ -217,35 +217,35 @@ const CharacterPanel = {
     /|| ||\\
       ==`;
   },
-  // Add this function to character_panel.js
   getHighResAsciiArt: function(characterName) {
     if (characterName.includes('Physicist')) {
-      return `    ^o^
-    {o_o}
-    E=mc²
-    /|__|\\
-    d=vt
-    // \\\\`;
+      // New distinctive Junior Physicist design
+      return `   .---.
+     [o--o]
+    /|_⚛_|\\
+     |/__\\|
+     // \\\\`;
     } else if (characterName.includes('QA')) {
       return `    ,+,
-    [o-o]
-    /|\\#/|\\
-    |QA|
-    // \\\\`;
+      [o-o]
+      /|\\#/|\\
+      |QA|
+      // \\\\`;
     } else if (characterName.includes('Debug')) {
-      return `   [01]
-    (0_0)
-    <|D|>
-    ||||
-    //\\\\`;
+      // New distinctive Debug Physicist design
+      return `  $[01]$
+     {>_<}
+    =|▢▣▢|=
+     /|¦|\\
+     /¦ ¦\\`;
     } else {
       // Default for Resident
       return `    ,+,
-    (o.o)
-    /|\\Y/|\\
-    || ||
-    /|| ||\\
-      ==`;
+      (o.o)
+      /|\\Y/|\\
+      || ||
+      /|| ||\\
+        ==`;
     }
   },
   // Update the styleAsciiArt function to use high res art
@@ -379,30 +379,27 @@ const CharacterPanel = {
   },
   // Add this to character_panel.js
 
-  // Character animation system
+  // Update the animation frames for the physicist and debug characters:
   animationFrames: {
-    // Physicist frames
+    // Physicist frames - updated
     physicist: [
       // Frame 1: Regular pose
-      `    ^o^
-    {o_o}
-    E=mc²
-    /|__|\\
-    d=vt
+      `   .---.
+    [o--o]
+    /|_⚛_|\\
+    |/__\\|
     // \\\\`,
       // Frame 2: Slight arm movement
-      `    ^o^
-    {o_o}
-    E=mc²
-    /|~_|\\
-    d=vt
+      `   .---.
+    [o--o]
+    /|_⚛~|\\
+    |/__\\|
     // \\\\`,
       // Frame 3: More arm movement
-      `    ^o^
-    {o_o}
-    E=mc²
-    /|_~|\\
-    d=vt
+      `   .---.
+    [o--o]
+    /|~⚛_|\\
+    |/__\\|
     // \\\\`,
     ],
     
@@ -453,26 +450,26 @@ const CharacterPanel = {
     // \\\\`,
     ],
     
-    // Debug mode frames with binary flickering
+    // Debug mode frames with digital animations
     debug_mode: [
       // Frame 1: Regular pose
-      `   [01]
-    (0_0)
-    <|D|>
-    ||||
-    //\\\\`,
+      `  $[01]$
+    {>_<}
+    =|▢▣▢|=
+    /|¦|\\
+    /¦ ¦\\`,
       // Frame 2: Binary change
-      `   [10]
-    (0_0)
-    <|D|>
-    ||||
-    //\\\\`,
-      // Frame 3: More binary changes
-      `   [11]
-    (1_0)
-    <|D|>
-    ||||
-    //\\\\`,
+      `  $[10]$
+    {^_^}
+    =|▣▢▣|=
+    /|¦|\\
+    /¦ ¦\\`,
+      // Frame 3: More circuit changes
+      `  $[11]$
+    {>_<}
+    =|▢▢▢|=
+    /|¦|\\
+    /¦ ¦\\`,
     ]
   },
 

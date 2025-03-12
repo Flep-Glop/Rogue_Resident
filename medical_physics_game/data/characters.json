@@ -38,7 +38,7 @@
       "id": "physicist",
       "name": "Junior Physicist",
       "description": "More experienced with treatment planning but fewer lives.",
-      "ascii_art": "  O\n -|-\n / \\",
+      "ascii_art": "  .--.\n [o-o]\n /|⚛|\\\n / \\",
       "starting_stats": {
         "level": 1,
         "lives": 2,
@@ -73,7 +73,7 @@
       "id": "debug_mode",
       "name": "Debug Physicist",
       "description": "A special character with godlike powers for testing purposes. Lives are set to 99!",
-      "ascii_art": "  ⚡\n /|D\n / \\",
+      "ascii_art": " [01]\n{>_<}\n /||\\\n / \\",
       "starting_stats": {
         "level": 42,
         "lives": 99,
