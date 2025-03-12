@@ -18,7 +18,9 @@ const CONTAINER_TYPES = {
   const NodeInteraction = {
     // Current node data
     currentNodeData: null,
-    
+    currentPatientCase: null,
+    currentCaseStage: 0,
+    caseHistory: [],
     // Initialize
     initialize: function() {
       console.log("Initializing node interaction system...");
@@ -817,6 +819,216 @@ const CONTAINER_TYPES = {
       }, 600);
     },
     
+    // Show a patient case node
+    showPatientCase: function(nodeData) {
+      console.log("Showing patient case node");
+      
+      const patientCaseContainer = document.getElementById(CONTAINER_TYPES.PATIENT_CASE);
+      if (!patientCaseContainer) {
+          console.error("Patient case container not found");
+          return;
+      }
+      
+      // Store current patient case data
+      this.currentPatientCase = nodeData.patient_case;
+      this.currentCaseStage = 0;
+      this.caseHistory = [];
+      
+      // Display patient case interface
+      const caseHeader = `
+          <div class="patient-case-header">
+              <h3>${this.currentPatientCase.title}</h3>
+              <div class="patient-info">
+                  <span class="patient-age-gender">${this.currentPatientCase.patient_info.age}y ${this.currentPatientCase.patient_info.gender}</span>
+                  <span class="patient-diagnosis">${this.currentPatientCase.patient_info.diagnosis}</span>
+              </div>
+              <p class="case-description">${this.currentPatientCase.case_description}</p>
+          </div>
+      `;
+      
+      // Create main container with fixed header
+      patientCaseContainer.innerHTML = `
+          ${caseHeader}
+          <div class="case-progress-bar">
+              <div class="progress-fill" style="width: 0%"></div>
+          </div>
+          <div id="case-stage-container"></div>
+          <div id="case-result" style="display: none;"></div>
+          <button id="case-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
+      `;
+      
+      // Show the first stage
+      this.showCaseStage();
+      
+      // Show the patient case container
+      this.showContainer(CONTAINER_TYPES.PATIENT_CASE);
+    },
+
+    // Show the current case stage
+    showCaseStage: function() {
+      if (!this.currentPatientCase || !this.currentPatientCase.stages) {
+          console.error("No active patient case or stages");
+          return;
+      }
+      
+      // Get current stage
+      const stage = this.currentPatientCase.stages[this.currentCaseStage];
+      if (!stage) {
+          console.error("Invalid stage index:", this.currentCaseStage);
+          return;
+      }
+      
+      // Get the stage container
+      const stageContainer = document.getElementById('case-stage-container');
+      if (!stageContainer) return;
+      
+      // Update the progress bar
+      const progressFill = document.querySelector('.progress-fill');
+      if (progressFill) {
+          const progress = (this.currentCaseStage / (this.currentPatientCase.stages.length - 1)) * 100;
+          progressFill.style.width = `${progress}%`;
+      }
+      
+      // Set the stage content
+      stageContainer.innerHTML = `
+          <div class="case-stage">
+              <p class="stage-question">${stage.question}</p>
+              <div class="stage-options" id="stage-options-container"></div>
+          </div>
+      `;
+      
+      // Add options
+      const optionsContainer = document.getElementById('stage-options-container');
+      if (optionsContainer && stage.options) {
+          stage.options.forEach((option, index) => {
+              const optionBtn = document.createElement('button');
+              optionBtn.classList.add('btn', 'btn-outline-primary', 'option-btn', 'mb-2', 'w-100');
+              optionBtn.textContent = option;
+              
+              // Use a clean approach to event handling
+              optionBtn.addEventListener('click', () => {
+                  this.answerCaseStage(index, stage);
+              });
+              
+              optionsContainer.appendChild(optionBtn);
+          });
+      }
+    },
+
+    // Handle answering a case stage
+    answerCaseStage: function(answerIndex, stage) {
+      console.log(`Answering case stage, selected option ${answerIndex}`);
+      
+      // Disable all options to prevent multiple submissions
+      const options = document.querySelectorAll('.option-btn');
+      options.forEach(opt => opt.disabled = true);
+      
+      // Check if answer is correct
+      const isCorrect = (answerIndex === stage.correct);
+      
+      // Store in case history
+      this.caseHistory.push({
+          stageId: stage.id,
+          question: stage.question,
+          selectedOption: stage.options[answerIndex],
+          correct: isCorrect
+      });
+      
+      // Show result
+      const resultDiv = document.getElementById('case-result');
+      if (resultDiv) {
+          // Create result message
+          resultDiv.innerHTML = `
+              <div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} mt-3">
+                  <strong>${isCorrect ? 'Correct!' : 'Incorrect!'}</strong>
+                  <p>${stage.explanation}</p>
+                  <div class="mt-2">
+                      ${isCorrect 
+                      ? `<span class="badge bg-success">+${stage.insight_gain || 5} Insight</span>` 
+                      : `<span class="badge bg-danger">-1 Life</span>`}
+                  </div>
+              </div>
+          `;
+          
+          // Show result
+          resultDiv.style.display = 'block';
+      }
+      
+      // Highlight the selected option
+      if (options[answerIndex]) {
+          options[answerIndex].classList.add(isCorrect ? 'btn-success' : 'btn-danger');
+          options[answerIndex].classList.remove('btn-outline-primary');
+      }
+      
+      // Highlight the correct answer if the user was wrong
+      if (!isCorrect && stage.correct !== answerIndex && options[stage.correct]) {
+          options[stage.correct].classList.add('btn-success');
+          options[stage.correct].classList.remove('btn-outline-primary');
+      }
+      
+      // Set up continue button
+      const continueBtn = document.getElementById('case-continue-btn');
+      if (continueBtn) {
+          continueBtn.style.display = 'block';
+          continueBtn.addEventListener('click', () => {
+              // Hide result and continue button
+              if (resultDiv) resultDiv.style.display = 'none';
+              continueBtn.style.display = 'none';
+              
+              // Move to next stage or end case
+              if (this.currentCaseStage < this.currentPatientCase.stages.length - 1) {
+                  this.currentCaseStage++;
+                  this.showCaseStage();
+              } else {
+                  // Case complete - finish
+                  this.showCaseSummary();
+              }
+          });
+      }
+    },
+
+    // Show case summary when all stages are complete
+    showCaseSummary: function() {
+      const stageContainer = document.getElementById('case-stage-container');
+      if (!stageContainer) return;
+      
+      // Count correct answers
+      const correctCount = this.caseHistory.filter(item => item.correct).length;
+      const totalQuestions = this.caseHistory.length;
+      const scorePercent = Math.round((correctCount / totalQuestions) * 100);
+      
+      // Create summary content
+      stageContainer.innerHTML = `
+          <div class="case-summary">
+              <h4>Case Summary</h4>
+              <div class="summary-score">
+                  <p>${correctCount} of ${totalQuestions} questions answered correctly (${scorePercent}%)</p>
+              </div>
+              <div class="summary-details">
+                  <h5>Case Completed!</h5>
+              </div>
+          </div>
+      `;
+      
+      // Update the progress bar to 100%
+      const progressFill = document.querySelector('.progress-fill');
+      if (progressFill) {
+          progressFill.style.width = '100%';
+      }
+      
+      // Set up final continue button
+      const continueBtn = document.getElementById('case-continue-btn');
+      if (continueBtn) {
+          continueBtn.style.display = 'block';
+          continueBtn.textContent = 'Complete Case';
+          continueBtn.addEventListener('click', () => {
+              // Return to map view
+              if (typeof UI !== 'undefined' && UI.showMapView) {
+                  UI.showMapView();
+              }
+          });
+      }
+    },
     // Helper function to generate HTML for effect display
     getEffectHTML: function(effect) {
       if (!effect || !effect.type) return '';
