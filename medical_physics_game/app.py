@@ -7,6 +7,7 @@ from datetime import datetime
 import copy
 import sys
 import traceback
+import random
 
 # Import modules
 from data_manager import load_json_data, save_json_data, init_data_files
