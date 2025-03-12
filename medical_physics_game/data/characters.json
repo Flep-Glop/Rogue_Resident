@@ -68,6 +68,40 @@
         }
       }
     },
+
+    {
+      "id": "debug_mode",
+      "name": "Debug Physicist",
+      "description": "A special character with godlike powers for testing purposes. Lives are set to 99!",
+      "ascii_art": "  ⚡\n /|D\n / \\",
+      "starting_stats": {
+        "level": 42,
+        "lives": 99,
+        "max_lives": 99,
+        "insight": 999
+      },
+      "level_bonuses": [
+        { "level": 43, "bonus": { "max_lives": 1 } },
+        { "level": 44, "bonus": { "insight": 100 } }
+      ],
+      "special_ability": {
+        "name": "Debug Override",
+        "description": "Can instantly complete any node without penalties.",
+        "uses_per_floor": 999
+      },
+      "starting_relic": {
+        "id": "debug_toolkit",
+        "name": "Debug Console",
+        "description": "A powerful console that breaks the laws of physics.",
+        "rarity": "epic",
+        "effect": {
+          "type": "special",
+          "value": "Automatically passes all challenges and reveals all answers.",
+          "duration": "permanent"
+        }
+      }
+    },
+
     {
       "id": "qa_specialist",
       "name": "QA Specialist",
@@ -103,5 +137,6 @@
       },
       "unlock_requirement": "Complete a run with the Resident character."
     }
+    
   ]
 }

@@ -422,8 +422,20 @@ const MapRenderer = {
     const rowSpacing = 80; // Pixels between rows
     const colSpacing = 120; // Pixels between columns
     
-    // Simple position calculation - start at (100,100) and space nodes evenly
-    const x = 100 + (node.position.col * colSpacing);
+    // UPDATED: Calculate the total width needed for all nodes in a row
+    // Get the number of columns in this row
+    const nodesInRow = this.getNodesInRow(node.position.row);
+    const columnsInRow = nodesInRow.length;
+    
+    // Calculate the starting x position to center nodes in this row
+    const rowWidth = columnsInRow * colSpacing;
+    const startX = (width - rowWidth) / 2 + colSpacing/2;
+    
+    // Get column index of this node within its row
+    const colIndex = nodesInRow.indexOf(node);
+    
+    // Calculate centered position
+    const x = startX + (colIndex * colSpacing);
     const y = 100 + (node.position.row * rowSpacing);
     
     const nodeRadius = 25; // Node radius
@@ -498,6 +510,14 @@ const MapRenderer = {
     ctx.restore();
   },
   
+  getNodesInRow: function(rowIndex) {
+    if (!GameState || !GameState.getAllNodes) return [];
+    
+    return GameState.getAllNodes().filter(node => 
+      node.position && node.position.row === rowIndex
+    ).sort((a, b) => a.position.col - b.position.col);
+  },
+
   // Draw a pixelated node shape with 3D effect
   drawPixelatedNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
     // Draw main node shape
