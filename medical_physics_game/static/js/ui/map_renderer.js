@@ -326,7 +326,7 @@ const MapRenderer = {
         }
         else {
           // Show feedback that node can't be visited
-          UiUtils.showFloatingText("Can't visit this node yet", "warning");
+          UiUtils.showToast("Can't visit that node right now", "warning");
         }
       }
     }

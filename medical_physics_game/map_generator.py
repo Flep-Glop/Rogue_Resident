@@ -106,8 +106,36 @@ def generate_floor_layout(floor_number, floor_data):
         # Connect last row nodes to boss
         last_row_nodes = [n for n in layout["nodes"].values() 
                          if n["position"]["row"] == rows]
-        for node in last_row_nodes:
-            node["paths"].append("boss")
+        
+        # Make sure at least one node connects to the boss
+        if last_row_nodes:
+            # Ensure every last row node connects to the boss
+            for node in last_row_nodes:
+                node["paths"].append("boss")
+    
+    # Validate the layout before returning
+    if not validate_map(layout):
+        print(f"Warning: Generated map for floor {floor_number} has validation issues.")
+        # Try to fix unreachable nodes by connecting from start if needed
+        allNodes = [layout["start"]] + list(layout["nodes"].values())
+        if layout["boss"]:
+            allNodes.append(layout["boss"])
+        
+        # Make additional connections if needed
+        for node in allNodes:
+            if node["id"] == "start" or node["id"] == "boss":
+                continue
+            
+            is_reachable = False
+            for other_node in allNodes:
+                if node["id"] != other_node["id"] and "paths" in other_node and node["id"] in other_node["paths"]:
+                    is_reachable = True
+                    break
+            
+            # If node is unreachable, connect it from start
+            if not is_reachable:
+                print(f"Fixing unreachable node {node['id']} by connecting from start")
+                layout["start"]["paths"].append(node["id"])
     
     return layout
 
