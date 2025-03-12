@@ -5,22 +5,36 @@ import json
 import uuid
 from datetime import datetime
 import copy
+import sys
+import traceback
 
 # Import modules
 from data_manager import load_json_data, save_json_data, init_data_files
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
-from game_state import get_question_for_node, get_random_item, get_random_event
+from game_state import create_default_game_state, get_game_id
 from db_utils import save_game_state, load_game_state, delete_game_state
-
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
-
 
 # Make session permanent
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+# Error handler for 500 errors
+@app.errorhandler(500)
+def handle_500_error(e):
+    """Handle server errors and log details"""
+    error_traceback = traceback.format_exc()
+    print(f"⚠️ SERVER ERROR: {e}", file=sys.stderr)
+    print(f"Traceback:\n{error_traceback}", file=sys.stderr)
+    
+    return jsonify({
+        "error": "An internal server error occurred",
+        "message": str(e),
+        "traceback": error_traceback.split("\n")
+    }), 500
 
 # Near the top of app.py, after imports
 from datetime import timedelta
@@ -46,10 +60,12 @@ def init_db():
 init_data_files()
 init_db()
 
-# Add this function to your app.py file
-
+# Validate node type helper function
 def validate_node_type(node):
     """Ensure node type and content are consistent"""
+    # Import here to avoid circular imports
+    from game_state import get_question_for_node, get_random_item, get_random_event
+    
     node_type = node.get('type')
     
     # Validate node type matches title
@@ -109,8 +125,11 @@ def get_game_state():
         
         return jsonify(game_state)
     except Exception as e:
-        print(f"Error retrieving game state: {e}")
-        return jsonify({"error": f"An error occurred retrieving game state: {str(e)}"}), 500
+        error_traceback = traceback.format_exc()
+        print(f"⚠️ Error retrieving game state: {e}", file=sys.stderr)
+        print(f"Traceback:\n{error_traceback}", file=sys.stderr)
+        return jsonify({"error": f"An error occurred retrieving game state: {str(e)}",
+                       "traceback": error_traceback.split("\n")}), 500
 
 @app.route('/character-select')
 def character_select():
@@ -265,15 +284,40 @@ def get_node(node_id):
         if not node:
             return jsonify({"error": f"Node {node_id} not found in map"}), 404
         
-        # Validate and ensure node has the right content
-        node = validate_node_type(node)
+        # Process node based on type
+        if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
+            # Get a question matching the difficulty
+            from game_state import get_question_for_node
+            question_data = get_question_for_node(node)
+            if not question_data:
+                return jsonify({"error": "Failed to generate a question"}), 500
+            return jsonify({**node, "question": question_data})
         
-        # Return the node with validated content
-        return jsonify(node)
+        elif node["type"] == "treasure":
+            # Get a random item
+            from game_state import get_random_item
+            item_data = get_random_item()
+            if not item_data:
+                return jsonify({"error": "Failed to generate an item"}), 500
+            return jsonify({**node, "item": item_data})
         
+        elif node["type"] == "event":
+            # Get a random event
+            from game_state import get_random_event
+            event_data = get_random_event()
+            if not event_data:
+                return jsonify({"error": "Failed to generate an event"}), 500
+            return jsonify({**node, "event": event_data})
+        
+        else:
+            # Other node types don't need additional data
+            return jsonify(node)
     except Exception as e:
-        print(f"Error retrieving node {node_id}: {e}")
-        return jsonify({"error": f"An error occurred retrieving node: {str(e)}"}), 500
+        error_traceback = traceback.format_exc()
+        print(f"⚠️ Error retrieving node {node_id}: {e}", file=sys.stderr)
+        print(f"Traceback:\n{error_traceback}", file=sys.stderr)
+        return jsonify({"error": f"An error occurred retrieving node: {str(e)}",
+                       "traceback": error_traceback.split("\n")}), 500
 
 @app.route('/api/answer-question', methods=['POST'])
 def answer_question():
@@ -510,3 +554,6 @@ def test_db():
             "success": False,
             "error": str(e)
         })
+
+if __name__ == "__main__":
+    app.run(debug=True)
