@@ -287,8 +287,6 @@ const CONTAINER_TYPES = {
     },
 
     
-    // Replace processNodeContent function with:
-
     processNodeContent: function(nodeData) {
       console.log("Processing node type:", nodeData.type);
       
@@ -311,22 +309,37 @@ const CONTAINER_TYPES = {
       // Show the container
       this.showContainer(containerId);
       
-      // Handle the specific node type
-      const handlerName = `show${this.capitalizeFirstLetter(nodeData.type)}`;
+      // Handle the specific node type - FIXED for underscore handling
+      let handlerName;
+      if (nodeData.type.includes('_')) {
+        // Handle types with underscores (like patient_case -> PatientCase)
+        handlerName = 'show' + nodeData.type.split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+      } else {
+        // Handle simple types
+        handlerName = 'show' + this.capitalizeFirstLetter(nodeData.type);
+      }
       
       // Call the specific handler if it exists
       if (typeof this[handlerName] === 'function') {
         this[handlerName](nodeData);
       } else {
-        console.warn(`No handler found for node type: ${nodeData.type}`);
+        console.warn(`No handler found for node type: ${nodeData.type} (tried ${handlerName})`);
         
-        // Generic fallback - show a continue button
-        const continueBtn = document.getElementById('continue-btn');
-        if (continueBtn) {
-          continueBtn.style.display = 'block';
-          continueBtn.addEventListener('click', () => {
-            GameState.completeNode(nodeData.id);
-          });
+        // Try alternate naming convention (like showRestNode instead of showRest)
+        const altHandlerName = handlerName + 'Node';
+        if (typeof this[altHandlerName] === 'function') {
+          this[altHandlerName](nodeData);
+        } else {
+          // Generic fallback - show a continue button
+          const continueBtn = document.getElementById('continue-btn');
+          if (continueBtn) {
+            continueBtn.style.display = 'block';
+            continueBtn.addEventListener('click', () => {
+              GameState.completeNode(nodeData.id);
+            });
+          }
         }
       }
     },
@@ -476,8 +489,10 @@ const CONTAINER_TYPES = {
       
       // Get item data from node
       const item = nodeData.item;
+      console.log("Item data:", item);
       if (!item) {
         console.error("No item data in treasure node");
+        console.error("Full node data:", JSON.stringify(nodeData));
         GameState.completeNode(nodeData.id);
         return;
       }
