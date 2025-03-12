@@ -74,7 +74,20 @@ const ProgressionManager = {
       console.log(`Can't visit ${nodeId} - not in the current active row`);
       return false;
     }
-    
+    // In progression.js, modify the canVisitNode() function by adding this check
+// after the existing rules but before returning true:
+
+    // Rule: Can only visit nodes that exist in the current map
+    const isCurrentFloorNode = (
+      (nodeId === 'start' && GameState.data.map && GameState.data.map.start) ||
+      (nodeId === 'boss' && GameState.data.map && GameState.data.map.boss) ||
+      (GameState.data.map && GameState.data.map.nodes && nodeId in GameState.data.map.nodes)
+    );
+
+    if (!isCurrentFloorNode) {
+      console.log(`Can't visit - node ${nodeId} does not belong to current floor`);
+      return false;
+    }
     console.log(`Node ${nodeId} can be visited - path is valid`);
     return true;
   },
