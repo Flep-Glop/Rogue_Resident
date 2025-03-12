@@ -1,0 +1,209 @@
+/* map.css - Map-specific styling */
+
+/* Map container */
+.map-container {
+  background-color: var(--background-alt);
+  border: 3px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  image-rendering: pixelated;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom scrollbar for the map container */
+.map-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.map-container::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-radius: 5px;
+}
+
+.map-container::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 5px;
+}
+
+.map-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* Scroll indicators */
+.scroll-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--primary);
+  animation: pulse 1.5s infinite;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.scroll-indicator.top {
+  top: 10px;
+}
+
+.scroll-indicator.bottom {
+  bottom: 10px;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Map wrapper to position canvas properly */
+.map-wrapper {
+  position: relative;
+  width: var(--map-width);
+  margin: 0 auto;
+}
+
+/* Canvas styling */
+#floor-map {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Map control buttons */
+.floor-button {
+  width: 100%;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  font-weight: bold;
+}
+
+/* Next floor button styling */
+#next-floor-btn {
+  position: relative;
+  font-size: var(--font-size-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: var(--spacing-md) auto;
+  display: none; /* Initially hidden */
+  animation: pulse-attention 2s infinite;
+  box-shadow: 
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5),
+    0 0 15px var(--secondary);
+}
+
+#next-floor-btn::before {
+  content: "→";
+  margin-right: var(--spacing-sm);
+  font-size: 1.2em;
+}
+
+#next-floor-btn::after {
+  content: "→";
+  margin-left: var(--spacing-sm);
+  font-size: 1.2em;
+}
+
+@keyframes pulse-attention {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Path visualization overlay */
+.path-visualization-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Floor transition styling */
+.floor-transition-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: floor-transition 3s ease-in-out forwards;
+}
+
+.floor-title {
+  font-size: 48px;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.floor-subtitle {
+  font-size: 24px;
+  margin-bottom: var(--spacing-md);
+  color: var(--secondary);
+}
+
+.floor-description {
+  font-size: 18px;
+  max-width: 600px;
+  text-align: center;
+  padding: 0 var(--spacing-lg);
+  line-height: 1.5;
+}
+
+@keyframes floor-transition {
+  0% { transform: translateY(100%); opacity: 0; }
+  10% { transform: translateY(0); opacity: 1; }
+  90% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Map debug buttons */
+.debug-buttons {
+  display: flex;
+  gap: 5px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.debug-buttons button {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .map-container {
+    padding: var(--spacing-sm);
+  }
+
+  .map-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  #floor-map {
+    width: 100%;
+    height: auto;
+  }
+
+  .floor-title {
+    font-size: 32px;
+  }
+
+  .floor-description {
+    font-size: 14px;
+  }
+}

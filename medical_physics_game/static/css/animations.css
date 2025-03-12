@@ -1,227 +1,250 @@
-/* animations.css - Animations and transitions */
+/* animations.css - All animations and transitions */
 
 /* Animation for floating text */
 @keyframes float-up {
-    0% { transform: translateY(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-50px); opacity: 0; }
-  }
-  
-  .floating-text {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-    font-weight: bold;
-    z-index: 1000;
-    animation: float-up 2s ease-out;
-    pointer-events: none;
-  }
-  
-  .floating-text-success { color: #28a745; }
-  .floating-text-danger { color: #dc3545; }
-  .floating-text-info { color: #17a2b8; }
-  .floating-text-warning { color: #ffc107; }
-  
-  .floating-text-fade {
-    opacity: 0;
-    transition: opacity 1s;
-  }
-  
-  /* Floor transition animation */
-  @keyframes floor-transition {
-    0% { transform: translateY(100%); opacity: 0; }
-    10% { transform: translateY(0); opacity: 1; }
-    90% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-100%); opacity: 0; }
-  }
-  
-  .floor-transition-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    animation: floor-transition 3s ease-in-out forwards;
-  }
-  
-  .floor-title {
-    font-size: 48px;
-    margin-bottom: 20px;
-  }
-  
-  .floor-description {
-    font-size: 24px;
-    max-width: 600px;
-    text-align: center;
-  }
-  
-  /* ASCII Character animation */
-  .ascii-character {
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: 10px auto;
-    color: #3498db;
-  }
-  
-  .ascii-character.bobbing {
-    animation: bob 1.5s ease-in-out infinite;
-  }
-  
-  .ascii-character.walking {
-    animation: walk-cycle 1s steps(4) infinite;
-  }
-  
-  @keyframes bob {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-  }
-  
-  @keyframes walk-cycle {
-    0% { transform: translateX(-5px); }
-    100% { transform: translateX(5px); }
-  }
-  
-  /* Character frames for walking animation */
-  .ascii-frame {
-    display: none;
-  }
-  
-  .ascii-frame.active {
-    display: block;
-  }
-  
-  /* Add ASCII ghost animation for Roentgen */
-  .ghost-animation {
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: 20px auto;
-    color: #9b59b6;
-    opacity: 0.8;
-    text-shadow: 0 0 5px #9b59b6;
-    animation: float 3s ease-in-out infinite, flicker 5s linear infinite;
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0) translateX(0); }
-    25% { transform: translateY(-5px) translateX(3px); }
-    50% { transform: translateY(0) translateX(0); }
-    75% { transform: translateY(5px) translateX(-3px); }
-    100% { transform: translateY(0) translateX(0); }
-  }
-  
-  @keyframes flicker {
-    0% { opacity: 0.7; }
-    10% { opacity: 0.8; }
-    20% { opacity: 0.7; }
-    30% { opacity: 0.8; }
-    40% { opacity: 0.9; }
-    50% { opacity: 0.7; }
-    60% { opacity: 0.9; }
-    70% { opacity: 0.8; }
-    80% { opacity: 0.7; }
-    90% { opacity: 0.9; }
-    100% { opacity: 0.7; }
-  }
-
-  /* Event effect animations */
-  .insight-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-
-  .insight-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-
-  .life-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-
-  .life-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-
-  .item-gain-animation {
-    animation: pulse-blue 0.5s ease-in-out;
-  }
-
-  @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-  }
-
-  @keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-  }
-
-  @keyframes pulse-blue {
-    0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
-  }
-
-  /* Character panel pulsing glow */
-  .character-stats {
-    animation: character-panel-glow 4s ease-in-out infinite;
-  }
-
-  @keyframes character-panel-glow {
-    0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.7); }
-    100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
-  }
-
-  /* Add simple hover effects to map nodes */
-  .node-question:hover, .node-elite:hover, 
-  .node-treasure:hover, .node-rest:hover {
-    transform: scale(1.1);
-    transition: transform 0.2s;
-  }
-  /* Enhanced walking animation */
-.ascii-character.walking {
-  animation: walk-cycle 1.5s steps(4) infinite;
-  position: relative;
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
 }
 
-@keyframes walk-cycle {
-  0% { transform: translateX(-3px); }
-  50% { transform: translateX(3px); }
-  100% { transform: translateX(-3px); }
+.floating-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: float-up 2s ease-out;
+  pointer-events: none;
+  font-family: 'Press Start 2P', cursive;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Add leg movement effect */
-.ascii-character.walking:after {
-  content: ".  . ";
+.floating-text-success { color: var(--secondary); }
+.floating-text-danger { color: var(--danger); }
+.floating-text-info { color: var(--primary); }
+.floating-text-warning { color: var(--warning); }
+
+.floating-text-fade {
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+/* Add icon to floating text for better recognition */
+.floating-text .float-icon {
+  margin-right: 8px;
+}
+
+/* Floating text appears from cursor position when from interaction */
+.floating-text-from-cursor {
   position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  animation: leg-move 0.75s infinite;
+  animation: float-up-from-cursor 1.5s ease-out;
 }
 
-@keyframes leg-move {
-  0% { content: ".  . "; }
-  33% { content: " .  ."; }
-  66% { content: "  . ."; }
-  100% { content: ".  . "; }
+@keyframes float-up-from-cursor {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; transform: translateY(-30px); }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+/* Toast animations */
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.toast {
+  animation: toast-slide-in 0.3s forwards;
+}
+
+.toast.hiding {
+  animation: toast-slide-out 0.3s forwards;
+}
+
+/* Button effects */
+@keyframes button-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(1.1); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.pulsing-button {
+  animation: button-pulse 2s infinite;
+}
+
+/* Node click animations */
+@keyframes node-click {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.node-clicked {
+  animation: node-click 0.2s forwards;
+}
+
+/* Pixel particle animation effects */
+@keyframes pixel-fall {
+  0% { transform: translateY(-20vh); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(120vh); opacity: 0; }
+}
+
+.pixel-decoration {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  z-index: 1;
+  opacity: 0.7;
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+/* CRT screen effects */
+@keyframes gentle-flicker {
+  0% { opacity: 0.2; }
+  5% { opacity: 0.25; }
+  10% { opacity: 0.2; }
+  15% { opacity: 0.18; }
+  20% { opacity: 0.2; }
+  70% { opacity: 0.2; }
+  72% { opacity: 0.18; }
+  77% { opacity: 0.25; }
+  100% { opacity: 0.2; }
+}
+
+/* Pulse animations for various elements */
+@keyframes gentle-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.1); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.gentle-pulse {
+  animation: gentle-pulse 3s infinite;
+}
+
+/* Attention-grabbing pulse for important elements */
+@keyframes pulse-attention {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); box-shadow: 0 0 15px var(--secondary); }
+  100% { transform: scale(1); }
+}
+
+.pulse-attention {
+  animation: pulse-attention 2s infinite;
+}
+
+/* Glow effects */
+@keyframes item-glow {
+  0% { box-shadow: 0 0 3px var(--primary) inset; }
+  50% { box-shadow: 0 0 8px var(--primary) inset; }
+  100% { box-shadow: 0 0 3px var(--primary) inset; }
+}
+
+.item-glow {
+  animation: item-glow 2s infinite;
+}
+
+/* Epic item pulse */
+@keyframes epic-pulse {
+  0% { box-shadow: 0 0 3px var(--secondary) inset; }
+  50% { box-shadow: 0 0 8px var(--secondary) inset; }
+  100% { box-shadow: 0 0 3px var(--secondary) inset; }
+}
+
+/* Spinner animation for loading states */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Hover effects */
+.hover-grow {
+  transition: transform var(--transition-fast);
+}
+
+.hover-grow:hover {
+  transform: scale(1.05);
+}
+
+.hover-slide {
+  transition: transform var(--transition-fast);
+}
+
+.hover-slide:hover {
+  transform: translateX(5px);
+}
+
+/* Fade animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-in {
+  animation: fade-in 0.3s forwards;
+}
+
+.fade-out {
+  animation: fade-out 0.3s forwards;
+}
+
+/* Response to user action animations */
+.item-added {
+  animation: item-added 1s ease-out;
+}
+
+@keyframes item-added {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); background-color: rgba(86, 184, 134, 0.3); }
+  100% { transform: scale(1); }
+}
+
+.item-removed {
+  animation: item-removed 0.5s ease-out;
+}
+
+@keyframes item-removed {
+  0% { transform: scale(1); }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* Responsive adjustments */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

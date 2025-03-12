@@ -1,0 +1,344 @@
+/* nodes.css - Node type styling and node interactions */
+
+/* Node colors */
+.node-start { background-color: var(--node-start); color: white; }
+.node-boss { background-color: var(--node-boss); color: white; }
+.node-question { background-color: var(--node-question); color: white; }
+.node-elite { background-color: var(--node-elite); color: white; }
+.node-treasure { background-color: var(--node-treasure); color: black; }
+.node-rest { background-color: var(--node-rest); color: white; }
+.node-shop { background-color: var(--node-shop); color: white; }
+.node-event { background-color: var(--node-event); color: white; }
+.node-gamble { background-color: var(--node-gamble); color: black; }
+
+/* Node hover effects */
+.node-question:hover, .node-elite:hover, 
+.node-treasure:hover, .node-rest:hover,
+.node-event:hover, .node-shop:hover {
+  transform: scale(1.1);
+  transition: transform var(--transition-fast);
+}
+
+/* Interaction containers */
+.interaction-container {
+  display: none;
+  background-color: var(--background-alt);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Modal overlay for node interactions */
+.node-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  overflow: auto;
+  backdrop-filter: blur(3px);
+  animation: modal-fade-in 0.3s ease-out;
+}
+
+.node-modal-content {
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  background-color: var(--background-alt);
+  border: 4px solid var(--primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: auto;
+  animation: modal-slide-up 0.4s ease-out;
+  transform-origin: center;
+}
+
+/* Style for the interaction containers when in modal */
+.node-modal-content .interaction-container {
+  display: block !important;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Modal close button */
+.node-modal-close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.node-modal-close:hover {
+  color: var(--primary);
+}
+
+/* Node type-specific styling inside modal */
+.node-modal-content #question-container {
+  border-top: 4px solid var(--node-question);
+  padding-top: var(--spacing-md);
+}
+
+.node-modal-content #treasure-container {
+  border-top: 4px solid var(--node-treasure);
+  padding-top: var(--spacing-md);
+}
+
+.node-modal-content #event-container {
+  border-top: 4px solid var(--node-event);
+  padding-top: var(--spacing-md);
+}
+
+.node-modal-content #rest-container {
+  border-top: 4px solid var(--node-rest);
+  padding-top: var(--spacing-md);
+}
+
+/* Continue buttons in modals */
+.node-modal-content #continue-btn,
+.node-modal-content #treasure-continue-btn,
+.node-modal-content #rest-continue-btn,
+.node-modal-content #event-continue-btn,
+.node-modal-content #shop-continue-btn,
+.node-modal-content #gamble-continue-btn {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  text-align: center;
+  background-color: var(--secondary);
+  box-shadow: 
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
+  font-size: var(--font-size-md);
+  animation: button-pulse 2s infinite;
+}
+
+/* Question node styling */
+#question-container h3 {
+  color: var(--light);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.option-btn {
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  width: 100%;
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-xs);
+  border: 2px solid var(--primary);
+  background-color: var(--background);
+  color: var(--text);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.option-btn:hover:not(:disabled) {
+  background-color: var(--primary);
+  color: white;
+  transform: translateX(5px);
+}
+
+.option-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.eliminated-option {
+  opacity: 0.6;
+}
+
+/* Event node styling */
+#event-container h3 {
+  color: var(--light);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.event-image-container {
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.event-icon {
+  font-size: 36px;
+  display: inline-block;
+  padding: var(--spacing-md);
+  border-radius: 50%;
+  background-color: var(--dark);
+  border: 2px solid var(--node-event);
+}
+
+.event-description {
+  font-size: var(--font-size-sm);
+  border-left: 3px solid var(--node-event);
+  padding-left: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.event-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.event-option {
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  border: 2px solid var(--node-question);
+  background-color: rgba(33, 150, 243, 0.1);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.event-option:hover:not(:disabled) {
+  transform: translateX(5px);
+  background-color: rgba(33, 150, 243, 0.2);
+}
+
+.event-option.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.event-requirement {
+  display: inline-block;
+  margin-left: var(--spacing-sm);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: var(--font-size-xs);
+  background-color: var(--dark);
+  color: white;
+}
+
+.event-result-success {
+  background-color: rgba(46, 204, 113, 0.2);
+  border-left: 4px solid var(--secondary);
+}
+
+.event-result-neutral {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-left: 4px solid var(--primary);
+}
+
+.event-result-negative {
+  background-color: rgba(231, 76, 60, 0.2);
+  border-left: 4px solid var(--danger);
+}
+
+/* Treasure node styling */
+#treasure-container {
+  border: 1px solid var(--node-treasure);
+  border-radius: var(--border-radius-md);
+}
+
+/* Rest node styling */
+#rest-container {
+  border: 1px solid var(--node-rest);
+  border-radius: var(--border-radius-md);
+}
+
+/* Shop styling */
+#shop-container {
+  background-color: var(--background-alt);
+  border: 1px solid var(--node-shop);
+  border-radius: var(--border-radius-md);
+}
+
+.shop-item {
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  transition: transform var(--transition-fast);
+}
+
+.shop-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.rarity-common { border-left: 4px solid #aaa; }
+.rarity-uncommon { border-left: 4px solid var(--primary); }
+.rarity-rare { border-left: 4px solid var(--node-rest); }
+.rarity-epic { border-left: 4px solid var(--node-treasure); }
+
+/* Gamble styling */
+#gamble-container {
+  border: 1px solid var(--node-gamble);
+  border-radius: var(--border-radius-md);
+}
+
+.gamble-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.gamble-options .card {
+  flex: 1;
+  min-width: 200px;
+  border-radius: var(--border-radius-sm);
+  transition: transform var(--transition-fast);
+  cursor: pointer;
+}
+
+.gamble-options .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal animations */
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-slide-up {
+  from { transform: translateY(30px); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes button-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .node-modal-content {
+    width: 95%;
+    padding: var(--spacing-md);
+  }
+
+  .option-btn, .event-option {
+    font-size: calc(var(--font-size-xs) - 1px);
+    padding: var(--spacing-sm);
+  }
+  
+  .event-icon {
+    font-size: 28px;
+    padding: var(--spacing-sm);
+  }
+}

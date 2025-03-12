@@ -1,127 +1,20 @@
-/* main.css - Core styling */
+/* main.css - Main stylesheet that imports all other stylesheets */
 
-/* Base styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
-    line-height: 1.5;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .game-title {
-    text-align: center;
-    margin-bottom: 30px;
-  }
-  
-  .game-title h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-  
-  .game-title p {
-    font-size: 18px;
-    color: #6c757d;
-  }
-  
-  /* Layout components */
-  .character-stats {
-    background-color: white;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  .game-board-container {
-    margin-top: 20px;
-  }
-  
-  .interaction-container {
-    display: none;
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  
-  /* Game Over Screen */
-  .game-over-screen {
-    display: none;
-    text-align: center;
-    padding: 40px;
-    background-color: rgba(0,0,0,0.8);
-    color: white;
-    border-radius: 10px;
-  }
-  
-  .game-over-screen h2 {
-    font-size: 36px;
-    margin-bottom: 20px;
-    color: #dc3545;
-  }
-  
-  .game-over-screen p {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-  
-  /* Toast container */
-  .toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-  }
-  
-  /* Common components */
-  .card {
-    margin-bottom: 15px;
-  }
-  
-  .card-header {
-    font-weight: bold;
-  }
-  
-  .btn {
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .life-icon {
-    font-size: 24px;
-    margin-right: 5px;
-  }
-  
-  /* Lives display */
-  #lives-container {
-    display: flex;
-    margin-bottom: 15px;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .container {
-      padding: 10px;
-    }
-    
-    .character-stats {
-      margin-bottom: 15px;
-    }
-    
-    .game-title h1 {
-      font-size: 24px;
-    }
-    
-    .game-title p {
-      font-size: 16px;
-    }
-  }
+/* Import base styles first */
+@import url('/static/css/base/reset.css');
+@import url('/static/css/base/variables.css');
+@import url('/static/css/base/layout.css');
+
+/* Import component styles */
+@import url('/static/css/components/character.css');
+@import url('/static/css/components/inventory.css');
+@import url('/static/css/components/map.css');
+@import url('/static/css/components/nodes.css');
+
+/* Import animations */
+@import url('/static/css/animations.css');
+
+/* Import theme styles last to override component styles */
+@import url('/static/css/themes/retro-theme.css');
+
+/* Any additional global styles can go here */

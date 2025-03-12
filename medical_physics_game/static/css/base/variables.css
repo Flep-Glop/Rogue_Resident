@@ -1,0 +1,66 @@
+/* variables.css - Central location for all CSS variables */
+
+:root {
+    /* Core colors */
+    --primary: #5b8dd9;      /* Blue */
+    --primary-dark: #4a70b0; /* Dark blue for shadows */
+    --secondary: #56b886;    /* Green */
+    --secondary-dark: #45966d; /* Dark green for shadows */
+    --danger: #e67e73;       /* Red */
+    --danger-dark: #b66059;  /* Dark red for shadows */
+    --warning: #f0c866;      /* Yellow */
+    --warning-dark: #c9a955; /* Dark yellow for shadows */
+    --dark: #3d4c60;         /* Dark blue-gray */
+    --dark-alt: #2c3848;     /* Darker shade for contrast */
+    --light: #ecf0f1;        /* Light gray */
+    --background: #292b36;   /* Dark background with slight blue tint */
+    --background-alt: #21232d; /* Slightly darker for contrast */
+    --text: #d4dae0;         /* Soft white-gray for text */
+    
+    /* Node type specific colors */
+    --node-start: var(--secondary);
+    --node-boss: var(--danger);
+    --node-question: var(--primary);
+    --node-elite: #d35db3;    /* Pink */
+    --node-treasure: var(--warning);
+    --node-rest: #9c77db;     /* Purple */
+    --node-shop: #5bbcd9;     /* Cyan */
+    --node-event: #e99c50;    /* Orange */
+    --node-gamble: #b8d458;   /* Lime */
+    
+    /* Shadow variants of node colors */
+    --node-elite-shadow: #a24b8e;
+    --node-rest-shadow: #7c5cb0;
+    --node-shop-shadow: #4a99b3;
+    --node-event-shadow: #b87d40;
+    --node-gamble-shadow: #94ab47;
+    
+    /* Sizing variables */
+    --pixel-size: 3px;
+    --border-radius-sm: 3px;
+    --border-radius-md: 5px;
+    --border-radius-lg: 8px;
+    
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 10px; 
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+    
+    /* Font sizes */
+    --font-size-xs: 0.6rem;
+    --font-size-sm: 0.7rem;
+    --font-size-md: 0.8rem;
+    --font-size-lg: 0.9rem;
+    --font-size-xl: 1rem;
+    
+    /* Layout dimensions */
+    --container-width: 1200px;
+    --map-width: 800px;
+    
+    /* Animation durations */
+    --transition-fast: 0.2s;
+    --transition-medium: 0.5s;
+    --transition-slow: 1s;
+  }

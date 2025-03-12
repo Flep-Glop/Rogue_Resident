@@ -1,0 +1,397 @@
+/* inventory.css - Inventory system styling */
+
+/* Inventory container */
+.inventory-container {
+  background-color: var(--background-alt);
+  color: var(--text);
+  border: 3px solid var(--secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.inventory-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px dashed var(--secondary);
+}
+
+.inventory-title h3 {
+  color: var(--secondary);
+  font-size: var(--font-size-md);
+  margin: 0;
+}
+
+#inventory-count {
+  font-size: var(--font-size-xs);
+  background-color: var(--dark);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+/* Item grid */
+.inventory-items {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+.inventory-items::-webkit-scrollbar {
+  width: 8px;
+}
+
+.inventory-items::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-radius: 4px;
+}
+
+.inventory-items::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 4px;
+}
+
+.inventory-items::after {
+  content: "";
+  display: block;
+  height: 5px;
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(91, 141, 217, 0.2)
+  );
+  position: sticky;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 6px;
+  justify-content: start;
+}
+
+/* Individual item styling */
+.inventory-item {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.inventory-item:hover {
+  transform: translateY(-3px);
+}
+
+.inventory-item.empty {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.item-inner {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: var(--dark);
+  border-radius: 2px;
+}
+
+.item-icon {
+  font-size: 20px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.item-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) inset;
+  pointer-events: none;
+}
+
+/* Rarity styles */
+.inventory-item.common .item-inner {
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.2) inset;
+}
+
+.inventory-item.uncommon .item-inner {
+  box-shadow: 0 0 5px var(--primary) inset;
+}
+
+.inventory-item.rare .item-inner {
+  box-shadow: 0 0 5px var(--warning) inset;
+}
+
+.inventory-item.epic .item-inner {
+  box-shadow: 0 0 8px var(--secondary) inset;
+  animation: epic-pulse 2s infinite;
+}
+
+/* Pixelated border effect */
+.pixel-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pixel-corner {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+}
+
+.pixel-corner.top-left {
+  top: 0;
+  left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.pixel-corner.top-right {
+  top: 0;
+  right: 0;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.pixel-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.pixel-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* Border colors by rarity */
+.pixel-border.common .pixel-corner {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pixel-border.uncommon .pixel-corner {
+  border-color: var(--primary);
+}
+
+.pixel-border.rare .pixel-corner {
+  border-color: var(--warning);
+}
+
+.pixel-border.epic .pixel-corner {
+  border-color: var(--secondary);
+  box-shadow: 0 0 3px var(--secondary);
+}
+
+.pixel-border.empty .pixel-corner {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Item tooltip */
+.item-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  max-width: 90vw;
+  background-color: var(--background);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: var(--border-radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 500;
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-sm);
+  text-align: left;
+}
+
+.inventory-item:hover .item-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+  z-index: 1000;
+}
+
+.tooltip-header {
+  padding: var(--spacing-sm);
+  border-top-left-radius: var(--border-radius-sm);
+  border-top-right-radius: var(--border-radius-sm);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tooltip-header.common {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-header.uncommon {
+  background-color: rgba(91, 141, 217, 0.3);
+}
+
+.tooltip-header.rare {
+  background-color: rgba(240, 200, 102, 0.3);
+}
+
+.tooltip-header.epic {
+  background-color: rgba(86, 184, 134, 0.3);
+}
+
+.tooltip-title {
+  font-weight: bold;
+  font-size: var(--font-size-xs);
+  color: white;
+}
+
+.tooltip-rarity {
+  font-size: var(--font-size-xs);
+  padding: 2px 5px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.3);
+  text-transform: capitalize;
+}
+
+.tooltip-body {
+  padding: var(--spacing-sm);
+}
+
+.tooltip-desc {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.tooltip-effect {
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.tooltip-usage {
+  font-size: var(--font-size-xs);
+  color: var(--warning);
+  text-align: center;
+  margin-top: var(--spacing-sm);
+}
+
+.empty-inventory {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  padding: var(--spacing-sm);
+  font-style: italic;
+}
+
+/* Status effects styling */
+.status-effects {
+  display: flex;
+  gap: 5px;
+  margin-top: var(--spacing-sm);
+}
+
+.status-effect {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: white;
+}
+
+.status-effect.buff { background-color: var(--secondary); }
+.status-effect.debuff { background-color: var(--danger); }
+
+.status-timer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: black;
+  color: white;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  font-size: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ability button styling */
+.ability-button {
+  background-color: var(--dark);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.ability-button:hover {
+  background-color: var(--dark-alt);
+}
+
+.ability-button:disabled {
+  background-color: #ced4da;
+  cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes epic-pulse {
+  0% { box-shadow: 0 0 3px var(--secondary) inset; }
+  50% { box-shadow: 0 0 8px var(--secondary) inset; }
+  100% { box-shadow: 0 0 3px var(--secondary) inset; }
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 5px;
+  }
+
+  .inventory-item {
+    width: 42px;
+    height: 42px;
+  }
+
+  .item-inner {
+    width: 38px;
+    height: 38px;
+  }
+}
