@@ -2,11 +2,14 @@ import random
 import uuid
 
 def generate_floor_layout(floor_number, floor_data):
-    """Generate a random floor layout based on floor data"""
+    """Generate a random floor layout based on floor data with at least 10 rows"""
     # Determine number of nodes
-    min_nodes = floor_data.get('node_count', {}).get('min', 4)
-    max_nodes = floor_data.get('node_count', {}).get('max', 6)
+    min_nodes = floor_data.get('node_count', {}).get('min', 15)  # Increased default minimum
+    max_nodes = floor_data.get('node_count', {}).get('max', 25)  # Increased default maximum
     node_count = random.randint(min_nodes, max_nodes)
+    
+    # IMPORTANT: Set minimum rows to 10
+    MIN_ROWS = 10
     
     # Create layout structure
     layout = {
@@ -23,7 +26,18 @@ def generate_floor_layout(floor_number, floor_data):
     
     # Setup grid parameters
     nodes_per_row = 3  # Fixed number of columns
-    rows = max(1, (node_count + nodes_per_row - 1) // nodes_per_row)  # Ceiling division
+    
+    # Ensure we have at least MIN_ROWS rows
+    # Calculate how many nodes we need for MIN_ROWS (excluding start and boss)
+    min_required_nodes = (MIN_ROWS - 1) * nodes_per_row
+    
+    # Adjust node count if needed
+    node_count = max(node_count, min_required_nodes)
+    
+    # Calculate rows based on node count
+    rows = max(MIN_ROWS - 1, (node_count + nodes_per_row - 1) // nodes_per_row)
+    
+    print(f"Generating map with {node_count} nodes across {rows} rows (plus start and boss)")
     
     # Create nodes in a grid pattern
     node_id = 1
@@ -59,7 +73,29 @@ def generate_floor_layout(floor_number, floor_data):
             
             node_id += 1
     
-    # Create connections between nodes
+    # Add boss at row MIN_ROWS (after all other rows)
+    boss_row = rows + 1
+    
+    # Get boss data from floor_data or create default
+    boss_data = floor_data.get('boss', {
+        "name": "Chief Medical Physicist",
+        "description": "The final challenge of this floor.",
+        "difficulty": min(3, floor_number)
+    })
+    
+    # Always add a boss node at the bottom
+    layout["boss"] = {
+        "id": "boss",
+        "type": "boss",
+        "title": boss_data.get('name', 'Boss'),
+        "description": boss_data.get('description', ''),
+        "position": {"row": boss_row, "col": 1},  # Center the boss
+        "difficulty": boss_data.get('difficulty', min(3, floor_number)),
+        "paths": [],
+        "visited": False
+    }
+    
+    # Create connections between nodes (rows 1 to rows-1)
     for row in range(1, rows):
         # Get nodes in current row
         current_row_nodes = [n for n in layout["nodes"].values() 
@@ -87,55 +123,14 @@ def generate_floor_layout(floor_number, floor_data):
                 if target_node["id"] not in node["paths"]:
                     node["paths"].append(target_node["id"])
     
-    # Add boss if floor has one
-    if floor_data.get('boss'):
-        boss_row = rows + 1
-        boss_data = floor_data.get('boss')
-        
-        layout["boss"] = {
-            "id": "boss",
-            "type": "boss",
-            "title": boss_data.get('name', 'Chief Medical Physicist'),
-            "description": boss_data.get('description', ''),
-            "position": {"row": boss_row, "col": 1},
-            "difficulty": boss_data.get('difficulty', 3),
-            "paths": [],
-            "visited": False
-        }
-        
-        # Connect last row nodes to boss
-        last_row_nodes = [n for n in layout["nodes"].values() 
-                         if n["position"]["row"] == rows]
-        
-        # Make sure at least one node connects to the boss
-        if last_row_nodes:
-            # Ensure every last row node connects to the boss
-            for node in last_row_nodes:
-                node["paths"].append("boss")
+    # Connect last row nodes to boss
+    last_row_nodes = [n for n in layout["nodes"].values() 
+                     if n["position"]["row"] == rows]
     
-    # Validate the layout before returning
-    if not validate_map(layout):
-        print(f"Warning: Generated map for floor {floor_number} has validation issues.")
-        # Try to fix unreachable nodes by connecting from start if needed
-        allNodes = [layout["start"]] + list(layout["nodes"].values())
-        if layout["boss"]:
-            allNodes.append(layout["boss"])
-        
-        # Make additional connections if needed
-        for node in allNodes:
-            if node["id"] == "start" or node["id"] == "boss":
-                continue
-            
-            is_reachable = False
-            for other_node in allNodes:
-                if node["id"] != other_node["id"] and "paths" in other_node and node["id"] in other_node["paths"]:
-                    is_reachable = True
-                    break
-            
-            # If node is unreachable, connect it from start
-            if not is_reachable:
-                print(f"Fixing unreachable node {node['id']} by connecting from start")
-                layout["start"]["paths"].append(node["id"])
+    # Make sure at least one node connects to the boss
+    if last_row_nodes:
+        for node in last_row_nodes:
+            node["paths"].append("boss")
     
     return layout
 
