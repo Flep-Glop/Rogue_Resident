@@ -129,6 +129,9 @@ const CONTAINER_TYPES = {
           console.log("Node data received:", nodeData);
           this.currentNodeData = nodeData;
           
+          // Validate and fix node data
+          nodeData = this.validateNodeData(nodeData);
+          
           // Process the node based on its type
           this.processNodeContent(nodeData);
         })
@@ -140,6 +143,85 @@ const CONTAINER_TYPES = {
           GameState.setCurrentNode(null);
         });
     },
+
+    // Validate and fix node data for consistency
+    validateNodeData: function(nodeData) {
+      if (!nodeData) return nodeData;
+      
+      console.log("Validating node data for consistency:", nodeData);
+      
+      // Check if node type and content are mismatched
+      const hasItem = nodeData.item !== undefined;
+      const hasQuestion = nodeData.question !== undefined;
+      const hasEvent = nodeData.event !== undefined;
+      
+      // Check for title/type mismatch
+      const titleTypeMap = {
+        'Physics Question': 'question',
+        'Challenging Question': 'elite',
+        'Final Assessment': 'boss',
+        'Equipment Found': 'treasure',
+        'Break Room': 'rest',
+        'Random Event': 'event',
+        'Department Store': 'shop'
+      };
+      
+      // Fix type based on title if needed
+      if (nodeData.title && titleTypeMap[nodeData.title] && nodeData.type !== titleTypeMap[nodeData.title]) {
+        console.warn(`Node ${nodeData.id} has mismatched type (${nodeData.type}) and title (${nodeData.title})`);
+        console.log(`Fixing node type from ${nodeData.type} to ${titleTypeMap[nodeData.title]}`);
+        nodeData.type = titleTypeMap[nodeData.title];
+      }
+      
+      // Handle content mismatches
+      if (hasItem && (nodeData.type === 'question' || nodeData.type === 'elite' || nodeData.type === 'boss')) {
+        console.warn(`Node ${nodeData.id} is type ${nodeData.type} but has item data`);
+        console.log("Converting item data to placeholder question data");
+        
+        // Create placeholder question data
+        nodeData.question = {
+          id: `placeholder_${nodeData.id}`,
+          text: `What is the effect of the ${nodeData.item.name}?`,
+          options: [
+            `${nodeData.item.effect.value}`,
+            "It has no effect",
+            "It decreases insight",
+            "It's harmful to patients"
+          ],
+          correct: 0,
+          explanation: `The ${nodeData.item.name} ${nodeData.item.effect.value}`,
+          difficulty: nodeData.difficulty || 1
+        };
+        
+        // Keep the item for later use
+        nodeData._originalItem = nodeData.item;
+        delete nodeData.item;
+      }
+      else if (hasQuestion && nodeData.type === 'treasure') {
+        console.warn(`Node ${nodeData.id} is type treasure but has question data`);
+        console.log("Converting question data to placeholder item data");
+        
+        // Create placeholder item data
+        nodeData.item = {
+          id: `placeholder_${nodeData.id}`,
+          name: "Study Notes",
+          description: "Notes about " + nodeData.question.text,
+          rarity: "common",
+          effect: {
+            type: "insight_boost",
+            value: 5,
+            duration: "instant"
+          }
+        };
+        
+        // Keep the question for later
+        nodeData._originalQuestion = nodeData.question;
+        delete nodeData.question;
+      }
+      
+      return nodeData;
+    },
+
     
     // Replace the processNodeContent method in NodeInteraction with this fixed version
 

@@ -9,8 +9,9 @@ import copy
 # Import modules
 from data_manager import load_json_data, save_json_data, init_data_files
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
-from game_state import create_default_game_state, get_game_id
+from game_state import get_question_for_node, get_random_item, get_random_event
 from db_utils import save_game_state, load_game_state, delete_game_state
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
@@ -44,6 +45,40 @@ def init_db():
 # Initialize data when the app starts
 init_data_files()
 init_db()
+
+# Add this function to your app.py file
+
+def validate_node_type(node):
+    """Ensure node type and content are consistent"""
+    node_type = node.get('type')
+    
+    # Validate node type matches title
+    title_type_map = {
+        'Physics Question': 'question',
+        'Challenging Question': 'elite',
+        'Final Assessment': 'boss',
+        'Equipment Found': 'treasure',
+        'Break Room': 'rest',
+        'Random Event': 'event',
+        'Department Store': 'shop'
+    }
+    
+    # Fix type based on title if there's a mismatch
+    title = node.get('title')
+    if title and title in title_type_map and node_type != title_type_map[title]:
+        print(f"Node {node.get('id')} has mismatched type ({node_type}) and title ({title})")
+        node['type'] = title_type_map[title]
+        node_type = node['type']  # Update node_type variable
+    
+    # Add content based on node type if missing
+    if node_type in ['question', 'elite', 'boss'] and 'question' not in node:
+        node['question'] = get_question_for_node(node)
+    elif node_type == 'treasure' and 'item' not in node:
+        node['item'] = get_random_item()
+    elif node_type == 'event' and 'event' not in node:
+        node['event'] = get_random_event()
+    
+    return node
 
 # Routes
 @app.route('/')
@@ -207,8 +242,6 @@ def generate_floor_map():
 @app.route('/api/node/<node_id>')
 def get_node(node_id):
     """Get content for a specific node"""
-    from game_state import get_question_for_node, get_random_item, get_random_event
-    
     try:
         game_id = get_game_id()
         
@@ -232,31 +265,12 @@ def get_node(node_id):
         if not node:
             return jsonify({"error": f"Node {node_id} not found in map"}), 404
         
-        # Process node based on type
-        if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
-            # Get a question matching the difficulty
-            question_data = get_question_for_node(node)
-            if not question_data:
-                return jsonify({"error": "Failed to generate a question"}), 500
-            return jsonify({**node, "question": question_data})
+        # Validate and ensure node has the right content
+        node = validate_node_type(node)
         
-        elif node["type"] == "treasure":
-            # Get a random item
-            item_data = get_random_item()
-            if not item_data:
-                return jsonify({"error": "Failed to generate an item"}), 500
-            return jsonify({**node, "item": item_data})
+        # Return the node with validated content
+        return jsonify(node)
         
-        elif node["type"] == "event":
-            # Get a random event
-            event_data = get_random_event()
-            if not event_data:
-                return jsonify({"error": "Failed to generate an event"}), 500
-            return jsonify({**node, "event": event_data})
-        
-        else:
-            # Other node types don't need additional data
-            return jsonify(node)
     except Exception as e:
         print(f"Error retrieving node {node_id}: {e}")
         return jsonify({"error": f"An error occurred retrieving node: {str(e)}"}), 500

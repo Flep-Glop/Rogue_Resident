@@ -30,6 +30,11 @@ def get_question_for_node(node):
     """Get a question matching the node's difficulty and category if specified"""
     from data_manager import load_json_data
     
+    # Make sure node is a question-type node
+    if node.get('type') not in ['question', 'elite', 'boss']:
+        print(f"Warning: get_question_for_node called for non-question node type: {node.get('type')}")
+        return None
+    
     # Load questions data
     questions_data = load_json_data('questions.json')
     
@@ -66,11 +71,24 @@ def get_question_for_node(node):
                 question_copy['category_name'] = category.get('name', 'Unknown')
                 matching_questions.append(question_copy)
     
-    # If still no questions, return None
+    # If still no questions, return a default question
     if not matching_questions:
-        return None
+        return {
+            "id": "default_question",
+            "text": "What is the goal of medical physics?",
+            "options": [
+                "To ensure safe and effective use of radiation in medicine",
+                "To replace physicians in the healthcare system",
+                "To maximize radiation dose to patients",
+                "To avoid using technology in medicine"
+            ],
+            "correct": 0,
+            "explanation": "Medical physics focuses on the safe and effective applications of physics principles in medicine, particularly in the use of radiation for diagnosis and treatment.",
+            "difficulty": difficulty
+        }
     
     # Return a random question
+    import random
     return random.choice(matching_questions)
 
 def get_random_item(rarity=None):
