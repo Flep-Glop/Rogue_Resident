@@ -783,7 +783,164 @@ const DebugTools = {
       
       console.log(`Added ${amount} life. New total: ${GameState.data.character.lives}/${GameState.data.character.max_lives}`);
       UiUtils.showToast(`Added ${amount} life`, "success");
+    },
+  // Add to the DebugTools object
+
+  // Generate a concise state summary for debugging
+  generateStateSummary: function() {
+    if (!GameState || !GameState.data) {
+      return "GameState not available";
     }
+
+    // Get all nodes for summary
+    const allNodes = GameState.getAllNodes();
+    
+    // Current floor info
+    const floorInfo = {
+      currentFloor: GameState.data.currentFloor,
+      currentNode: GameState.data.currentNode,
+    };
+    
+    // Node stats - count by state, type, and row
+    const nodeStats = {
+      byState: {
+        locked: 0,
+        available: 0,
+        current: 0,
+        completed: 0
+      },
+      byRow: {}
+    };
+    
+    // Available nodes details
+    const availableNodes = [];
+    
+    // Process nodes
+    allNodes.forEach(node => {
+      // Count by state
+      if (node.state) {
+        nodeStats.byState[node.state.toLowerCase()]++;
+      }
+      
+      // Count by row
+      if (node.position && node.position.row !== undefined) {
+        if (!nodeStats.byRow[node.position.row]) {
+          nodeStats.byRow[node.position.row] = {
+            total: 0,
+            completed: 0,
+            available: 0,
+            locked: 0
+          };
+        }
+        
+        nodeStats.byRow[node.position.row].total++;
+        
+        if (node.visited) {
+          nodeStats.byRow[node.position.row].completed++;
+        } else if (node.state === NODE_STATE.AVAILABLE) {
+          nodeStats.byRow[node.position.row].available++;
+        } else if (node.state === NODE_STATE.LOCKED) {
+          nodeStats.byRow[node.position.row].locked++;
+        }
+      }
+      
+      // Collect all available nodes
+      if (node.state === NODE_STATE.AVAILABLE) {
+        availableNodes.push({
+          id: node.id,
+          row: node.position?.row,
+          col: node.position?.col,
+          connections: this._findConnectionsToNode(node.id)
+        });
+      }
+    });
+    
+    // Create a pretty-printed summary
+    const summary = {
+      floorInfo,
+      nodeStats,
+      availableNodes,
+      characterStats: {
+        level: GameState.data.character?.level,
+        lives: GameState.data.character?.lives,
+        insight: GameState.data.character?.insight
+      },
+      inventory: GameState.data.inventory?.length || 0
+    };
+    
+    // Create a text output
+    let output = "===== GAME STATE SUMMARY =====\n\n";
+    
+    // Floor info
+    output += `Floor: ${floorInfo.currentFloor}, Current Node: ${floorInfo.currentNode || 'None'}\n\n`;
+    
+    // Node counts by state
+    output += "Node Counts by State:\n";
+    for (const [state, count] of Object.entries(nodeStats.byState)) {
+      output += `  ${state}: ${count}\n`;
+    }
+    output += "\n";
+    
+    // Node stats by row
+    output += "Nodes by Row:\n";
+    const rows = Object.keys(nodeStats.byRow).sort((a, b) => parseInt(a) - parseInt(b));
+    for (const row of rows) {
+      const stats = nodeStats.byRow[row];
+      output += `  Row ${row}: ${stats.completed}/${stats.total} completed, ${stats.available} available\n`;
+    }
+    output += "\n";
+    
+    // Available nodes
+    output += "Available Nodes:\n";
+    availableNodes.forEach(node => {
+      output += `  ${node.id} (Row ${node.row}, Col ${node.col}): Connected from ${node.connections.join(', ') || 'none'}\n`;
+    });
+    output += "\n";
+    
+    // Character stats
+    output += `Character: Level ${summary.characterStats.level}, Lives ${summary.characterStats.lives}, Insight ${summary.characterStats.insight}\n`;
+    output += `Inventory: ${summary.inventory} items\n`;
+    
+    console.log(output);
+    
+    // Copy to clipboard
+    this._copyToClipboard(output);
+    
+    return output;
+  },
+
+  // Helper to find what nodes connect to a given node
+  _findConnectionsToNode: function(nodeId) {
+    const allNodes = GameState.getAllNodes();
+    const connections = [];
+    
+    allNodes.forEach(node => {
+      if (node.paths && node.paths.includes(nodeId)) {
+        connections.push(node.id);
+      }
+    });
+    
+    return connections;
+  },
+
+  // Helper to copy text to clipboard
+  _copyToClipboard: function(text) {
+    // Create a temporary element
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    
+    // Select and copy
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    
+    // Notify user
+    UiUtils.showToast("Debug summary copied to clipboard!", "success");
+  }
   };
   
   // Export globally

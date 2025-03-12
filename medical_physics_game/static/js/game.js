@@ -73,6 +73,25 @@ function setupEventListeners() {
   }
 
   // Debug: Force Next Floor button
+  // Add this to the debug button section in setupEventListeners
+
+  // Debug summary button
+  const debugSummaryBtn = document.createElement('button');
+  debugSummaryBtn.className = 'btn btn-info mt-2 mb-2 ms-2';
+  debugSummaryBtn.textContent = 'Copy Debug Summary';
+  debugSummaryBtn.style.fontSize = '0.7rem';
+  debugSummaryBtn.style.padding = '2px 8px';
+
+  debugSummaryBtn.addEventListener('click', function() {
+    if (typeof DebugTools !== 'undefined' && typeof DebugTools.generateStateSummary === 'function') {
+      DebugTools.generateStateSummary();
+    } else {
+      console.log("Debug tools not available");
+    }
+  });
+
+  // Add to debug buttons container
+  debugButtonContainer.appendChild(debugSummaryBtn);
   const debugNextFloorBtn = document.createElement('button');
   debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
   debugNextFloorBtn.textContent = 'Debug: Force Next Floor';

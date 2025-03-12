@@ -257,11 +257,11 @@ _createFallbackMap: function(floorNumber) {
   };
 },
     
-    // Row-based progression: only one node per row can be selected
+    // Row-based progression WITH proper connectivity enforcement
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
-      console.log("Updating all node states with ROW-BASED PROGRESSION");
+      console.log("Updating node states with PATH-BASED ROW PROGRESSION");
 
       // Step 1: Mark all nodes LOCKED initially (except start)
       const allNodes = this.getAllNodes();
@@ -283,64 +283,61 @@ _createFallbackMap: function(floorNumber) {
         }
       }
       
-      // Step 2: Determine the highest completed row
-      let highestCompletedRow = 0;
-      let currentNodeRow = -1;
+      // Step 2: Find completed nodes and their connected paths
+      const completedNodes = allNodes.filter(node => 
+        node.state === NODE_STATE.COMPLETED && node.paths && node.paths.length > 0
+      );
       
-      allNodes.forEach(node => {
-        if (node.visited && node.position && node.position.row > highestCompletedRow) {
-          highestCompletedRow = node.position.row;
-        }
-        
-        if (node.id === this.data.currentNode && node.position) {
-          currentNodeRow = node.position.row;
-        }
-      });
-      
-      console.log(`Highest completed row: ${highestCompletedRow}, Current node row: ${currentNodeRow}`);
-      
-      // Step 3: Based on the progression rules:
-      // - If no current node, make nodes in the next row available
-      // - If there's a current node, don't make any new nodes available
-      
+      // Step 3: Make nodes available based on BOTH row progression AND connectivity
       if (!this.data.currentNode) {
-        // The next available row is the one after the highest completed row
-        const nextAvailableRow = highestCompletedRow + 1;
-        console.log(`Making row ${nextAvailableRow} available`);
-        
-        // Make all nodes in the next row available
+        // Find the highest completed row
+        let highestCompletedRow = 0;
         allNodes.forEach(node => {
-          if (node.position && node.position.row === nextAvailableRow && !node.visited) {
-            node.state = NODE_STATE.AVAILABLE;
-            console.log(`Setting node ${node.id} to AVAILABLE (in next row ${nextAvailableRow})`);
+          if (node.visited && node.position && node.position.row > highestCompletedRow) {
+            highestCompletedRow = node.position.row;
           }
         });
         
-        // Special case: If no nodes have been completed yet, make first row available
-        if (highestCompletedRow === 0) {
-          allNodes.forEach(node => {
-            if (node.position && node.position.row === 1 && !node.visited) {
-              node.state = NODE_STATE.AVAILABLE;
-              console.log(`Setting first row node ${node.id} to AVAILABLE`);
+        // The next available row is the one after the highest completed row
+        const nextRow = highestCompletedRow + 1;
+        
+        console.log(`Highest completed row is ${highestCompletedRow}, checking for connections to row ${nextRow}`);
+        
+        // For each completed node, check if it has paths to the next row
+        for (const node of completedNodes) {
+          // Get all nodes this node is connected to
+          for (const targetId of node.paths) {
+            const targetNode = this.getNodeById(targetId);
+            
+            // Only make nodes available if they are:
+            // 1. In the next row AND
+            // 2. Connected to a completed node AND
+            // 3. Not already visited or current
+            if (targetNode && targetNode.position && 
+                targetNode.position.row === nextRow && 
+                !targetNode.visited && 
+                targetNode.id !== this.data.currentNode) {
+              
+              console.log(`Setting node ${targetId} to AVAILABLE (connected from ${node.id} in row ${node.position?.row})`);
+              targetNode.state = NODE_STATE.AVAILABLE;
             }
-          });
+          }
         }
         
-        // Special case: If we've completed all regular rows, make boss available
+        // Special case for boss node
         const bossNode = this.getNodeById('boss');
         if (bossNode && bossNode.position) {
           const lastRegularRow = bossNode.position.row - 1;
           
-          // Check if all nodes in the last regular row have been visited
-          const lastRowNodes = allNodes.filter(n => 
-            n.position && n.position.row === lastRegularRow
+          // Check if any completed node has a direct path to the boss
+          const hasBossConnection = completedNodes.some(node => 
+            node.position && node.position.row === lastRegularRow && 
+            node.paths && node.paths.includes('boss')
           );
           
-          const lastRowCompleted = lastRowNodes.some(n => n.visited);
-          
-          if (lastRowCompleted && !bossNode.visited) {
+          if (hasBossConnection && !bossNode.visited) {
             bossNode.state = NODE_STATE.AVAILABLE;
-            console.log(`Making boss node available`);
+            console.log('Boss node is now AVAILABLE through direct connections');
           }
         }
       }
@@ -348,7 +345,7 @@ _createFallbackMap: function(floorNumber) {
       // Log the state of all nodes for debugging
       console.log("ALL NODE STATES");
       allNodes.forEach(node => {
-        console.log(`Node ${node.id}: ${node.state}, visited=${node.visited}, current=${!!node.current}, row=${node.position?.row}`);
+        console.log(`Node ${node.id}: ${node.state}, visited=${node.visited}, position=${node.position?.row},${node.position?.col}`);
       });
     },
     
