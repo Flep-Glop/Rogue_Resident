@@ -155,7 +155,75 @@ function initializeGame() {
         if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
           MapRenderer.initialize('floor-map');
         }
-        
+        // Add this after MapRenderer initialization in game.js (or somewhere appropriate)
+        // This forces an immediate render of the map after initialization
+
+        // Wait for a moment to make sure all the components have initialized
+        setTimeout(() => {
+          // Check if MapRenderer exists and has been initialized
+          if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+            console.log("Forcing initial map render...");
+            MapRenderer.renderMap();
+          }
+        }, 500);
+
+        // Alternatively, you can call this debug function to help diagnose any issues
+        function debugMapRenderer() {
+          console.group("Map Renderer Debug");
+          
+          // Check if canvas exists
+          const canvas = document.getElementById('floor-map');
+          if (!canvas) {
+            console.error("Canvas element 'floor-map' not found!");
+          } else {
+            console.log("Canvas element found:", canvas);
+            console.log("Canvas dimensions:", {
+              width: canvas.width,
+              height: canvas.height,
+              styleWidth: canvas.style.width,
+              styleHeight: canvas.style.height
+            });
+            
+            // Check if context can be created
+            try {
+              const ctx = canvas.getContext('2d');
+              console.log("Canvas context created successfully");
+              
+              // Try drawing a simple shape to test
+              ctx.fillStyle = 'red';
+              ctx.fillRect(100, 100, 50, 50);
+              console.log("Test shape drawn");
+            } catch (e) {
+              console.error("Error creating canvas context:", e);
+            }
+          }
+          
+          // Check if MapRenderer is initialized
+          if (typeof MapRenderer === 'undefined') {
+            console.error("MapRenderer not defined!");
+          } else {
+            console.log("MapRenderer exists");
+            console.log("Has renderMap method:", typeof MapRenderer.renderMap === 'function');
+            
+            // Check other important methods
+            console.log("Has initialize method:", typeof MapRenderer.initialize === 'function');
+            console.log("Has drawNodes method:", typeof MapRenderer.drawNodes === 'function');
+            
+            // Check if map data exists
+            if (GameState && GameState.data && GameState.data.map) {
+              console.log("Map data exists in GameState");
+              console.log("Nodes count:", Object.keys(GameState.data.map.nodes || {}).length);
+            } else {
+              console.error("No map data found in GameState");
+            }
+          }
+          
+          console.groupEnd();
+        }
+
+        // Call the debug function to diagnose map rendering issues
+        // You can add this to your console or call it directly
+        // debugMapRenderer();
         // Initialize character panel
         if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
           CharacterPanel.initialize();

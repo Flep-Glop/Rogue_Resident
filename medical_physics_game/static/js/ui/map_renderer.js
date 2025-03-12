@@ -74,8 +74,11 @@ const MapRenderer = {
       }
     },
     
-    // Render the map based on current game state
+    // Replace the renderMap method in your MapRenderer object with this improved version:
+
     renderMap: function() {
+      console.log("Rendering map...");
+      
       const canvas = document.getElementById(this.canvasId);
       if (!canvas) {
         console.error(`Canvas element not found: ${this.canvasId}`);
@@ -83,13 +86,30 @@ const MapRenderer = {
       }
       
       const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error("Could not get canvas context");
+        return;
+      }
+      
+      // Log current dimensions for debugging
+      console.log("Canvas dimensions:", {
+        width: canvas.width,
+        height: canvas.height,
+        offsetWidth: canvas.offsetWidth,
+        offsetHeight: canvas.offsetHeight
+      });
       
       // Fix for high-DPI displays
       const dpr = window.devicePixelRatio || 1;
       
-      // Set canvas dimensions based on map size
-      const width = Math.max(this.config.minWidth, this.config.nodesPerRow * 150);
-      const height = Math.max(this.config.minHeight, (this.config.rowCount + 2) * 100);
+      // Get container dimensions if available
+      const container = canvas.parentElement;
+      const containerWidth = container ? container.offsetWidth - 20 : 800;
+      const containerHeight = container ? container.offsetHeight - 20 : 600;
+      
+      // Set canvas dimensions based on container or fallback to config
+      const width = Math.max(this.config.minWidth, containerWidth);
+      const height = Math.max(this.config.minHeight, containerHeight);
       
       // Update canvas dimensions
       canvas.width = width * dpr;
@@ -102,6 +122,20 @@ const MapRenderer = {
       
       // Clear the canvas
       ctx.clearRect(0, 0, width, height);
+      
+      // Check if we have map data
+      if (!GameState.data.map) {
+        console.error("No map data to render");
+        
+        // Draw a placeholder message
+        ctx.fillStyle = '#888';
+        ctx.font = '20px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("No map data available", width/2, height/2);
+        return;
+      }
+      
+      console.log("Drawing map with data:", GameState.data.map);
       
       // Draw connections first (so they appear behind nodes)
       this.drawConnections(ctx, width, height);
