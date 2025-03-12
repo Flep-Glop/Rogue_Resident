@@ -137,24 +137,29 @@
         </div>
     </div>
     
-    <!-- Load core utilities first -->
+    <!-- Load Bootstrap JS first -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Load basic utilities first (very important) -->
+    <script src="/static/js/ui-utils.js"></script>
+    <script src="/static/js/api-client.js"></script>
     <script src="/static/js/error_handler.js"></script>
-    
+
     <!-- Load engine scripts -->
-    <script src="/engine/event_system.js"></script>
-    <script src="/engine/state_manager.js"></script>
-    <script src="/engine/progression.js"></script>
-    <script src="/engine/save_manager.js"></script>
-    <script src="/engine/debug_tools.js"></script>
-    
+    <script src="/static/js/engine/event_system.js"></script>
+    <script src="/static/js/engine/state_manager.js"></script>
+    <script src="/static/js/engine/progression.js"></script>
+    <script src="/static/js/engine/save_manager.js"></script>
+    <script src="/static/js/engine/debug_tools.js"></script>
+
     <!-- Load UI component scripts -->
-    <script src="/ui/map_renderer.js"></script>
-    <script src="/ui/node_interaction.js"></script>
-    <script src="/ui/character_panel.js"></script>
-    <script src="/ui/inventory_system.js"></script>
-    <script src="/ui/feedback_system.js"></script>
-    <script src="/ui/special_interactions.js"></script>
-    
+    <script src="/static/js/ui/map_renderer.js"></script>
+    <script src="/static/js/ui/node_interaction.js"></script>
+    <script src="/static/js/ui/character_panel.js"></script>
+    <script src="/static/js/ui/inventory_system.js"></script>
+    <script src="/static/js/ui/feedback_system.js"></script>
+    <script src="/static/js/ui/special_interactions.js"></script>
+
     <!-- Load game initialization last -->
     <script src="/static/js/game.js"></script>
     
