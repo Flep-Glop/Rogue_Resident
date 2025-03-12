@@ -84,8 +84,8 @@ const NODE_STATE = {
       });
     },
     
-    // In state_manager.js, replace updateAllNodeStates with this version:
-    // In state_manager.js, replace updateAllNodeStates with this version:
+    // In state_manager.js, modify the updateAllNodeStates function:
+
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
@@ -118,27 +118,26 @@ const NODE_STATE = {
         }
       }
       
-      // Step 4: Mark nodes that are direct children of completed nodes as AVAILABLE
-      // CRITICAL FIX: Prioritize forward progression - don't allow backtracking
-      const completedNodeIds = new Set();
-      for (const node of allNodes) {
-        if (node.visited) {
-          completedNodeIds.add(node.id);
-        }
-      }
+      // CRITICAL: Check if there are any completed nodes besides start
+      const hasOtherCompletedNodes = allNodes.some(node => 
+        node.id !== 'start' && node.visited && node.id !== this.data.currentNode
+      );
       
+      // Step 4: Mark nodes that are direct children of completed nodes as AVAILABLE
       for (const node of allNodes) {
-        // Only process completed nodes (start or visited nodes)
-        if (node.id === 'start' || node.visited) {
+        // Only process completed/visited nodes
+        if (node.visited && node.id !== this.data.currentNode) {
+          // CRITICAL: Skip start node if there are other completed nodes
+          if (node.id === 'start' && hasOtherCompletedNodes) {
+            continue; // Skip start node to prevent backtracking
+          }
+          
           // For each path from this node
           if (node.paths) {
             for (const targetId of node.paths) {
               const targetNode = this.getNodeById(targetId);
-              // Only mark as available if not already visited/current AND not in a backtrack direction
-              if (targetNode && 
-                  !targetNode.visited && 
-                  targetId !== this.data.currentNode) {
-                
+              // Only mark as available if not already visited/current
+              if (targetNode && !targetNode.visited && targetId !== this.data.currentNode) {
                 console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
                 targetNode.state = NODE_STATE.AVAILABLE;
               }
