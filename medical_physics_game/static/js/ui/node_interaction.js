@@ -1058,14 +1058,18 @@ const CONTAINER_TYPES = {
           progressFill.style.width = '100%';
       }
       
-      // Set up final continue button
+      // Replace it with this:
       const continueBtn = document.getElementById('case-continue-btn');
       if (continueBtn) {
           continueBtn.style.display = 'block';
           continueBtn.textContent = 'Complete Case';
           continueBtn.addEventListener('click', () => {
-              // Return to map view
-              if (typeof UI !== 'undefined' && UI.showMapView) {
+              // Complete the node so progression can continue
+              if (GameState.data.currentNode) {
+                  GameState.completeNode(GameState.data.currentNode);
+              } else {
+                  // Fallback if node ID is missing
+                  console.error("Cannot complete patient case - current node ID not found");
                   UI.showMapView();
               }
           });
