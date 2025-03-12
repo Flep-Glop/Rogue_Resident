@@ -287,68 +287,53 @@ const CONTAINER_TYPES = {
     },
 
     
-    // Replace the processNodeContent method in NodeInteraction with this fixed version
+    // Replace processNodeContent function with:
 
     processNodeContent: function(nodeData) {
       console.log("Processing node type:", nodeData.type);
       
-      switch (nodeData.type) {
-        case 'question':
-        case 'elite':
-        case 'boss':
-          if (nodeData.question) {
-            this.showQuestion(nodeData);
-          } else {
-            console.error(`Question data missing for ${nodeData.type} node:`, nodeData);
-            UiUtils.showToast(`Error: Missing question data for ${nodeData.type} node`, "danger");
-          }
-          break;
-          
-        case 'treasure':
-          if (nodeData.item) {
-            this.showTreasure(nodeData);
-          } else {
-            console.error("Item data missing for treasure node:", nodeData);
-            UiUtils.showToast("Error: Missing item data for treasure node", "danger");
-          }
-          break;
-          
-        case 'rest':
-          this.showRestNode(nodeData);
-          break;
-          
-        case 'event':
-          if (nodeData.event) {
-            this.showEvent(nodeData);
-          } else {
-            console.error("Event data missing for event node:", nodeData);
-            UiUtils.showToast("Error: Missing event data for event node", "danger");
-          }
-          break;
-          
-        case 'shop':
-          this.showShop(nodeData);
-          break;
-        
-        // Add inside the switch statement in processNodeContent
-        case 'patient_case':
-          if (nodeData.patient_case) {
-              this.showPatientCase(nodeData);
-          } else {
-              console.error("Patient case data missing for patient_case node:", nodeData);
-              UiUtils.showToast("Error: Missing patient case data", "danger");
-          }
-          break;
-
-        case 'gamble':
-          this.showGamble(nodeData);
-          break;
-          
-        default:
-          console.error(`Unknown node type: ${nodeData.type}`);
-          UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
-          GameState.completeNode(nodeData.id);
+      // Get node type config from registry
+      const nodeType = NodeRegistry.getNodeType(nodeData.type);
+      
+      // Process data if needed
+      nodeData = NodeRegistry.processNodeData(nodeData);
+      
+      // Get container ID from registry
+      const containerId = nodeType.interactionContainer;
+      
+      // If no container defined for this type, complete the node and return
+      if (!containerId) {
+        console.log(`No interaction container defined for node type: ${nodeData.type}`);
+        GameState.completeNode(nodeData.id);
+        return;
       }
+      
+      // Show the container
+      this.showContainer(containerId);
+      
+      // Handle the specific node type
+      const handlerName = `show${this.capitalizeFirstLetter(nodeData.type)}`;
+      
+      // Call the specific handler if it exists
+      if (typeof this[handlerName] === 'function') {
+        this[handlerName](nodeData);
+      } else {
+        console.warn(`No handler found for node type: ${nodeData.type}`);
+        
+        // Generic fallback - show a continue button
+        const continueBtn = document.getElementById('continue-btn');
+        if (continueBtn) {
+          continueBtn.style.display = 'block';
+          continueBtn.addEventListener('click', () => {
+            GameState.completeNode(nodeData.id);
+          });
+        }
+      }
+    },
+
+    // Helper method
+    capitalizeFirstLetter: function(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
     },
     
     // Show a question node

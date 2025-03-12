@@ -90,6 +90,8 @@ def get_question_for_node(node):
     # Return a random question
     import random
     return random.choice(matching_questions)
+# game_state.py
+# Add this with the other get_random_ functions
 
 def get_random_item(rarity=None):
     """Get a random item, optionally filtered by rarity"""
@@ -133,6 +135,21 @@ def get_random_item(rarity=None):
     
     # Return random item
     return random.choice(items)
+
+def get_random_patient_case():
+    """Get a random patient case from the patient_cases.json file"""
+    from data_manager import load_json_data
+    patient_cases = load_json_data('patient_cases.json')
+    
+    if not patient_cases or 'patient_cases' not in patient_cases:
+        return None
+        
+    cases = patient_cases.get('patient_cases', [])
+    if not cases:
+        return None
+        
+    # Return a random case
+    return random.choice(cases)
 
 def get_random_event():
     """Get a random event from the events data"""

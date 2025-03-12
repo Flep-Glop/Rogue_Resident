@@ -134,17 +134,23 @@ def generate_floor_layout(floor_number, floor_data):
     
     return layout
 
+# Update the determine_node_type function:
 def determine_node_type(floor_data):
     """Determine a node type based on weights in floor data"""
-    node_types = floor_data.get('node_types', {
-        "question": {"weight": 60},
-        "rest": {"weight": 20},
-        "treasure": {"weight": 20},
-        "patient_case": {"weight": 15}  # Adjust weight as desired
-    })
+    # Get default weights from configuration
+    default_weights = get_node_type_weights()
+    
+    # Override with floor-specific weights if provided
+    node_types = floor_data.get('node_types', {})
+    
+    # Build combined weights
+    weights = {}
+    for node_type, weight in default_weights.items():
+        # Use floor weight if specified, otherwise use default
+        weights[node_type] = node_types.get(node_type, {}).get('weight', weight)
     
     # Calculate total weight
-    total_weight = sum(data.get('weight', 0) for data in node_types.values())
+    total_weight = sum(weights.values())
     
     # If no weights, return default
     if total_weight <= 0:
@@ -155,13 +161,27 @@ def determine_node_type(floor_data):
     
     # Determine node type based on weights
     current_weight = 0
-    for node_type, data in node_types.items():
-        current_weight += data.get('weight', 0)
+    for node_type, weight in weights.items():
+        current_weight += weight
         if roll <= current_weight:
             return node_type
     
     # Default fallback
     return "question"
+
+# Import node type weights from JavaScript registry
+def get_node_type_weights():
+    """Get node type weights from configuration"""
+    return {
+        "question": 60,
+        "elite": 15,
+        "treasure": 20,
+        "rest": 15,
+        "event": 15,
+        "patient_case": 25,
+        "shop": 10,
+        "gamble": 10
+    }
 
 def determine_node_difficulty(floor_data, node_type):
     """Determine difficulty for a node based on floor data"""

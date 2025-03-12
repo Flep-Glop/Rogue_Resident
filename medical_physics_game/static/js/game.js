@@ -277,6 +277,12 @@ function initializeGame() {
     EventSystem.initialize();
   }
   
+  // Initialize node registry and create containers
+  if (typeof NodeRegistry !== 'undefined') {
+    // Create interaction containers if they don't exist
+    NodeRegistry.createNodeContainers();
+  }
+
   // Initialize progression manager
   if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
     ProgressionManager.initialize(PROGRESSION_TYPE.PATH_BASED);
@@ -316,6 +322,7 @@ function initializeGame() {
             MapRenderer.renderMap();
           }
         }, 500);
+        
 
         // Alternatively, you can call this debug function to help diagnose any issues
         function debugMapRenderer() {

@@ -13,46 +13,19 @@ const MapRenderer = {
     dropShadowDepth: 4 // Depth of the pixel drop shadows
   },
   
-  // Node appearance based on type (matching the CSS custom properties)
-  nodeColors: {
-    'start': '#56b886',    // Green (secondary)
-    'boss': '#e67e73',     // Red (danger)
-    'question': '#5b8dd9', // Blue (primary)
-    'elite': '#d35db3',    // Pink (softer)
-    'treasure': '#f0c866', // Yellow (warning)
-    'rest': '#9c77db',     // Purple (softer)
-    'shop': '#5bbcd9',     // Cyan (softer)
-    'patient_case': '#4acf8b', // Bright green (clinical)
-    'event': '#e99c50',    // Orange (softer)
-    'gamble': '#b8d458'    // Lime (softer)
+  // Get node color from registry
+  getNodeColor: function(nodeType) {
+    return NodeRegistry.getNodeType(nodeType).color;
   },
   
-  // Darker variants for shadows (matching the CSS custom properties)
-  nodeShadowColors: {
-    'start': '#45966d',     // Green shadow (secondary-dark)
-    'boss': '#b66059',      // Red shadow (danger-dark)
-    'question': '#4a70b0',  // Blue shadow (primary-dark)
-    'elite': '#a24b8e',     // Pink shadow
-    'treasure': '#c9a955',  // Yellow shadow (warning-dark)
-    'patient_case': '#3aaf7a', // Darker green for patient case shadow
-    'rest': '#7c5cb0',      // Purple shadow
-    'shop': '#4a99b3',      // Cyan shadow
-    'event': '#b87d40',     // Orange shadow
-    'gamble': '#94ab47'     // Lime shadow
+  // Get node shadow color from registry
+  getNodeShadowColor: function(nodeType) {
+    return NodeRegistry.getNodeType(nodeType).shadowColor;
   },
   
-  // Node symbols - keep these simple and recognizable
-  nodeSymbols: {
-    'start': 'S',
-    'boss': 'B',
-    'question': '?',
-    'elite': '!',
-    'treasure': 'T',
-    'rest': 'R',
-    'patient_case': 'P', // 'P' for Patient
-    'shop': '$',
-    'event': 'E',
-    'gamble': 'G'
+  // Get node symbol from registry
+  getNodeSymbol: function(nodeType) {
+    return NodeRegistry.getNodeType(nodeType).symbol;
   },
 
   // Background patterns for different floor types
@@ -464,13 +437,12 @@ const MapRenderer = {
     });
   },
   
-  // Draw a single node with pixelated styling
+  // Complete updated drawNode function
   drawNode: function(ctx, node, width, height) {
     // Use fixed spacing for reliable positioning
     const rowSpacing = 80; // Pixels between rows
     const colSpacing = 120; // Pixels between columns
     
-    // UPDATED: Calculate the total width needed for all nodes in a row
     // Get the number of columns in this row
     const nodesInRow = this.getNodesInRow(node.position.row);
     const columnsInRow = nodesInRow.length;
@@ -512,7 +484,7 @@ const MapRenderer = {
       textColor = '#ffffff';
     } else {
       // Locked nodes - get color based on type but with reduced brightness
-      const typeColor = this.nodeColors[node.type] || '#999999';
+      const typeColor = NodeRegistry.getNodeType(node.type).color || '#999999';
       fillColor = this.adjustColorBrightness(typeColor, -30);
       shadowColor = this.adjustColorBrightness(typeColor, -60);
       strokeColor = '#666666';
@@ -528,7 +500,7 @@ const MapRenderer = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const symbol = this.nodeSymbols[node.type] || '?';
+    const symbol = NodeRegistry.getNodeType(node.type).symbol || '?';
     ctx.fillText(symbol, x, y - 3);
     
     // Draw type indicator below

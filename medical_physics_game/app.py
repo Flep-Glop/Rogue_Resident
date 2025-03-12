@@ -12,11 +12,52 @@ import random
 # Import modules
 from data_manager import load_json_data, save_json_data, init_data_files
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
-from game_state import create_default_game_state, get_game_id
+from game_state import create_default_game_state, get_game_id, get_question_for_node, get_random_item, get_random_event, get_random_patient_case
 from db_utils import save_game_state, load_game_state, delete_game_state
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
+
+# ADD NODE REGISTRY HERE
+# Create a node type registry for server-side logic
+NODE_TYPES = {
+    'question': {
+        'data_function': 'get_question_for_node',
+        'data_key': 'question'
+    },
+    'elite': {
+        'data_function': 'get_question_for_node',
+        'data_key': 'question'
+    },
+    'boss': {
+        'data_function': 'get_question_for_node',
+        'data_key': 'question'
+    },
+    'treasure': {
+        'data_function': 'get_random_item',
+        'data_key': 'item'
+    },
+    'event': {
+        'data_function': 'get_random_event',
+        'data_key': 'event'
+    },
+    'patient_case': {
+        'data_function': 'get_random_patient_case',
+        'data_key': 'patient_case'
+    },
+    'rest': {
+        'data_function': None,
+        'data_key': None
+    },
+    'shop': {
+        'data_function': 'get_shop_items',
+        'data_key': 'shop_items'
+    },
+    'gamble': {
+        'data_function': 'get_gamble_options',
+        'data_key': 'gamble_options'
+    }
+}
 
 # Make session permanent
 @app.before_request
@@ -328,6 +369,7 @@ def generate_floor_map():
     
     return jsonify(map_layout)
 
+# Update the get_node function:
 @app.route('/api/node/<node_id>')
 def get_node(node_id):
     """Get content for a specific node"""
@@ -354,42 +396,26 @@ def get_node(node_id):
         if not node:
             return jsonify({"error": f"Node {node_id} not found in map"}), 404
         
-        # Process node based on type
-        if node["type"] == "question" or node["type"] == "elite" or node["type"] == "boss":
-            # Get a question matching the difficulty
-            from game_state import get_question_for_node
-            question_data = get_question_for_node(node)
-            if not question_data:
-                return jsonify({"error": "Failed to generate a question"}), 500
-            return jsonify({**node, "question": question_data})
+        # Use the registry to process node
+        node_type = node.get('type')
+        if node_type not in NODE_TYPES:
+            return jsonify({"error": f"Unknown node type: {node_type}"}), 400
+            
+        node_config = NODE_TYPES[node_type]
         
-        elif node["type"] == "treasure":
-            # Get a random item
-            from game_state import get_random_item
-            item_data = get_random_item()
-            if not item_data:
-                return jsonify({"error": "Failed to generate an item"}), 500
-            return jsonify({**node, "item": item_data})
-        elif node["type"] == "patient_case":
-            # Load patient case data
-            patient_cases = load_json_data('patient_cases.json')
-            if not patient_cases or not patient_cases.get('patient_cases'):
-                return jsonify({"error": "Failed to generate a patient case"}), 500
-            random_case = random.choice(patient_cases.get('patient_cases', []))
-            if not random_case:
-                return jsonify({"error": "Failed to generate a patient case"}), 500
-            return jsonify({**node, "patient_case": random_case})
-        elif node["type"] == "event":
-            # Get a random event
-            from game_state import get_random_event
-            event_data = get_random_event()
-            if not event_data:
-                return jsonify({"error": "Failed to generate an event"}), 500
-            return jsonify({**node, "event": event_data})
-        
-        else:
-            # Other node types don't need additional data
-            return jsonify(node)
+        # If the node type needs data, get it
+        if node_config['data_function'] and node_config['data_key']:
+            # Dynamically call the function
+            func_name = node_config['data_function']
+            if func_name in globals():
+                data = globals()[func_name](node)
+                
+                # Update node with data
+                if data:
+                    node[node_config['data_key']] = data
+            
+        # Return node data
+        return jsonify(node)
     except Exception as e:
         error_traceback = traceback.format_exc()
         print(f"⚠️ Error retrieving node {node_id}: {e}", file=sys.stderr)
