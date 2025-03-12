@@ -136,7 +136,7 @@ def get_random_item(rarity=None):
     # Return random item
     return random.choice(items)
 
-def get_random_patient_case():
+def get_random_patient_case(node=None):
     """Get a random patient case from the patient_cases.json file"""
     from data_manager import load_json_data
     patient_cases = load_json_data('patient_cases.json')
@@ -151,7 +151,7 @@ def get_random_patient_case():
     # Return a random case
     return random.choice(cases)
 
-def get_random_event():
+def get_random_event(node=None):
     """Get a random event from the events data"""
     from data_manager import load_json_data
     
