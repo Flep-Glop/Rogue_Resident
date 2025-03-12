@@ -22,6 +22,7 @@ const MapRenderer = {
     'treasure': '#f0c866', // Yellow (warning)
     'rest': '#9c77db',     // Purple (softer)
     'shop': '#5bbcd9',     // Cyan (softer)
+    'patient_case': '#4acf8b', // Bright green (clinical)
     'event': '#e99c50',    // Orange (softer)
     'gamble': '#b8d458'    // Lime (softer)
   },

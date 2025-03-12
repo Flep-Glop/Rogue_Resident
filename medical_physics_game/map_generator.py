@@ -139,7 +139,8 @@ def determine_node_type(floor_data):
     node_types = floor_data.get('node_types', {
         "question": {"weight": 60},
         "rest": {"weight": 20},
-        "treasure": {"weight": 20}
+        "treasure": {"weight": 20},
+        "patient_case": {"weight": 15}  # Adjust weight as desired
     })
     
     # Calculate total weight
