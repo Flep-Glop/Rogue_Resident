@@ -84,13 +84,13 @@ const NODE_STATE = {
       });
     },
     
-    // Replace the updateAllNodeStates method in your state_manager.js
-
+    // In state_manager.js, replace updateAllNodeStates with this version:
+    // In state_manager.js, replace updateAllNodeStates with this version:
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
       console.log("Updating all node states with STRICT RULES");
-    
+
       // Step 1: Mark all nodes LOCKED initially (except start)
       const allNodes = this.getAllNodes();
       for (const node of allNodes) {
@@ -119,19 +119,30 @@ const NODE_STATE = {
       }
       
       // Step 4: Mark nodes that are direct children of completed nodes as AVAILABLE
+      // CRITICAL FIX: Prioritize forward progression - don't allow backtracking
+      const completedNodeIds = new Set();
+      for (const node of allNodes) {
+        if (node.visited) {
+          completedNodeIds.add(node.id);
+        }
+      }
+      
       for (const node of allNodes) {
         // Only process completed nodes (start or visited nodes)
         if (node.id === 'start' || node.visited) {
           // For each path from this node
           if (node.paths) {
-            node.paths.forEach(targetId => {
+            for (const targetId of node.paths) {
               const targetNode = this.getNodeById(targetId);
-              // Only mark as available if not already visited/current
-              if (targetNode && !targetNode.visited && targetNode.id !== this.data.currentNode) {
+              // Only mark as available if not already visited/current AND not in a backtrack direction
+              if (targetNode && 
+                  !targetNode.visited && 
+                  targetId !== this.data.currentNode) {
+                
                 console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
                 targetNode.state = NODE_STATE.AVAILABLE;
               }
-            });
+            }
           }
         }
       }
