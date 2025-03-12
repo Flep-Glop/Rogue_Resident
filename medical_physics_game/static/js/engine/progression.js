@@ -49,6 +49,13 @@ const ProgressionManager = {
     }
     
     console.log("Node " + nodeId + " state: " + node.state);
+    // In progression.js, add this code right after the console.log for node state:
+
+    // Rule: Can't visit locked nodes
+    if (node.state === NODE_STATE.LOCKED) {
+      console.log("Can't visit - node " + nodeId + " is locked");
+      return false;
+    }
     
     // Rule 5: Must have a DIRECT PATH from a completed node
     const connectedNodes = this.getConnectedNodes(nodeId);
