@@ -73,32 +73,61 @@ const NODE_STATE = {
       });
     },
     
-    // Update all node states based on current game state
+    // Replace the updateAllNodeStates method in your state_manager.js
+
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
-      // Process all nodes
+      console.log("Updating all node states...");
+
+      // First set all non-start nodes to locked
       const allNodes = this.getAllNodes();
-      
       for (const node of allNodes) {
-        // Skip start node
-        if (node.id === 'start') continue;
-        
-        // Set current node
-        if (node.id === this.data.currentNode) {
-          node.state = NODE_STATE.CURRENT;
+        if (node.id === 'start') {
+          node.state = 'completed'; // Start is always completed
           continue;
         }
         
-        // Set completed nodes
-        if (node.visited) {
-          node.state = NODE_STATE.COMPLETED;
-          continue;
-        }
+        // Default all nodes to locked initially
+        node.state = NODE_STATE.LOCKED;
+      }
+      
+      // Process row 0 (start node)
+      const startNode = this.getNodeById('start');
+      if (startNode && startNode.paths) {
+        // All nodes connected from start should be available
+        startNode.paths.forEach(targetId => {
+          const targetNode = this.getNodeById(targetId);
+          if (targetNode && !targetNode.visited) {
+            console.log(`Setting node ${targetId} to available (connected from start)`);
+            targetNode.state = NODE_STATE.AVAILABLE;
+          }
+        });
+      }
+      
+      // Now process completed nodes (make their connected nodes available)
+      for (const node of allNodes) {
+        // Skip if not completed
+        if (node.id !== 'start' && !node.visited) continue;
         
-        // Check if the node is available or locked
-        node.state = ProgressionManager.canVisitNode(node.id) ? 
-          NODE_STATE.AVAILABLE : NODE_STATE.LOCKED;
+        // Open paths from completed nodes
+        if (node.paths) {
+          node.paths.forEach(targetId => {
+            const targetNode = this.getNodeById(targetId);
+            if (targetNode && !targetNode.visited) {
+              console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
+              targetNode.state = NODE_STATE.AVAILABLE;
+            }
+          });
+        }
+      }
+      
+      // Set current node state
+      if (this.data.currentNode) {
+        const currentNode = this.getNodeById(this.data.currentNode);
+        if (currentNode) {
+          currentNode.state = NODE_STATE.CURRENT;
+        }
       }
       
       // Check if all nodes are completed (for next floor button)
