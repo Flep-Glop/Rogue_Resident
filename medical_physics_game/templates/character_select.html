@@ -214,47 +214,58 @@
         
         /* Copy this complete CSS and replace the entire .carousel-arrow section in character_select.html */
 
-        /* Carousel navigation arrows - COMPLETE REPLACEMENT */
+        /* Carousel navigation arrows - ENHANCED VERSION */
         .carousel-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
+            width: 60px;  /* Increased size from 40px */
+            height: 60px; /* Increased size from 40px */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 32px; /* Larger arrow symbols */
             cursor: pointer;
             z-index: 10;
             /* Style with pixelated look */
-            background-color: #5b8dd9;
+            background-color: rgba(91, 141, 217, 0.7); /* Semi-transparent background */
             color: white;
-            border: 2px solid #ffffff;
+            border: 3px solid #ffffff;
             box-shadow: 
-                4px 4px 0 rgba(0, 0, 0, 0.2),
+                5px 5px 0 rgba(0, 0, 0, 0.2),
                 0 0 0 2px rgba(0, 0, 0, 0.1);
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            /* Add fade-in/fade-out animation */
+            animation: arrow-pulse 2s infinite ease-in-out;
+        }
+
+        /* Define the pulsing animation */
+        @keyframes arrow-pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
 
         .carousel-arrow:hover {
-            background-color: #56b886;
-            transform: translateY(-50%) scale(1.05);
+            background-color: rgba(86, 184, 134, 0.9); /* More opaque on hover */
+            transform: translateY(-50%) scale(1.1);
+            animation: none; /* Stop the animation on hover */
+            opacity: 1;
         }
 
         .carousel-arrow:active {
-            transform: translateY(-50%) translateX(2px) translateY(2px);
+            transform: translateY(-50%) translateX(3px) translateY(3px);
             box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
         }
 
         .carousel-arrow.prev {
-            left: 10px; /* Position closer to card */
+            left: 0px; /* Position closer to edge */
         }
 
         .carousel-arrow.next {
-            right: 10px; /* Position closer to card */
+            right: 0px; /* Position closer to edge */
         }
-
         /* Make sure the arrows have simple text inside (no ::after pseudo-elements) */
 
         /* Carousel indicators */
