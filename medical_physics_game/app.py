@@ -232,7 +232,8 @@ def update_floors_config():
             "node_types": {
                 "question": {"weight": 60, "difficulty_range": [1, 1]},
                 "rest": {"weight": 20},
-                "treasure": {"weight": 20}
+                "treasure": {"weight": 20},
+                "patient_case": { "weight": 15 }
             },
             "boss": None
         })
@@ -248,7 +249,8 @@ def update_floors_config():
                     "question": {"weight": 50, "difficulty_range": [1, min(i, 3)]},
                     "elite": {"weight": 15, "difficulty_range": [2, min(i, 3)]},
                     "rest": {"weight": 15},
-                    "treasure": {"weight": 20}
+                    "treasure": {"weight": 20},
+            "patient_case": { "weight": 15 }
                 },
                 "boss": None
             })
@@ -263,7 +265,8 @@ def update_floors_config():
                 "question": {"weight": 40, "difficulty_range": [2, 3]},
                 "elite": {"weight": 30, "difficulty_range": [2, 3]},
                 "rest": {"weight": 15},
-                "treasure": {"weight": 15}
+                "treasure": {"weight": 15},
+                "patient_case": { "weight": 15 }
             },
             "boss": {
                 "name": "Chief Medical Physicist",
@@ -366,7 +369,15 @@ def get_node(node_id):
             if not item_data:
                 return jsonify({"error": "Failed to generate an item"}), 500
             return jsonify({**node, "item": item_data})
-        
+        elif node["type"] == "patient_case":
+            # Load patient case data
+            patient_cases = load_json_data('patient_cases.json')
+            if not patient_cases or not patient_cases.get('patient_cases'):
+                return jsonify({"error": "Failed to generate a patient case"}), 500
+            random_case = random.choice(patient_cases.get('patient_cases', []))
+            if not random_case:
+                return jsonify({"error": "Failed to generate a patient case"}), 500
+            return jsonify({**node, "patient_case": random_case})
         elif node["type"] == "event":
             # Get a random event
             from game_state import get_random_event

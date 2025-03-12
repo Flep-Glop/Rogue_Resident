@@ -34,6 +34,7 @@ const MapRenderer = {
     'question': '#4a70b0',  // Blue shadow (primary-dark)
     'elite': '#a24b8e',     // Pink shadow
     'treasure': '#c9a955',  // Yellow shadow (warning-dark)
+    'patient_case': '#3aaf7a', // Darker green for patient case shadow
     'rest': '#7c5cb0',      // Purple shadow
     'shop': '#4a99b3',      // Cyan shadow
     'event': '#b87d40',     // Orange shadow
@@ -48,6 +49,7 @@ const MapRenderer = {
     'elite': '!',
     'treasure': 'T',
     'rest': 'R',
+    'patient_case': 'P', // 'P' for Patient
     'shop': '$',
     'event': 'E',
     'gamble': 'G'
