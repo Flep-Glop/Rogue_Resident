@@ -525,7 +525,6 @@ const MapRenderer = {
     
     // Draw type indicator below
     ctx.font = '8px "Press Start 2P", monospace';
-    ctx.fillText(node.id, x, y + 15);
     
     // Add glow effect for available/current nodes
     if (node.state === NODE_STATE.AVAILABLE || node.state === NODE_STATE.CURRENT) {

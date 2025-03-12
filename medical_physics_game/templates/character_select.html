@@ -212,40 +212,74 @@
             padding-left: 10px;
         }
         
-        /* Carousel navigation arrows */
+        /* Updated carousel arrow styling */
         .carousel-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background-color: var(--primary);
+            background-color: rgba(91, 141, 217, 0.8); /* Slightly transparent blue */
             color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            border-radius: 5px; /* Pixelated corners instead of round */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.2s;
-            border: none;
+            border: 2px solid white;
             z-index: 10;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 3px 0 rgba(0, 0, 0, 0.3),
+                0 0 10px rgba(0, 0, 0, 0.5);
         }
-        
+
         .carousel-arrow:hover {
             background-color: var(--secondary);
             transform: translateY(-50%) scale(1.1);
         }
-        
+
+        /* Position arrows closer to character cards */
         .carousel-arrow.prev {
-            left: 0;
+            left: 20px; /* Move closer to card */
         }
-        
+
         .carousel-arrow.next {
-            right: 0;
+            right: 20px; /* Move closer to card */
         }
-        
+
+        /* Add pixelated arrow effect */
+        .carousel-arrow::after {
+            content: "";
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-style: solid;
+            border-width: 0;
+            position: absolute;
+        }
+
+        .carousel-arrow.prev::after {
+            border-right: 3px solid white;
+            border-bottom: 3px solid white;
+            transform: rotate(135deg);
+            left: 16px;
+        }
+
+        .carousel-arrow.next::after {
+            border-right: 3px solid white;
+            border-bottom: 3px solid white;
+            transform: rotate(-45deg);
+            right: 16px;
+        }
+
+        /* Add glow effect when active */
+        .carousel-arrow:active {
+            box-shadow: 0 0 15px var(--primary);
+            transform: translateY(-50%) scale(0.95);
+        }
         /* Carousel indicators */
         .carousel-indicators {
             display: flex;
@@ -433,6 +467,7 @@
                 });
         }
         
+        // Replace the renderCharacters function with this version:
         function renderCharacters(characters) {
             const carousel = document.getElementById('character-carousel');
             const indicators = document.getElementById('carousel-indicators');
@@ -462,7 +497,6 @@
                 let asciiArt = character.ascii_art || getAsciiArt(character.id);
                 
                 card.innerHTML = `
-                    <div class="select-indicator">✓</div>
                     <div class="character-header">
                         <h3>${character.name}</h3>
                     </div>
@@ -506,11 +540,6 @@
                     </div>
                 `;
                 
-                // Handle card click
-                card.addEventListener('click', function() {
-                    selectCharacter(character.id, index);
-                });
-                
                 carousel.appendChild(card);
                 
                 // Add indicator
@@ -532,6 +561,9 @@
             
             // Set up initial state
             setActiveCharacter(0);
+            
+            // Enable the start button immediately - it will use the active character
+            document.getElementById('start-game-btn').disabled = false;
         }
         
         // Navigate the carousel
@@ -540,10 +572,13 @@
             navigateToCharacter(newIndex);
         }
         
-        // Navigate to a specific character
+        // Replace the navigateToCharacter function with this version:
         function navigateToCharacter(index) {
             // Update current index
             currentCharacterIndex = index;
+            
+            // Set the selected character to the current active one
+            selectedCharacter = characters[index].id;
             
             // Update active state
             setActiveCharacter(index);
@@ -551,6 +586,24 @@
             // Update counter
             const counter = document.getElementById('character-counter');
             counter.textContent = `Character ${index + 1} of ${characters.length}`;
+            
+            // Add visual highlight to active card
+            document.querySelectorAll('.character-card').forEach(card => {
+                if (parseInt(card.dataset.index) === index) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            // Update indicators
+            document.querySelectorAll('.carousel-indicator').forEach(indicator => {
+                if (parseInt(indicator.dataset.index) === index) {
+                    indicator.classList.add('selected');
+                } else {
+                    indicator.classList.remove('selected');
+                }
+            });
             
             // Play sound
             playNavigationSound();
@@ -602,8 +655,24 @@
             playSelectionSound();
         }
         
-        // Start new game with selected character
+        // Replace the startNewGame function with this simplified version:
         function startNewGame(characterId) {
+            // If no character is explicitly provided, use the currently active one
+            if (!characterId) {
+                characterId = selectedCharacter;
+            }
+            
+            // Make sure we have a character selected
+            if (!characterId && characters.length > 0) {
+                characterId = characters[currentCharacterIndex].id;
+            }
+            
+            // Ensure we have a valid ID before proceeding
+            if (!characterId) {
+                console.error("No character selected");
+                return;
+            }
+
             fetch('/api/new-game', {
                 method: 'POST',
                 headers: {
@@ -618,6 +687,12 @@
             })
             .catch(error => console.error('Error starting new game:', error));
         }
+
+        // Also update the event listener for the start button:
+        document.getElementById('start-game-btn').addEventListener('click', function() {
+            // Just call startNewGame without parameters - it will use the active character
+            startNewGame();
+        });
         
         // Sound effects
         function playNavigationSound() {

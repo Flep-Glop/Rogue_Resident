@@ -750,3 +750,61 @@
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+/* Add this to your retro-game.css file */
+
+/* Make inventory container scrollable with fixed height */
+.inventory-items {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 5px;
+  margin-bottom: 5px;
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+/* Custom scrollbar for Webkit browsers (Chrome, Safari, etc.) */
+.inventory-items::-webkit-scrollbar {
+  width: 8px;
+}
+
+.inventory-items::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-radius: 4px;
+}
+
+.inventory-items::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 4px;
+}
+
+/* Make inventory grid more compact for many items */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 6px;
+  justify-content: start;
+}
+
+/* Make epic item glow more subtle to reduce visual noise */
+@keyframes epic-pulse {
+  0% { box-shadow: 0 0 3px var(--secondary) inset; }
+  50% { box-shadow: 0 0 8px var(--secondary) inset; }
+  100% { box-shadow: 0 0 3px var(--secondary) inset; }
+}
+
+/* Add a subtle "more items" indicator if scrollbar is active */
+.inventory-items::after {
+  content: "";
+  display: block;
+  height: 5px;
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(91, 141, 217, 0.2)
+  );
+  position: sticky;
+  bottom: 0;
+  pointer-events: none;
+}
