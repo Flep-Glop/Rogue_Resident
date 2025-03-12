@@ -786,19 +786,35 @@ const DebugTools = {
     },
   // Add to the DebugTools object
 
-  // Generate a concise state summary for debugging
-  generateStateSummary: function() {
-    if (!GameState || !GameState.data) {
-      return "GameState not available";
-    }
+  // Add or replace this function in static/js/engine/debug_tools.js
 
-    // Get all nodes for summary
-    const allNodes = GameState.getAllNodes();
+// Generate a concise state summary for debugging
+generateStateSummary: function() {
+  console.log("Generating game state summary...");
+  
+  // Verify GameState exists
+  if (!window.GameState || !GameState.data) {
+    console.error("GameState not available");
+    UiUtils.showToast("Error: GameState not available", "danger");
+    return "GameState not available";
+  }
+
+  // Verify NODE_STATE exists
+  const nodeStates = window.NODE_STATE || {
+    LOCKED: 'locked',
+    AVAILABLE: 'available',
+    CURRENT: 'current',
+    COMPLETED: 'completed'
+  };
+  
+  try {
+    // Get all nodes for summary (safely)
+    const allNodes = GameState.getAllNodes ? GameState.getAllNodes() : [];
     
     // Current floor info
     const floorInfo = {
-      currentFloor: GameState.data.currentFloor,
-      currentNode: GameState.data.currentNode,
+      currentFloor: GameState.data.currentFloor || 0,
+      currentNode: GameState.data.currentNode || 'None',
     };
     
     // Node stats - count by state, type, and row
@@ -816,44 +832,52 @@ const DebugTools = {
     const availableNodes = [];
     
     // Process nodes
-    allNodes.forEach(node => {
-      // Count by state
-      if (node.state) {
-        nodeStats.byState[node.state.toLowerCase()]++;
-      }
-      
-      // Count by row
-      if (node.position && node.position.row !== undefined) {
-        if (!nodeStats.byRow[node.position.row]) {
-          nodeStats.byRow[node.position.row] = {
-            total: 0,
-            completed: 0,
-            available: 0,
-            locked: 0
-          };
+    if (allNodes && allNodes.length > 0) {
+      allNodes.forEach(node => {
+        if (!node) return;
+        
+        // Count by state
+        if (node.state) {
+          const stateKey = node.state.toLowerCase();
+          if (nodeStats.byState.hasOwnProperty(stateKey)) {
+            nodeStats.byState[stateKey]++;
+          }
         }
         
-        nodeStats.byRow[node.position.row].total++;
-        
-        if (node.visited) {
-          nodeStats.byRow[node.position.row].completed++;
-        } else if (node.state === NODE_STATE.AVAILABLE) {
-          nodeStats.byRow[node.position.row].available++;
-        } else if (node.state === NODE_STATE.LOCKED) {
-          nodeStats.byRow[node.position.row].locked++;
+        // Count by row
+        if (node.position && typeof node.position.row !== 'undefined') {
+          const row = node.position.row;
+          if (!nodeStats.byRow[row]) {
+            nodeStats.byRow[row] = {
+              total: 0,
+              completed: 0,
+              available: 0,
+              locked: 0
+            };
+          }
+          
+          nodeStats.byRow[row].total++;
+          
+          if (node.visited) {
+            nodeStats.byRow[row].completed++;
+          } else if (node.state === nodeStates.AVAILABLE) {
+            nodeStats.byRow[row].available++;
+          } else if (node.state === nodeStates.LOCKED) {
+            nodeStats.byRow[row].locked++;
+          }
         }
-      }
-      
-      // Collect all available nodes
-      if (node.state === NODE_STATE.AVAILABLE) {
-        availableNodes.push({
-          id: node.id,
-          row: node.position?.row,
-          col: node.position?.col,
-          connections: this._findConnectionsToNode(node.id)
-        });
-      }
-    });
+        
+        // Collect all available nodes
+        if (node.state === nodeStates.AVAILABLE) {
+          availableNodes.push({
+            id: node.id,
+            row: node.position?.row,
+            col: node.position?.col,
+            connections: this._findConnectionsToNode(node.id)
+          });
+        }
+      });
+    }
     
     // Create a pretty-printed summary
     const summary = {
@@ -861,11 +885,11 @@ const DebugTools = {
       nodeStats,
       availableNodes,
       characterStats: {
-        level: GameState.data.character?.level,
-        lives: GameState.data.character?.lives,
-        insight: GameState.data.character?.insight
+        level: GameState.data.character?.level || 0,
+        lives: GameState.data.character?.lives || 0,
+        insight: GameState.data.character?.insight || 0
       },
-      inventory: GameState.data.inventory?.length || 0
+      inventory: (GameState.data.inventory?.length || 0) + " items"
     };
     
     // Create a text output
@@ -892,22 +916,107 @@ const DebugTools = {
     
     // Available nodes
     output += "Available Nodes:\n";
-    availableNodes.forEach(node => {
-      output += `  ${node.id} (Row ${node.row}, Col ${node.col}): Connected from ${node.connections.join(', ') || 'none'}\n`;
-    });
+    if (availableNodes.length === 0) {
+      output += "  None\n";
+    } else {
+      availableNodes.forEach(node => {
+        output += `  ${node.id} (Row ${node.row}, Col ${node.col}): Connected from ${node.connections.join(', ') || 'none'}\n`;
+      });
+    }
     output += "\n";
     
     // Character stats
     output += `Character: Level ${summary.characterStats.level}, Lives ${summary.characterStats.lives}, Insight ${summary.characterStats.insight}\n`;
-    output += `Inventory: ${summary.inventory} items\n`;
+    output += `Inventory: ${summary.inventory}\n`;
     
+    console.group("Debug Summary");
     console.log(output);
+    console.log("Full summary object:", summary);
+    console.groupEnd();
     
     // Copy to clipboard
     this._copyToClipboard(output);
     
     return output;
-  },
+  } catch (error) {
+    console.error("Error generating state summary:", error);
+    UiUtils.showToast("Error generating debug summary: " + error.message, "danger");
+    return "Error: " + error.message;
+  }
+},
+
+// Helper to find what nodes connect to a given node
+_findConnectionsToNode: function(nodeId) {
+  if (!GameState || !GameState.getAllNodes) {
+    return [];
+  }
+  
+  try {
+    const allNodes = GameState.getAllNodes();
+    const connections = [];
+    
+    allNodes.forEach(node => {
+      if (node && node.paths && Array.isArray(node.paths) && node.paths.includes(nodeId)) {
+        connections.push(node.id);
+      }
+    });
+    
+    return connections;
+  } catch (error) {
+    console.error("Error finding connections:", error);
+    return [];
+  }
+},
+
+// Helper to copy text to clipboard - using modern methods when available
+_copyToClipboard: function(text) {
+  try {
+    // Try the modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          UiUtils.showToast("Debug summary copied to clipboard!", "success");
+        })
+        .catch(err => {
+          console.error("Could not copy text with Clipboard API:", err);
+          this._fallbackCopyToClipboard(text);
+        });
+    } else {
+      this._fallbackCopyToClipboard(text);
+    }
+  } catch (error) {
+    console.error("Error copying to clipboard:", error);
+    UiUtils.showToast("Failed to copy to clipboard", "danger");
+  }
+},
+
+// Fallback copy method using document.execCommand
+_fallbackCopyToClipboard: function(text) {
+  try {
+    // Create a temporary element
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    
+    // Select and copy
+    el.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(el);
+    
+    // Notify user
+    if (successful) {
+      UiUtils.showToast("Debug summary copied to clipboard!", "success");
+    } else {
+      UiUtils.showToast("Could not copy to clipboard", "warning");
+    }
+  } catch (error) {
+    console.error("Error in fallback copy:", error);
+    UiUtils.showToast("Failed to copy to clipboard", "danger");
+  }
+},
 
   // Helper to find what nodes connect to a given node
   _findConnectionsToNode: function(nodeId) {

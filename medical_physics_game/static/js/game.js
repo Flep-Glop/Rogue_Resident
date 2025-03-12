@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-  // Setup event listeners for game UI elements
+// Setup event listeners for game UI elements
 function setupEventListeners() {
   console.log("Setting up event listeners...");
   
@@ -71,58 +71,6 @@ function setupEventListeners() {
       }
     });
   }
-
-  // Debug: Force Next Floor button
-  // Add this to the debug button section in setupEventListeners
-
-  // Debug summary button
-  const debugSummaryBtn = document.createElement('button');
-  debugSummaryBtn.className = 'btn btn-info mt-2 mb-2 ms-2';
-  debugSummaryBtn.textContent = 'Copy Debug Summary';
-  debugSummaryBtn.style.fontSize = '0.7rem';
-  debugSummaryBtn.style.padding = '2px 8px';
-
-  debugSummaryBtn.addEventListener('click', function() {
-    if (typeof DebugTools !== 'undefined' && typeof DebugTools.generateStateSummary === 'function') {
-      DebugTools.generateStateSummary();
-    } else {
-      console.log("Debug tools not available");
-    }
-  });
-
-  // Add to debug buttons container
-  debugButtonContainer.appendChild(debugSummaryBtn);
-  const debugNextFloorBtn = document.createElement('button');
-  debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
-  debugNextFloorBtn.textContent = 'Debug: Force Next Floor';
-  debugNextFloorBtn.style.fontSize = '0.7rem';
-  debugNextFloorBtn.style.padding = '2px 8px';
-
-  debugNextFloorBtn.addEventListener('click', function() {
-    console.log("DEBUG: Force proceeding to next floor");
-    
-    // Force floor completion
-    if (typeof GameState !== 'undefined') {
-      // Show the next floor button
-      const nextFloorBtn = document.getElementById('next-floor-btn');
-      if (nextFloorBtn) {
-        nextFloorBtn.style.display = 'block';
-        console.log("Next floor button made visible");
-      }
-      
-      // Direct call to go to next floor
-      if (typeof GameState.goToNextFloor === 'function') {
-        GameState.goToNextFloor()
-          .then(() => {
-            console.log("Successfully advanced to next floor");
-          })
-          .catch(error => {
-            console.error('Error going to next floor:', error);
-            UiUtils.showToast('Failed to proceed to next floor: ' + error.message, 'danger');
-          });
-      }
-    }
-  });
 
   // Complete Floor button (for testing)
   const completeFloorBtn = document.getElementById('complete-floor-btn');
@@ -183,44 +131,111 @@ function setupEventListeners() {
     });
   }
   
-  // Debug button
-  const debugBtn = document.createElement('button');
-  debugBtn.className = 'btn btn-secondary mt-2 mb-2';
-  debugBtn.textContent = 'Debug Map';
-  debugBtn.style.fontSize = '0.7rem';
-  debugBtn.style.padding = '2px 8px';
-  debugBtn.style.opacity = '0.7';
-  
-  debugBtn.addEventListener('click', function() {
-    console.clear();
-    console.log("=== DEBUG MAP STATE ===");
-    
-    if (typeof GameState !== 'undefined' && typeof GameState.debugState === 'function') {
-      GameState.debugState();
-    }
-    
-    if (typeof EventSystem !== 'undefined' && typeof EventSystem.debugEvents === 'function') {
-      EventSystem.debugEvents();
-    }
-    
-    console.log("Game State:", JSON.stringify(GameState.getState(), null, 2));
-  });
-  
-  // Add debug buttons to map container
+  // ======== DEBUG BUTTONS SECTION ========
+  // Find map container to add debug buttons
   const mapContainer = document.querySelector('.map-container');
   if (mapContainer) {
-    // Create a debug button container
+    // Create a single debug button container
     const debugButtonContainer = document.createElement('div');
     debugButtonContainer.className = 'debug-buttons mb-2';
     debugButtonContainer.style.display = 'flex';
     debugButtonContainer.style.gap = '5px';
     
-    // Add all debug buttons to the container
-    debugButtonContainer.appendChild(debugBtn);
+    // 1. Debug Map button
+    const debugMapBtn = document.createElement('button');
+    debugMapBtn.className = 'btn btn-secondary mt-2 mb-2';
+    debugMapBtn.textContent = 'Debug Map';
+    debugMapBtn.style.fontSize = '0.7rem';
+    debugMapBtn.style.padding = '2px 8px';
+    debugMapBtn.style.opacity = '0.7';
+    
+    debugMapBtn.addEventListener('click', function() {
+      console.clear();
+      console.log("=== DEBUG MAP STATE ===");
+      
+      if (typeof GameState !== 'undefined' && typeof GameState.debugState === 'function') {
+        GameState.debugState();
+      }
+      
+      if (typeof EventSystem !== 'undefined' && typeof EventSystem.debugEvents === 'function') {
+        EventSystem.debugEvents();
+      }
+      
+      console.log("Game State:", JSON.stringify(GameState.getState(), null, 2));
+    });
+    
+    // 2. Debug Summary button
+    const debugSummaryBtn = document.createElement('button');
+    debugSummaryBtn.className = 'btn btn-info mt-2 mb-2 ms-2';
+    debugSummaryBtn.textContent = 'Copy Debug Summary';
+    debugSummaryBtn.style.fontSize = '0.7rem';
+    debugSummaryBtn.style.padding = '2px 8px';
+    
+    debugSummaryBtn.addEventListener('click', function() {
+      console.log("Debug summary button clicked");
+      if (typeof DebugTools !== 'undefined') {
+        if (typeof DebugTools.generateStateSummary === 'function') {
+          console.log("Calling generateStateSummary function");
+          DebugTools.generateStateSummary();
+        } else {
+          console.error("DebugTools exists but generateStateSummary function not found");
+          UiUtils.showToast("Debug summary function not available", "warning");
+        }
+      } else {
+        console.error("DebugTools not available");
+        UiUtils.showToast("Debug tools not available", "warning");
+      }
+    });
+    
+    // 3. Debug Next Floor button
+    const debugNextFloorBtn = document.createElement('button');
+    debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
+    debugNextFloorBtn.textContent = 'Force Next Floor';
+    debugNextFloorBtn.style.fontSize = '0.7rem';
+    debugNextFloorBtn.style.padding = '2px 8px';
+    
+    debugNextFloorBtn.addEventListener('click', function() {
+      console.log("DEBUG: Force proceeding to next floor");
+      
+      if (typeof GameState !== 'undefined') {
+        // Show the next floor button
+        const nextFloorBtn = document.getElementById('next-floor-btn');
+        if (nextFloorBtn) {
+          nextFloorBtn.style.display = 'block';
+          console.log("Next floor button made visible");
+        }
+        
+        // Direct call to go to next floor
+        if (typeof GameState.goToNextFloor === 'function') {
+          GameState.goToNextFloor()
+            .then(() => {
+              console.log("Successfully advanced to next floor");
+            })
+            .catch(error => {
+              console.error('Error going to next floor:', error);
+              UiUtils.showToast('Failed to proceed to next floor: ' + error.message, 'danger');
+            });
+        }
+      }
+    });
+    
+    // Add all buttons to the container
+    debugButtonContainer.appendChild(debugMapBtn);
+    debugButtonContainer.appendChild(debugSummaryBtn);
     debugButtonContainer.appendChild(debugNextFloorBtn);
     
     // Insert at the beginning of map container
     mapContainer.insertBefore(debugButtonContainer, mapContainer.firstChild);
+    
+    console.log("Debug buttons added:", {
+      container: debugButtonContainer,
+      buttonCount: debugButtonContainer.childElementCount,
+      mapBtn: debugMapBtn,
+      summaryBtn: debugSummaryBtn,
+      nextFloorBtn: debugNextFloorBtn
+    });
+  } else {
+    console.error("Map container not found, debug buttons not added");
   }
 }
 
