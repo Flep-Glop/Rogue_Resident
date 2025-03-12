@@ -1,5 +1,10 @@
 // game.js - Main game initialization and startup
-
+// Add to the top of game.js or in the console:
+function resetGame() {
+  fetch('/api/debug-reset', { method: 'POST' })
+    .then(() => window.location.reload());
+}
+// Call resetGame() in console to restart
 // Initialize game when document is loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Game initializing...");

@@ -75,35 +75,48 @@ const NODE_STATE = {
     
     // Replace the updateAllNodeStates method in your state_manager.js
 
-    // In state_manager.js, modify updateAllNodeStates:
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
-      console.log("Updating all node states...");
-
-      // First set all non-start nodes to locked
+      console.log("Updating all node states with STRICT RULES");
+    
+      // Step 1: Mark all nodes LOCKED initially (except start)
       const allNodes = this.getAllNodes();
       for (const node of allNodes) {
         if (node.id === 'start') {
-          node.state = 'completed'; // Start is always completed
-          continue;
+          node.state = NODE_STATE.COMPLETED;
+          node.visited = true; // Ensure start is always visited
+        } else {
+          node.state = NODE_STATE.LOCKED;
         }
-        
-        // Default all nodes to locked initially
-        node.state = NODE_STATE.LOCKED;
       }
       
-      // REMOVED SEPARATE HANDLING FOR START NODE
+      // Step 2: Mark current node if exists
+      if (this.data.currentNode) {
+        const currentNode = this.getNodeById(this.data.currentNode);
+        if (currentNode) {
+          currentNode.state = NODE_STATE.CURRENT;
+          currentNode.current = true;
+        }
+      }
       
-      // Process completed nodes (including start) in one pass
+      // Step 3: Mark completed nodes (for clarity)
       for (const node of allNodes) {
-        // Only process start node or completed nodes
+        if (node.visited && node.id !== 'start' && node.id !== this.data.currentNode) {
+          node.state = NODE_STATE.COMPLETED;
+        }
+      }
+      
+      // Step 4: Mark nodes that are direct children of completed nodes as AVAILABLE
+      for (const node of allNodes) {
+        // Only process completed nodes (start or visited nodes)
         if (node.id === 'start' || node.visited) {
-          // Open paths from completed nodes
+          // For each path from this node
           if (node.paths) {
             node.paths.forEach(targetId => {
               const targetNode = this.getNodeById(targetId);
-              if (targetNode && !targetNode.visited) {
+              // Only mark as available if not already visited/current
+              if (targetNode && !targetNode.visited && targetNode.id !== this.data.currentNode) {
                 console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
                 targetNode.state = NODE_STATE.AVAILABLE;
               }
@@ -112,16 +125,12 @@ const NODE_STATE = {
         }
       }
       
-      // Set current node state (no change needed)
-      if (this.data.currentNode) {
-        const currentNode = this.getNodeById(this.data.currentNode);
-        if (currentNode) {
-          currentNode.state = NODE_STATE.CURRENT;
-        }
-      }
-      
-      // Check if all nodes are completed (no change needed)
-      this.checkFloorCompletion();
+      // For debugging - log all node states
+      console.group("ALL NODE STATES");
+      allNodes.forEach(node => {
+        console.log(`Node ${node.id}: ${node.state}, visited=${node.visited}, current=${!!node.current}`);
+      });
+      console.groupEnd();
     },
     
     // Get all nodes from the map

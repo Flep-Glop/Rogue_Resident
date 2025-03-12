@@ -19,59 +19,46 @@ const PROGRESSION_TYPE = {
       return this;
     },
     
-    // Replace the canVisitNode method in ProgressionManager with this fixed version
-
     canVisitNode: function(nodeId) {
       console.log(`Checking if can visit node: ${nodeId}`);
       
-      // Can't visit if there's already a current node
+      // Rule 1: Can't visit if there's already a current node
       if (GameState.data.currentNode) {
         console.log("Can't visit - there's already a current node");
         return false;
       }
       
-      // Get the node
+      // Rule 2: Can't visit if node doesn't exist
       const node = GameState.getNodeById(nodeId);
       if (!node) {
         console.log(`Can't visit - node ${nodeId} not found`);
         return false;
       }
       
-      // Can't visit start node
+      // Rule 3: Can't visit start node
       if (nodeId === 'start') {
         console.log("Can't visit the start node");
         return false;
       }
       
-      // Already visited nodes cannot be visited again
+      // Rule 4: Can't revisit completed nodes
       if (node.visited) {
         console.log(`Can't visit - node ${nodeId} already visited`);
         return false;
       }
       
-      console.log(`Node ${nodeId} state:`, node.state);
-      
-      // Must be available to visit
-      if (node.state !== NODE_STATE.AVAILABLE) {
-        console.log(`Can't visit - node ${nodeId} is not available (state: ${node.state})`);
-        return false;
-      }
-      
-      // Get nodes that connect to this node
+      // CRITICAL CHECK: Must have a DIRECT PATH from a completed node
       const connectedNodes = this.getConnectedNodes(nodeId);
-      console.log(`Connected nodes to ${nodeId}:`, connectedNodes.map(n => n.id));
-      
-      // Check if any connected node is visited
-      const hasVisitedConnection = connectedNodes.some(prevNode => 
-        prevNode.visited || prevNode.id === 'start'
+      const validConnection = connectedNodes.some(sourceNode => 
+        sourceNode.visited || sourceNode.id === 'start'
       );
       
-      if (!hasVisitedConnection) {
-        console.log(`Can't visit - no connected nodes to ${nodeId} are visited`);
+      if (!validConnection) {
+        console.log(`Can't visit ${nodeId} - no valid path from completed nodes`);
         return false;
       }
       
-      console.log(`Node ${nodeId} can be visited`);
+      console.log(`Node ${nodeId} can be visited - path is valid`);
       return true;
     },
     

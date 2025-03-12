@@ -155,7 +155,6 @@ const MapRenderer = {
     });
   },
   
-  // Draw connections between nodes
   drawConnections: function(ctx, width, height) {
     const allNodes = GameState.getAllNodes();
     
@@ -180,21 +179,32 @@ const MapRenderer = {
         const endX = 100 + (targetCol * 120);
         const endY = 100 + (targetRow * 80);
         
-        // Color based on connection state
-        if (node.state === NODE_STATE.COMPLETED || node.id === 'start') {
+        // CLEAR VISUAL INDICATION OF VALID PATHS
+        if (node.visited || node.id === 'start') {
           if (targetNode.state === NODE_STATE.AVAILABLE) {
-            ctx.strokeStyle = '#00FF00'; // Green for available paths
+            // VALID PASSABLE PATH - BRIGHT GREEN
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 3;
           } else if (targetNode.state === NODE_STATE.COMPLETED) {
-            ctx.strokeStyle = '#AAAAAA'; // Gray for completed paths
+            // ALREADY TAKEN PATH - GRAY
+            ctx.strokeStyle = '#AAAAAA';
+            ctx.lineWidth = 2;
+          } else if (targetNode.state === NODE_STATE.CURRENT) {
+            // PATH TO CURRENT NODE - BRIGHT BLUE
+            ctx.strokeStyle = '#00FFFF';
+            ctx.lineWidth = 3;
           } else {
-            ctx.strokeStyle = '#DDDDDD'; // Light gray for other paths
+            // INACCESSIBLE PATH - VERY FAINT
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
           }
         } else {
-          ctx.strokeStyle = '#DDDDDD'; // Light gray for other paths
+          // All other paths - extremely faint
+          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+          ctx.lineWidth = 1;
         }
         
         // Draw the connection
-        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);

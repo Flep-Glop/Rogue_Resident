@@ -491,6 +491,14 @@ def reset_game():
     else:
         return jsonify({"error": "Failed to reset game"}), 500
 
+@app.route('/api/debug-reset', methods=['POST'])
+def debug_reset():
+    """Reset the game state for debugging"""
+    game_id = get_game_id()
+    new_state = create_default_game_state()
+    save_game_state(game_id, new_state)
+    return jsonify({"success": True})
+
 @app.route('/api/save-game', methods=['POST'])
 def save_game():
     game_id = get_game_id()
