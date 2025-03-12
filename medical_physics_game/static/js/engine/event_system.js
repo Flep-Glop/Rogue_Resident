@@ -92,6 +92,12 @@ const EventSystem = {
   
   // Emit event to all listeners
   emit: function(eventType, data) {
+    // ADDED: Validate event type
+    if (!eventType) {
+      console.error("Attempted to emit event with undefined type:", data);
+      return this;
+    }
+    
     // Initialize counter if it doesn't exist
     if (typeof this._processingEvents[eventType] === 'undefined') {
       this._processingEvents[eventType] = 0;

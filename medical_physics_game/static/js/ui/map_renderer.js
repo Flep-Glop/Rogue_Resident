@@ -74,8 +74,6 @@ const MapRenderer = {
       }
     },
     
-    // Replace the renderMap method in your MapRenderer object with this improved version:
-
     renderMap: function() {
       console.log("Rendering map...");
       
@@ -91,57 +89,56 @@ const MapRenderer = {
         return;
       }
       
-      // Log current dimensions for debugging
-      console.log("Canvas dimensions:", {
+      // ADDED: More detailed logging
+      console.log("Canvas dimensions before adjustment:", {
         width: canvas.width,
         height: canvas.height,
         offsetWidth: canvas.offsetWidth,
-        offsetHeight: canvas.offsetHeight
+        offsetHeight: canvas.offsetHeight,
+        style: {
+          width: canvas.style.width,
+          height: canvas.style.height
+        }
       });
       
-      // Fix for high-DPI displays
+      // CRITICAL FIX: Handle high-DPI displays properly
       const dpr = window.devicePixelRatio || 1;
       
-      // Get container dimensions if available
+      // Get container dimensions
       const container = canvas.parentElement;
-      const containerWidth = container ? container.offsetWidth - 20 : 800;
-      const containerHeight = container ? container.offsetHeight - 20 : 600;
+      const containerWidth = container ? container.clientWidth : 800;
+      const containerHeight = container ? container.clientHeight : 600;
       
-      // Set canvas dimensions based on container or fallback to config
+      // Set canvas logical size to match container
       const width = Math.max(this.config.minWidth, containerWidth);
       const height = Math.max(this.config.minHeight, containerHeight);
       
-      // Update canvas dimensions
+      // Set canvas backing store size (actual pixels)
       canvas.width = width * dpr;
       canvas.height = height * dpr;
+      
+      // Set display size (CSS pixels)
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       
-      // Scale context for high-DPI displays
+      // Scale all drawing operations by dpr
       ctx.scale(dpr, dpr);
       
-      // Clear the canvas
+      // ADDED: Log after adjustment
+      console.log("Canvas dimensions after adjustment:", {
+        width: canvas.width,
+        height: canvas.height,
+        style: {
+          width: canvas.style.width,
+          height: canvas.style.height
+        },
+        dpr: dpr
+      });
+      
+      // Clear canvas
       ctx.clearRect(0, 0, width, height);
       
-      // Check if we have map data
-      if (!GameState.data.map) {
-        console.error("No map data to render");
-        
-        // Draw a placeholder message
-        ctx.fillStyle = '#888';
-        ctx.font = '20px "Press Start 2P", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText("No map data available", width/2, height/2);
-        return;
-      }
-      
-      console.log("Drawing map with data:", GameState.data.map);
-      
-      // Draw connections first (so they appear behind nodes)
-      this.drawConnections(ctx, width, height);
-      
-      // Draw nodes
-      this.drawNodes(ctx, width, height);
+      // Rest of your rendering code...
     },
     
     // Draw all connections between nodes
@@ -492,10 +489,31 @@ const MapRenderer = {
       const canvas = event.target;
       const rect = canvas.getBoundingClientRect();
       
-      // Calculate click position (adjusted for DPI)
-      const dpr = window.devicePixelRatio || 1;
-      const clickX = (event.clientX - rect.left) * dpr;
-      const clickY = (event.clientY - rect.top) * dpr;
+      // CRITICAL FIX: Account for CSS scaling vs actual canvas size
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      // Calculate click position in actual canvas coordinates
+      const clickX = (event.clientX - rect.left) * scaleX;
+      const clickY = (event.clientY - rect.top) * scaleY;
+      
+      // ADDED: Log click coordinates for debugging
+      console.log("Click coordinates:", {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        canvasX: clickX,
+        canvasY: clickY,
+        rect: {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        },
+        canvasSize: {
+          width: canvas.width,
+          height: canvas.height
+        }
+      });
       
       // Get map data
       const mapData = GameState.data.map;

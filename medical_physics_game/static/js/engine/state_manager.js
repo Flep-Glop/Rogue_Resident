@@ -75,6 +75,7 @@ const NODE_STATE = {
     
     // Replace the updateAllNodeStates method in your state_manager.js
 
+    // In state_manager.js, modify updateAllNodeStates:
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
@@ -92,37 +93,26 @@ const NODE_STATE = {
         node.state = NODE_STATE.LOCKED;
       }
       
-      // Process row 0 (start node)
-      const startNode = this.getNodeById('start');
-      if (startNode && startNode.paths) {
-        // All nodes connected from start should be available
-        startNode.paths.forEach(targetId => {
-          const targetNode = this.getNodeById(targetId);
-          if (targetNode && !targetNode.visited) {
-            console.log(`Setting node ${targetId} to available (connected from start)`);
-            targetNode.state = NODE_STATE.AVAILABLE;
-          }
-        });
-      }
+      // REMOVED SEPARATE HANDLING FOR START NODE
       
-      // Now process completed nodes (make their connected nodes available)
+      // Process completed nodes (including start) in one pass
       for (const node of allNodes) {
-        // Skip if not completed
-        if (node.id !== 'start' && !node.visited) continue;
-        
-        // Open paths from completed nodes
-        if (node.paths) {
-          node.paths.forEach(targetId => {
-            const targetNode = this.getNodeById(targetId);
-            if (targetNode && !targetNode.visited) {
-              console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
-              targetNode.state = NODE_STATE.AVAILABLE;
-            }
-          });
+        // Only process start node or completed nodes
+        if (node.id === 'start' || node.visited) {
+          // Open paths from completed nodes
+          if (node.paths) {
+            node.paths.forEach(targetId => {
+              const targetNode = this.getNodeById(targetId);
+              if (targetNode && !targetNode.visited) {
+                console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
+                targetNode.state = NODE_STATE.AVAILABLE;
+              }
+            });
+          }
         }
       }
       
-      // Set current node state
+      // Set current node state (no change needed)
       if (this.data.currentNode) {
         const currentNode = this.getNodeById(this.data.currentNode);
         if (currentNode) {
@@ -130,7 +120,7 @@ const NODE_STATE = {
         }
       }
       
-      // Check if all nodes are completed (for next floor button)
+      // Check if all nodes are completed (no change needed)
       this.checkFloorCompletion();
     },
     
