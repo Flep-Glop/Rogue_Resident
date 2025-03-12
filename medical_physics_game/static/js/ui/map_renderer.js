@@ -1,16 +1,19 @@
-// map_renderer.js - Map visualization component
+// map_renderer.js - Enhanced version with retro styling
+// This is a complete replacement for the existing file
 
-// MapRenderer singleton - handles rendering the game map
+// MapRenderer singleton - handles rendering the game map with retro styling
 const MapRenderer = {
   // Configuration for map rendering
   config: {
     nodesPerRow: 3,    // Number of nodes horizontally
     rowCount: 5,       // Number of rows (excluding start/boss)
     minWidth: 800,     // Minimum canvas width
-    minHeight: 600     // Minimum canvas height
+    minHeight: 600,    // Minimum canvas height
+    gridSize: 50,      // Size of grid cells
+    dropShadowDepth: 4 // Depth of the pixel drop shadows
   },
   
-  // Node appearance based on type
+  // Node appearance based on type (matching the CSS custom properties)
   nodeColors: {
     'start': '#56b886',    // Green (secondary)
     'boss': '#e67e73',     // Red (danger)
@@ -23,7 +26,20 @@ const MapRenderer = {
     'gamble': '#b8d458'    // Lime (softer)
   },
   
-  // Node symbols
+  // Darker variants for shadows (matching the CSS custom properties)
+  nodeShadowColors: {
+    'start': '#45966d',     // Green shadow (secondary-dark)
+    'boss': '#b66059',      // Red shadow (danger-dark)
+    'question': '#4a70b0',  // Blue shadow (primary-dark)
+    'elite': '#a24b8e',     // Pink shadow
+    'treasure': '#c9a955',  // Yellow shadow (warning-dark)
+    'rest': '#7c5cb0',      // Purple shadow
+    'shop': '#4a99b3',      // Cyan shadow
+    'event': '#b87d40',     // Orange shadow
+    'gamble': '#94ab47'     // Lime shadow
+  },
+  
+  // Node symbols - keep these simple and recognizable
   nodeSymbols: {
     'start': 'S',
     'boss': 'B',
@@ -35,10 +51,35 @@ const MapRenderer = {
     'event': 'E',
     'gamble': 'G'
   },
+
+  // Background patterns for different floor types
+  backgroundPatterns: [
+    { // Hospital basement (floor 1)
+      mainColor: '#292b36',
+      gridColor: '#21232d',
+      dotColor: '#34394d',
+      accentColor: '#484e68'
+    },
+    { // Radiation oncology (floor 2)
+      mainColor: '#2b3034',
+      gridColor: '#23272a',
+      dotColor: '#3a4048',
+      accentColor: '#4e555f'
+    },
+    { // Linear accelerator room (floor 3)
+      mainColor: '#2d2b36',
+      gridColor: '#232130',
+      dotColor: '#3d384d',
+      accentColor: '#4e4668'
+    }
+  ],
+  
+  // Particle system for ambient effects
+  particles: [],
   
   // Initialize with canvas ID
   initialize: function(canvasId) {
-    console.log(`Initializing map renderer with canvas: ${canvasId}`);
+    console.log(`Initializing enhanced map renderer with canvas: ${canvasId}`);
     this.canvasId = canvasId;
     
     // Set up as GameState observer
@@ -57,7 +98,81 @@ const MapRenderer = {
       canvas.addEventListener('click', this._clickHandler);
     }
     
+    // Initialize particle system
+    this.initParticles();
+    
+    // Start animation loop for particles and other effects
+    this.startAnimationLoop();
+    
     return this;
+  },
+  
+  // Set up particle system for ambient backgrounds
+  initParticles: function() {
+    // Create particles based on floor
+    const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
+    const patternIndex = Math.min(currentFloor - 1, this.backgroundPatterns.length - 1);
+    const pattern = this.backgroundPatterns[patternIndex];
+    
+    this.particles = [];
+    
+    // Create different numbers of particles based on floor
+    const particleCount = 30 + (currentFloor * 10);
+    
+    for (let i = 0; i < particleCount; i++) {
+      this.particles.push({
+        x: Math.random() * 800,
+        y: Math.random() * 600,
+        size: Math.random() * 3 + 1,
+        speedX: (Math.random() - 0.5) * 0.5,
+        speedY: (Math.random() - 0.5) * 0.3,
+        color: i % 5 === 0 ? pattern.accentColor : pattern.dotColor,
+        alpha: Math.random() * 0.7 + 0.3
+      });
+    }
+  },
+  
+  // Animation loop for continuous effects
+  startAnimationLoop: function() {
+    if (!this._animationFrame) {
+      const animate = () => {
+        this.updateParticles();
+        this._animationFrame = requestAnimationFrame(animate);
+      };
+      this._animationFrame = requestAnimationFrame(animate);
+    }
+  },
+  
+  // Stop animation loop
+  stopAnimationLoop: function() {
+    if (this._animationFrame) {
+      cancelAnimationFrame(this._animationFrame);
+      this._animationFrame = null;
+    }
+  },
+  
+  // Update particle positions
+  updateParticles: function() {
+    // Only redraw if canvas is visible
+    const canvas = document.getElementById(this.canvasId);
+    if (!canvas || canvas.offsetParent === null) return;
+    
+    // Update each particle
+    this.particles.forEach(particle => {
+      particle.x += particle.speedX;
+      particle.y += particle.speedY;
+      
+      // Wrap around edges
+      if (particle.x < 0) particle.x = canvas.width;
+      if (particle.x > canvas.width) particle.x = 0;
+      if (particle.y < 0) particle.y = canvas.height;
+      if (particle.y > canvas.height) particle.y = 0;
+    });
+    
+    // Only redraw if not in the middle of a node interaction
+    if (!GameState.data.currentNode) {
+      this.renderMap();
+    }
   },
   
   // Handle state changes from GameState
@@ -68,35 +183,18 @@ const MapRenderer = {
       case 'nodeCompleted':
       case 'currentNodeChanged':
       case 'floorChanged':
+        // When floor changes, update particle system
+        if (event === 'floorChanged') {
+          this.initParticles();
+        }
         // Render the map
         this.renderMap();
         break;
     }
   },
   
-  // Log node positions for debugging
-  logNodePositions: function() {
-    console.group("Node Positions");
-    const allNodes = GameState.getAllNodes();
-    
-    allNodes.forEach(node => {
-      // Calculate where the node should appear
-      const rowSpacing = 80; // Fixed pixels between rows
-      const colSpacing = 120; // Fixed pixels between columns
-      
-      const y = 100 + (node.position.row * rowSpacing); 
-      const x = 100 + (node.position.col * colSpacing);
-      
-      console.log(`Node ${node.id} (${node.type}): position (${node.position.col},${node.position.row}) → canvas (${x},${y})`);
-    });
-    
-    console.groupEnd();
-  },
-
-  // render map with automatic canvas sizing
+  // Enhanced render map function with retro styling
   renderMap: function() {
-    console.log("Rendering map with improved canvas sizing...");
-    
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
       console.error(`Canvas element not found: ${this.canvasId}`);
@@ -129,8 +227,6 @@ const MapRenderer = {
     const paddingBottom = 100; // Space at bottom
     const canvasHeight = paddingTop + (maxRow * rowSpacing) + paddingBottom;
     
-    console.log(`Setting canvas dimensions: ${canvasWidth}x${canvasHeight} for ${maxRow+1} rows`);
-    
     // Set canvas dimensions
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -150,42 +246,445 @@ const MapRenderer = {
     // Update wrapper height
     mapWrapper.style.height = canvasHeight + 'px';
     
-    // Clear to background color
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Get floor number for theming
+    const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
+    const patternIndex = Math.min(currentFloor - 1, this.backgroundPatterns.length - 1);
+    const pattern = this.backgroundPatterns[patternIndex];
     
-    // Draw a simple grid for reference
-    ctx.strokeStyle = '#EEEEEE';
-    ctx.lineWidth = 1;
+    // Draw retro-style background
+    this.drawRetroBackground(ctx, pattern, canvasWidth, canvasHeight);
     
-    // Horizontal lines
-    for (let y = 0; y <= canvasHeight; y += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvasWidth, y);
-      ctx.stroke();
-    }
-    
-    // Vertical lines
-    for (let x = 0; x <= canvasWidth; x += 50) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvasHeight);
-      ctx.stroke();
-    }
-    
-    // Log node positions
-    this.logNodePositions();
-    
-    // Draw connections first
+    // Draw connections first (so they're behind the nodes)
     this.drawConnections(ctx, canvasWidth, canvasHeight);
     
-    // Draw all nodes
+    // Draw ambient floating particles
+    this.drawParticles(ctx);
+    
+    // Draw all nodes with enhanced styling
     allNodes.forEach(node => {
       this.drawNode(ctx, node, canvasWidth, canvasHeight);
     });
     
+    // Add subtle CRT scanline effect
+    this.drawScanlines(ctx, canvasWidth, canvasHeight);
+    
+    // Add pixel-style floor indicator
+    this.drawFloorIndicator(ctx, currentFloor);
+    
     // Check if we need scroll indicators
+    this.updateScrollIndicators(canvasHeight);
+  },
+  
+  // Draw retro-styled pixelated background
+  drawRetroBackground: function(ctx, pattern, width, height) {
+    // Fill with main background color
+    ctx.fillStyle = pattern.mainColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw grid lines with pixel precision
+    ctx.strokeStyle = pattern.gridColor;
+    ctx.lineWidth = 1;
+    
+    // Draw horizontal grid lines
+    for (let y = 0; y < height; y += 20) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + 0.5); // Add 0.5 for pixel-perfect lines
+      ctx.lineTo(width, y + 0.5);
+      ctx.stroke();
+    }
+    
+    // Draw vertical grid lines
+    for (let x = 0; x < width; x += 20) {
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, 0); // Add 0.5 for pixel-perfect lines
+      ctx.lineTo(x + 0.5, height);
+      ctx.stroke();
+    }
+    
+    // Add small grid dots with pixelation
+    for (let x = 0; x < width; x += 10) {
+      for (let y = 0; y < height; y += 10) {
+        if ((x % 20 === 0) && (y % 20 === 0)) {
+          ctx.fillStyle = pattern.dotColor;
+          ctx.fillRect(x - 1, y - 1, 2, 2);
+        }
+      }
+    }
+    
+    // Add subtle vignette effect (darker around edges)
+    const gradient = ctx.createRadialGradient(
+      width/2, height/2, 100,
+      width/2, height/2, Math.max(width, height)
+    );
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0.4)');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+  },
+  
+  // Draw enhanced connections between nodes with pixelated styling
+  drawConnections: function(ctx, width, height) {
+    const allNodes = GameState.getAllNodes();
+    
+    // Draw connections in multiple passes for layering effects
+    
+    // Pass 1: Draw all connection shadows
+    allNodes.forEach(node => {
+      if (!node.paths || node.paths.length === 0) return;
+      
+      // Calculate source position
+      const sourceRow = node.position.row;
+      const sourceCol = node.position.col;
+      const startX = 100 + (sourceCol * 120);
+      const startY = 100 + (sourceRow * 80);
+      
+      // Draw paths to each connected node
+      node.paths.forEach(targetId => {
+        const targetNode = GameState.getNodeById(targetId);
+        if (!targetNode) return;
+        
+        // Calculate target position
+        const targetRow = targetNode.position.row;
+        const targetCol = targetNode.position.col;
+        const endX = 100 + (targetCol * 120);
+        const endY = 100 + (targetRow * 80);
+        
+        // Shadow color - always dark
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = 5;
+        
+        // Draw the shadow with pixelated style
+        this.drawPixelLine(ctx, startX, startY + 4, endX, endY + 4);
+      });
+    });
+    
+    // Pass 2: Draw main connections
+    allNodes.forEach(node => {
+      if (!node.paths || node.paths.length === 0) return;
+      
+      // Calculate source position
+      const sourceRow = node.position.row;
+      const sourceCol = node.position.col;
+      const startX = 100 + (sourceCol * 120);
+      const startY = 100 + (sourceRow * 80);
+      
+      // Draw paths to each connected node
+      node.paths.forEach(targetId => {
+        const targetNode = GameState.getNodeById(targetId);
+        if (!targetNode) return;
+        
+        // Calculate target position
+        const targetRow = targetNode.position.row;
+        const targetCol = targetNode.position.col;
+        const endX = 100 + (targetCol * 120);
+        const endY = 100 + (targetRow * 80);
+        
+        // Determine path style based on node states
+        if (node.visited || node.id === 'start') {
+          if (targetNode.state === NODE_STATE.AVAILABLE) {
+            // VALID PASSABLE PATH - BRIGHT GREEN
+            ctx.strokeStyle = '#56b886'; // Use secondary color
+            ctx.lineWidth = 3;
+          } else if (targetNode.state === NODE_STATE.COMPLETED) {
+            // ALREADY TAKEN PATH - GRAY
+            ctx.strokeStyle = '#6c7a89';
+            ctx.lineWidth = 2;
+          } else if (targetNode.state === NODE_STATE.CURRENT) {
+            // PATH TO CURRENT NODE - BRIGHT BLUE
+            ctx.strokeStyle = '#5b8dd9'; // Use primary color
+            ctx.lineWidth = 3;
+          } else {
+            // INACCESSIBLE PATH - VERY FAINT
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+          }
+        } else {
+          // All other paths - extremely faint
+          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+          ctx.lineWidth = 1;
+        }
+        
+        // Draw the connection with pixelated style
+        this.drawPixelLine(ctx, startX, startY, endX, endY);
+        
+        // For available paths, add direction indicators
+        if (node.visited && targetNode.state === NODE_STATE.AVAILABLE) {
+          this.drawPathArrow(ctx, startX, startY, endX, endY);
+        }
+      });
+    });
+  },
+  
+  // Draw a single node with pixelated styling
+  drawNode: function(ctx, node, width, height) {
+    // Use fixed spacing for reliable positioning
+    const rowSpacing = 80; // Pixels between rows
+    const colSpacing = 120; // Pixels between columns
+    
+    // Simple position calculation - start at (100,100) and space nodes evenly
+    const x = 100 + (node.position.col * colSpacing);
+    const y = 100 + (node.position.row * rowSpacing);
+    
+    const nodeRadius = 25; // Node radius
+    
+    // Save context for node styling
+    ctx.save();
+    
+    // Determine colors based on node type and state
+    let fillColor, shadowColor, strokeColor, textColor;
+    
+    // Set colors based on node state
+    if (node.state === NODE_STATE.CURRENT) {
+      fillColor = '#e67e73'; // Red for current
+      shadowColor = '#b66059'; // Darker red 
+      strokeColor = '#ffffff';
+      textColor = '#ffffff';
+    } else if (node.state === NODE_STATE.COMPLETED) {
+      fillColor = '#56b886'; // Green for completed
+      shadowColor = '#45966d'; // Darker green
+      strokeColor = '#ffffff';
+      textColor = '#ffffff';
+    } else if (node.state === NODE_STATE.AVAILABLE) {
+      fillColor = '#5b8dd9'; // Blue for available
+      shadowColor = '#4a70b0'; // Darker blue
+      strokeColor = '#ffffff';
+      textColor = '#ffffff';
+    } else {
+      // Locked nodes - get color based on type but with reduced brightness
+      const typeColor = this.nodeColors[node.type] || '#999999';
+      fillColor = this.adjustColorBrightness(typeColor, -30);
+      shadowColor = this.adjustColorBrightness(typeColor, -60);
+      strokeColor = '#666666';
+      textColor = '#cccccc';
+    }
+    
+    // Draw 3D pixelated node shape
+    this.drawPixelatedNode(ctx, x, y, nodeRadius, fillColor, shadowColor, strokeColor);
+    
+    // Draw node symbol
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 16px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const symbol = this.nodeSymbols[node.type] || '?';
+    ctx.fillText(symbol, x, y - 3);
+    
+    // Draw type indicator below
+    ctx.font = '8px "Press Start 2P", monospace';
+    ctx.fillText(node.id, x, y + 15);
+    
+    // Add glow effect for available/current nodes
+    if (node.state === NODE_STATE.AVAILABLE || node.state === NODE_STATE.CURRENT) {
+      ctx.beginPath();
+      ctx.arc(x, y, nodeRadius + 5, 0, Math.PI * 2);
+      const glow = ctx.createRadialGradient(x, y, nodeRadius - 5, x, y, nodeRadius + 10);
+      
+      if (node.state === NODE_STATE.AVAILABLE) {
+        glow.addColorStop(0, 'rgba(91, 141, 217, 0)');
+        glow.addColorStop(0.5, 'rgba(91, 141, 217, 0.3)');
+        glow.addColorStop(1, 'rgba(91, 141, 217, 0)');
+      } else {
+        glow.addColorStop(0, 'rgba(230, 126, 115, 0)');
+        glow.addColorStop(0.5, 'rgba(230, 126, 115, 0.3)');
+        glow.addColorStop(1, 'rgba(230, 126, 115, 0)');
+      }
+      
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  },
+  
+  // Draw a pixelated node shape with 3D effect
+  drawPixelatedNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
+    // Draw main node shape
+    ctx.beginPath();
+    
+    // Instead of a perfect circle, draw a pixelated octagon for retro feel
+    const sides = 8;
+    const angle = (2 * Math.PI) / sides;
+    
+    for (let i = 0; i < sides; i++) {
+      const pointX = x + radius * Math.cos(i * angle);
+      const pointY = y + radius * Math.sin(i * angle);
+      
+      if (i === 0) {
+        ctx.moveTo(pointX, pointY);
+      } else {
+        ctx.lineTo(pointX, pointY);
+      }
+    }
+    ctx.closePath();
+    
+    // Draw shadow underneath (offset by 4 pixels)
+    ctx.fillStyle = shadowColor;
+    ctx.fill();
+    
+    // Draw top shape
+    ctx.beginPath();
+    for (let i = 0; i < sides; i++) {
+      const pointX = x + radius * Math.cos(i * angle);
+      const pointY = y - 4 + radius * Math.sin(i * angle); // 4px higher
+      
+      if (i === 0) {
+        ctx.moveTo(pointX, pointY);
+      } else {
+        ctx.lineTo(pointX, pointY);
+      }
+    }
+    ctx.closePath();
+    
+    // Fill and stroke the main shape
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Add highlight effect (top-left inner edge)
+    ctx.beginPath();
+    ctx.moveTo(x - radius/2, y - radius/2 - 4);
+    ctx.lineTo(x, y - 4);
+    ctx.lineTo(x + radius/2, y - radius/2 - 4);
+    ctx.strokeStyle = this.adjustColorBrightness(fillColor, 30);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  },
+  
+  // Draw floating particles
+  drawParticles: function(ctx) {
+    this.particles.forEach(particle => {
+      ctx.fillStyle = particle.color;
+      ctx.globalAlpha = particle.alpha;
+      ctx.fillRect(
+        Math.floor(particle.x), 
+        Math.floor(particle.y), 
+        particle.size, 
+        particle.size
+      );
+    });
+    
+    ctx.globalAlpha = 1.0; // Reset alpha
+  },
+  
+  // Draw CRT scanlines effect
+  drawScanlines: function(ctx, width, height) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    for (let y = 0; y < height; y += 4) {
+      ctx.fillRect(0, y, width, 1);
+    }
+  },
+  
+  // Draw pixel-style directional arrow on paths
+  drawPathArrow: function(ctx, x1, y1, x2, y2) {
+    // Calculate arrow position (3/4 of the way from start to end)
+    const t = 0.7; // Position along the path (0-1)
+    const arrowX = x1 + (x2 - x1) * t;
+    const arrowY = y1 + (y2 - y1) * t;
+    
+    // Calculate direction angle
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    
+    // Draw pixelated arrow
+    ctx.save();
+    ctx.translate(arrowX, arrowY);
+    ctx.rotate(angle);
+    
+    // Arrow body
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-8, -1, 8, 2);
+    
+    // Arrow head
+    ctx.fillRect(-2, -4, 2, 8);
+    ctx.fillRect(0, -3, 2, 6);
+    ctx.fillRect(2, -2, 2, 4);
+    ctx.fillRect(4, -1, 2, 2);
+    
+    ctx.restore();
+  },
+  
+  // Draw a pixelated line for path connections
+  drawPixelLine: function(ctx, x1, y1, x2, y2) {
+    // Calculate line parameters
+    const dx = Math.abs(x2 - x1);
+    const dy = Math.abs(y2 - y1);
+    const sx = (x1 < x2) ? 1 : -1;
+    const sy = (y1 < y2) ? 1 : -1;
+    let err = dx - dy;
+    
+    // Crude approach to drawing a pixelated line - could optimize with Bresenham's
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    
+    // For thick lines, use standard stroke
+    if (ctx.lineWidth > 2) {
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      return;
+    }
+    
+    // For thin lines, draw pixel by pixel with small segments
+    let currentX = x1;
+    let currentY = y1;
+    
+    while (true) {
+      if ((currentX === x2) && (currentY === y2)) break;
+      
+      const e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy;
+        currentX += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        currentY += sy;
+      }
+      
+      // Draw small rectangle for each "pixel"
+      ctx.fillRect(
+        Math.floor(currentX - ctx.lineWidth/2), 
+        Math.floor(currentY - ctx.lineWidth/2), 
+        Math.ceil(ctx.lineWidth), 
+        Math.ceil(ctx.lineWidth)
+      );
+    }
+  },
+  
+  // Draw floor indicator with pixelated numbers
+  drawFloorIndicator: function(ctx, floorNumber) {
+    ctx.save();
+    
+    // Create a pixel-style badge in top right corner
+    const badgeX = 760;
+    const badgeY = 30;
+    
+    // Draw badge background shadow
+    ctx.fillStyle = '#292b36'; // Dark shadow
+    ctx.fillRect(badgeX - 40, badgeY - 10, 80, 30);
+    
+    // Draw badge main body
+    ctx.fillStyle = '#3d4c60'; // Dark blue background
+    ctx.fillRect(badgeX - 40, badgeY - 14, 80, 30);
+    
+    // Badge border
+    ctx.strokeStyle = '#5b8dd9'; // Primary color
+    ctx.lineWidth = 2;
+    ctx.strokeRect(badgeX - 40, badgeY - 14, 80, 30);
+    
+    // Badge text
+    ctx.font = '14px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 6);
+    
+    ctx.restore();
+  },
+  
+  // Update scroll indicators based on content height
+  updateScrollIndicators: function(canvasHeight) {
     const mapContainer = document.querySelector('.map-container');
     if (mapContainer) {
       // Remove any existing indicators
@@ -228,116 +727,6 @@ const MapRenderer = {
     }
   },
   
-  drawConnections: function(ctx, width, height) {
-    const allNodes = GameState.getAllNodes();
-    
-    // Draw connections
-    allNodes.forEach(node => {
-      if (!node.paths || node.paths.length === 0) return;
-      
-      // Calculate source position
-      const sourceRow = node.position.row;
-      const sourceCol = node.position.col;
-      const startX = 100 + (sourceCol * 120);
-      const startY = 100 + (sourceRow * 80);
-      
-      // Draw paths to each connected node
-      node.paths.forEach(targetId => {
-        const targetNode = GameState.getNodeById(targetId);
-        if (!targetNode) return;
-        
-        // Calculate target position
-        const targetRow = targetNode.position.row;
-        const targetCol = targetNode.position.col;
-        const endX = 100 + (targetCol * 120);
-        const endY = 100 + (targetRow * 80);
-        
-        // CLEAR VISUAL INDICATION OF VALID PATHS
-        if (node.visited || node.id === 'start') {
-          if (targetNode.state === NODE_STATE.AVAILABLE) {
-            // VALID PASSABLE PATH - BRIGHT GREEN
-            ctx.strokeStyle = '#00FF00';
-            ctx.lineWidth = 3;
-          } else if (targetNode.state === NODE_STATE.COMPLETED) {
-            // ALREADY TAKEN PATH - GRAY
-            ctx.strokeStyle = '#AAAAAA';
-            ctx.lineWidth = 2;
-          } else if (targetNode.state === NODE_STATE.CURRENT) {
-            // PATH TO CURRENT NODE - BRIGHT BLUE
-            ctx.strokeStyle = '#00FFFF';
-            ctx.lineWidth = 3;
-          } else {
-            // INACCESSIBLE PATH - VERY FAINT
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 1;
-          }
-        } else {
-          // All other paths - extremely faint
-          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-          ctx.lineWidth = 1;
-        }
-        
-        // Draw the connection
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-      });
-    });
-  },
-  
-  // Draw a single node with fixed positioning
-  drawNode: function(ctx, node, width, height) {
-    // Use fixed spacing for reliable positioning
-    const rowSpacing = 80; // Pixels between rows
-    const colSpacing = 120; // Pixels between columns
-    
-    // Simple position calculation - start at (100,100) and space nodes evenly
-    const x = 100 + (node.position.col * colSpacing);
-    const y = 100 + (node.position.row * rowSpacing);
-    
-    const radius = 25; // Node radius
-    
-    // Save context for node styling
-    ctx.save();
-    
-    // Draw a simple, highly visible node
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    
-    // Use bright colors based on node state
-    if (node.state === NODE_STATE.CURRENT) {
-      ctx.fillStyle = '#FF0000'; // Red for current
-    } else if (node.state === NODE_STATE.COMPLETED) {
-      ctx.fillStyle = '#00FF00'; // Green for completed
-    } else if (node.state === NODE_STATE.AVAILABLE) {
-      ctx.fillStyle = '#0000FF'; // Blue for available
-    } else {
-      ctx.fillStyle = '#999999'; // Gray for locked
-    }
-    
-    // Fill and stroke
-    ctx.fill();
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Draw node symbol
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const symbol = this.nodeSymbols[node.type] || '?';
-    ctx.fillText(symbol, x, y - 5);
-    
-    // Draw node ID below
-    ctx.font = '12px Arial';
-    ctx.fillText(node.id, x, y + 12);
-    
-    ctx.restore();
-  },
-  
   // Handle map clicks
   handleMapClick: function(event) {
     const canvas = event.target;
@@ -346,20 +735,6 @@ const MapRenderer = {
     // Get click coordinates relative to canvas
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
-    
-    // Log click coordinates for debugging
-    console.log("Click coordinates:", {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      canvasX: clickX,
-      canvasY: clickY,
-      rect: {
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height
-      }
-    });
     
     // Check if click is on any node
     const allNodes = GameState.getAllNodes();
@@ -412,11 +787,59 @@ const MapRenderer = {
     
     const ctx = canvas.getContext('2d');
     
-    // Draw a quick pulse effect
-    ctx.beginPath();
-    ctx.arc(x, y, 30, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.fill();
+    // Create expanding pixel circle animation
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        const radius = 5 + (i * 3);
+        
+        // Draw a pixelated pulse ring
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,' + (0.8 - i/10) + ')';
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        const sides = 8 + i;
+        const angle = (2 * Math.PI) / sides;
+        
+        for (let j = 0; j < sides; j++) {
+          const pointX = x + radius * Math.cos(j * angle);
+          const pointY = y + radius * Math.sin(j * angle);
+          
+          if (j === 0) {
+            ctx.moveTo(pointX, pointY);
+          } else {
+            ctx.lineTo(pointX, pointY);
+          }
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+        
+        // Redraw the map after the animation completes
+        if (i === 9) {
+          setTimeout(() => this.renderMap(), 100);
+        }
+      }, i * 30);
+    }
+  },
+  
+  // Helper to adjust color brightness
+  adjustColorBrightness: function(hex, percent) {
+    // Convert hex to RGB
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    
+    // Adjust brightness
+    r = Math.max(0, Math.min(255, r + percent));
+    g = Math.max(0, Math.min(255, g + percent));
+    b = Math.max(0, Math.min(255, b + percent));
+    
+    // Convert back to hex
+    return '#' + 
+      ((1 << 24) + (r << 16) + (g << 8) + b)
+        .toString(16)
+        .slice(1);
   }
 };
 
