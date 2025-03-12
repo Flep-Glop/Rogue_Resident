@@ -19,35 +19,60 @@ const PROGRESSION_TYPE = {
       return this;
     },
     
-    // Check if a node can be visited
+    // Replace the canVisitNode method in ProgressionManager with this fixed version
+
     canVisitNode: function(nodeId) {
+      console.log(`Checking if can visit node: ${nodeId}`);
+      
       // Can't visit if there's already a current node
-      if (GameState.data.currentNode) return false;
+      if (GameState.data.currentNode) {
+        console.log("Can't visit - there's already a current node");
+        return false;
+      }
       
       // Get the node
       const node = GameState.getNodeById(nodeId);
-      if (!node) return false;
+      if (!node) {
+        console.log(`Can't visit - node ${nodeId} not found`);
+        return false;
+      }
       
       // Can't visit start node
-      if (nodeId === 'start') return false;
+      if (nodeId === 'start') {
+        console.log("Can't visit the start node");
+        return false;
+      }
       
       // Already visited nodes cannot be visited again
-      if (node.visited) return false;
-      
-      // Choose validation based on progression type
-      switch (this.type) {
-        case PROGRESSION_TYPE.ROW_BASED:
-          return this.validateRowBasedProgression(node);
-        case PROGRESSION_TYPE.PATH_BASED:
-          return this.validatePathBasedProgression(node);
-        case PROGRESSION_TYPE.MIXED:
-          // For mixed, either condition can allow progression
-          return this.validateRowBasedProgression(node) || 
-                 this.validatePathBasedProgression(node);
-        default:
-          console.error(`Unknown progression type: ${this.type}`);
-          return false;
+      if (node.visited) {
+        console.log(`Can't visit - node ${nodeId} already visited`);
+        return false;
       }
+      
+      console.log(`Node ${nodeId} state:`, node.state);
+      
+      // Must be available to visit
+      if (node.state !== NODE_STATE.AVAILABLE) {
+        console.log(`Can't visit - node ${nodeId} is not available (state: ${node.state})`);
+        return false;
+      }
+      
+      // Get nodes that connect to this node
+      const connectedNodes = this.getConnectedNodes(nodeId);
+      console.log(`Connected nodes to ${nodeId}:`, connectedNodes.map(n => n.id));
+      
+      // Check if any connected node is visited
+      const hasVisitedConnection = connectedNodes.some(prevNode => 
+        prevNode.visited || prevNode.id === 'start'
+      );
+      
+      if (!hasVisitedConnection) {
+        console.log(`Can't visit - no connected nodes to ${nodeId} are visited`);
+        return false;
+      }
+      
+      console.log(`Node ${nodeId} can be visited`);
+      return true;
     },
     
     // Validate row-based progression (must complete entire rows)

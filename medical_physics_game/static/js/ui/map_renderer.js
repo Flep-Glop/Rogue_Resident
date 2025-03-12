@@ -486,7 +486,8 @@ const MapRenderer = {
       ctx.restore();
     },
     
-    // Handle map click
+    // Replace the handleMapClick method in MapRenderer with this fixed version
+
     handleMapClick: function(event) {
       const canvas = event.target;
       const rect = canvas.getBoundingClientRect();
@@ -503,6 +504,10 @@ const MapRenderer = {
       // Calculate canvas size
       const width = canvas.width;
       const height = canvas.height;
+      
+      // Track if we found a clickable node
+      let foundClickableNode = false;
+      let clickedNode = null;
       
       // Check if click is on any node
       const allNodes = GameState.getAllNodes();
@@ -523,18 +528,44 @@ const MapRenderer = {
         const distance = Math.sqrt(dx*dx + dy*dy);
         const nodeRadius = 20 * dpr;
         
-        // Check if click is within node radius and node can be visited
-        if (distance <= nodeRadius && ProgressionManager.canVisitNode(node.id)) {
-          console.log("Clicked on node:", node.id);
+        // Check if click is within node radius
+        if (distance <= nodeRadius) {
+          clickedNode = node;
+          console.log("Clicked on node:", node.id, "- state:", node.state);
           
-          // Visual feedback for click
-          this.showClickFeedback(x / dpr, y / dpr);
-          
-          // Notify that node was selected (use event system)
-          EventSystem.emit(GAME_EVENTS.NODE_SELECTED, node.id);
-          
-          break;
+          // If node can be visited, process it
+          if (ProgressionManager.canVisitNode(node.id)) {
+            foundClickableNode = true;
+            
+            // Visual feedback for click
+            this.showClickFeedback(x / dpr, y / dpr);
+            
+            // Notify that node was selected
+            EventSystem.emit(GAME_EVENTS.NODE_SELECTED, node.id);
+            
+            break;
+          }
+          else {
+            // Show feedback that node can't be visited
+            UiUtils.showFloatingText("Can't visit this node yet", "warning");
+          }
         }
+      }
+      
+      // If a node was clicked but couldn't be visited, explain why
+      if (clickedNode && !foundClickableNode) {
+        // Determine reason
+        let reason = "";
+        
+        if (clickedNode.state === NODE_STATE.LOCKED) {
+          reason = "This node is locked. Complete earlier nodes first.";
+        } else if (GameState.data.currentNode) {
+          reason = "Already visiting another node.";
+        } else {
+          reason = "No path available to this node.";
+        }
+        
+        UiUtils.showFloatingText(reason, "warning");
       }
     },
     

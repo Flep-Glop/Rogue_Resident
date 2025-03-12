@@ -141,29 +141,53 @@ const CONTAINER_TYPES = {
         });
     },
     
-    // Process node content based on type
+    // Replace the processNodeContent method in NodeInteraction with this fixed version
+
     processNodeContent: function(nodeData) {
+      console.log("Processing node type:", nodeData.type);
+      
       switch (nodeData.type) {
         case 'question':
         case 'elite':
         case 'boss':
-          this.showQuestion(nodeData);
+          if (nodeData.question) {
+            this.showQuestion(nodeData);
+          } else {
+            console.error(`Question data missing for ${nodeData.type} node:`, nodeData);
+            UiUtils.showToast(`Error: Missing question data for ${nodeData.type} node`, "danger");
+          }
           break;
+          
         case 'treasure':
-          this.showTreasure(nodeData);
+          if (nodeData.item) {
+            this.showTreasure(nodeData);
+          } else {
+            console.error("Item data missing for treasure node:", nodeData);
+            UiUtils.showToast("Error: Missing item data for treasure node", "danger");
+          }
           break;
+          
         case 'rest':
           this.showRestNode(nodeData);
           break;
+          
         case 'event':
-          this.showEvent(nodeData);
+          if (nodeData.event) {
+            this.showEvent(nodeData);
+          } else {
+            console.error("Event data missing for event node:", nodeData);
+            UiUtils.showToast("Error: Missing event data for event node", "danger");
+          }
           break;
+          
         case 'shop':
           this.showShop(nodeData);
           break;
+          
         case 'gamble':
           this.showGamble(nodeData);
           break;
+          
         default:
           console.error(`Unknown node type: ${nodeData.type}`);
           UiUtils.showToast(`Unknown node type: ${nodeData.type}`, 'danger');
