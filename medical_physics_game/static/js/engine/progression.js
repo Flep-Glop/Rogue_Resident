@@ -21,7 +21,7 @@ const ProgressionManager = {
   
   // Check if a node can be visited
   canVisitNode: function(nodeId) {
-    console.log(`Checking if can visit node: ${nodeId}`);
+    console.log("Checking if can visit node: " + nodeId);
     
     // Rule 1: Can't visit if there's already a current node
     if (GameState.data.currentNode) {
@@ -32,7 +32,7 @@ const ProgressionManager = {
     // Rule 2: Can't visit if node doesn't exist
     const node = GameState.getNodeById(nodeId);
     if (!node) {
-      console.log(`Can't visit - node ${nodeId} not found`);
+      console.log("Can't visit - node " + nodeId + " not found");
       return false;
     }
     
@@ -44,51 +44,39 @@ const ProgressionManager = {
     
     // Rule 4: Can't revisit completed nodes
     if (node.visited) {
-      console.log(`Can't visit - node ${nodeId} already visited`);
+      console.log("Can't visit - node " + nodeId + " already visited");
       return false;
     }
     
-    console.log(`Node ${nodeId} state:`, node.state);
+    console.log("Node " + nodeId + " state: " + node.state);
     
-    // Rule 5: Must have a state of AVAILABLE
-    if (node.state !== NODE_STATE.AVAILABLE) {
-      console.log(`Can't visit - node ${nodeId} is not available (state: ${node.state})`);
-      return false;
-    }
-    
-    // Rule 6: Must have a valid connection from a visited node
+    // Rule 5: Must have a DIRECT PATH from a completed node
     const connectedNodes = this.getConnectedNodes(nodeId);
-    console.log(`Connected nodes to ${nodeId}:`, connectedNodes.map(n => n.id));
     
-    const hasVisitedConnection = connectedNodes.some(prevNode => 
-      prevNode.visited || prevNode.id === 'start'
-    );
+    // Format array of IDs for logging
+    let nodeIds = [];
+    for (let i = 0; i < connectedNodes.length; i++) {
+      nodeIds.push(connectedNodes[i].id);
+    }
+    console.log("Connected nodes to " + nodeId + " are: " + nodeIds.join(', '));
+    
+    // Check if any connected node is visited
+    let hasVisitedConnection = false;
+    for (let i = 0; i < connectedNodes.length; i++) {
+      if (connectedNodes[i].visited || connectedNodes[i].id === 'start') {
+        hasVisitedConnection = true;
+        break;
+      }
+    }
     
     if (!hasVisitedConnection) {
-      console.log(`Can't visit - no connected nodes to ${nodeId} are visited`);
+      console.log("Can't visit - no connected nodes to " + nodeId + " are visited");
       return false;
     }
     
-    // Rule 7: Must be in the lowest incomplete row (enforces row-based progression)
-    if (!this.validateRowBasedProgression(nodeId)) {
-      console.log(`Can't visit ${nodeId} - not in the current active row`);
-      return false;
-    }
-    // In progression.js, modify the canVisitNode() function by adding this check
-// after the existing rules but before returning true:
-
-    // Rule: Can only visit nodes that exist in the current map
-    const isCurrentFloorNode = (
-      (nodeId === 'start' && GameState.data.map && GameState.data.map.start) ||
-      (nodeId === 'boss' && GameState.data.map && GameState.data.map.boss) ||
-      (GameState.data.map && GameState.data.map.nodes && nodeId in GameState.data.map.nodes)
-    );
-
-    if (!isCurrentFloorNode) {
-      console.log(`Can't visit - node ${nodeId} does not belong to current floor`);
-      return false;
-    }
-    console.log(`Node ${nodeId} can be visited - path is valid`);
+    // IMPORTANT: Simple validation that works for all progression types
+    // If we get here, the node can be visited
+    console.log("Node " + nodeId + " can be visited - path is valid");
     return true;
   },
   
