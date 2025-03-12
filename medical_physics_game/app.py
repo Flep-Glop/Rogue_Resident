@@ -634,7 +634,28 @@ def load_game(save_id):
         return jsonify(saved_game)
     else:
         return jsonify({"error": "Failed to load game"}), 500
+
+@app.route('/api/debug-node/<node_id>')
+def debug_node(node_id):
+    """Debug info for a node"""
+    game_id = get_game_id()
+    game_state = load_game_state(game_id)
     
+    # Find the node in the map
+    node = None
+    if node_id == 'start':
+        node = game_state['map']['start']
+    elif node_id == 'boss' and 'boss' in game_state['map']:
+        node = game_state['map']['boss']
+    elif 'nodes' in game_state['map'] and node_id in game_state['map']['nodes']:
+        node = game_state['map']['nodes'][node_id]
+    
+    return jsonify({
+        "node_found": node is not None,
+        "node_data": node,
+        "node_type": node.get('type') if node else None
+    })
+
 @app.route('/api/test-db')
 def test_db():
     """Test the database connection and operations"""
