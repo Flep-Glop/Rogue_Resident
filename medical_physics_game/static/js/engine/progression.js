@@ -19,7 +19,7 @@ const ProgressionManager = {
     return this;
   },
   
-  // Check if a node can be visited
+  // Check if a node can be visited with row-based rules
   canVisitNode: function(nodeId) {
     console.log("Checking if can visit node: " + nodeId);
     
@@ -49,39 +49,61 @@ const ProgressionManager = {
     }
     
     console.log("Node " + nodeId + " state: " + node.state);
-    // In progression.js, add this code right after the console.log for node state:
-
-    // Rule: Can't visit locked nodes
+    
+    // Rule 5: Can't visit locked nodes
     if (node.state === NODE_STATE.LOCKED) {
       console.log("Can't visit - node " + nodeId + " is locked");
       return false;
     }
     
-    // Rule 5: Must have a DIRECT PATH from a completed node
-    const connectedNodes = this.getConnectedNodes(nodeId);
-    
-    // Format array of IDs for logging
-    let nodeIds = [];
-    for (let i = 0; i < connectedNodes.length; i++) {
-      nodeIds.push(connectedNodes[i].id);
-    }
-    console.log("Connected nodes to " + nodeId + " are: " + nodeIds.join(', '));
-    
-    // Check if any connected node is visited
-    let hasVisitedConnection = false;
-    for (let i = 0; i < connectedNodes.length; i++) {
-      if (connectedNodes[i].visited || connectedNodes[i].id === 'start') {
-        hasVisitedConnection = true;
-        break;
+    // Rule 6: For row-based progression, can only visit if it's in the next available row
+    if (node.position) {
+      // Find highest completed row
+      const allNodes = GameState.getAllNodes();
+      let highestCompletedRow = 0;
+      
+      allNodes.forEach(n => {
+        if (n.visited && n.position && n.position.row > highestCompletedRow) {
+          highestCompletedRow = n.position.row;
+        }
+      });
+      
+      // Next available row is the one after highest completed row
+      const nextAvailableRow = highestCompletedRow + 1;
+      
+      // Special case for first row (after start)
+      if (highestCompletedRow === 0 && node.position.row === 1) {
+        console.log(`Node ${nodeId} is in first row - can visit`);
+        return true;
+      }
+      
+      // Special case for boss
+      if (node.id === 'boss') {
+        // Check if any nodes in previous row are completed
+        const previousRow = node.position.row - 1;
+        const previousRowCompleted = allNodes.some(n => 
+          n.position && n.position.row === previousRow && n.visited
+        );
+        
+        if (previousRowCompleted) {
+          console.log(`Boss node can be visited - previous row has completed nodes`);
+          return true;
+        } else {
+          console.log(`Boss node cannot be visited - no completed nodes in previous row`);
+          return false;
+        }
+      }
+      
+      // Check if node is in the next available row
+      if (node.position.row === nextAvailableRow) {
+        console.log(`Node ${nodeId} is in the next available row (${nextAvailableRow}) - can visit`);
+        return true;
+      } else {
+        console.log(`Node ${nodeId} is not in the next available row (${nextAvailableRow}) - can't visit`);
+        return false;
       }
     }
     
-    if (!hasVisitedConnection) {
-      console.log("Can't visit - no connected nodes to " + nodeId + " are visited");
-      return false;
-    }
-    
-    // IMPORTANT: Simple validation that works for all progression types
     // If we get here, the node can be visited
     console.log("Node " + nodeId + " can be visited - path is valid");
     return true;

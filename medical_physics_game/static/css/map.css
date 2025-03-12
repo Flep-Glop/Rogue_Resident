@@ -72,3 +72,77 @@
     font-size: 24px;
     cursor: pointer;
   }
+  /* Make map container scrollable */
+.map-container {
+  background-color: var(--background-alt);
+  border: 3px solid var(--primary);
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  position: relative;
+  max-height: 600px; /* Maximum height before scrolling */
+  overflow-y: auto;  /* Enable vertical scrolling */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+}
+
+/* Add custom scrollbar styling */
+.map-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.map-container::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-radius: 5px;
+}
+
+.map-container::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 5px;
+}
+
+.map-container::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* Add scroll indicators */
+.scroll-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--primary);
+  animation: pulse 1.5s infinite;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.scroll-indicator.top {
+  top: 10px;
+}
+
+.scroll-indicator.bottom {
+  bottom: 10px;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Style for map-wrapper to position canvas properly */
+.map-wrapper {
+  position: relative;
+  width: 800px;
+  /* Height will be calculated based on rows */
+  margin: 0 auto;
+}
+
+/* Make canvas properly sized */
+#floor-map {
+  display: block;
+  image-rendering: pixelated;
+}

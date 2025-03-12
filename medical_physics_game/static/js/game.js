@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Setup event listeners for game UI elements
+  // Setup event listeners for game UI elements
 function setupEventListeners() {
   console.log("Setting up event listeners...");
   
@@ -70,69 +70,83 @@ function setupEventListeners() {
           });
       }
     });
-    // Add this to the setupEventListeners function in game.js
+  }
 
-    // Debug section for next-floor functionality
-    const debugNextFloorBtn = document.createElement('button');
-    debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
-    debugNextFloorBtn.textContent = 'Debug: Force Next Floor';
-    debugNextFloorBtn.style.fontSize = '0.7rem';
-    debugNextFloorBtn.style.padding = '2px 8px';
+  // Debug: Force Next Floor button
+  const debugNextFloorBtn = document.createElement('button');
+  debugNextFloorBtn.className = 'btn btn-warning mt-2 mb-2 ms-2';
+  debugNextFloorBtn.textContent = 'Debug: Force Next Floor';
+  debugNextFloorBtn.style.fontSize = '0.7rem';
+  debugNextFloorBtn.style.padding = '2px 8px';
 
-    debugNextFloorBtn.addEventListener('click', function() {
-      console.log("DEBUG: Force proceeding to next floor");
-      
-      // Force floor completion
-      if (typeof GameState !== 'undefined') {
-        // Show the next floor button
-        const nextFloorBtn = document.getElementById('next-floor-btn');
-        if (nextFloorBtn) {
-          nextFloorBtn.style.display = 'block';
-          console.log("Next floor button made visible");
-        }
-        
-        // Direct call to go to next floor
-        if (typeof GameState.goToNextFloor === 'function') {
-          GameState.goToNextFloor()
-            .then(() => {
-              console.log("Successfully advanced to next floor");
-            })
-            .catch(error => {
-              console.error('Error going to next floor:', error);
-              UiUtils.showToast('Failed to proceed to next floor: ' + error.message, 'danger');
-            });
-        }
+  debugNextFloorBtn.addEventListener('click', function() {
+    console.log("DEBUG: Force proceeding to next floor");
+    
+    // Force floor completion
+    if (typeof GameState !== 'undefined') {
+      // Show the next floor button
+      const nextFloorBtn = document.getElementById('next-floor-btn');
+      if (nextFloorBtn) {
+        nextFloorBtn.style.display = 'block';
+        console.log("Next floor button made visible");
       }
-    });
-
-    // Add force complete floor button
-    const debugCompleteFloorBtn = document.createElement('button');
-    debugCompleteFloorBtn.className = 'btn btn-success mt-2 mb-2 ms-2';
-    debugCompleteFloorBtn.textContent = 'Debug: Complete Floor';
-    debugCompleteFloorBtn.style.fontSize = '0.7rem';
-    debugCompleteFloorBtn.style.padding = '2px 8px';
-
-    debugCompleteFloorBtn.addEventListener('click', function() {
-      console.log("DEBUG: Force floor completion");
       
-      // Force completion event
-      if (typeof EventSystem !== 'undefined') {
-        EventSystem.emit(GAME_EVENTS.FLOOR_COMPLETED, GameState.data.currentFloor);
-        console.log("Floor completion event emitted");
+      // Direct call to go to next floor
+      if (typeof GameState.goToNextFloor === 'function') {
+        GameState.goToNextFloor()
+          .then(() => {
+            console.log("Successfully advanced to next floor");
+          })
+          .catch(error => {
+            console.error('Error going to next floor:', error);
+            UiUtils.showToast('Failed to proceed to next floor: ' + error.message, 'danger');
+          });
       }
-    });
-
-    // Add to map container near debug button
-    const mapContainer = document.querySelector('.map-container');
-    if (mapContainer) {
-      const headerDiv = document.createElement('div');
-      headerDiv.className = 'debug-buttons';
-      headerDiv.style.marginBottom = '10px';
-      headerDiv.appendChild(debugBtn); // This is the existing debug button
-      headerDiv.appendChild(debugCompleteFloorBtn);
-      headerDiv.appendChild(debugNextFloorBtn);
-      mapContainer.insertBefore(headerDiv, mapContainer.firstChild);
     }
+  });
+
+  // Complete Floor button (for testing)
+  const completeFloorBtn = document.getElementById('complete-floor-btn');
+  if (completeFloorBtn) {
+    completeFloorBtn.addEventListener('click', function() {
+      console.log("Complete Floor button clicked - applying row-based completion");
+      
+      // 1. Get all nodes
+      const allNodes = GameState.getAllNodes();
+      
+      // 2. Get max row (excluding boss)
+      const maxRow = Math.max(...allNodes.filter(n => n.id !== 'boss').map(n => n.position ? n.position.row : 0));
+      
+      // 3. For each row, mark one node as visited
+      for (let row = 1; row <= maxRow; row++) {
+        // Get all nodes in this row
+        const rowNodes = allNodes.filter(n => n.position && n.position.row === row);
+        
+        if (rowNodes.length > 0) {
+          // Pick one random node to mark as completed
+          const randomIndex = Math.floor(Math.random() * rowNodes.length);
+          const selectedNode = rowNodes[randomIndex];
+          
+          console.log(`Marking node ${selectedNode.id} as completed for row ${row}`);
+          selectedNode.visited = true;
+          selectedNode.state = NODE_STATE.COMPLETED;
+        }
+      }
+      
+      // 4. Clear current node
+      GameState.data.currentNode = null;
+      
+      // 5. Update all node states to set boss as available
+      GameState.updateAllNodeStates();
+      
+      // 6. Re-render the map
+      if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+        MapRenderer.renderMap();
+      }
+      
+      // Show success message
+      UiUtils.showToast("Floor ready for boss! One node completed per row.", "success");
+    });
   }
   
   // Restart button in game over screen
@@ -173,10 +187,21 @@ function setupEventListeners() {
     console.log("Game State:", JSON.stringify(GameState.getState(), null, 2));
   });
   
-  // Add debug button to map container
+  // Add debug buttons to map container
   const mapContainer = document.querySelector('.map-container');
   if (mapContainer) {
-    mapContainer.insertBefore(debugBtn, mapContainer.firstChild);
+    // Create a debug button container
+    const debugButtonContainer = document.createElement('div');
+    debugButtonContainer.className = 'debug-buttons mb-2';
+    debugButtonContainer.style.display = 'flex';
+    debugButtonContainer.style.gap = '5px';
+    
+    // Add all debug buttons to the container
+    debugButtonContainer.appendChild(debugBtn);
+    debugButtonContainer.appendChild(debugNextFloorBtn);
+    
+    // Insert at the beginning of map container
+    mapContainer.insertBefore(debugButtonContainer, mapContainer.firstChild);
   }
 }
 

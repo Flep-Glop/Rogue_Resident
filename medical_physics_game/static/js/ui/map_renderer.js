@@ -93,9 +93,9 @@ const MapRenderer = {
     console.groupEnd();
   },
 
-  // Render map with simplified approach
+  // render map with automatic canvas sizing
   renderMap: function() {
-    console.log("Rendering map with simplified drawing...");
+    console.log("Rendering map with improved canvas sizing...");
     
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
@@ -109,36 +109,68 @@ const MapRenderer = {
       return;
     }
     
-    // Make sure canvas is visible with a border
-    canvas.style.border = "2px solid #333";
+    // Get all nodes to determine map dimensions
+    const allNodes = GameState.getAllNodes();
     
-    // Use fixed size for consistency
-    canvas.width = 800;
-    canvas.height = 600;
-    canvas.style.width = '800px';
-    canvas.style.height = '600px';
+    // Find the max row used by any node (to determine height)
+    let maxRow = 0;
+    allNodes.forEach(node => {
+      if (node.position && node.position.row > maxRow) {
+        maxRow = node.position.row;
+      }
+    });
     
-    // Clear to white background
+    // Calculate canvas dimensions
+    const canvasWidth = 800; // Fixed width for consistency
+    
+    // Calculate height based on rows (100px per row plus padding)
+    const rowSpacing = 80; // Space between rows
+    const paddingTop = 100; // Space at top
+    const paddingBottom = 100; // Space at bottom
+    const canvasHeight = paddingTop + (maxRow * rowSpacing) + paddingBottom;
+    
+    console.log(`Setting canvas dimensions: ${canvasWidth}x${canvasHeight} for ${maxRow+1} rows`);
+    
+    // Set canvas dimensions
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    canvas.style.width = canvasWidth + 'px';
+    canvas.style.height = canvasHeight + 'px';
+    
+    // Create a map wrapper if it doesn't exist
+    let mapWrapper = canvas.parentElement;
+    if (!mapWrapper.classList.contains('map-wrapper')) {
+      // Canvas is not in a wrapper yet
+      mapWrapper = document.createElement('div');
+      mapWrapper.className = 'map-wrapper';
+      canvas.parentNode.insertBefore(mapWrapper, canvas);
+      mapWrapper.appendChild(canvas);
+    }
+    
+    // Update wrapper height
+    mapWrapper.style.height = canvasHeight + 'px';
+    
+    // Clear to background color
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, 800, 600);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     
     // Draw a simple grid for reference
     ctx.strokeStyle = '#EEEEEE';
     ctx.lineWidth = 1;
     
     // Horizontal lines
-    for (let y = 0; y <= 600; y += 50) {
+    for (let y = 0; y <= canvasHeight; y += 50) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(800, y);
+      ctx.lineTo(canvasWidth, y);
       ctx.stroke();
     }
     
     // Vertical lines
-    for (let x = 0; x <= 800; x += 50) {
+    for (let x = 0; x <= canvasWidth; x += 50) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, 600);
+      ctx.lineTo(x, canvasHeight);
       ctx.stroke();
     }
     
@@ -146,13 +178,54 @@ const MapRenderer = {
     this.logNodePositions();
     
     // Draw connections first
-    this.drawConnections(ctx, 800, 600);
+    this.drawConnections(ctx, canvasWidth, canvasHeight);
     
     // Draw all nodes
-    const allNodes = GameState.getAllNodes();
     allNodes.forEach(node => {
-      this.drawNode(ctx, node, 800, 600);
+      this.drawNode(ctx, node, canvasWidth, canvasHeight);
     });
+    
+    // Check if we need scroll indicators
+    const mapContainer = document.querySelector('.map-container');
+    if (mapContainer) {
+      // Remove any existing indicators
+      const existingIndicators = mapContainer.querySelectorAll('.scroll-indicator');
+      existingIndicators.forEach(el => el.remove());
+      
+      if (canvasHeight > mapContainer.clientHeight) {
+        // Add scroll indicators if the content is taller than container
+        
+        // Top indicator (only if scrolled down)
+        const topIndicator = document.createElement('div');
+        topIndicator.className = 'scroll-indicator top';
+        topIndicator.innerHTML = '▲';
+        mapContainer.appendChild(topIndicator);
+        
+        // Bottom indicator
+        const bottomIndicator = document.createElement('div');
+        bottomIndicator.className = 'scroll-indicator bottom';
+        bottomIndicator.innerHTML = '▼';
+        mapContainer.appendChild(bottomIndicator);
+        
+        // Update indicator visibility on scroll
+        mapContainer.addEventListener('scroll', function() {
+          if (this.scrollTop > 20) {
+            topIndicator.style.display = 'block';
+          } else {
+            topIndicator.style.display = 'none';
+          }
+          
+          if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
+            bottomIndicator.style.display = 'none';
+          } else {
+            bottomIndicator.style.display = 'block';
+          }
+        });
+        
+        // Trigger scroll event to set initial state
+        mapContainer.dispatchEvent(new Event('scroll'));
+      }
+    }
   },
   
   drawConnections: function(ctx, width, height) {

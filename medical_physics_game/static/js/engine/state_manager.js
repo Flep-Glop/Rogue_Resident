@@ -257,12 +257,11 @@ _createFallbackMap: function(floorNumber) {
   };
 },
     
-    // In state_manager.js, modify the updateAllNodeStates function:
-
+    // Row-based progression: only one node per row can be selected
     updateAllNodeStates: function() {
       if (!this.data.map) return;
       
-      console.log("Updating all node states with STRICT RULES");
+      console.log("Updating all node states with ROW-BASED PROGRESSION");
 
       // Step 1: Mark all nodes LOCKED initially (except start)
       const allNodes = this.getAllNodes();
@@ -270,61 +269,87 @@ _createFallbackMap: function(floorNumber) {
         if (node.id === 'start') {
           node.state = NODE_STATE.COMPLETED;
           node.visited = true; // Ensure start is always visited
-        } else {
-          node.state = NODE_STATE.LOCKED;
-        }
-      }
-      
-      // Step 2: Mark current node if exists
-      if (this.data.currentNode) {
-        const currentNode = this.getNodeById(this.data.currentNode);
-        if (currentNode) {
-          currentNode.state = NODE_STATE.CURRENT;
-          currentNode.current = true;
-        }
-      }
-      
-      // Step 3: Mark completed nodes (for clarity)
-      for (const node of allNodes) {
-        if (node.visited && node.id !== 'start' && node.id !== this.data.currentNode) {
+        } else if (node.visited) {
+          // If a node is already visited, keep it as COMPLETED
           node.state = NODE_STATE.COMPLETED;
+        } else if (node.id === this.data.currentNode) {
+          // If a node is the current node, mark it as CURRENT
+          node.state = NODE_STATE.CURRENT;
+          node.current = true;
+        } else {
+          // Otherwise, mark as LOCKED initially
+          node.state = NODE_STATE.LOCKED;
+          node.current = false;
         }
       }
       
-      // CRITICAL: Check if there are any completed nodes besides start
-      const hasOtherCompletedNodes = allNodes.some(node => 
-        node.id !== 'start' && node.visited && node.id !== this.data.currentNode
-      );
+      // Step 2: Determine the highest completed row
+      let highestCompletedRow = 0;
+      let currentNodeRow = -1;
       
-      // Step 4: Mark nodes that are direct children of completed nodes as AVAILABLE
-      for (const node of allNodes) {
-        // Only process completed/visited nodes
-        if (node.visited && node.id !== this.data.currentNode) {
-          // CRITICAL: Skip start node if there are other completed nodes
-          if (node.id === 'start' && hasOtherCompletedNodes) {
-            continue; // Skip start node to prevent backtracking
-          }
-          
-          // For each path from this node
-          if (node.paths) {
-            for (const targetId of node.paths) {
-              const targetNode = this.getNodeById(targetId);
-              // Only mark as available if not already visited/current
-              if (targetNode && !targetNode.visited && targetId !== this.data.currentNode) {
-                console.log(`Setting node ${targetId} to available (connected from ${node.id})`);
-                targetNode.state = NODE_STATE.AVAILABLE;
-              }
-            }
-          }
-        }
-      }
-      
-      // For debugging - log all node states
-      console.group("ALL NODE STATES");
       allNodes.forEach(node => {
-        console.log(`Node ${node.id}: ${node.state}, visited=${node.visited}, current=${!!node.current}`);
+        if (node.visited && node.position && node.position.row > highestCompletedRow) {
+          highestCompletedRow = node.position.row;
+        }
+        
+        if (node.id === this.data.currentNode && node.position) {
+          currentNodeRow = node.position.row;
+        }
       });
-      console.groupEnd();
+      
+      console.log(`Highest completed row: ${highestCompletedRow}, Current node row: ${currentNodeRow}`);
+      
+      // Step 3: Based on the progression rules:
+      // - If no current node, make nodes in the next row available
+      // - If there's a current node, don't make any new nodes available
+      
+      if (!this.data.currentNode) {
+        // The next available row is the one after the highest completed row
+        const nextAvailableRow = highestCompletedRow + 1;
+        console.log(`Making row ${nextAvailableRow} available`);
+        
+        // Make all nodes in the next row available
+        allNodes.forEach(node => {
+          if (node.position && node.position.row === nextAvailableRow && !node.visited) {
+            node.state = NODE_STATE.AVAILABLE;
+            console.log(`Setting node ${node.id} to AVAILABLE (in next row ${nextAvailableRow})`);
+          }
+        });
+        
+        // Special case: If no nodes have been completed yet, make first row available
+        if (highestCompletedRow === 0) {
+          allNodes.forEach(node => {
+            if (node.position && node.position.row === 1 && !node.visited) {
+              node.state = NODE_STATE.AVAILABLE;
+              console.log(`Setting first row node ${node.id} to AVAILABLE`);
+            }
+          });
+        }
+        
+        // Special case: If we've completed all regular rows, make boss available
+        const bossNode = this.getNodeById('boss');
+        if (bossNode && bossNode.position) {
+          const lastRegularRow = bossNode.position.row - 1;
+          
+          // Check if all nodes in the last regular row have been visited
+          const lastRowNodes = allNodes.filter(n => 
+            n.position && n.position.row === lastRegularRow
+          );
+          
+          const lastRowCompleted = lastRowNodes.some(n => n.visited);
+          
+          if (lastRowCompleted && !bossNode.visited) {
+            bossNode.state = NODE_STATE.AVAILABLE;
+            console.log(`Making boss node available`);
+          }
+        }
+      }
+
+      // Log the state of all nodes for debugging
+      console.log("ALL NODE STATES");
+      allNodes.forEach(node => {
+        console.log(`Node ${node.id}: ${node.state}, visited=${node.visited}, current=${!!node.current}, row=${node.position?.row}`);
+      });
     },
     
     // Get all nodes from the map
