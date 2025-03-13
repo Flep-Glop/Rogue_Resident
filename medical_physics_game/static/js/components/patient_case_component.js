@@ -267,6 +267,11 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
         stageContainer.appendChild(nextBtn);
       }
     },
+    // Add this helper method
+    getCurrentNodeData: function() {
+        return GameState && GameState.data ? 
+        GameState.getNodeById(GameState.data.currentNode) : null;
+    },
     
     // Move to the next question
     moveToNextQuestion: function(patientCase, stageIndex, questionIndex) {
