@@ -164,6 +164,23 @@ const PixelBackgroundGenerator = {
       this.generatePixels();
     }
   };
-  
+  // Force all nodes to have higher z-index than pixels
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add extra hook to MapRenderer.renderMap if it exists
+        if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+        const originalRenderMap = MapRenderer.renderMap;
+        MapRenderer.renderMap = function() {
+            // Call original render function
+            originalRenderMap.apply(this, arguments);
+            
+            // Then force z-index on all nodes and paths
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(node => {
+            node.style.zIndex = '5';
+            node.style.position = 'relative';
+            });
+        };
+        }
+    });
   // Global access
   window.PixelBackgroundGenerator = PixelBackgroundGenerator;
