@@ -1,161 +1,174 @@
-// node_system_integrator.js - Integrates the new node system with the existing game
+// node_system_integrator.js - Manages node system migration 
 
-// NodeSystemIntegrator - Connects enhanced node system with existing code
+// NodeSystemIntegrator - Handles transition to component-based system
 const NodeSystemIntegrator = {
-    // Track if integration is active
+    // Track if integration is complete
     isIntegrated: false,
+    
+    // Track components that need to be created
+    pendingComponents: [],
     
     // Initialize the enhanced node system
     initialize: function() {
       console.log("Initializing node system integrator...");
       
-      // Check if required components exist
-      if (typeof NodeRegistryEnhanced === 'undefined') {
-        console.error("NodeRegistryEnhanced not found, cannot integrate");
-        return false;
+      // Check for old NodeRegistry
+      const hasLegacySystem = typeof window.NodeRegistry !== 'undefined' && 
+                             window.NodeRegistry !== NodeRegistry;
+      
+      if (hasLegacySystem) {
+        console.log("Found legacy NodeRegistry, will migrate node types");
+        this.migrateLegacyNodeTypes();
       }
       
-      if (typeof NodeComponents === 'undefined') {
-        console.error("NodeComponents not found, cannot integrate");
-        return false;
+      // Check which components we need
+      this.identifyNeededComponents();
+      
+      // If any components are missing, log warnings
+      if (this.pendingComponents.length > 0) {
+        console.warn(`Missing components for ${this.pendingComponents.length} node types:`);
+        this.pendingComponents.forEach(type => {
+          console.warn(`- Missing component for node type: ${type}`);
+        });
       }
       
-      // Initialize enhanced node registry
-      NodeRegistryEnhanced.initialize();
-      
-      // Initialize node components
-      NodeComponents.initializeAll();
-      
-      // Integrate with NodeInteraction if possible
-      this.integrateWithNodeInteraction();
-      
-      // Mark as integrated
+      // Success!
       this.isIntegrated = true;
       console.log("Node system integration complete");
       
       return true;
     },
     
-    // Integrate with existing NodeInteraction
-    integrateWithNodeInteraction: function() {
-      if (typeof NodeInteraction === 'undefined') {
-        console.error("NodeInteraction not found, cannot integrate");
+    // Migrate node types from legacy NodeRegistry if it exists
+    migrateLegacyNodeTypes: function() {
+      if (typeof window.NodeRegistry === 'undefined' || 
+          window.NodeRegistry === NodeRegistry) {
         return false;
       }
       
-      console.log("Integrating with NodeInteraction...");
+      const legacyNodeRegistry = window.NodeRegistry;
       
-      // Save reference to original methods
-      const originalProcessNodeContent = NodeInteraction.processNodeContent;
+      // Save legacy node types
+      Object.entries(legacyNodeRegistry.nodeTypes || {}).forEach(([typeId, config]) => {
+        // Skip if already in new registry
+        if (NodeRegistry.nodeTypes[typeId]) {
+          return;
+        }
+        
+        console.log(`Migrating node type from legacy system: ${typeId}`);
+        
+        // Convert to new format
+        const newConfig = {
+          id: typeId,
+          displayName: config.displayName || typeId,
+          symbol: config.symbol || "?",
+          color: config.color || "#999999",
+          shadowColor: config.shadowColor || "#666666",
+          containerName: config.interactionContainer || `${typeId}-container`,
+          weight: config.weight || 0
+        };
+        
+        // Register with new system
+        NodeRegistry.registerNodeType(typeId, newConfig);
+      });
       
-      // Override processNodeContent method
-      NodeInteraction.processNodeContent = function(nodeData) {
-        console.log("Enhanced processNodeContent called for node type:", nodeData.type);
+      return true;
+    },
+    
+    // Identify which components need to be created
+    identifyNeededComponents: function() {
+      this.pendingComponents = [];
+      
+      // Check each node type in the registry
+      Object.keys(NodeRegistry.nodeTypes).forEach(typeId => {
+        // Skip if component already exists
+        if (NodeComponents.registry[typeId]) {
+          return;
+        }
         
-        // Check if we have a component for this node type
-        const component = NodeComponents.getComponent(nodeData.type);
+        // Add to pending components
+        this.pendingComponents.push(typeId);
+      });
+      
+      return this.pendingComponents;
+    },
+    
+    // Create a skeleton component for a node type
+    createSkeletonComponent: function(typeId) {
+      if (!typeId) return null;
+      
+      console.log(`Creating skeleton component for node type: ${typeId}`);
+      
+      // Create basic component with required methods
+      const component = {
+        initialize: function() {
+          console.log(`Initializing ${typeId} component`);
+        },
         
-        if (component) {
-          // Get node type config from registry
-          const nodeType = NodeRegistryEnhanced.getNodeType(nodeData.type);
+        render: function(nodeData, container) {
+          console.log(`Rendering ${typeId} node`, nodeData);
           
-          // Get container ID from registry
-          const containerId = nodeType.interactionContainer;
+          // Create basic UI
+          container.innerHTML = `
+            <h3>${nodeData.title || NodeRegistry.getNodeType(typeId).displayName}</h3>
+            <div class="node-content" id="${typeId}-content">
+              <div class="alert alert-warning">
+                <p>This is an auto-generated component for node type: ${typeId}</p>
+                <p>Create a proper component implementation in:</p>
+                <pre>/static/js/components/${typeId}_component.js</pre>
+              </div>
+            </div>
+            <button id="${typeId}-continue-btn" class="btn btn-primary mt-3">Continue</button>
+          `;
           
-          // If no container defined for this type, complete the node and return
-          if (!containerId) {
-            console.log(`No interaction container defined for node type: ${nodeData.type}`);
-            GameState.completeNode(nodeData.id);
-            return;
+          // Add continue button handler
+          const continueBtn = document.getElementById(`${typeId}-continue-btn`);
+          if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+              this.handleAction(nodeData, 'continue');
+            });
           }
+        },
+        
+        handleAction: function(nodeData, action) {
+          console.log(`${typeId} component handling action: ${action}`);
           
-          // Show the container
-          this.showContainer(containerId);
-          
-          // Get the container element
-          const container = document.getElementById(containerId);
-          
-          // Use component to render the node
-          if (container) {
-            NodeComponents.processNode(nodeData, container);
-          } else {
-            console.error(`Container ${containerId} not found`);
+          if (action === 'continue') {
+            // Complete the node
+            if (GameState.data.currentNode) {
+              GameState.completeNode(nodeData.id);
+            }
           }
-        } else {
-          // Fall back to original implementation
-          originalProcessNodeContent.call(this, nodeData);
         }
       };
       
-      console.log("NodeInteraction integration complete");
-      return true;
+      // Register with NodeComponents
+      NodeComponents.register(typeId, component);
+      
+      return component;
     },
     
-    // Provide a node creation helper
-    createNodeType: function(typeConfig) {
-      if (!typeConfig || !typeConfig.id) {
-        console.error("Invalid node type configuration");
-        return false;
-      }
+    // Create skeleton components for all missing components
+    createSkeletonComponents: function() {
+      this.pendingComponents.forEach(typeId => {
+        this.createSkeletonComponent(typeId);
+      });
       
-      console.log(`Creating new node type: ${typeConfig.id}`);
+      // Reset pending components
+      this.pendingComponents = [];
+    },
+    
+    // Get migration status
+    getMigrationStatus: function() {
+      // Check what components are still missing
+      this.identifyNeededComponents();
       
-      // Add to NodeRegistryEnhanced
-      NodeRegistryEnhanced.nodeTypes[typeConfig.id] = {
-        displayName: typeConfig.displayName || typeConfig.id,
-        symbol: typeConfig.symbol || "?",
-        color: typeConfig.color || "#999999",
-        shadowColor: typeConfig.shadowColor || "#666666",
-        interactionContainer: typeConfig.containerId || `${typeConfig.id}-container`,
-        weight: typeConfig.weight || 0,
-        processDataFunction: typeConfig.processFunction || null
+      return {
+        isIntegrated: this.isIntegrated,
+        pendingComponents: this.pendingComponents,
+        componentCount: Object.keys(NodeComponents.registry).length,
+        nodeTypeCount: Object.keys(NodeRegistry.nodeTypes).length
       };
-      
-      // Create container if needed
-      if (!document.getElementById(typeConfig.containerId)) {
-        this.createContainer(typeConfig);
-      }
-      
-      return true;
-    },
-    
-    // Create a container for a node type
-    createContainer: function(typeConfig) {
-      const parentElement = document.querySelector('.col-md-9');
-      if (!parentElement) {
-        console.error("Parent element for containers not found");
-        return false;
-      }
-      
-      const containerId = typeConfig.containerId || `${typeConfig.id}-container`;
-      
-      // Create container
-      const container = document.createElement('div');
-      container.id = containerId;
-      container.className = 'interaction-container';
-      
-      // Add basic structure
-      container.innerHTML = `
-        <h3>${typeConfig.displayName || typeConfig.id}</h3>
-        <div id="${typeConfig.id}-content" class="node-content"></div>
-        <button id="${typeConfig.id}-continue-btn" class="btn btn-primary mt-3">Continue</button>
-      `;
-      
-      // Add to parent
-      parentElement.appendChild(container);
-      
-      // Add continue button event listener
-      const continueBtn = document.getElementById(`${typeConfig.id}-continue-btn`);
-      if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
-          if (GameState.data.currentNode) {
-            GameState.completeNode(GameState.data.currentNode);
-          }
-        });
-      }
-      
-      console.log(`Created container for node type: ${typeConfig.id}`);
-      return true;
     }
   };
   
