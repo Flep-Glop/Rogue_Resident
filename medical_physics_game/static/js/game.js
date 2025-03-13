@@ -262,180 +262,125 @@ function setupEventListeners() {
   }
 }
 
-// Initialize the game
+// Function to initialize the game
 function initializeGame() {
   // Show loading indicator
   showLoadingIndicator();
   
-  // Initialize error handler first for robust error handling
-  if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.initialize === 'function') {
-    ErrorHandler.initialize();
-  }
-  
-  // Initialize event system
-  if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
-    EventSystem.initialize();
-  }
-  
-  // Initialize the enhanced node system if available
-  if (typeof NodeSystemIntegrator !== 'undefined' && 
-    typeof NodeSystemIntegrator.initialize === 'function') {
-  NodeSystemIntegrator.initialize();
-  }
+  // Initialize in the correct order for dependencies
+  Promise.resolve()
+    .then(() => {
+      // 1. Initialize error handler first for robust error handling
+      if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.initialize === 'function') {
+        ErrorHandler.initialize();
+      }
+      
+      // 2. Initialize event system
+      if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
+        return EventSystem.initialize();
+      }
+    })
+    .then(() => {
+      // 3. Initialize node registry (consolidated version)
+      if (typeof NodeRegistry !== 'undefined' && typeof NodeRegistry.initialize === 'function') {
+        return NodeRegistry.initialize();
+      }
+    })
+    .then(() => {
+      // 4. Initialize component system
+      if (typeof NodeComponents !== 'undefined' && typeof NodeComponents.initialize === 'function') {
+        return NodeComponents.initialize();
+      }
+    })
+    .then(() => {
+      // 5. Initialize progression manager
+      if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
+        return ProgressionManager.initialize(PROGRESSION_TYPE.PATH_BASED);
+      }
+    })
+    .then(() => {
+      // 6. Initialize UI feedback system
+      if (typeof FeedbackSystem !== 'undefined' && typeof FeedbackSystem.initialize === 'function') {
+        return FeedbackSystem.initialize();
+      }
+    })
+    .then(() => {
+      // 7. Initialize node interaction system
+      if (typeof NodeInteraction !== 'undefined' && typeof NodeInteraction.initialize === 'function') {
+        return NodeInteraction.initialize();
+      }
+    })
+    .then(() => {
+      // 8. Initialize special interactions system
+      if (typeof SpecialInteractions !== 'undefined' && typeof SpecialInteractions.initialize === 'function') {
+        return SpecialInteractions.initialize();
+      }
+    })
+    .then(() => {
+      // 9. Initialize game state - this loads current game data
+      if (typeof GameState !== 'undefined' && typeof GameState.initialize === 'function') {
+        return GameState.initialize();
+      }
+    })
+    .then(() => {
+      // 10. Initialize map renderer after game state is loaded
+      if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
+        MapRenderer.initialize('floor-map');
+      }
 
-  // Initialize node registry and create containers
-  if (typeof NodeRegistry !== 'undefined') {
-    // Create interaction containers if they don't exist
-    NodeRegistry.createNodeContainers();
-  }
+      // 11. Force an initial map render after a slight delay
+      setTimeout(() => {
+        if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+          console.log("Forcing initial map render...");
+          MapRenderer.renderMap();
+        }
+      }, 500);
 
-  // Initialize progression manager
-  if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
-    ProgressionManager.initialize(PROGRESSION_TYPE.PATH_BASED);
-  }
-  
-  // Initialize UI feedback system
-  if (typeof FeedbackSystem !== 'undefined' && typeof FeedbackSystem.initialize === 'function') {
-    FeedbackSystem.initialize();
-  }
-  
-  // Initialize node interaction system
-  if (typeof NodeInteraction !== 'undefined' && typeof NodeInteraction.initialize === 'function') {
-    NodeInteraction.initialize();
-  }
-  
-  // Initialize special interactions system
-  if (typeof SpecialInteractions !== 'undefined' && typeof SpecialInteractions.initialize === 'function') {
-    SpecialInteractions.initialize();
-  }
-  
-  // Initialize game state
-  if (typeof GameState !== 'undefined' && typeof GameState.initialize === 'function') {
-    GameState.initialize()
-      .then(() => {
-        // Initialize map renderer
-        if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
-          MapRenderer.initialize('floor-map');
-        }
-        // Add this after MapRenderer initialization in game.js (or somewhere appropriate)
-        // This forces an immediate render of the map after initialization
-
-        // Wait for a moment to make sure all the components have initialized
-        setTimeout(() => {
-          // Check if MapRenderer exists and has been initialized
-          if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
-            console.log("Forcing initial map render...");
-            MapRenderer.renderMap();
-          }
-        }, 500);
-        
-
-        // Alternatively, you can call this debug function to help diagnose any issues
-        function debugMapRenderer() {
-          console.group("Map Renderer Debug");
-          
-          // Check if canvas exists
-          const canvas = document.getElementById('floor-map');
-          if (!canvas) {
-            console.error("Canvas element 'floor-map' not found!");
-          } else {
-            console.log("Canvas element found:", canvas);
-            console.log("Canvas dimensions:", {
-              width: canvas.width,
-              height: canvas.height,
-              styleWidth: canvas.style.width,
-              styleHeight: canvas.style.height
-            });
-            
-            // Check if context can be created
-            try {
-              const ctx = canvas.getContext('2d');
-              console.log("Canvas context created successfully");
-              
-              // Try drawing a simple shape to test
-              ctx.fillStyle = 'red';
-              ctx.fillRect(100, 100, 50, 50);
-              console.log("Test shape drawn");
-            } catch (e) {
-              console.error("Error creating canvas context:", e);
-            }
-          }
-          
-          // Check if MapRenderer is initialized
-          if (typeof MapRenderer === 'undefined') {
-            console.error("MapRenderer not defined!");
-          } else {
-            console.log("MapRenderer exists");
-            console.log("Has renderMap method:", typeof MapRenderer.renderMap === 'function');
-            
-            // Check other important methods
-            console.log("Has initialize method:", typeof MapRenderer.initialize === 'function');
-            console.log("Has drawNodes method:", typeof MapRenderer.drawNodes === 'function');
-            
-            // Check if map data exists
-            if (GameState && GameState.data && GameState.data.map) {
-              console.log("Map data exists in GameState");
-              console.log("Nodes count:", Object.keys(GameState.data.map.nodes || {}).length);
-            } else {
-              console.error("No map data found in GameState");
-            }
-          }
-          
-          console.groupEnd();
-        }
-
-        // Call the debug function to diagnose map rendering issues
-        // You can add this to your console or call it directly
-        // debugMapRenderer();
-        // Initialize character panel
-        if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
-          CharacterPanel.initialize();
-        }
-        
-        // Initialize inventory system
-        if (typeof InventorySystem !== 'undefined' && typeof InventorySystem.initialize === 'function') {
-          InventorySystem.initialize();
-        }
-        
-        // Initialize save manager
-        if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
-          SaveManager.initialize();
-        }
-        
-        // Initialize debug tools if needed
-        if (typeof DebugTools !== 'undefined' && typeof DebugTools.initialize === 'function') {
-          DebugTools.initialize();
-        }
-        
-        // Remove loading indicator
-        removeLoadingIndicator();
-        
-        // Set up event listeners for UI
-        setupEventListeners();
-        
-        // Validate map structure
-        if (typeof ProgressionManager !== 'undefined' && 
-            typeof ProgressionManager.validateMapStructure === 'function') {
-          ProgressionManager.validateMapStructure();
-        }
-        
-        // Emit game initialized event
-        if (typeof EventSystem !== 'undefined') {
-          EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
-        }
-      })
-      .catch(error => {
-        console.error('Error initializing game:', error);
-        if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
-          ErrorHandler.handleError(error, 'Initialization');
-        } else {
-          showErrorMessage(error.message);
-        }
-      });
-  } else {
-    console.error("Game state manager not available");
-    showErrorMessage("Game state manager not available");
-  }
+      // 12. Initialize character panel
+      if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
+        CharacterPanel.initialize();
+      }
+      
+      // 13. Initialize inventory system
+      if (typeof InventorySystem !== 'undefined' && typeof InventorySystem.initialize === 'function') {
+        InventorySystem.initialize();
+      }
+      
+      // 14. Initialize save manager
+      if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
+        SaveManager.initialize();
+      }
+      
+      // 15. Initialize debug tools if needed
+      if (typeof DebugTools !== 'undefined' && typeof DebugTools.initialize === 'function') {
+        DebugTools.initialize();
+      }
+      
+      // Remove loading indicator
+      removeLoadingIndicator();
+      
+      // Set up event listeners for UI
+      setupEventListeners();
+      
+      // Validate map structure if applicable
+      if (typeof ProgressionManager !== 'undefined' && 
+          typeof ProgressionManager.validateMapStructure === 'function') {
+        ProgressionManager.validateMapStructure();
+      }
+      
+      // Emit game initialized event
+      if (typeof EventSystem !== 'undefined') {
+        EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
+      }
+    })
+    .catch(error => {
+      console.error('Error initializing game:', error);
+      if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
+        ErrorHandler.handleError(error, 'Initialization');
+      } else {
+        showErrorMessage(error.message);
+      }
+    });
 }
 
 // Helper functions for UI
