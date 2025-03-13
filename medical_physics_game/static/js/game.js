@@ -277,6 +277,12 @@ function initializeGame() {
     EventSystem.initialize();
   }
   
+  // Initialize the enhanced node system if available
+  if (typeof NodeSystemIntegrator !== 'undefined' && 
+    typeof NodeSystemIntegrator.initialize === 'function') {
+  NodeSystemIntegrator.initialize();
+  }
+
   // Initialize node registry and create containers
   if (typeof NodeRegistry !== 'undefined') {
     // Create interaction containers if they don't exist

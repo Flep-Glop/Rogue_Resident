@@ -8,56 +8,31 @@ import copy
 import sys
 import traceback
 import random
+import json
 
 # Import modules
+from node_plugins import initialize_plugins, process_node_with_plugin, load_node_types
 from data_manager import load_json_data, save_json_data, init_data_files
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
 from game_state import create_default_game_state, get_game_id, get_question_for_node, get_random_item, get_random_event, get_random_patient_case
 from db_utils import save_game_state, load_game_state, delete_game_state
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
 
-# ADD NODE REGISTRY HERE
-# Create a node type registry for server-side logic
-NODE_TYPES = {
-    'question': {
-        'data_function': 'get_question_for_node',
-        'data_key': 'question'
-    },
-    'elite': {
-        'data_function': 'get_question_for_node',
-        'data_key': 'question'
-    },
-    'boss': {
-        'data_function': 'get_question_for_node',
-        'data_key': 'question'
-    },
-    'treasure': {
-        'data_function': 'get_random_item',
-        'data_key': 'item'
-    },
-    'event': {
-        'data_function': 'get_random_event',
-        'data_key': 'event'
-    },
-    'patient_case': {
-        'data_function': 'get_random_patient_case',
-        'data_key': 'patient_case'
-    },
-    'rest': {
-        'data_function': None,
-        'data_key': None
-    },
-    'shop': {
-        'data_function': 'get_shop_items',
-        'data_key': 'shop_items'
-    },
-    'gamble': {
-        'data_function': 'get_gamble_options',
-        'data_key': 'gamble_options'
-    }
-}
+def get_node_types_from_config():
+    """Get node types from configuration"""
+    node_types_data = load_node_types()
+    
+    node_types = {}
+    for type_data in node_types_data.get('types', []):
+        node_types[type_data.get('id')] = {
+            'data_function': type_data.get('dataFunction'),
+            'data_key': type_data.get('dataKey')
+        }
+    
+    return node_types
 
 # Make session permanent
 @app.before_request
@@ -101,6 +76,10 @@ def init_db():
 # Initialize data when the app starts
 init_data_files()
 init_db()
+initialize_plugins()
+
+NODE_TYPES = get_node_types_from_config()
+
 
 # Validate node type helper function
 def validate_node_type(node):
@@ -369,7 +348,9 @@ def generate_floor_map():
     
     return jsonify(map_layout)
 
-# Update the get_node function:
+# In the get_node route handler (around line 540), replace or enhance 
+# the node processing logic to use plugins:
+
 @app.route('/api/node/<node_id>')
 def get_node(node_id):
     """Get content for a specific node"""
@@ -396,26 +377,29 @@ def get_node(node_id):
         if not node:
             return jsonify({"error": f"Node {node_id} not found in map"}), 404
         
-        # Use the registry to process node
-        node_type = node.get('type')
-        if node_type not in NODE_TYPES:
-            return jsonify({"error": f"Unknown node type: {node_type}"}), 400
-            
-        node_config = NODE_TYPES[node_type]
+        # Process the node with plugin system
+        processed_node = process_node_with_plugin(node)
         
-        # If the node type needs data, get it
-        if node_config['data_function'] and node_config['data_key']:
-            # Dynamically call the function
-            func_name = node_config['data_function']
-            if func_name in globals():
-                data = globals()[func_name](node)
-                
-                # Update node with data
-                if data:
-                    node[node_config['data_key']] = data
+        # Legacy compatibility: If plugin didn't add required data, use old system
+        node_type = processed_node.get('type')
+        if node_type in NODE_TYPES:
+            node_config = NODE_TYPES[node_type]
             
-        # Return node data
-        return jsonify(node)
+            # If the node type needs data and it's missing, get it with legacy method
+            if (node_config['data_function'] and node_config['data_key'] and 
+                node_config['data_key'] not in processed_node):
+                
+                # Dynamically call the function
+                func_name = node_config['data_function']
+                if func_name in globals():
+                    data = globals()[func_name](processed_node)
+                    
+                    # Update node with data
+                    if data:
+                        processed_node[node_config['data_key']] = data
+        
+        # Return processed node data
+        return jsonify(processed_node)
     except Exception as e:
         error_traceback = traceback.format_exc()
         print(f"⚠️ Error retrieving node {node_id}: {e}", file=sys.stderr)

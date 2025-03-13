@@ -1,0 +1,103 @@
+{
+    "types": [
+      {
+        "id": "question",
+        "displayName": "Physics Question",
+        "symbol": "?",
+        "color": "#5b8dd9",
+        "shadowColor": "#4a70b0",
+        "containerName": "question-container",
+        "weight": 60,
+        "dataFunction": "get_question_for_node",
+        "dataKey": "question"
+      },
+      {
+        "id": "elite",
+        "displayName": "Challenging Question",
+        "symbol": "!",
+        "color": "#d35db3",
+        "shadowColor": "#a24b8e",
+        "containerName": "question-container",
+        "weight": 15,
+        "dataFunction": "get_question_for_node",
+        "dataKey": "question"
+      },
+      {
+        "id": "boss",
+        "displayName": "Final Assessment",
+        "symbol": "B",
+        "color": "#e67e73",
+        "shadowColor": "#b66059",
+        "containerName": "question-container",
+        "weight": 0,
+        "dataFunction": "get_question_for_node",
+        "dataKey": "question"
+      },
+      {
+        "id": "treasure",
+        "displayName": "Equipment Found",
+        "symbol": "T",
+        "color": "#f0c866",
+        "shadowColor": "#c9a955",
+        "containerName": "treasure-container",
+        "weight": 20,
+        "dataFunction": "get_random_item",
+        "dataKey": "item"
+      },
+      {
+        "id": "rest",
+        "displayName": "Break Room",
+        "symbol": "R",
+        "color": "#9c77db",
+        "shadowColor": "#7c5cb0",
+        "containerName": "rest-container",
+        "weight": 15,
+        "dataFunction": null,
+        "dataKey": null
+      },
+      {
+        "id": "event",
+        "displayName": "Random Event",
+        "symbol": "E",
+        "color": "#e99c50",
+        "shadowColor": "#b87d40",
+        "containerName": "event-container",
+        "weight": 15,
+        "dataFunction": "get_random_event",
+        "dataKey": "event"
+      },
+      {
+        "id": "patient_case",
+        "displayName": "Patient Case",
+        "symbol": "P",
+        "color": "#4acf8b",
+        "shadowColor": "#3aaf7a",
+        "containerName": "patient-case-container",
+        "weight": 25,
+        "dataFunction": "get_random_patient_case",
+        "dataKey": "patient_case"
+      },
+      {
+        "id": "shop",
+        "displayName": "Department Store",
+        "symbol": "$",
+        "color": "#5bbcd9",
+        "shadowColor": "#4a99b3",
+        "containerName": "shop-container",
+        "weight": 10,
+        "dataFunction": "get_shop_items",
+        "dataKey": "shop_items"
+      },
+      {
+        "id": "gamble",
+        "displayName": "Research Opportunity",
+        "symbol": "G",
+        "color": "#b8d458",
+        "shadowColor": "#94ab47",
+        "containerName": "gamble-container",
+        "weight": 10,
+        "dataFunction": "get_gamble_options",
+        "dataKey": "gamble_options"
+      }
+    ]
+  }
