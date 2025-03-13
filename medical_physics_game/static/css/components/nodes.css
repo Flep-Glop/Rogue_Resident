@@ -383,3 +383,185 @@
   padding-bottom: 10px;
   border-bottom: 1px solid #3d4c60;
 }
+
+/* Enhanced shop styling */
+.shop-header {
+  margin-bottom: var(--spacing-md);
+  border-bottom: 2px dashed var(--node-shop);
+  padding-bottom: var(--spacing-sm);
+}
+
+.shop-description {
+  font-size: var(--font-size-sm);
+  color: var(--text);
+  margin-bottom: var(--spacing-md);
+}
+
+.shop-currency {
+  background-color: var(--dark-alt);
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-md);
+  border: 2px solid var(--node-shop);
+}
+
+.currency-label {
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  margin-right: var(--spacing-sm);
+}
+
+.currency-value {
+  color: var(--warning);
+  font-weight: bold;
+  font-size: var(--font-size-md);
+}
+
+.shop-items-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.shop-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--spacing-md);
+  color: var(--text);
+  font-style: italic;
+}
+
+.shop-item {
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.shop-item-header {
+  padding: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.item-name {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--light);
+}
+
+.item-price {
+  background-color: var(--primary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.item-price.cannot-afford {
+  background-color: var(--danger);
+  text-decoration: line-through;
+}
+
+.shop-item-body {
+  padding: var(--spacing-sm);
+  flex-grow: 1;
+}
+
+.item-rarity {
+  display: inline-block;
+  margin-bottom: var(--spacing-sm);
+  padding: 2px 5px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  text-transform: capitalize;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.item-description {
+  font-size: var(--font-size-xs);
+  color: var(--text);
+  margin-bottom: var(--spacing-sm);
+}
+
+.item-effect {
+  font-size: var(--font-size-xs);
+  color: var(--primary);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.shop-item-footer {
+  padding: var(--spacing-sm);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.buy-item-btn {
+  width: 100%;
+  font-size: var(--font-size-xs);
+  padding: 5px 10px;
+}
+
+.shop-footer {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+/* Rarity styling */
+.rarity-common {
+  border-left: 4px solid #aaa;
+}
+
+.rarity-uncommon {
+  border-left: 4px solid var(--primary);
+}
+
+.rarity-uncommon .item-rarity {
+  color: var(--primary);
+}
+
+.rarity-rare {
+  border-left: 4px solid var(--node-rest);
+}
+
+.rarity-rare .item-rarity {
+  color: var(--node-rest);
+}
+
+.rarity-epic {
+  border-left: 4px solid var(--warning);
+  box-shadow: 0 0 8px rgba(240, 200, 102, 0.3);
+}
+
+.rarity-epic .item-rarity {
+  color: var(--warning);
+}
+
+.empty-shop-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--text);
+  font-style: italic;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .shop-items-container {
+    grid-template-columns: 1fr;
+  }
+}

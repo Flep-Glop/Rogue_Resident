@@ -655,7 +655,80 @@ def debug_node(node_id):
         "node_data": node,
         "node_type": node.get('type') if node else None
     })
-
+@app.route('/api/item/random')
+def get_random_items():
+    """Get random items for shop"""
+    try:
+        # Get count parameter, default to 3
+        count = request.args.get('count', 3, type=int)
+        # Limit count to reasonable range
+        count = max(1, min(count, 6))
+        
+        # Get rarity distribution based on floor
+        game_id = get_game_id()
+        game_state = load_game_state(game_id)
+        current_floor = game_state.get('current_floor', 1) if game_state else 1
+        
+        # Adjust rarity chances based on floor
+        rarity_weights = {
+            'common': max(60 - (current_floor * 10), 30),
+            'uncommon': min(25 + (current_floor * 5), 40),
+            'rare': min(10 + (current_floor * 3), 25),
+            'epic': min(5 + (current_floor * 2), 15)
+        }
+        
+        # Load all items
+        items_data = load_json_data('items.json')
+        all_items = items_data.get('items', [])
+        
+        if not all_items:
+            return jsonify([]), 200
+        
+        # Group items by rarity
+        items_by_rarity = {}
+        for item in all_items:
+            rarity = item.get('rarity', 'common')
+            if rarity not in items_by_rarity:
+                items_by_rarity[rarity] = []
+            items_by_rarity[rarity].append(item)
+        
+        # Select items based on rarity weights
+        selected_items = []
+        for _ in range(count):
+            # Determine rarity based on weights
+            rarity_roll = random.randint(1, 100)
+            selected_rarity = 'common'
+            cumulative = 0
+            
+            for rarity, weight in rarity_weights.items():
+                cumulative += weight
+                if rarity_roll <= cumulative:
+                    selected_rarity = rarity
+                    break
+            
+            # Get items of selected rarity
+            rarity_items = items_by_rarity.get(selected_rarity, [])
+            if not rarity_items:
+                # Fallback to common if no items of selected rarity
+                rarity_items = items_by_rarity.get('common', [])
+                if not rarity_items:
+                    # Fallback to any item if no common items
+                    rarity_items = all_items
+            
+            # Select random item from rarity group
+            if rarity_items:
+                # Filter out duplicates
+                available_items = [item for item in rarity_items if item not in selected_items]
+                if available_items:
+                    selected_items.append(random.choice(available_items))
+                elif rarity_items:  # If no unique items, allow duplicates
+                    selected_items.append(random.choice(rarity_items))
+        
+        return jsonify(selected_items)
+    except Exception as e:
+        print(f"Error getting random items: {e}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
 @app.route('/api/test-db')
 def test_db():
     """Test the database connection and operations"""
