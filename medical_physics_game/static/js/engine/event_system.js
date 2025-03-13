@@ -307,8 +307,8 @@ const EventSystem = {
     return this; // For chaining
   },
   
-  // Emit an event with awaitable completion
-  async emitAsync: function(eventType, data) {
+  // Correct syntax
+  emitAsync: async function(eventType, data) {
     // VALIDATION: Check event type
     if (!eventType) {
       console.error("Attempted to emit async event with undefined type:", data);

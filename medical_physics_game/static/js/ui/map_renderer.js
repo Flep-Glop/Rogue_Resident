@@ -83,7 +83,7 @@ const MapRenderer = {
     return this;
   },
   
-  // Set up particle system for ambient backgrounds
+  // Replace this method:
   initParticles: function() {
     // Create particles based on floor
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
@@ -92,8 +92,14 @@ const MapRenderer = {
     
     this.particles = [];
     
-    // Create different numbers of particles based on floor
-    const particleCount = 30 + (currentFloor * 10);
+    // Determine particle count based on device capability
+    const isLowPowerDevice = window.navigator.hardwareConcurrency < 4 || 
+                            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Adjust particle count based on device performance
+    const baseCount = isLowPowerDevice ? 10 : 25;
+    const floorMultiplier = isLowPowerDevice ? 3 : 8;
+    const particleCount = baseCount + (Math.min(currentFloor, 5) * floorMultiplier);
     
     for (let i = 0; i < particleCount; i++) {
       this.particles.push({
@@ -103,19 +109,44 @@ const MapRenderer = {
         speedX: (Math.random() - 0.5) * 0.5,
         speedY: (Math.random() - 0.5) * 0.3,
         color: i % 5 === 0 ? pattern.accentColor : pattern.dotColor,
-        alpha: Math.random() * 0.7 + 0.3
+        alpha: Math.random() * 0.7 + 0.3,
+        lastX: 0, // Track last position for dirty checking
+        lastY: 0
       });
     }
   },
   
-  // Animation loop for continuous effects
+  // Replace this method:
   startAnimationLoop: function() {
     if (!this._animationFrame) {
-      const animate = () => {
-        this.updateParticles();
+      // Track frame timing for throttling
+      let lastFrameTime = 0;
+      const targetFPS = 30; // Limit to 30fps for particles
+      const frameInterval = 1000 / targetFPS;
+      
+      const animate = (timestamp) => {
+        // Throttle frame rate
+        if (timestamp - lastFrameTime < frameInterval) {
+          this._animationFrame = requestAnimationFrame(animate);
+          return;
+        }
+        
+        lastFrameTime = timestamp;
+        
+        // Only update if tab is visible and canvas exists
+        if (!document.hidden) {
+          this.updateParticles();
+        }
+        
         this._animationFrame = requestAnimationFrame(animate);
       };
+      
       this._animationFrame = requestAnimationFrame(animate);
+      
+      // Add event listener for visibility changes
+      document.addEventListener('visibilitychange', () => {
+        lastFrameTime = 0; // Reset timing when tab becomes visible again
+      });
     }
   },
   
@@ -127,14 +158,36 @@ const MapRenderer = {
     }
   },
   
-  // Update particle positions
+  // Replace this method:
   updateParticles: function() {
-    // Only redraw if canvas is visible
+    // Only proceed if canvas is visible
     const canvas = document.getElementById(this.canvasId);
     if (!canvas || canvas.offsetParent === null) return;
     
-    // Update each particle
+    // Don't update particles during node interactions
+    if (GameState.data.currentNode) return;
+    
+    // Get canvas context for direct particle rendering
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Check if we need to do a full redraw or just update particles
+    let needsFullRedraw = false;
+    const now = Date.now();
+    
+    // Only do full redraw every 2 seconds or on first run
+    if (!this._lastFullRedraw || now - this._lastFullRedraw > 2000) {
+      needsFullRedraw = true;
+      this._lastFullRedraw = now;
+    }
+    
+    // Update particle positions
     this.particles.forEach(particle => {
+      // Save last position before updating
+      particle.lastX = particle.x;
+      particle.lastY = particle.y;
+      
+      // Update position
       particle.x += particle.speedX;
       particle.y += particle.speedY;
       
@@ -145,12 +198,49 @@ const MapRenderer = {
       if (particle.y > canvas.height) particle.y = 0;
     });
     
-    // Only redraw if not in the middle of a node interaction
-    if (!GameState.data.currentNode) {
+    // Determine if we need to redraw the map or just update particles
+    if (needsFullRedraw) {
+      // Full redraw of map and particles
       this.renderMap();
+    } else {
+      // Optimize by only clearing and redrawing the particles
+      this.updateParticlesOnly(ctx);
     }
   },
-  
+
+  // Add this new method:
+  updateParticlesOnly: function(ctx) {
+    if (!ctx) return;
+    
+    // Save current drawing state
+    ctx.save();
+    
+    // Clear only the areas where particles were and will be
+    this.particles.forEach(particle => {
+      // Clear previous position (with a slightly larger area to ensure full coverage)
+      ctx.clearRect(
+        Math.floor(particle.lastX) - particle.size - 1,
+        Math.floor(particle.lastY) - particle.size - 1,
+        particle.size * 2 + 2,
+        particle.size * 2 + 2
+      );
+      
+      // Clear new position area
+      ctx.clearRect(
+        Math.floor(particle.x) - particle.size - 1,
+        Math.floor(particle.y) - particle.size - 1,
+        particle.size * 2 + 2,
+        particle.size * 2 + 2
+      );
+    });
+    
+    // Draw all particles in their new positions
+    this.drawParticles(ctx);
+    
+    // Restore drawing state
+    ctx.restore();
+  },
+
   // Handle state changes from GameState
   onStateChanged: function(event, data) {
     // Respond to relevant state changes
