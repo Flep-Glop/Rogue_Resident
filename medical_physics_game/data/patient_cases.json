@@ -1,73 +1,231 @@
 {
   "patient_cases": [
     {
-      "id": "radiation_therapy_1",
-      "title": "Radiation Therapy Planning Case",
-      "description": "A 58-year-old patient has been diagnosed with stage II non-small cell lung cancer. You are tasked with developing an appropriate radiation therapy plan.",
+      "id": "case_1",
+      "title": "Radiation Treatment Planning",
+      "description": "A 58-year-old female patient has been diagnosed with stage II breast cancer. She has been referred for radiation therapy following breast-conserving surgery. You need to prepare a treatment plan.",
+      "difficulty": 1,
       "stages": [
         {
-          "question": "What initial imaging should be requested for radiation therapy planning?",
+          "text": "Which imaging modality would be most appropriate for treatment planning in this case?",
           "options": [
-            {
-              "text": "CT scan only",
-              "result": "A CT scan provides anatomical information but lacks functional information. This is incomplete for optimal planning.",
-              "correct": false
-            },
-            {
-              "text": "CT scan with contrast and PET-CT for functional imaging",
-              "result": "Excellent choice! A contrast-enhanced CT provides detailed anatomical information, while PET-CT helps identify metabolically active tumor regions.",
-              "correct": true
-            },
-            {
-              "text": "MRI only",
-              "result": "MRI provides good soft tissue contrast but is insufficient for radiation therapy planning as it lacks electron density information needed for dose calculations.",
-              "correct": false
-            }
-          ]
+            "CT scan",
+            "MRI only",
+            "PET scan",
+            "Ultrasound"
+          ],
+          "correct": 0,
+          "explanation": "CT is the standard imaging modality for radiation therapy planning as it provides electron density information needed for dose calculations."
         },
         {
-          "question": "Which radiation technique would you recommend for this patient?",
+          "text": "What structures would be considered organs at risk (OARs) in this breast cancer treatment plan?",
           "options": [
-            {
-              "text": "3D conformal radiation therapy",
-              "result": "While 3D-CRT is an option, it doesn't provide optimal dose conformality for lung cancer patients where sparing normal lung tissue is critical.",
-              "correct": false
-            },
-            {
-              "text": "Intensity-modulated radiation therapy (IMRT)",
-              "result": "Good choice! IMRT allows for better dose conformality around the tumor while sparing surrounding normal tissues.",
-              "correct": true
-            },
-            {
-              "text": "Electron beam therapy",
-              "result": "Electron beam therapy is not appropriate for lung tumors as electrons have limited penetration depth and would not reach the target adequately.",
-              "correct": false
-            }
-          ]
+            "Liver and spleen",
+            "Heart, lung, and contralateral breast",
+            "Bladder and rectum",
+            "Optic chiasm and brainstem"
+          ],
+          "correct": 1,
+          "explanation": "For breast radiation therapy, the heart, ipsilateral lung, and contralateral breast are primary organs at risk that need to be contoured and evaluated for dose constraints."
         },
         {
-          "question": "The patient's treatment plan shows that a small volume of lung would receive 20 Gy. What is the main concern?",
+          "text": "What is the typical prescribed dose for whole breast radiation following breast-conserving surgery?",
           "options": [
-            {
-              "text": "Risk of radiation pneumonitis",
-              "result": "Correct! Radiation pneumonitis is the primary concern when lung tissue receives significant dose. The V20 (volume receiving 20 Gy) is a key predictor.",
-              "correct": true
-            },
-            {
-              "text": "Radiation-induced lung cancer",
-              "result": "While secondary malignancies are a concern, they're a long-term effect and not the primary immediate concern from lung irradiation.",
-              "correct": false
-            },
-            {
-              "text": "No significant concerns at this dose level",
-              "result": "This is incorrect. Even modest doses to lung tissue can cause clinically significant radiation pneumonitis in some patients.",
-              "correct": false
-            }
-          ]
+            "25-30 Gy in 5 fractions",
+            "40-42.5 Gy in 15-16 fractions",
+            "60-70 Gy in 30-35 fractions",
+            "8-10 Gy in a single fraction"
+          ],
+          "correct": 1,
+          "explanation": "Hypofractionated whole breast radiation (40-42.5 Gy in 15-16 fractions) is now standard of care for most early-stage breast cancer patients following breast-conserving surgery."
         }
-      ],
-      "conclusion": "You've successfully created an appropriate radiation therapy plan for the lung cancer patient, minimizing risk while maximizing tumor control probability.",
-      "reward": 20
+      ]
+    },
+    {
+      "id": "case_2",
+      "title": "Pediatric CT Protocol Optimization",
+      "description": "You are asked to review and optimize the CT protocol for a 6-year-old patient who needs a follow-up chest CT to evaluate lung nodules. The referring physician is concerned about radiation dose.",
+      "difficulty": 2,
+      "stages": [
+        {
+          "text": "Which principle should guide your approach to pediatric CT protocol optimization?",
+          "options": [
+            "Image quality is paramount regardless of dose",
+            "ALARA (As Low As Reasonably Achievable)",
+            "Standard adult protocols with reduced slice thickness",
+            "Always use the lowest dose possible"
+          ],
+          "correct": 1,
+          "explanation": "The ALARA principle should guide radiation protection practices, especially in pediatric patients who are more radiosensitive and have longer remaining lifespans."
+        },
+        {
+          "text": "Which parameter would have the MOST significant impact on reducing radiation dose while maintaining diagnostic quality?",
+          "options": [
+            "Increasing pitch from 1.0 to 1.5",
+            "Reducing kVp from 120 to 80-100",
+            "Decreasing scan length by 1cm",
+            "Changing reconstruction filter"
+          ],
+          "correct": 1,
+          "explanation": "Reducing kVp (typically from 120 to 80-100 for pediatric chest) has a significant impact on dose reduction due to the squared relationship between kVp and dose."
+        },
+        {
+          "text": "What is the most appropriate approach to account for the patient's size in CT dose optimization?",
+          "options": [
+            "Use the same parameters for all pediatric patients",
+            "Size-specific protocol selection based on weight or measurements",
+            "Always use minimum dose parameters for all pediatric patients",
+            "Apply maximum dose reduction regardless of image quality needs"
+          ],
+          "correct": 1,
+          "explanation": "Size-specific protocol selection based on patient weight, age, or measurements (like diameter) is most appropriate as it accounts for individual differences while maintaining diagnostic quality."
+        },
+        {
+          "text": "Which of the following CT techniques is specifically designed to reduce dose in pediatric patients?",
+          "options": [
+            "Dual-energy CT",
+            "High-pitch spiral acquisition",
+            "Dynamic contrast enhancement",
+            "Multi-planar reformation"
+          ],
+          "correct": 1,
+          "explanation": "High-pitch spiral acquisition (available on some dual-source scanners) allows for faster scanning, which reduces motion artifacts and radiation dose, particularly beneficial in pediatric patients."
+        }
+      ]
+    },
+    {
+      "id": "case_3",
+      "title": "Linear Accelerator Quality Assurance",
+      "description": "You arrive at the clinic and find that the morning quality assurance checks identified a 2.5% discrepancy in output for the 6MV photon beam on one of the linear accelerators. Today's patients are already being checked in.",
+      "difficulty": 2,
+      "stages": [
+        {
+          "text": "What is your first action upon discovering this discrepancy?",
+          "options": [
+            "Immediately shut down the machine and cancel all patients",
+            "Recalibrate the machine before treating any patients",
+            "Evaluate the discrepancy against tolerance levels and investigate the cause",
+            "Proceed with treatments since the discrepancy is small"
+          ],
+          "correct": 2,
+          "explanation": "The first step should be to evaluate whether the discrepancy exceeds institutional or TG-142 tolerance levels (typically ±3% for output) and investigate potential causes before deciding on further actions."
+        },
+        {
+          "text": "If the discrepancy is determined to be real and not a measurement error, what is the appropriate next step?",
+          "options": [
+            "Treat all patients as scheduled with no adjustments",
+            "Notify the radiation oncologist and medical physicist, then determine if adjustments are needed",
+            "Apply a universal 2.5% adjustment to all treatment plans",
+            "Only treat emergency patients"
+          ],
+          "correct": 1,
+          "explanation": "Proper procedure requires notifying the appropriate personnel (radiation oncologist and medical physicist) to evaluate the clinical significance of the discrepancy and determine appropriate actions."
+        },
+        {
+          "text": "What is the most likely cause of a 2.5% output discrepancy in a linear accelerator?",
+          "options": [
+            "Major hardware failure requiring replacement parts",
+            "Atmospheric pressure and temperature changes affecting ion chamber readings",
+            "Radiation source decay",
+            "Patient table positioning system malfunction"
+          ],
+          "correct": 1,
+          "explanation": "Day-to-day output variations of this magnitude are most commonly due to atmospheric pressure and temperature changes affecting the ion chamber readings, which is why proper temperature and pressure corrections are essential."
+        }
+      ]
+    },
+    {
+      "id": "case_4",
+      "title": "Brachytherapy Source Calibration",
+      "description": "Your clinic has received a new Ir-192 HDR brachytherapy source, and you must perform acceptance testing and calibration before clinical use.",
+      "difficulty": 3,
+      "stages": [
+        {
+          "text": "Which chamber is most appropriate for calibrating a new Ir-192 HDR source?",
+          "options": [
+            "Farmer-type cylindrical chamber",
+            "Well-type ionization chamber",
+            "Parallel plate chamber",
+            "Liquid-filled ionization chamber"
+          ],
+          "correct": 1,
+          "explanation": "A well-type ionization chamber is the standard for brachytherapy source calibration as it provides reproducible geometry and high sensitivity for low-energy sources."
+        },
+        {
+          "text": "What is the recommended tolerance level for agreement between the manufacturer's source strength certificate and your measurement?",
+          "options": [
+            "±1%",
+            "±3%",
+            "±5%",
+            "±10%"
+          ],
+          "correct": 1,
+          "explanation": "According to AAPM TG-56 and other guidelines, the measured source strength should agree with the manufacturer's certificate value within ±3%."
+        },
+        {
+          "text": "How often should an Ir-192 HDR source be calibrated after initial acceptance?",
+          "options": [
+            "Daily before first treatment",
+            "Weekly",
+            "Monthly",
+            "Only after source replacement"
+          ],
+          "correct": 0,
+          "explanation": "Daily checks of source output constancy should be performed before the first treatment of the day according to TG-56 and TG-41 recommendations."
+        },
+        {
+          "text": "What correction is necessary when using a well chamber for Ir-192 source calibration?",
+          "options": [
+            "Beam quality correction only",
+            "Temperature and pressure correction only",
+            "Source positioning correction only",
+            "Temperature, pressure, and ion recombination corrections"
+          ],
+          "correct": 3,
+          "explanation": "Proper calibration requires temperature and pressure corrections for the chamber reading, as well as ion recombination correction, particularly for high dose rate sources."
+        }
+      ]
+    },
+    {
+      "id": "case_5",
+      "title": "MRI Safety Incident",
+      "description": "A hospital staff member has accidentally entered the MRI room with a metal oxygen tank during a scan. The tank was drawn to the magnet and became stuck against the bore. No one was injured, but the scan was interrupted.",
+      "difficulty": 2,
+      "stages": [
+        {
+          "text": "What should be the immediate response to this incident?",
+          "options": [
+            "Attempt to pull the oxygen tank away from the magnet",
+            "Shut down the MRI by quenching the magnet",
+            "Clear the room and call for MRI-trained staff assistance",
+            "Continue with the scan since no one was injured"
+          ],
+          "correct": 2,
+          "explanation": "The immediate response should be to clear the room of all personnel and call for assistance from MRI-trained staff or the MRI physicist. Attempting to pull the tank could be dangerous, and quenching should only be done in life-threatening emergencies."
+        },
+        {
+          "text": "Which MRI safety zone was compromised in this incident?",
+          "options": [
+            "Zone I (public access)",
+            "Zone II (patient screening area)",
+            "Zone III (control room area)",
+            "Zone IV (MRI scanner room)"
+          ],
+          "correct": 3,
+          "explanation": "Zone IV is the MRI scanner room itself, which contains the magnet and is the most restricted area where the incident occurred. This zone should never contain ferromagnetic objects."
+        },
+        {
+          "text": "What preventive measure would MOST effectively avoid similar incidents?",
+          "options": [
+            "Additional MRI safety signage",
+            "Ferromagnetic detection systems at Zone III entrance",
+            "More thorough screening procedures for all individuals",
+            "Regular staff training on MRI safety protocols"
+          ],
+          "correct": 1,
+          "explanation": "Ferromagnetic detection systems at Zone III entrances can provide an additional physical barrier to prevent ferromagnetic objects from entering Zone IV, even when human screening processes fail."
+        }
+      ]
     }
   ]
 }
