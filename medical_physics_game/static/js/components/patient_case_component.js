@@ -91,7 +91,20 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
     
     // Render the current question from the current stage
     renderCurrentQuestion: function(patientCase, stageIndex, questionIndex) {
-      if (!patientCase.stages || stageIndex >= patientCase.stages.length) {
+        // Add validation
+        if (!patientCase) {
+            console.error("Patient case is undefined in renderCurrentQuestion");
+            this.showToast("Error loading question data", "danger");
+            return;
+        }
+        
+        if (!patientCase.stages || !Array.isArray(patientCase.stages)) {
+            console.error("Invalid stages in patient case:", patientCase);
+            this.showToast("Error: Invalid patient case format", "danger");
+            return;
+        }
+
+        if (!patientCase.stages || stageIndex >= patientCase.stages.length) {
         // No more stages, case is completed
         this.setUiState('caseCompleted', true);
         
@@ -198,8 +211,15 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
             break;
                     
         case 'nextQuestion':
-          this.moveToNextQuestion(nodeData.patient_case, data.stageIndex, data.nextQuestion);
-          break;
+            // Use stored patient case data instead of nodeData.patient_case
+            const patientCaseData = this.getUiState('patientCaseData');
+            if (!patientCaseData) {
+                console.error("Missing patient case data in UI state for nextQuestion");
+                this.showToast("Error processing next question. Please try again.", "danger");
+                return;
+            }
+            this.moveToNextQuestion(patientCaseData, data.stageIndex, data.nextQuestion);
+            break;
           
         default:
           console.warn(`Unknown action: ${action}`);
@@ -278,26 +298,36 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
         GameState.getNodeById(GameState.data.currentNode) : null;
     },
 
-    // Move to the next question
     moveToNextQuestion: function(patientCase, stageIndex, questionIndex) {
-      // Update current stage and question
-      this.setUiState('currentStage', stageIndex);
-      this.setUiState('currentQuestion', questionIndex);
-      this.setUiState('selectedOption', null);
-      
-      // Re-render the current question
-      this.renderCurrentQuestion(patientCase, stageIndex, questionIndex);
-    },
+    // Add validation
+    if (!patientCase || !patientCase.stages) {
+        console.error("Invalid patient case data in moveToNextQuestion");
+        return;
+    }
     
-    // Move to the next stage
+    // Update current stage and question
+    this.setUiState('currentStage', stageIndex);
+    this.setUiState('currentQuestion', questionIndex);
+    this.setUiState('selectedOption', null);
+    
+    // Re-render the current question
+    this.renderCurrentQuestion(patientCase, stageIndex, questionIndex);
+    },
+
     moveToNextStage: function(patientCase, currentStage) {
-      // Move to the next stage, reset question index to 0
-      this.setUiState('currentStage', currentStage + 1);
-      this.setUiState('currentQuestion', 0);
-      this.setUiState('selectedOption', null);
-      
-      // Re-render with new stage and question
-      this.renderCurrentQuestion(patientCase, currentStage + 1, 0);
+    // Add validation
+    if (!patientCase || !patientCase.stages) {
+        console.error("Invalid patient case data in moveToNextStage");
+        return;
+    }
+    
+    // Move to the next stage, reset question index to 0
+    this.setUiState('currentStage', currentStage + 1);
+    this.setUiState('currentQuestion', 0);
+    this.setUiState('selectedOption', null);
+    
+    // Re-render with new stage and question
+    this.renderCurrentQuestion(patientCase, currentStage + 1, 0);
     }
   });
   
