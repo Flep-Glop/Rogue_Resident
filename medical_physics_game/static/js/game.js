@@ -262,7 +262,7 @@ function setupEventListeners() {
   }
 }
 
-// Function to initialize the game
+// Function to initialize the game with improved architecture
 function initializeGame() {
   // Show loading indicator
   showLoadingIndicator();
@@ -270,24 +270,27 @@ function initializeGame() {
   // Initialize in the correct order for dependencies
   Promise.resolve()
     .then(() => {
+      console.log("Starting game initialization");
+      
       // 1. Initialize error handler first for robust error handling
       if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.initialize === 'function') {
-        ErrorHandler.initialize();
+        return ErrorHandler.initialize();
       }
-      
+    })
+    .then(() => {
       // 2. Initialize event system
       if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
         return EventSystem.initialize();
       }
     })
     .then(() => {
-      // 3. Initialize node registry (consolidated version)
+      // 3. Initialize node registry (defines node types)
       if (typeof NodeRegistry !== 'undefined' && typeof NodeRegistry.initialize === 'function') {
         return NodeRegistry.initialize();
       }
     })
     .then(() => {
-      // 4. Initialize component system
+      // 4. Initialize component system (handles node interactions)
       if (typeof NodeComponents !== 'undefined' && typeof NodeComponents.initialize === 'function') {
         return NodeComponents.initialize();
       }
@@ -362,12 +365,6 @@ function initializeGame() {
       // Set up event listeners for UI
       setupEventListeners();
       
-      // Validate map structure if applicable
-      if (typeof ProgressionManager !== 'undefined' && 
-          typeof ProgressionManager.validateMapStructure === 'function') {
-        ProgressionManager.validateMapStructure();
-      }
-      
       // Emit game initialized event
       if (typeof EventSystem !== 'undefined') {
         EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
@@ -376,7 +373,7 @@ function initializeGame() {
     .catch(error => {
       console.error('Error initializing game:', error);
       if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
-        ErrorHandler.handleError(error, 'Initialization');
+        ErrorHandler.handleError(error, 'Initialization', ErrorHandler.SEVERITY.CRITICAL);
       } else {
         showErrorMessage(error.message);
       }

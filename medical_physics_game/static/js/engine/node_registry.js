@@ -1,36 +1,21 @@
-// static/js/engine/node_registry.js - Consolidated node registry
+// node_registry.js - Single source of truth for node type definitions
 
-// NodeRegistry - Single source of truth for node types
 const NodeRegistry = {
   // Node type definitions
   nodeTypes: {},
-  
-  // Track container creation
-  createdContainers: {},
-  
-  // Track loading status
-  isLoaded: false,
   
   // Initialize and return this object for chaining
   initialize: function() {
     console.log("Initializing node registry...");
     
-    // Set up hardcoded node types (fallback)
-    this.setupHardcodedNodeTypes();
-    
-    // Create containers for all node types
-    this.createContainers();
-    
-    // Mark as loaded
-    this.isLoaded = true;
+    // Set up hardcoded node types
+    this.setupNodeTypes();
     
     return this;
   },
   
-  // Set up hardcoded node types as a reliable fallback
-  setupHardcodedNodeTypes: function() {
-    console.log("Setting up hardcoded node types");
-    
+  // Set up node type definitions
+  setupNodeTypes: function() {
     this.nodeTypes = {
       "start": {
         displayName: "Starting Point",
@@ -143,9 +128,12 @@ const NodeRegistry = {
       weight: config.weight || 0
     };
     
-    // Create container if needed
-    if (this.nodeTypes[type].interactionContainer) {
-      this.createContainerForType(type);
+    // Signal that a new node type was registered
+    if (typeof EventSystem !== 'undefined') {
+      EventSystem.emit('nodeTypeRegistered', {
+        type: type,
+        config: this.nodeTypes[type]
+      });
     }
     
     return this; // For chaining
@@ -167,157 +155,9 @@ const NodeRegistry = {
     return weightedTypes;
   },
   
-  // Dynamic container creation for all node types
-  createContainers: function() {
-    console.log("Creating containers for all node types...");
-    
-    // Get the parent element where containers should go
-    const parentElement = document.querySelector('.col-md-9');
-    if (!parentElement) {
-      console.error("Parent element for containers not found");
-      return;
-    }
-    
-    // Create containers for all node types with interaction containers
-    Object.entries(this.nodeTypes).forEach(([type, config]) => {
-      // Skip if no container ID specified
-      if (!config.interactionContainer) return;
-      
-      this.createContainerForType(type);
-    });
-  },
-  
-  // Create a container for a specific node type
-  createContainerForType: function(type) {
-    const config = this.getNodeType(type);
-    const containerId = config.interactionContainer;
-    
-    // Skip if no container ID specified
-    if (!containerId) return;
-    
-    // Skip if already created
-    if (this.createdContainers[containerId]) return;
-    
-    // Check if container already exists
-    if (document.getElementById(containerId)) {
-      this.createdContainers[containerId] = true;
-      return;
-    }
-    
-    // Get the parent element where containers should go
-    const parentElement = document.querySelector('.col-md-9');
-    if (!parentElement) {
-      console.error("Parent element for containers not found");
-      return;
-    }
-    
-    console.log(`Creating container for node type: ${type} (${containerId})`);
-    
-    // Create container
-    const container = document.createElement('div');
-    container.id = containerId;
-    container.className = 'interaction-container';
-    
-    // Add basic structure based on node type
-    switch (type) {
-      case 'question':
-      case 'elite':
-      case 'boss':
-        container.innerHTML = `
-          <h3 id="question-title">${config.displayName}</h3>
-          <p id="question-text"></p>
-          <div id="options-container"></div>
-          <div id="question-result" style="display: none;"></div>
-          <button id="continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
-        `;
-        break;
-        
-      case 'treasure':
-        container.innerHTML = `
-          <h3>Treasure Found!</h3>
-          <div id="treasure-content"></div>
-          <button id="treasure-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'rest':
-        container.innerHTML = `
-          <h3>Rest Area</h3>
-          <p>Take a moment to rest and recuperate.</p>
-          <div id="rest-options">
-            <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
-            <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
-          </div>
-          <button id="rest-continue-btn" class="btn btn-secondary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'event':
-        container.innerHTML = `
-          <h3 id="event-title">Event</h3>
-          <div class="event-image-container mb-3">
-            <div class="event-icon">📝</div>
-          </div>
-          <p id="event-description" class="event-description"></p>
-          <div id="event-options" class="event-options-container"></div>
-          <div id="event-result" class="alert mt-3" style="display: none;"></div>
-          <button id="event-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
-        `;
-        break;
-        
-      case 'patient_case':
-        container.innerHTML = `
-          <div class="patient-case-header">
-            <h3 id="patient-case-title">Patient Case</h3>
-            <div class="case-progress-bar">
-              <div class="progress-fill" id="case-progress-fill"></div>
-            </div>
-          </div>
-          <p id="case-description" class="case-description"></p>
-          <div id="stage-container"></div>
-          <button id="patient-case-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
-        `;
-        break;
-        
-      case 'shop':
-        container.innerHTML = `
-          <h3>Department Store</h3>
-          <div id="shop-content"></div>
-          <button id="shop-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'gamble':
-        container.innerHTML = `
-          <h3>Research Roulette</h3>
-          <div id="gamble-content"></div>
-          <button id="gamble-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
-      default:
-        container.innerHTML = `
-          <h3>${config.displayName}</h3>
-          <div id="${type}-content"></div>
-          <button id="${type}-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-    }
-    
-    // Add to parent
-    parentElement.appendChild(container);
-    
-    // Add continue button event listener (for basic functionality)
-    const continueBtn = container.querySelector(`#${type}-continue-btn, #continue-btn`);
-    if (continueBtn) {
-      continueBtn.addEventListener('click', () => {
-        if (GameState.data.currentNode) {
-          GameState.completeNode(GameState.data.currentNode);
-        }
-      });
-    }
-    
-    // Mark as created
-    this.createdContainers[containerId] = true;
+  // Get container ID for a node type
+  getContainerIdForType: function(type) {
+    return this.getNodeType(type).interactionContainer;
   }
 };
 
