@@ -27,17 +27,38 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       // Create treasure UI
       const itemRarity = nodeData.item.rarity || 'common';
       container.innerHTML = `
-        <h3>Treasure Found!</h3>
-        <div class="card mb-3 rarity-${itemRarity}">
-          <div class="card-header">${nodeData.item.name}</div>
-          <div class="card-body">
-            <p>${nodeData.item.description}</p>
-            <p><strong>Rarity:</strong> <span class="badge bg-${this.getRarityColor(itemRarity)}">${itemRarity}</span></p>
-            <p><strong>Effect:</strong> ${nodeData.item.effect?.value || 'None'}</p>
+        <div class="treasure-container">
+          <div class="treasure-header">
+            <h3 class="pixel-text">Treasure Found!</h3>
+          </div>
+          
+          <div class="treasure-item-card rarity-${itemRarity}">
+            <div class="item-icon-container">
+              <div class="item-pixel-icon ${itemRarity}">
+                ${this.getItemIcon(nodeData.item)}
+              </div>
+            </div>
+            
+            <div class="item-details">
+              <div class="item-name-container">
+                <h4 class="item-name">${nodeData.item.name}</h4>
+                <span class="rarity-badge ${itemRarity}">${itemRarity}</span>
+              </div>
+              
+              <p class="item-description">${nodeData.item.description}</p>
+              
+              <div class="item-effect-container">
+                <span class="effect-label">Effect:</span>
+                <span class="effect-value">${nodeData.item.effect?.value || 'None'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="treasure-buttons">
+            <button id="treasure-take-btn" class="btn btn-success mb-2">Take Item</button>
+            <button id="treasure-leave-btn" class="btn btn-outline-secondary">Leave It</button>
           </div>
         </div>
-        <button id="treasure-take-btn" class="btn btn-success mb-2">Take Item</button>
-        <button id="treasure-leave-btn" class="btn btn-outline-secondary">Leave It</button>
       `;
       
       // Add event handlers

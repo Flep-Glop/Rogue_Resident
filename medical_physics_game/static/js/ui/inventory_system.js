@@ -123,39 +123,30 @@ const InventorySystem = {
     element.appendChild(borderElement);
   },
   
-  // Get a themed icon for an item based on its type
+  // Get pixel art icon for an item
   getItemIcon: function(item) {
-    if (!item) return '?';
-    
-    const itemIcons = {
-      'textbook': '📚',
-      'coffee': '☕',
-      'energy_drink': '🧃',
-      'dosimeter': '📊',
-      'cheat_sheet': '📝',
-      'tg51': '📋',
-      'reference_manual': '📔',
-      'emergency_protocol': '🚨',
-      'badge': '🔰',
-      'farmer_chamber': '🔋',
-      'lead_apron': '🛡️'
-    };
-    
-    // Classify by effect type if no specific icon
-    if (!itemIcons[item.id]) {
-      switch (item.effect?.type) {
-        case 'insight_boost': return '💡';
-        case 'restore_life': return '❤️';
-        case 'question_hint': return '❓';
-        case 'category_boost': return '📈';
-        case 'extra_life': return '💖';
-        case 'defense': return '🛡️';
-        case 'special': return '✨';
-        default: return '🔮';
-      }
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
     }
     
-    return itemIcons[item.id];
+    // Fallback: Use item name to determine a default icon
+    const itemName = item.name.toLowerCase();
+    let iconFile = "default.png";
+    
+    // Map common item types to default icons
+    if (itemName.includes('book') || itemName.includes('manual')) {
+      iconFile = "book.png";
+    } else if (itemName.includes('potion') || itemName.includes('vial')) {
+      iconFile = "potion.png";
+    } else if (itemName.includes('shield') || itemName.includes('armor')) {
+      iconFile = "shield.png";
+    } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
+      iconFile = "detector.png";
+    }
+    // Add more mappings as needed
+    
+    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
   },
   
   // Convert effect object to readable description
