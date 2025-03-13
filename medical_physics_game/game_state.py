@@ -90,7 +90,7 @@ def get_question_for_node(node):
     # Return a random question
     import random
     return random.choice(matching_questions)
-# game_state.py
+
 # Add this with the other get_random_ functions
 
 def get_random_item(rarity=None):
@@ -107,9 +107,19 @@ def get_random_item(rarity=None):
     if rarity:
         items = [item for item in items if item.get('rarity') == rarity]
     
-    # If no items, return None
+    # If no items, return a default item
     if not items:
-        return None
+        return {
+            "id": "default_item",
+            "name": "Medical Physics Book",
+            "description": "A comprehensive guide to medical physics principles.",
+            "rarity": "common",
+            "effect": {
+                "type": "insight_boost",
+                "value": "Gain 5 insight points",
+                "duration": "instant"
+            }
+        }
     
     # Calculate weights based on rarity if not filtered
     if not rarity:
@@ -131,7 +141,7 @@ def get_random_item(rarity=None):
                 weighted_items.append(item)
         
         # Choose from weighted list
-        return random.choice(weighted_items) if weighted_items else None
+        return random.choice(weighted_items) if weighted_items else items[0]
     
     # Return random item
     return random.choice(items)

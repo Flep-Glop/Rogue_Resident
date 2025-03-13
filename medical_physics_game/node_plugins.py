@@ -38,20 +38,32 @@ def get_node_plugin(node_type):
         raise ValueError(f"No plugin registered for node type: {node_type}")
     return node_plugins[node_type]
 
-# Process a node using its plugin
 def process_node_with_plugin(node):
     """Process a node using its registered plugin"""
+    from game_state import get_random_item, get_question_for_node, get_random_event
+    
     if not node or 'type' not in node:
         return node
     
-    node_type = node['type']
+    node_type = node.get('type')
     
+    # First try to use a plugin
     try:
         plugin = get_node_plugin(node_type)
-        return plugin.process_node_data(node)
+        processed_node = plugin.process_node_data(node)
     except ValueError:
-        # No plugin found, return node as is
-        return node
+        # No plugin found, use basic processing
+        processed_node = node
+    
+    # Ensure node has required content based on type
+    if node_type == 'treasure' and 'item' not in processed_node:
+        processed_node['item'] = get_random_item()
+    elif node_type in ['question', 'elite', 'boss'] and 'question' not in processed_node:
+        processed_node['question'] = get_question_for_node(processed_node)
+    elif node_type == 'event' and 'event' not in processed_node:
+        processed_node['event'] = get_random_event()
+    
+    return processed_node
 
 @lru_cache(maxsize=1)
 def load_node_types():
