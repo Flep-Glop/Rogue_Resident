@@ -190,41 +190,41 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       }
     },
     
-    // Handle component actions
     handleAction: function(nodeData, action, data) {
-      console.log(`Patient case component handling action: ${action}`, data);
-      
-      switch (action) {
-        case 'continue':
-          this.completeNode(nodeData);
-          break;
-          
-        case 'selectOption':
-            // Use stored patient case data instead of relying on nodeData.patient_case
-            const patientCaseData = this.getUiState('patientCaseData');
+        console.log(`Patient case component handling action: ${action}`, data);
+        
+        // Declare this once at the top of the function
+        const patientCaseData = this.getUiState('patientCaseData');
+        
+        switch (action) {
+          case 'continue':
+            this.completeNode(nodeData);
+            break;
+            
+          case 'selectOption':
+            // Use the already declared patientCaseData
             if (!patientCaseData) {
-                console.error("Missing patient case data in UI state");
-                this.showToast("Error processing selection. Please try again.", "danger");
-                return;
+              console.error("Missing patient case data in UI state");
+              this.showToast("Error processing selection. Please try again.", "danger");
+              return;
             }
             this.selectOption(patientCaseData, data.stageIndex, data.questionIndex, data.optionIndex);
             break;
-                    
-        case 'nextQuestion':
-            // Use stored patient case data instead of nodeData.patient_case
-            const patientCaseData = this.getUiState('patientCaseData');
+            
+          case 'nextQuestion':
+            // Use the already declared patientCaseData
             if (!patientCaseData) {
-                console.error("Missing patient case data in UI state for nextQuestion");
-                this.showToast("Error processing next question. Please try again.", "danger");
-                return;
+              console.error("Missing patient case data in UI state for nextQuestion");
+              this.showToast("Error processing next question. Please try again.", "danger");
+              return;
             }
             this.moveToNextQuestion(patientCaseData, data.stageIndex, data.nextQuestion);
             break;
-          
-        default:
-          console.warn(`Unknown action: ${action}`);
-      }
-    },
+            
+          default:
+            console.warn(`Unknown action: ${action}`);
+        }
+      },
     
     // Select an option for the current question
     selectOption: function(patientCase, stageIndex, questionIndex, optionIndex) {
