@@ -262,7 +262,7 @@ const NodeInteraction = {
     }
     
     // Make sure container exists
-    NodeRegistry.createContainerForType(nodeData.type);
+    NodeComponents.createContainerForType(nodeData.type);
     
     // Show the container
     this.showContainer(containerId);

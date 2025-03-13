@@ -105,8 +105,12 @@
   height: 4px;
   z-index: 1;
   opacity: 0.7;
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+  /* Remove the box-shadow property */
   pointer-events: none;
+  /* Add these properties to fix the black squares */
+  border: none;
+  background-clip: content-box; /* Ensures background stays within dimensions */
+  box-shadow: none; /* Explicitly remove any shadow */
 }
 
 /* CRT screen effects */
