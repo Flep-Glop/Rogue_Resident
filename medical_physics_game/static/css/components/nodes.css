@@ -9,7 +9,8 @@
 .node-rest { background-color: var(--node-rest); color: white; }
 .node-shop { background-color: var(--node-shop); color: white; }
 .node-event { background-color: var(--node-event); color: white; }
-.node-gamble { background-color: var(--node-gamble); color: black; }
+.node-gamble { background-color: var(--node-gamble); color: white; }
+.node-patient_case { background-color: var(--node-patient-case); color: white; }
 
 /* Node hover effects */
 .node-question:hover, .node-elite:hover, 
@@ -342,17 +343,45 @@
     padding: var(--spacing-sm);
   }
 }
-/* Patient Case Node Styling - Minimal version */
-.patient-case-header {
-  background-color: #21232d;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-left: 4px solid #5b8dd9;
+/* Add to nodes.css in the Node colors section */
+.node-patient_case { background-color: var(--node-patient-case); color: white; }
+
+/* Make sure hover effect is applied to patient_case nodes */
+.node-patient_case:hover {
+  transform: scale(1.1);
+  transition: transform var(--transition-fast);
 }
 
-.patient-case-header h3 {
-  color: #ecf0f1;
+/* Enhance Patient Case styling */
+.patient-case-header {
+  background-color: var(--background-alt);
+  padding: 15px;
+  margin-bottom: 15px;
+  border-left: 4px solid var(--node-patient-case);
+  border-radius: var(--border-radius-sm);
+}
+
+.stage-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Enhance stage interactions */
+.stage-action {
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+  padding: 10px;
   margin-bottom: 10px;
+}
+
+.stage-feedback {
+  font-style: italic;
+  margin-top: 10px;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius-sm);
 }
 
 .case-description {

@@ -27,6 +27,7 @@
     --node-shop: #5bbcd9;     /* Cyan */
     --node-event: #e99c50;    /* Orange */
     --node-gamble: #b8d458;   /* Lime */
+    --node-patient-case: #4acf8b;     /* Bright green */
     
     /* Shadow variants of node colors */
     --node-elite-shadow: #a24b8e;
@@ -34,6 +35,7 @@
     --node-shop-shadow: #4a99b3;
     --node-event-shadow: #b87d40;
     --node-gamble-shadow: #94ab47;
+    --node-patient-case-shadow: #3aaf7a;
     
     /* Sizing variables */
     --pixel-size: 3px;
