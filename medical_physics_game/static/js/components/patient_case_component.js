@@ -14,7 +14,10 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
     // Render the patient case UI
     render: function(nodeData, container) {
       console.log("Rendering patient case component", nodeData);
-      
+      // Store patient case data in UI state when first received
+        if (nodeData.patient_case) {
+        this.setUiState('patientCaseData', nodeData.patient_case);
+        }
       // Validate node data
       if (!nodeData.patient_case) {
         this.showToast("Patient case data missing!", "warning");
@@ -184,14 +187,16 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
           break;
           
         case 'selectOption':
-            if (!nodeData || !nodeData.patient_case) {
-                console.error("Missing patient case data:", nodeData);
+            // Use stored patient case data instead of relying on nodeData.patient_case
+            const patientCaseData = this.getUiState('patientCaseData');
+            if (!patientCaseData) {
+                console.error("Missing patient case data in UI state");
                 this.showToast("Error processing selection. Please try again.", "danger");
                 return;
             }
-            this.selectOption(nodeData.patient_case, data.stageIndex, data.questionIndex, data.optionIndex);
+            this.selectOption(patientCaseData, data.stageIndex, data.questionIndex, data.optionIndex);
             break;
-          
+                    
         case 'nextQuestion':
           this.moveToNextQuestion(nodeData.patient_case, data.stageIndex, data.nextQuestion);
           break;
@@ -272,7 +277,7 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
         return GameState && GameState.data ? 
         GameState.getNodeById(GameState.data.currentNode) : null;
     },
-    
+
     // Move to the next question
     moveToNextQuestion: function(patientCase, stageIndex, questionIndex) {
       // Update current stage and question
