@@ -147,11 +147,11 @@
 /* Pixel decorations */
 .pixel-decoration {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  z-index: 1;
-  opacity: 0.7;
-  box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+  width: 6px;  /* Increased from 4px */
+  height: 6px; /* Increased from 4px */
+  z-index: 0;  /* Changed from 1 to 0 to ensure it's behind other elements */
+  opacity: 0.8; /* Increased from 0.7 */
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.4); /* Enhanced glow */
   pointer-events: none;
 }
 
@@ -521,4 +521,33 @@
     height: 40px;
     font-size: 24px;
   }
+}
+
+/* Add this to your retro-theme.css file */
+
+/* Pixel animations */
+@keyframes pixel-float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pixel-twinkle {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.3; }
+}
+
+/* Apply different animations to different pixels */
+.pixel-decoration:nth-child(3n) {
+  animation: pixel-float 8s infinite ease-in-out;
+}
+
+.pixel-decoration:nth-child(3n+1) {
+  animation: pixel-twinkle 6s infinite ease-in-out;
+}
+
+.pixel-decoration:nth-child(3n+2) {
+  animation: pixel-float 12s infinite ease-in-out reverse, 
+             pixel-twinkle 10s infinite ease-in-out;
 }

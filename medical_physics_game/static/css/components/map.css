@@ -98,6 +98,31 @@
     0 0 15px var(--secondary);
 }
 
+/* Ensure map container is positioned for background overlay */
+#floor-map {
+  position: relative;
+  overflow: hidden;  /* Keep pixels contained */
+  z-index: 1;        /* Base z-index */
+}
+
+/* Ensure nodes are above pixel background */
+.map-node {
+  position: relative;
+  z-index: 2;  /* Higher than background */
+}
+
+/* Ensure paths between nodes are above background */
+.map-path {
+  position: relative; 
+  z-index: 1;  /* Above background but below nodes */
+}
+
+/* Ensure text and descriptions are visible */
+.node-title, .node-description {
+  position: relative;
+  z-index: 3;  /* Above everything */
+}
+
 #next-floor-btn::before {
   content: "→";
   margin-right: var(--spacing-sm);

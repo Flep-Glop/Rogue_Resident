@@ -343,6 +343,20 @@ function initializeGame() {
       if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
         MapRenderer.initialize('floor-map');
       }
+        // Initialize pixel background after map renderer
+        if (typeof PixelBackgroundGenerator !== 'undefined') {
+          PixelBackgroundGenerator.initialize('floor-map');
+          
+          // Add event handler to refresh pixels when map is redrawn
+          if (typeof EventSystem !== 'undefined') {
+            EventSystem.on(GAME_EVENTS.MAP_UPDATED, function() {
+              // Short delay to ensure the map is fully rendered
+              setTimeout(function() {
+                PixelBackgroundGenerator.refresh();
+              }, 100);
+            });
+          }
+        }
 
       // 11. Force an initial map render after a slight delay
       setTimeout(() => {
@@ -405,6 +419,22 @@ function showLoadingIndicator() {
     `;
   }
 }
+
+function refreshPixelBackground(pixelCount) {
+  // Allow overriding the pixel count
+  if (pixelCount && typeof pixelCount === 'number') {
+    PixelBackgroundGenerator.config.pixelCount = pixelCount;
+  }
+  
+  // Refresh the pixel background
+  PixelBackgroundGenerator.refresh();
+  
+  console.log(`Refreshed pixel background with ${PixelBackgroundGenerator.config.pixelCount} pixels`);
+}
+
+// Example usage: 
+// refreshPixelBackground(200);  // Increase to 200 pixels
+// refreshPixelBackground(50);   // Decrease to 50 pixels
 
 function removeLoadingIndicator() {
   const loadingIndicator = document.getElementById('loading-indicator');
