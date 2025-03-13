@@ -1,0 +1,294 @@
+# Medical Physics Game - Developer Guide
+
+This guide outlines best practices for developing with the improved architecture of the Medical Physics Game.
+
+## Core Architecture
+
+The game follows a modular component-based architecture with clear separation of concerns:
+
+1. **State Management**: `GameState` in `state_manager.js` is the centralized source of truth
+2. **Node Types**: `NodeRegistry` in `node_registry.js` defines all node types and properties
+3. **Component System**: `NodeComponents` in `node_components.js` handles component registration
+4. **Interaction Layer**: `NodeInteraction` in `node_interaction.js` manages component delegation
+5. **Error Handling**: `ErrorHandler` in `error_handler.js` provides centralized error handling
+6. **Component Utilities**: `ComponentUtils` in `component_utils.js` facilitates component creation
+
+## Creating a New Component
+
+Follow these steps to add a new node type to the game:
+
+### 1. Register the Node Type
+
+First, register the node type in `node_registry.js`:
+
+```javascript
+NodeRegistry.registerNodeType('treasure', {
+  displayName: "Treasure Node",
+  symbol: "T",
+  color: "#f0c866",     // Yellow color
+  shadowColor: "#c9a955",
+  interactionContainer: "treasure-container",
+  weight: 20            // Relative weight for random generation
+});
+```
+
+### 2. Create the Component File
+
+Create a new file at `static/js/components/treasure_component.js`:
+
+```javascript
+// treasure_component.js - Component for treasure node type
+
+const TreasureComponent = ComponentUtils.createComponent('treasure', {
+  // Initialize component
+  initialize: function() {
+    console.log("Initializing treasure component");
+  },
+  
+  // Render the treasure UI
+  render: function(nodeData, container) {
+    console.log("Rendering treasure component", nodeData);
+    
+    // Validate node data
+    if (!nodeData.item) {
+      ErrorHandler.handleError(
+        new Error("Treasure node missing item data"), 
+        "Treasure Rendering", 
+        ErrorHandler.SEVERITY.WARNING
+      );
+      
+      container.innerHTML = `
+        <div class="alert alert-warning">
+          <h4>Missing Treasure Data</h4>
+          <p>This treasure node doesn't have item data.</p>
+        </div>
+        <button id="treasure-continue-btn" class="btn btn-primary mt-3">Continue</button>
+      `;
+      
+      this.bindAction('treasure-continue-btn', 'click', 'continue', { nodeData });
+      return;
+    }
+    
+    // Create treasure UI
+    container.innerHTML = `
+      <h3>Treasure Found!</h3>
+      <div class="card mb-3 rarity-${nodeData.item.rarity || 'common'}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>${nodeData.item.name}</span>
+          <span class="badge bg-secondary">${nodeData.item.rarity || 'common'}</span>
+        </div>
+        <div class="card-body">
+          <p>${nodeData.item.description}</p>
+          <p class="item-effect">${nodeData.item.effect?.value || 'No effect'}</p>
+        </div>
+      </div>
+      <button id="treasure-take-btn" class="btn btn-success mb-2">Take Item</button>
+      <button id="treasure-leave-btn" class="btn btn-secondary">Leave It</button>
+    `;
+    
+    // Bind actions to buttons
+    this.bindAction('treasure-take-btn', 'click', 'take', { nodeData });
+    this.bindAction('treasure-leave-btn', 'click', 'leave', { nodeData });
+  },
+  
+  // Handle component actions
+  handleAction: function(nodeData, action, data) {
+    console.log(`Treasure component handling action: ${action}`, data);
+    
+    switch (action) {
+      case 'take':
+        // Add item to inventory
+        this.addItemToInventory(nodeData.item);
+        
+        // Complete node
+        this.completeNode(nodeData);
+        break;
+        
+      case 'leave':
+        // Show message
+        this.showToast("You left the item behind", "info");
+        
+        // Complete node
+        this.completeNode(nodeData);
+        break;
+        
+      case 'continue':
+        // Just complete the node
+        this.completeNode(nodeData);
+        break;
+        
+      default:
+        console.warn(`Unknown action: ${action}`);
+    }
+  }
+});
+
+// Register the component with NodeComponents
+if (typeof NodeComponents !== 'undefined') {
+  NodeComponents.register('treasure', TreasureComponent);
+}
+```
+
+### 3. Add Script Reference
+
+Add a reference to the script in `index.html`:
+
+```html
+<!-- Load node components -->
+<script src="/static/js/components/question_component.js"></script>
+<script src="/static/js/components/treasure_component.js"></script>
+<!-- Additional components... -->
+```
+
+## Best Practices
+
+### State Management
+
+1. **Always Use GameState**: Never store game data in components. Components should only manage UI state.
+
+   ```javascript
+   // BAD - storing game state in component
+   this.playerLives = 3;
+   
+   // GOOD - accessing game state
+   const playerLives = GameState.data.character.lives;
+   ```
+
+2. **Update State Through GameState**: Use GameState's methods for updating state:
+
+   ```javascript
+   // BAD - direct mutation
+   GameState.data.character.insight += 10;
+   
+   // GOOD - using state update method with validation
+   GameState.updateCharacterAttribute('insight', GameState.data.character.insight + 10);
+   ```
+
+3. **Subscribe to State Changes**: Use the observer pattern for reactive updates:
+
+   ```javascript
+   GameState.addObserver((eventType, data) => {
+     if (eventType === 'inventoryChanged') {
+       this.updateInventoryDisplay(data.inventory);
+     }
+   }, 'inventoryChanged');
+   ```
+
+### Error Handling
+
+1. **Use ErrorHandler**: All errors should go through ErrorHandler:
+
+   ```javascript
+   // BAD
+   try {
+     doSomething();
+   } catch (error) {
+     console.error("Error:", error);
+   }
+   
+   // GOOD
+   try {
+     doSomething();
+   } catch (error) {
+     ErrorHandler.handleError(
+       error, 
+       "Component Operation", 
+       ErrorHandler.SEVERITY.WARNING
+     );
+   }
+   ```
+
+2. **Provide Recovery Paths**: Always include ways to recover from errors:
+
+   ```javascript
+   function processNode() {
+     try {
+       // Normal processing
+       return processedResult;
+     } catch (error) {
+       ErrorHandler.handleError(error, "Node Processing");
+       
+       // Provide fallback behavior
+       return fallbackResult;
+     }
+   }
+   ```
+
+### Component Development
+
+1. **Use ComponentUtils**: Create components using the utility:
+
+   ```javascript
+   const MyComponent = ComponentUtils.createComponent('my_type', {
+     // Component methods
+   });
+   ```
+
+2. **Keep UI State Separate**: Only use uiState for rendering details:
+
+   ```javascript
+   // Only for UI state, not game data
+   this.setUiState('isExpanded', true);
+   ```
+
+3. **Use Bound Methods**: Use `bindAction` for event handlers:
+
+   ```javascript
+   // In render function
+   this.bindAction('my-button', 'click', 'takeAction', { customData: 'value' });
+   ```
+
+4. **Implement All Required Methods**: Each component needs: 
+   - `initialize()`
+   - `render(nodeData, container)`
+   - `handleAction(nodeData, action, data)`
+
+### Testing Components
+
+Components should be testable in isolation. Here's an example of how to test them:
+
+```javascript
+// Test a component in isolation
+function testComponent(componentType, mockNodeData) {
+  // Get component
+  const component = NodeComponents.getComponent(componentType);
+  
+  // Create test container
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  
+  // Render component
+  component.render(mockNodeData, container);
+  
+  // Get HTML output
+  const output = container.innerHTML;
+  console.log(`Test ${componentType} component output:`, output);
+  
+  // Clean up
+  document.body.removeChild(container);
+  
+  return output;
+}
+```
+
+## Example: Flow for Adding a Feature
+
+Let's walk through adding a new "Quiz" feature:
+
+1. **Define Node Type**: Register the 'quiz' node type in NodeRegistry
+2. **Create Component**: Create `quiz_component.js` using ComponentUtils
+3. **Backend Support**: Add quiz data structure to the backend
+4. **Map Generation**: Update map_generator.py to include quiz nodes
+5. **Test**: Use the testing function to verify component behavior
+
+## Debugging
+
+Use browser developer tools and the following techniques:
+
+1. **State Inspection**: `GameState.debugState()` will log the current state
+2. **Event Debugging**: `EventSystem.debugEvents()` will log registered events
+3. **Component Testing**: Use the test function above to test components
+
+## Conclusion
+
+Following these guidelines ensures a consistent, maintainable codebase. The component architecture allows for easy extension with new node types and features while maintaining separation of concerns and centralized state management.

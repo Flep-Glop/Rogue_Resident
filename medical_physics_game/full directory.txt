@@ -1,0 +1,72 @@
+medical_physics_game/
+│
+├── data/                          # Game data files
+│   ├── characters.json            # Character definitions
+│   ├── events.json                # Random events data
+│   ├── floors.json                # Floor definitions
+│   ├── game_config.json           # Game configuration settings
+│   ├── items.json                 # Game items
+│   ├── node_types.json 🔴         # Node type definitions
+│   ├── patient_cases.json         # Clinical scenarios
+│   └── questions.json             # Question database
+│
+├── plugins/                       # Plugin system
+│   ├── __init__.py
+│   └── question_plugin.py 🔵      # Example node type plugin
+│
+├── static/
+│   ├── css/                       # Styling
+│   │   ├── animations.css         # Animation definitions
+│   │   ├── main.css               # Main CSS import file
+│   │   ├── base/
+│   │   │   ├── layout.css         # Core layout styling
+│   │   │   ├── reset.css          # CSS reset
+│   │   │   └── variables.css 🟢   # CSS variables (colors, sizes)
+│   │   ├── components/
+│   │   │   ├── character.css      # Character panel styling
+│   │   │   ├── inventory.css      # Inventory styling
+│   │   │   ├── map.css            # Map styling
+│   │   │   └── nodes.css 🟢       # Node styling
+│   │   └── themes/
+│   │       └── retro-theme.css 🟢 # Theme styling
+│   │
+│   └── js/                        # JavaScript files
+│       ├── api-client.js          # API communication
+│       ├── error_handler.js       # Error handling system
+│       ├── game.js 🟡             # Main game initialization
+│       ├── ui-utils.js            # UI utilities
+│       ├── components/            # Node type components
+│       │   ├── elite_component.js
+│       │   ├── event_component.js 🔴
+│       │   ├── question_component.js 🔴
+│       │   ├── shop_component.js 🔴
+│       │   └── treasure_component.js 🔴
+│       ├── engine/                # Core game engine
+│       │   ├── component-utils.js 🔴 # Component utilities
+│       │   ├── debug_tools.js
+│       │   ├── event_system.js 🟡   # Event handling
+│       │   ├── node_components.js 🔴 # Component registration
+│       │   ├── node_registry.js 🔴   # Node type registry
+│       │   ├── node_system_integrator.js
+│       │   ├── progression.js 🟡     # Game progression rules
+│       │   ├── save_manager.js
+│       │   └── state_manager.js 🟡   # Game state management
+│       └── ui/                    # UI components
+│           ├── character_panel.js
+│           ├── feedback_system.js
+│           ├── inventory_system.js
+│           ├── map_renderer.js
+│           ├── node_interaction.js 🔴 # Node interaction handling
+│           └── special_interactions.js 🟡 # Special game mechanics
+│
+├── templates/                     # HTML templates
+│   ├── character_select.html
+│   ├── index.html                 # Main game page
+│   └── landing.html               # Landing page
+│
+├── app.py 🟡                      # Flask application (backend)
+├── data_manager.py                # JSON data loading/saving
+├── db_utils.py                    # Database utilities
+├── game_state.py 🟡               # Backend game state
+├── map_generator.py               # Floor map generation
+└── node_plugins.py 🔵             # Plugin system for node types
