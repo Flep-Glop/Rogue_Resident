@@ -56,7 +56,6 @@
   pointer-events: none;
   z-index: 999;
   opacity: 0.2; /* Subtle CRT effect */
-  animation: gentle-flicker 8s infinite; /* Slow, gentle flicker */
 }
 
 /* Title styling for landing page */
