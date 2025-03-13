@@ -25,89 +25,173 @@ const InventorySystem = {
     return this;
   },
   
-  // Render inventory items
+  // Render different sections for items and relics
   renderInventory: function() {
-    const inventoryContainer = document.getElementById('inventory-items');
-    if (!inventoryContainer) return;
+    // Clear the container
+    this.container.innerHTML = '';
     
-    // Clear current inventory display
-    inventoryContainer.innerHTML = '';
+    // Create tabs
+    const tabsHtml = `
+      <div class="inventory-tabs">
+        <button id="items-tab" class="inventory-tab active">Items</button>
+        <button id="relics-tab" class="inventory-tab">Relics</button>
+      </div>
+      <div id="items-container" class="inventory-section"></div>
+      <div id="relics-container" class="inventory-section" style="display:none;"></div>
+    `;
     
-    // Update inventory count
-    const inventoryCount = document.getElementById('inventory-count');
-    if (inventoryCount) {
-      inventoryCount.textContent = `${GameState.data.inventory.length}/${this.maxSize}`;
-    }
+    this.container.innerHTML = tabsHtml;
     
-    // If inventory is empty, show a message
-    if (!GameState.data.inventory || GameState.data.inventory.length === 0) {
-      inventoryContainer.innerHTML = '<div class="empty-inventory">No items yet</div>';
+    // Add tab event listeners
+    document.getElementById('items-tab').addEventListener('click', () => {
+      document.getElementById('items-tab').classList.add('active');
+      document.getElementById('relics-tab').classList.remove('active');
+      document.getElementById('items-container').style.display = 'block';
+      document.getElementById('relics-container').style.display = 'none';
+    });
+    
+    document.getElementById('relics-tab').addEventListener('click', () => {
+      document.getElementById('items-tab').classList.remove('active');
+      document.getElementById('relics-tab').classList.add('active');
+      document.getElementById('items-container').style.display = 'none';
+      document.getElementById('relics-container').style.display = 'block';
+    });
+    
+    // Render sections
+    this.renderItems();
+    this.renderRelics();
+  },
+  
+  // Render consumable items
+  renderItems: function() {
+    const itemsContainer = document.getElementById('items-container');
+    if (!itemsContainer) return;
+    
+    // Filter inventory to only show consumable items
+    const items = GameState.data.inventory.filter(item => 
+      item.itemType === 'consumable' || !item.itemType);
+    
+    if (items.length === 0) {
+      itemsContainer.innerHTML = '<div class="empty-inventory">No consumable items</div>';
       return;
     }
     
-    // Create grid layout for items
-    const inventoryGrid = document.createElement('div');
-    inventoryGrid.className = 'inventory-grid';
+    // Create grid
+    const gridHtml = '<div class="inventory-grid"></div>';
+    itemsContainer.innerHTML = gridHtml;
     
-    // Create item elements
-    GameState.data.inventory.forEach((item, index) => {
+    const grid = itemsContainer.querySelector('.inventory-grid');
+    
+    // Add each item
+    items.forEach((item, index) => {
       const itemElement = document.createElement('div');
       itemElement.className = `inventory-item ${item.rarity || 'common'}`;
-      itemElement.setAttribute('data-index', index);
+      itemElement.dataset.index = index;
       
-      // Item icon based on type
-      const itemIcon = this.getItemIcon(item);
-      
-      // Create inner content with icon and border
       itemElement.innerHTML = `
         <div class="item-inner">
-          <div class="item-icon">${itemIcon}</div>
+          <div class="item-icon">${this.getItemIcon(item)}</div>
           <div class="item-glow"></div>
         </div>
+        <div class="pixel-border ${item.rarity || 'common'}">
+          <div class="pixel-corner top-left"></div>
+          <div class="pixel-corner top-right"></div>
+          <div class="pixel-corner bottom-left"></div>
+          <div class="pixel-corner bottom-right"></div>
+        </div>
+        <div class="item-tooltip">
+          <div class="tooltip-header ${item.rarity || 'common'}">
+            <span class="tooltip-title">${item.name}</span>
+            <span class="tooltip-rarity">${item.rarity || 'common'}</span>
+          </div>
+          <div class="tooltip-body">
+            <p class="tooltip-desc">${item.description}</p>
+            <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
+            <div class="tooltip-usage">${item.useText || 'Click to use'}</div>
+            <button class="use-item-btn">Use</button>
+          </div>
+        </div>
       `;
       
-      // Add tooltip with item details
-      const tooltip = document.createElement('div');
-      tooltip.className = 'item-tooltip';
-      tooltip.innerHTML = `
-        <div class="tooltip-header ${item.rarity || 'common'}">
-          <div class="tooltip-title">${item.name}</div>
-          <div class="tooltip-rarity">${item.rarity || 'common'}</div>
-        </div>
-        <div class="tooltip-body">
-          <div class="tooltip-desc">${item.description}</div>
-          <div class="tooltip-effect">${this.getEffectDescription(item.effect)}</div>
-          <div class="tooltip-usage">Click to use</div>
-        </div>
-      `;
+      // Add use button handler
+      const useBtn = itemElement.querySelector('.use-item-btn');
+      if (useBtn) {
+        useBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent item tooltip from closing
+          this.useItem(item.id);
+        });
+      }
       
-      itemElement.appendChild(tooltip);
-      
-      // Add pixel border effect
-      this.addPixelBorder(itemElement, item.rarity);
-      
-      // Add click event to use the item
-      itemElement.addEventListener('click', () => this.useItemByIndex(index));
-      
-      // Add to grid
-      inventoryGrid.appendChild(itemElement);
+      grid.appendChild(itemElement);
     });
+  },
+
+  // Render relics
+  renderRelics: function() {
+    const relicsContainer = document.getElementById('relics-container');
+    if (!relicsContainer) return;
     
-    // Add empty slots to complete the grid
-    for (let i = GameState.data.inventory.length; i < this.maxSize; i++) {
-      const emptySlot = document.createElement('div');
-      emptySlot.className = 'inventory-item empty';
-      emptySlot.innerHTML = '<div class="item-inner"></div>';
-      
-      // Add pixel border effect for empty slots
-      this.addPixelBorder(emptySlot, 'empty');
-      
-      inventoryGrid.appendChild(emptySlot);
+    // Filter inventory to only show relics
+    const relics = GameState.data.inventory.filter(item => 
+      item.itemType === 'relic');
+    
+    if (relics.length === 0) {
+      relicsContainer.innerHTML = '<div class="empty-inventory">No relics found</div>';
+      return;
     }
     
-    inventoryContainer.appendChild(inventoryGrid);
+    // Create grid
+    const gridHtml = '<div class="relic-grid"></div>';
+    relicsContainer.innerHTML = gridHtml;
+    
+    const grid = relicsContainer.querySelector('.relic-grid');
+    
+    // Add each relic
+    relics.forEach((relic, index) => {
+      const relicElement = document.createElement('div');
+      relicElement.className = `relic-item ${relic.rarity || 'common'}`;
+      relicElement.dataset.index = index;
+      
+      relicElement.innerHTML = `
+        <div class="relic-card">
+          <div class="relic-header">
+            <h4 class="relic-name">${relic.name}</h4>
+            <span class="relic-rarity">${relic.rarity || 'common'}</span>
+          </div>
+          <div class="relic-icon">
+            <div class="item-inner">
+              <div class="item-icon">${this.getItemIcon(relic)}</div>
+              <div class="item-glow"></div>
+            </div>
+          </div>
+          <p class="relic-desc">${relic.description}</p>
+          <div class="relic-effect">
+            <span class="effect-label">Effect:</span>
+            <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
+          </div>
+        </div>
+      `;
+      
+      grid.appendChild(relicElement);
+    });
   },
-  
+
+  // Use an item
+  useItem: function(itemId) {
+    if (!ItemManager) {
+      console.error("ItemManager not available");
+      return;
+    }
+    
+    const success = ItemManager.useItem(itemId);
+    
+    if (success) {
+      this.renderInventory(); // Refresh the display
+    } else {
+      UiUtils.showToast("Cannot use this item", "warning");
+    }
+  },
+
   // Add pixelated border effect to inventory items
   addPixelBorder: function(element, rarity) {
     const borderElement = document.createElement('div');

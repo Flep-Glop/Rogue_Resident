@@ -395,3 +395,126 @@
     height: 38px;
   }
 }
+
+/* Inventory tabs */
+.inventory-tabs {
+  display: flex;
+  margin-bottom: var(--spacing-sm);
+}
+
+.inventory-tab {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--dark-alt);
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-xs);
+}
+
+.inventory-tab.active {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Relic styling */
+.relic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.relic-item {
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  position: relative;
+  transition: transform var(--transition-fast);
+}
+
+.relic-item:hover {
+  transform: translateY(-3px);
+}
+
+.relic-card {
+  border-left: 3px solid;
+  padding-left: var(--spacing-sm);
+}
+
+.relic-item.common .relic-card {
+  border-color: #aaa;
+}
+
+.relic-item.uncommon .relic-card {
+  border-color: var(--primary);
+}
+
+.relic-item.rare .relic-card {
+  border-color: var(--node-rest);
+}
+
+.relic-item.epic .relic-card {
+  border-color: var(--warning);
+  box-shadow: 0 0 5px rgba(240, 200, 102, 0.3);
+}
+
+.relic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.relic-name {
+  font-size: var(--font-size-xs);
+  margin: 0;
+  color: var(--light);
+}
+
+.relic-rarity {
+  font-size: var(--font-size-xs);
+  text-transform: capitalize;
+  padding: 2px 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+}
+
+.relic-desc {
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-sm);
+  color: var(--text);
+}
+
+.relic-effect {
+  font-size: var(--font-size-xs);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.passive-text {
+  color: var(--secondary);
+}
+
+/* Add use button */
+.use-item-btn {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-sm);
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 3px 6px;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-xs);
+}
+
+.use-item-btn:hover {
+  background-color: var(--primary-dark);
+}

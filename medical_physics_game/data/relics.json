@@ -1,0 +1,32 @@
+{
+    "relics": [
+      {
+        "id": "nihilist_clipboard",
+        "name": "Nihilist's Clipboard",
+        "description": "A clipboard that occasionally whispers 'None of these measurements matter'",
+        "rarity": "uncommon",
+        "itemType": "relic",
+        "effect": {
+          "type": "insight_gain",
+          "value": 15,
+          "duration": "permanent"
+        },
+        "passiveText": "Passive: +15 Insight",
+        "iconPath": "clipboard.png"
+      },
+      {
+        "id": "quantum_uncertainty_goggles",
+        "name": "Schrödinger's Spectacles",
+        "description": "These glasses simultaneously show radiation as both particles and waves.",
+        "rarity": "epic",
+        "itemType": "relic",
+        "effect": {
+          "type": "category_boost",
+          "value": 50,
+          "duration": "permanent"
+        },
+        "passiveText": "Passive: 50% chance to auto-solve quantum questions",
+        "iconPath": "glasses.png"
+      }
+    ]
+  }

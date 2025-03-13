@@ -91,7 +91,39 @@ def get_question_for_node(node):
     import random
     return random.choice(matching_questions)
 
-# Add this with the other get_random_ functions
+
+def get_random_relic(rarity=None):
+    """Get a random relic, optionally filtered by rarity"""
+    from data_manager import load_json_data
+    
+    # Load relics data
+    relics_data = load_json_data('relics.json')
+    
+    # Get all relics
+    relics = relics_data.get('relics', [])
+    
+    # Filter by rarity if specified
+    if rarity:
+        relics = [relic for relic in relics if relic.get('rarity') == rarity]
+    
+    # If no relics, return a default relic
+    if not relics:
+        return {
+            "id": "default_relic",
+            "name": "Medical Physics Handbook",
+            "description": "A basic guide to medical physics principles.",
+            "rarity": "common",
+            "itemType": "relic",
+            "effect": {
+                "type": "insight_boost",
+                "value": 5,
+                "duration": "permanent"
+            },
+            "passiveText": "Passive: +5 Insight"
+        }
+    
+    # Return random relic
+    return random.choice(relics)
 
 def get_random_item(rarity=None):
     """Get a random item, optionally filtered by rarity"""

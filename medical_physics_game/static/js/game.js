@@ -331,6 +331,13 @@ function initializeGame() {
         return GameState.initialize();
       }
     })
+    // Add to the initialization chain in game.js
+    .then(() => {
+      // Initialize item manager
+      if (typeof ItemManager !== 'undefined' && typeof ItemManager.initialize === 'function') {
+        ItemManager.initialize();
+      }
+    })
     .then(() => {
       // 10. Initialize map renderer after game state is loaded
       if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {

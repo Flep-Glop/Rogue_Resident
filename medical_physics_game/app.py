@@ -712,7 +712,37 @@ def get_random_items():
     except Exception as e:
         print(f"Error getting random items: {e}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+@app.route('/api/relic/<relic_id>')
+def get_relic(relic_id):
+    """Get relic data by ID"""
+    relics_data = load_json_data('relics.json')
+    relic = next((relic for relic in relics_data.get('relics', []) if relic.get('id') == relic_id), None)
     
+    if not relic:
+        return jsonify({"error": f"Relic with id '{relic_id}' not found"}), 404
+        
+    return jsonify(relic)
+
+@app.route('/api/relic/random')
+def get_random_relics():
+    """Get random relics"""
+    try:
+        # Get count parameter, default to 3
+        count = request.args.get('count', 3, type=int)
+        # Get rarity distribution
+        rarity = request.args.get('rarity', None)
+        
+        relics = []
+        for _ in range(count):
+            relics.append(get_random_relic(rarity))
+            
+        return jsonify(relics)
+    except Exception as e:
+        print(f"Error getting random relics: {e}")
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
 @app.route('/api/test-db')
 def test_db():
     """Test the database connection and operations"""
