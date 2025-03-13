@@ -113,18 +113,7 @@
   box-shadow: none; /* Explicitly remove any shadow */
 }
 
-/* CRT screen effects */
-@keyframes gentle-flicker {
-  0% { opacity: 0.2; }
-  5% { opacity: 0.25; }
-  10% { opacity: 0.2; }
-  15% { opacity: 0.18; }
-  20% { opacity: 0.2; }
-  70% { opacity: 0.2; }
-  72% { opacity: 0.18; }
-  77% { opacity: 0.25; }
-  100% { opacity: 0.2; }
-}
+
 
 /* Pulse animations for various elements */
 @keyframes gentle-pulse {
