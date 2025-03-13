@@ -290,9 +290,15 @@ function initializeGame() {
       }
     })
     .then(() => {
-      // 4. Initialize component system (handles node interactions)
+      // Make sure this runs before loading component scripts
       if (typeof NodeComponents !== 'undefined' && typeof NodeComponents.initialize === 'function') {
         return NodeComponents.initialize();
+      }
+    })
+    .then(() => {
+      // Then ensure components are loaded and registered
+      if (typeof NodeSystemIntegrator !== 'undefined' && typeof NodeSystemIntegrator.initialize === 'function') {
+        return NodeSystemIntegrator.initialize();
       }
     })
     .then(() => {
