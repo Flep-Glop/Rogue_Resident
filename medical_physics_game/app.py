@@ -14,7 +14,7 @@ import json
 from node_plugins import initialize_plugins, process_node_with_plugin, load_node_types
 from data_manager import load_json_data, save_json_data, init_data_files
 from map_generator import generate_floor_layout, determine_node_type, get_node_title
-from game_state import create_default_game_state, get_game_id, get_question_for_node, get_random_item, get_random_event, get_random_patient_case
+from game_state import create_default_game_state, get_game_id, get_question_for_node, get_random_item, get_random_relic, get_random_event, get_random_patient_case
 from db_utils import save_game_state, load_game_state, delete_game_state
 
 

@@ -8,7 +8,28 @@ const InventorySystem = {
   // Initialize inventory system
   initialize: function() {
     console.log("Initializing inventory system...");
-    
+    // Find the inventory container in the DOM
+    this.container = document.getElementById('inventory-container');
+
+    // Check if the container exists
+    if (!this.container) {
+      console.error("Inventory container not found. Inventory system initialization failed.");
+      
+      // Try to find a fallback container
+      const sidePanel = document.querySelector('.col-md-3');
+      if (sidePanel) {
+        // Create an inventory container if it doesn't exist
+        console.log("Creating inventory container as fallback...");
+        this.container = document.createElement('div');
+        this.container.id = 'inventory-container';
+        this.container.className = 'inventory-container';
+        sidePanel.appendChild(this.container);
+      } else {
+        // If no sidebar found, we can't initialize
+        console.error("Failed to create inventory container - no sidebar found");
+        return this; // Return early but don't break the chain
+      }
+    }
     // Subscribe to inventory events
     EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.addItem.bind(this));
     EventSystem.on(GAME_EVENTS.ITEM_USED, this.useItem.bind(this));
