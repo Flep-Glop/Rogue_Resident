@@ -1,7 +1,10 @@
-// component_utils.js - Shared utilities for component implementation
+// component_utils.js - Enhanced version with performance optimizations and lifecycle management
 
 const ComponentUtils = {
-  // Create a standard component object with required methods
+  // Component registry for tracking active instances
+  _activeComponents: new Map(),
+  
+  // Create a standard component object with required methods and enhanced lifecycle
   createComponent: function(typeId, config = {}) {
     // Basic component structure
     const component = {
@@ -11,42 +14,178 @@ const ComponentUtils = {
       // Component state - only for UI rendering, not game data
       uiState: {},
       
+      // Track bound event handlers for cleanup
+      _eventHandlers: [],
+      
+      // Track DOM mutation observer
+      _observer: null,
+      
       // Initialize component (called once at startup)
-      initialize: config.initialize || function() {
+      initialize: function() {
         console.log(`Initializing ${typeId} component`);
+        
+        // Initialize UI state
+        this.uiState = {};
+        
+        // Reset event handlers tracking
+        this._eventHandlers = [];
+        
+        // Register instance
+        ComponentUtils._activeComponents.set(typeId, this);
+        
+        // Call custom initialization if provided
+        if (config.initialize) {
+          config.initialize.call(this);
+        }
+        
+        return this;
       },
       
-      // Render node data into a container
-      render: config.render || function(nodeData, container) {
-        container.innerHTML = `
-          <h3>${nodeData.title || NodeRegistry.getNodeType(typeId).displayName}</h3>
-          <p>This is a ${typeId} node.</p>
-          <button id="${typeId}-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
+      // Cleanup component resources (called when no longer needed)
+      destroy: function() {
+        console.log(`Destroying ${typeId} component`);
         
-        // Add continue button handler
-        const continueBtn = document.getElementById(`${typeId}-continue-btn`);
-        if (continueBtn) {
-          continueBtn.addEventListener('click', () => {
-            this.handleAction(nodeData, 'continue');
+        // Remove all event handlers
+        this._eventHandlers.forEach(({element, eventType, handler}) => {
+          if (element) {
+            element.removeEventListener(eventType, handler);
+          }
+        });
+        this._eventHandlers = [];
+        
+        // Disconnect observer if exists
+        if (this._observer) {
+          this._observer.disconnect();
+          this._observer = null;
+        }
+        
+        // Clear UI state
+        this.uiState = {};
+        
+        // Unregister instance
+        ComponentUtils._activeComponents.delete(typeId);
+        
+        // Call custom destroy if provided
+        if (config.destroy) {
+          config.destroy.call(this);
+        }
+        
+        return this;
+      },
+      
+      // Render node data into a container with enhanced performance
+      render: function(nodeData, container) {
+        console.log(`Rendering ${typeId} node`, nodeData);
+        
+        // Clean up previous render first
+        this.cleanupRender();
+        
+        // Track container for current render
+        this._currentContainer = container;
+        
+        // Use custom render if provided, otherwise use default
+        if (config.render) {
+          config.render.call(this, nodeData, container);
+        } else {
+          // Default implementation
+          container.innerHTML = `
+            <h3>${nodeData.title || NodeRegistry.getNodeType(typeId).displayName}</h3>
+            <p>This is a ${typeId} node.</p>
+            <button id="${typeId}-continue-btn" class="btn btn-primary mt-3">Continue</button>
+          `;
+          
+          // Add continue button handler
+          this.bindAction(`${typeId}-continue-btn`, 'click', 'continue', {
+            nodeData: nodeData
           });
         }
+        
+        // Set up a MutationObserver to track dynamically added elements
+        this._setupMutationObserver(container);
+        
+        return this;
       },
       
-      // Handle user actions
-      handleAction: config.handleAction || function(nodeData, action, data) {
+      // Clean up previous render resources
+      cleanupRender: function() {
+        // Remove all event handlers from previous render
+        this._eventHandlers.forEach(({element, eventType, handler}) => {
+          if (element) {
+            element.removeEventListener(eventType, handler);
+          }
+        });
+        this._eventHandlers = [];
+        
+        // Disconnect observer if exists
+        if (this._observer) {
+          this._observer.disconnect();
+          this._observer = null;
+        }
+        
+        // Clear references
+        this._currentContainer = null;
+      },
+      
+      // Set up mutation observer to track dynamic content
+      _setupMutationObserver: function(container) {
+        // Skip if container not provided
+        if (!container) return;
+        
+        // Create observer to track dynamic elements
+        this._observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              // Handle newly added elements if needed
+              // This is where you could auto-bind events to dynamically added elements
+            }
+          });
+        });
+        
+        // Start observing
+        this._observer.observe(container, { 
+          childList: true, 
+          subtree: true 
+        });
+      },
+      
+      // Handle user actions with better error handling
+      handleAction: function(nodeData, action, data) {
         console.log(`${typeId} component handling action: ${action}`, data);
         
-        if (action === 'continue') {
-          // Complete the node
-          this.completeNode(nodeData);
+        try {
+          // Use custom handler if provided, otherwise use default
+          if (config.handleAction) {
+            return config.handleAction.call(this, nodeData, action, data);
+          } else {
+            // Default implementation
+            if (action === 'continue') {
+              // Complete the node
+              return this.completeNode(nodeData);
+            }
+          }
+        } catch (error) {
+          // Handle errors within the action handler
+          console.error(`Error handling action ${action}:`, error);
+          ErrorHandler.handleError(
+            error,
+            `Component Action (${typeId}:${action})`,
+            ErrorHandler.SEVERITY.WARNING
+          );
+          
+          // Return failure
+          return false;
         }
       },
       
-      // Standard node completion
+      // Standard node completion with better error handling
       completeNode: function(nodeData) {
+        if (!nodeData) {
+          console.error("Cannot complete node: missing node data");
+          return false;
+        }
+        
         if (GameState && GameState.data && GameState.data.currentNode) {
-          GameState.completeNode(nodeData.id)
+          return GameState.completeNode(nodeData.id)
             .catch(error => {
               ErrorHandler.handleError(
                 error, 
@@ -58,6 +197,8 @@ const ComponentUtils = {
               if (typeof UI !== 'undefined' && typeof UI.showMapView === 'function') {
                 UI.showMapView();
               }
+              
+              return false;
             });
         } else {
           console.error("Cannot complete node: no current node or GameState not available");
@@ -65,7 +206,111 @@ const ComponentUtils = {
           if (typeof UI !== 'undefined' && typeof UI.showMapView === 'function') {
             UI.showMapView();
           }
+          return false;
         }
+      },
+      
+      // Enhanced event binding with tracking for cleanup
+      bindAction: function(elementId, eventType, action, data = {}) {
+        // Support both element ID strings and direct element references
+        const element = typeof elementId === 'string' 
+          ? document.getElementById(elementId)
+          : elementId;
+        
+        if (!element) {
+          console.warn(`Element not found for binding: ${elementId}`);
+          return false;
+        }
+        
+        const self = this;
+        const nodeData = data.nodeData; // Extract node data
+        
+        // Create handler function
+        const handler = function(event) {
+          // Prevent default for links/buttons
+          if (element.tagName === 'A' || element.tagName === 'BUTTON') {
+            event.preventDefault();
+          }
+          
+          // Call the handleAction method with proper context
+          self.handleAction(
+            nodeData || GameState?.data?.currentNode, 
+            action, 
+            { ...data, element, event }
+          );
+        };
+        
+        // Add event listener
+        element.addEventListener(eventType, handler);
+        
+        // Track for cleanup
+        this._eventHandlers.push({
+          element,
+          eventType,
+          handler
+        });
+        
+        return true;
+      },
+      
+      // Optimized bulk binding for multiple elements (uses event delegation)
+      bindActionToSelector: function(container, selector, eventType, action, dataCallback) {
+        if (!container) return false;
+        
+        const self = this;
+        
+        // Single event handler using event delegation
+        const delegatedHandler = function(event) {
+          // Find target matching the selector
+          const target = event.target.closest(selector);
+          if (!target) return; // Not a match
+          
+          // Prevent default for links/buttons
+          if (target.tagName === 'A' || target.tagName === 'BUTTON') {
+            event.preventDefault();
+          }
+          
+          // Get custom data if callback provided
+          const data = dataCallback ? dataCallback(target, event) : {};
+          
+          // Call the handleAction method with proper context
+          self.handleAction(
+            data.nodeData || GameState?.data?.currentNode, 
+            action, 
+            { ...data, element: target, event }
+          );
+        };
+        
+        // Add single event listener to container
+        container.addEventListener(eventType, delegatedHandler);
+        
+        // Track for cleanup
+        this._eventHandlers.push({
+          element: container,
+          eventType,
+          handler: delegatedHandler
+        });
+        
+        return true;
+      },
+      
+      // Update a UI element with content - optimized with diffing
+      updateElement: function(elementId, content) {
+        const element = typeof elementId === 'string'
+          ? document.getElementById(elementId)
+          : elementId;
+        
+        if (!element) {
+          console.warn(`Element not found for updating: ${elementId}`);
+          return false;
+        }
+        
+        // Simple diffing to avoid unnecessary DOM updates
+        if (element.innerHTML !== content) {
+          element.innerHTML = content;
+        }
+        
+        return true;
       },
       
       // Get player insight (safe access to GameState)
@@ -182,65 +427,6 @@ const ComponentUtils = {
         return success;
       },
       
-      // Bind a component method to an element event
-      bindAction: function(elementId, eventType, action, data = {}) {
-        const element = document.getElementById(elementId);
-        if (!element) {
-          console.warn(`Element not found for binding: ${elementId}`);
-          return false;
-        }
-        
-        const self = this;
-        const nodeData = data.nodeData; // Extract node data
-        
-        element.addEventListener(eventType, function(event) {
-          // Prevent default for links/buttons
-          if (element.tagName === 'A' || element.tagName === 'BUTTON') {
-            event.preventDefault();
-          }
-          
-          // Call the handleAction method with proper context
-          self.handleAction(
-            nodeData || GameState?.data?.currentNode, 
-            action, 
-            { ...data, element, event }
-          );
-        });
-        
-        return true;
-      },
-      
-      // Update a UI element with content
-      updateElement: function(elementId, content) {
-        const element = document.getElementById(elementId);
-        if (!element) {
-          console.warn(`Element not found for updating: ${elementId}`);
-          return false;
-        }
-        
-        element.innerHTML = content;
-        return true;
-      },
-      
-      // Secure HTML template helper (prevents XSS)
-      template: function(strings, ...values) {
-        const escaped = values.map(value => {
-          if (typeof value === 'string') {
-            return value
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;')
-              .replace(/'/g, '&#039;');
-          }
-          return value;
-        });
-        
-        return strings.reduce((result, string, i) => {
-          return result + string + (escaped[i] || '');
-        }, '');
-      },
-      
       // Set UI state (only for rendering purposes)
       setUiState: function(key, value) {
         this.uiState[key] = value;
@@ -254,7 +440,7 @@ const ComponentUtils = {
     
     // Add custom methods from config
     Object.entries(config).forEach(([key, value]) => {
-      if (key !== 'initialize' && key !== 'render' && key !== 'handleAction') {
+      if (!['initialize', 'render', 'handleAction', 'destroy'].includes(key)) {
         component[key] = value;
       }
     });
@@ -262,7 +448,7 @@ const ComponentUtils = {
     return component;
   },
   
-  // Helper for option components
+  // Helper for option components - optimized with event delegation
   createOptionButtons: function(container, options, callback) {
     if (!container) {
       console.error("Container not provided for options");
@@ -272,17 +458,24 @@ const ComponentUtils = {
     // Clear container
     container.innerHTML = '';
     
-    // Create buttons for each option
+    // Add single event listener with delegation instead of one per button
+    container.addEventListener('click', (event) => {
+      const button = event.target.closest('.option-btn');
+      if (!button || button.disabled) return;
+      
+      // Get index from data attribute
+      const index = parseInt(button.dataset.index, 10);
+      if (isNaN(index)) return;
+      
+      callback(index, options[index]);
+    });
+    
+    // Create buttons without individual event listeners
     options.forEach((option, index) => {
       const button = document.createElement('button');
       button.className = 'btn btn-outline-primary option-btn mb-2 w-100';
       button.textContent = option;
-      
-      // Add click handler
-      button.addEventListener('click', () => {
-        callback(index, option);
-      });
-      
+      button.dataset.index = index;
       container.appendChild(button);
     });
   },
@@ -297,25 +490,96 @@ const ComponentUtils = {
     });
   },
   
-  // Show correct answer among options
+  // Show correct answer among options with optimized rendering
   highlightCorrectOption: function(container, correctIndex, selectedIndex) {
     if (!container) return;
     
     const buttons = container.querySelectorAll('.option-btn');
     
-    // Highlight selected option (right or wrong)
-    if (buttons[selectedIndex]) {
-      buttons[selectedIndex].classList.remove('btn-outline-primary');
-      buttons[selectedIndex].classList.add(
-        selectedIndex === correctIndex ? 'btn-success' : 'btn-danger'
-      );
-    }
+    // Process in a single batch to minimize layout thrashing
+    requestAnimationFrame(() => {
+      // Highlight selected option (right or wrong)
+      if (buttons[selectedIndex]) {
+        buttons[selectedIndex].classList.remove('btn-outline-primary');
+        buttons[selectedIndex].classList.add(
+          selectedIndex === correctIndex ? 'btn-success' : 'btn-danger'
+        );
+      }
+      
+      // Also highlight correct option if user was wrong
+      if (selectedIndex !== correctIndex && buttons[correctIndex]) {
+        buttons[correctIndex].classList.remove('btn-outline-primary');
+        buttons[correctIndex].classList.add('btn-success');
+      }
+    });
+  },
+  
+  // Enhanced template function with proper escaping
+  template: function(strings, ...values) {
+    return strings.reduce((result, string, i) => {
+      const value = values[i];
+      
+      // Handle different value types
+      let processed = '';
+      
+      if (value === null || value === undefined) {
+        processed = '';
+      } else if (typeof value === 'string') {
+        // Escape HTML special characters for strings
+        processed = value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        processed = String(value);
+      } else if (Array.isArray(value)) {
+        processed = JSON.stringify(value);
+      } else if (typeof value === 'object') {
+        processed = JSON.stringify(value);
+      } else {
+        processed = String(value);
+      }
+      
+      return result + string + (processed || '');
+    }, '');
+  },
+  
+  // Destroy all active components (useful for page transitions)
+  destroyAllComponents: function() {
+    this._activeComponents.forEach((component) => {
+      try {
+        component.destroy();
+      } catch (error) {
+        console.error(`Error destroying component ${component.typeId}:`, error);
+      }
+    });
     
-    // Also highlight correct option if user was wrong
-    if (selectedIndex !== correctIndex && buttons[correctIndex]) {
-      buttons[correctIndex].classList.remove('btn-outline-primary');
-      buttons[correctIndex].classList.add('btn-success');
-    }
+    this._activeComponents.clear();
+  },
+  
+  // Create a throttled version of a function
+  throttle: function(fn, delay) {
+    let lastCall = 0;
+    return function(...args) {
+      const now = Date.now();
+      if (now - lastCall >= delay) {
+        lastCall = now;
+        return fn.apply(this, args);
+      }
+    };
+  },
+  
+  // Create a debounced version of a function
+  debounce: function(fn, delay) {
+    let timer = null;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        fn.apply(this, args);
+      }, delay);
+    };
   }
 };
 
