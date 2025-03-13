@@ -1,123 +1,277 @@
 {
   "items": [
     {
-      "id": "textbook",
-      "name": "Radiation Physics Textbook",
-      "description": "A well-worn copy of Khan's The Physics of Radiation Therapy.",
-      "rarity": "common",
-      "effect": {
-        "type": "insight_boost",
-        "value": 10,
-        "duration": "permanent"
-      }
-    },
-    {
-      "id": "coffee",
-      "name": "Cup of Coffee",
-      "description": "Freshly brewed coffee from the department kitchen.",
-      "rarity": "common",
-      "effect": {
-        "type": "restore_life",
-        "value": 1,
-        "duration": "instant"
-      }
-    },
-    {
-      "id": "energy_drink",
-      "name": "Energy Drink",
-      "description": "Concentrated caffeine. Probably not great for you.",
-      "rarity": "uncommon",
-      "effect": {
-        "type": "special",
-        "value": "Skip the next question cooldown, allowing two consecutive questions.",
-        "duration": "instant"
-      }
-    },
-    {
-      "id": "dosimeter",
-      "name": "Pocket Dosimeter",
-      "description": "A reliable tool for radiation measurements.",
-      "rarity": "uncommon",
-      "effect": {
-        "type": "question_hint",
-        "value": "Eliminates one wrong answer from radiation physics questions.",
-        "duration": "permanent"
-      }
-    },
-    {
-      "id": "cheat_sheet",
-      "name": "Cheat Sheet",
-      "description": "A hastily scribbled note with key formulas and definitions.",
-      "rarity": "uncommon",
-      "effect": {
-        "type": "question_hint",
-        "value": "Reveals wrong answers for the current question.",
-        "duration": "instant"
-      }
-    },
-    {
-      "id": "tg51",
-      "name": "TG-51 Protocol",
-      "description": "The AAPM Task Group 51 protocol for clinical reference dosimetry.",
-      "rarity": "rare",
-      "effect": {
-        "type": "category_boost",
-        "value": "All dosimetry questions give +5 insight when answered correctly.",
-        "duration": "permanent"
-      }
-    },
-    {
-      "id": "reference_manual",
-      "name": "Reference Manual",
-      "description": "A comprehensive guide to medical physics procedures.",
-      "rarity": "rare",
-      "effect": {
-        "type": "question_hint",
-        "value": "Get a detailed hint for the current question.",
-        "duration": "instant"
-      }
-    },
-    {
-      "id": "emergency_protocol",
-      "name": "Emergency Protocol",
-      "description": "A document outlining procedures for handling unexpected situations.",
-      "rarity": "rare",
-      "effect": {
-        "type": "special",
-        "value": "Escape any node without penalty.",
-        "duration": "instant"
-      }
-    },
-    {
-      "id": "badge",
-      "name": "AAPM Conference Badge",
-      "description": "Proof you attended the latest medical physics conference.",
-      "rarity": "epic",
-      "effect": {
-        "type": "extra_life",
-        "value": "Increases maximum lives by 1.",
-        "duration": "permanent"
-      }
-    },
-    {
-      "id": "farmer_chamber",
-      "name": "Farmer Chamber",
-      "description": "A calibrated ionization chamber for absolute dosimetry.",
+      "id": "quantum_uncertainty_goggles",
+      "name": "Schrödinger's Spectacles",
+      "description": "These glasses simultaneously show radiation as both particles and waves. You'll either understand everything or nothing—or both simultaneously!",
       "rarity": "epic",
       "effect": {
         "type": "category_boost",
-        "value": "Dosimetry checks +10% accuracy. All dosimetry questions give +8 insight.",
+        "value": "50% chance to automatically ace any quantum physics question or completely fail it",
         "duration": "permanent"
       }
     },
     {
-      "id": "lead_apron",
-      "name": "Lead Apron",
-      "description": "Standard protective gear against radiation exposure.",
+      "id": "existential_dosimeter",
+      "name": "Existential Crisis Dosimeter",
+      "description": "Measures not just radiation but the crushing weight of cosmic insignificance. Beeps louder the more you contemplate your place in the universe.",
       "rarity": "rare",
       "effect": {
         "type": "defense",
-        "value": "Radiation protection questions deal -1 damage when answered incorrectly.",
+        "value": "When hit with existential dread (or radiation), converts 50% of damage into Insight",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "nihilist_clipboard",
+      "name": "Nihilist's Clipboard",
+      "description": "A clipboard that occasionally whispers 'None of these measurements matter in the grand scheme of things' but still helps you organize your data.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "insight_gain",
+        "value": "+15 Insight and the ability to occasionally peek into the void",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "absurdity_amplifier",
+      "name": "Camus' Absurdity Amplifier",
+      "description": "Reveals the fundamental absurdity in medical physics protocols. Makes you laugh uncontrollably during serious meetings.",
+      "rarity": "epic",
+      "effect": {
+        "type": "category_boost",
+        "value": "Transforms mundane physics into philosophical questions. 30% boost on all questions if you embrace the absurd.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "sisyphean_calculator",
+      "name": "Sisyphus' Pocket Calculator",
+      "description": "Calculates radiation doses perfectly, but erases its memory every time you look away. The eternal struggle of medical physics incarnate.",
+      "rarity": "rare",
+      "effect": {
+        "type": "insight_gain",
+        "value": "Gain 5 Insight every time you redo a calculation you've already done",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "black_hole_coffee",
+      "name": "Event Horizon Coffee Thermos",
+      "description": "Contains coffee so dark and dense that light cannot escape. Time dilates when you drink it, giving you extra moments to think.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "defense",
+        "value": "Once per floor, stop time briefly to avoid failing a question",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "imposter_syndrome_lab_coat",
+      "name": "Imposter Syndrome Lab Coat",
+      "description": "A pristine lab coat that makes you feel like you don't deserve to wear it. Paradoxically, your insecurity makes you triple-check all your work.",
+      "rarity": "common",
+      "effect": {
+        "type": "category_boost",
+        "value": "+15% accuracy on difficult questions because you're paranoid about making mistakes",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "cosmic_ray_detector",
+      "name": "Cosmic Joke Detector",
+      "description": "Originally designed to detect cosmic rays, this device has become sentient and now only detects cosmic ironies in your career choices.",
+      "rarity": "rare",
+      "effect": {
+        "type": "insight_gain",
+        "value": "Gain 3 Insight whenever you fail a question, because the universe is laughing with you, not at you",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "radiation_therapy_stuffed_animal",
+      "name": "Mr. Curie The Radioactive Teddy Bear",
+      "description": "A slightly glowing teddy bear that provides emotional support during difficult cases. May or may not be the result of a radiotherapy accident.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "extra_life",
+        "value": "+1 Maximum Life and whispers therapeutic radiation doses in your ear",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "quantum_foam_stress_ball",
+      "name": "Quantum Foam Stress Ball",
+      "description": "A stress ball made of actual quantum foam. Probability waves emanate from it when squeezed, making unlikely outcomes slightly more likely.",
+      "rarity": "epic",
+      "effect": {
+        "type": "defense",
+        "value": "Once per floor, reroll the outcome of any random event",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "infinite_improbability_drive",
+      "name": "Infinite Improbability Dosimeter",
+      "description": "Stolen from a heart-of-gold spaceship, this device occasionally transforms radiation into something improbable, like marshmallows or singing whales.",
+      "rarity": "epic",
+      "effect": {
+        "type": "category_boost",
+        "value": "10% chance to transform any question into an absurdly easy one about towels",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "godot_pager",
+      "name": "Waiting for Godot Pager",
+      "description": "A pager that never actually beeps. You spend your whole shift waiting for it, contemplating the meaninglessness of on-call duty.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "defense",
+        "value": "Cannot be called for emergencies, giving you 20% more time to answer questions",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "multidimensional_ruler",
+      "name": "11-Dimensional Measuring Stick",
+      "description": "Measures not just length, width, and height, but also time, probability, and several dimensions you can't perceive. Accidentally pokes holes in spacetime.",
+      "rarity": "rare",
+      "effect": {
+        "type": "category_boost",
+        "value": "+25% on measurements, but occasionally teleports you to parallel department meetings",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "deterministic_dice",
+      "name": "Laplace's Deterministic Dice",
+      "description": "Dice that always roll exactly what you need because the universe is predetermined. Makes probability calculations pointless yet always correct.",
+      "rarity": "epic",
+      "effect": {
+        "type": "insight_gain",
+        "value": "All insight gains are exactly what you need, no more, no less",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "time_loop_watch",
+      "name": "Groundhog Day Wristwatch",
+      "description": "A watch that occasionally sends you back in time to repeat the same clinical scenario until you get it right. Or until you go insane.",
+      "rarity": "rare",
+      "effect": {
+        "type": "defense",
+        "value": "Once per floor, retry a failed question without penalty",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "immortality_field_generator",
+      "name": "Rick's Immortality Field Micro-Generator",
+      "description": "A tiny device that temporarily prevents death in a small radius. Battery life is questionable, and side effects may include nihilistic outbursts.",
+      "rarity": "epic",
+      "effect": {
+        "type": "extra_life",
+        "value": "Cannot die from the first fatal error on each floor. Instead, you just feel intense existential pain.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "uncertainty_compensator",
+      "name": "Heisenberg Compensator Badge",
+      "description": "A Star Trek-inspired badge that makes impossible measurements possible. Still doesn't work with hospital WiFi though.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "category_boost",
+        "value": "+20% on quantum physics questions, but -10% on practical networking problems",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "entropy_reversal_pen",
+      "name": "Second Law Violation Pen",
+      "description": "A pen that violates the second law of thermodynamics, allowing you to un-write mistakes. The universe really hates when you use it.",
+      "rarity": "rare",
+      "effect": {
+        "type": "defense",
+        "value": "Erase one wrong answer per day, but cosmic balance demands something in return",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "pocket_blackhole",
+      "name": "Pocket Singularity",
+      "description": "A contained black hole the size of a marble. Perfect for disposing of embarrassing research papers or creating exotic physics demonstrations.",
+      "rarity": "epic",
+      "effect": {
+        "type": "category_boost",
+        "value": "+30% on astrophysics questions, and you can dramatically dispose of incorrect answers",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "imaginary_radiation_detector",
+      "name": "Imaginary Number Radiation Detector",
+      "description": "Detects radiation in imaginary dimensions. Readings make no practical sense but are mathematically beautiful.",
+      "rarity": "rare",
+      "effect": {
+        "type": "insight_gain",
+        "value": "Gain insight from mathematical beauty rather than practical application",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "cat_box",
+      "name": "Schrödinger's Lunchbox",
+      "description": "A lunchbox that contains food in a superposition of states: both delicious and disgusting until you observe it. Comes with quantum-entangled napkins.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "defense",
+        "value": "50% chance that any penalty becomes a reward instead",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "infinite_monkey_calculator",
+      "name": "Infinite Monkey Theorem Calculator",
+      "description": "Contains millions of tiny simulated monkeys typing on tiny keyboards. Eventually produces correct calculations among the gibberish.",
+      "rarity": "epic",
+      "effect": {
+        "type": "category_boost",
+        "value": "Given enough time, will solve any problem. -30% on timed questions, +50% on take-home problems.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "radioactive_pet_rock",
+      "name": "Half-Life: The Pet Rock",
+      "description": "A mildly radioactive pet rock that has been decaying for exactly one half-life. It teaches patience and statistics simultaneously.",
+      "rarity": "common",
+      "effect": {
+        "type": "insight_gain",
+        "value": "+2 Insight every time you correctly answer a decay calculation",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "literal_beam_hardener",
+      "name": "Literal Beam Hardener",
+      "description": "Instead of filtering low-energy photons, this device shows X-ray beams motivational posters to toughen them up emotionally.",
+      "rarity": "uncommon",
+      "effect": {
+        "type": "category_boost",
+        "value": "+15% on radiation therapy questions. Beams are more confident but slightly more aggressive.",
+        "duration": "permanent"
+      }
+    },
+    {
+      "id": "dark_matter_coffee_creamer",
+      "name": "Dark Matter Coffee Creamer",
+      "description": "Makes your coffee inexplicably heavier but impossible to actually see in the mug. Provides energy through unknown mechanisms.",
+      "rarity": "rare",
+      "effect": {
+        "type": "extra_life",
+        "value": "+1 Maximum Life, but occasionally your coffee mug will develop its own gravitational field",
         "duration": "permanent"
       }
     }
