@@ -17,7 +17,7 @@ const PixelBackgroundGenerator = {
         '#ffffff'   // White (rare)
       ],
       container: null,         // Reference to the container element
-      zIndex: 0,               // z-index for the pixels (behind everything)
+      zIndex: -10,            // z-index for the pixels (CHANGED: to -10 to ensure it's behind everything)
       animationDuration: {     // Animation duration range (in seconds)
         min: 8,
         max: 20
@@ -53,7 +53,7 @@ const PixelBackgroundGenerator = {
     
     // Remove existing pixel decorations
     removeExistingPixels: function() {
-      const existingPixels = this.config.container.querySelectorAll('.pixel-decoration');
+      const existingPixels = this.config.container.querySelectorAll('.pixel-decoration, .pixel-background-layer');
       existingPixels.forEach(pixel => pixel.remove());
     },
     
@@ -93,10 +93,10 @@ const PixelBackgroundGenerator = {
         const sizeIndex = Math.floor(Math.random() * pixelSizes.length);
         const size = pixelSizes[sizeIndex];
         
-        // Random color with opacity
+        // Random color with opacity (INCREASED opacity range from 0.3-0.8 to 0.5-1.0)
         const colorIndex = Math.floor(Math.random() * baseColors.length);
         const baseColor = baseColors[colorIndex];
-        const opacity = Math.random() * 0.5 + 0.3; // Between 0.3 and 0.8
+        const opacity = Math.random() * 0.5 + 0.5; // Now between 0.5 and 1.0
         
         // Random animation duration
         const duration = Math.random() * 
@@ -104,6 +104,7 @@ const PixelBackgroundGenerator = {
           this.config.animationDuration.min;
         
         // Apply styles
+        pixel.style.position = 'absolute'; // Ensure absolute positioning
         pixel.style.top = `${top}px`;
         pixel.style.left = `${left}px`;
         pixel.style.width = `${size}px`;
@@ -111,6 +112,7 @@ const PixelBackgroundGenerator = {
         pixel.style.backgroundColor = baseColor;
         pixel.style.opacity = opacity;
         pixel.style.animation = `pixel-pulse ${duration}s infinite alternate`;
+        pixel.style.zIndex = zIndex; // Ensure all pixels have correct z-index
         
         // Add to background layer
         backgroundLayer.appendChild(pixel);
@@ -147,9 +149,9 @@ const PixelBackgroundGenerator = {
         const styleElement = document.createElement('style');
         styleElement.textContent = `
           @keyframes pixel-pulse {
-            0% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.2); }
-            100% { opacity: 0.3; transform: scale(1); }
+            0% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+            100% { opacity: 0.5; transform: scale(1); }
           }
         `;
         document.head.appendChild(styleElement);
