@@ -154,21 +154,22 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
         // Add options
         const optionsContainer = document.getElementById('stage-options');
         if (optionsContainer && questionData.options) {
-          questionData.options.forEach((option, optIndex) => {
+        questionData.options.forEach((option, optIndex) => {
             const optionBtn = document.createElement('button');
             optionBtn.className = 'btn btn-outline-primary option-btn mb-2 w-100';
             optionBtn.textContent = option.text;
             optionBtn.dataset.index = optIndex;
             
-            // Bind action using ComponentUtils method
+            // Update this line to include the nodeData
             this.bindAction(optionBtn, 'click', 'selectOption', {
-              stageIndex: stageIndex,
-              questionIndex: questionIndex,
-              optionIndex: optIndex
+            nodeData: this.getCurrentNodeData(), // Add this line
+            stageIndex: stageIndex,
+            questionIndex: questionIndex,
+            optionIndex: optIndex
             });
             
             optionsContainer.appendChild(optionBtn);
-          });
+        });
         }
       }
     },
@@ -183,8 +184,13 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
           break;
           
         case 'selectOption':
-          this.selectOption(nodeData.patient_case, data.stageIndex, data.questionIndex, data.optionIndex);
-          break;
+            if (!nodeData || !nodeData.patient_case) {
+                console.error("Missing patient case data:", nodeData);
+                this.showToast("Error processing selection. Please try again.", "danger");
+                return;
+            }
+            this.selectOption(nodeData.patient_case, data.stageIndex, data.questionIndex, data.optionIndex);
+            break;
           
         case 'nextQuestion':
           this.moveToNextQuestion(nodeData.patient_case, data.stageIndex, data.nextQuestion);
@@ -197,6 +203,12 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
     
     // Select an option for the current question
     selectOption: function(patientCase, stageIndex, questionIndex, optionIndex) {
+        // Add this validation
+        if (!patientCase || !patientCase.stages || !Array.isArray(patientCase.stages)) {
+          console.error("Invalid patient case data:", patientCase);
+          this.showToast("Error: Invalid patient case data", "danger");
+          return;
+        }
       // Get the current stage
       const stage = patientCase.stages[stageIndex];
       
