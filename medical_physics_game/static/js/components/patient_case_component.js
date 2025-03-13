@@ -1,10 +1,11 @@
-// patient_case_component.js - Component for patient case node type
+// patient_case_component.js - Component for patient case node type with multiple questions per stage
 
 const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
     // Initialize component
     initialize: function() {
       console.log("Initializing patient case component");
       this.setUiState('currentStage', 0);
+      this.setUiState('currentQuestion', 0); // Track current question within a stage
       this.setUiState('selectedOption', null);
       this.setUiState('caseCompleted', false);
       this.setUiState('rewardClaimed', false);
@@ -32,7 +33,29 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       
       const patientCase = nodeData.patient_case;
       const currentStage = this.getUiState('currentStage');
+      const currentQuestion = this.getUiState('currentQuestion');
       const totalStages = patientCase.stages ? patientCase.stages.length : 0;
+      
+      // Calculate total number of questions across all stages
+      let totalQuestions = 0;
+      let currentQuestionIndex = 0;
+      
+      if (patientCase.stages) {
+        patientCase.stages.forEach((stage, stageIndex) => {
+          // If a stage has questions array, count them, otherwise count it as 1 question
+          const stageQuestions = stage.questions ? stage.questions.length : 1;
+          totalQuestions += stageQuestions;
+          
+          // Calculate the current question's absolute index
+          if (stageIndex < currentStage) {
+            // Add all questions from previous stages
+            currentQuestionIndex += (stage.questions ? stage.questions.length : 1);
+          } else if (stageIndex === currentStage) {
+            // Add the current question index within the current stage
+            currentQuestionIndex += currentQuestion;
+          }
+        });
+      }
       
       // Update title and description
       const titleElement = document.getElementById('patient-case-title');
@@ -48,12 +71,12 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       // Update progress bar
       const progressFill = document.getElementById('case-progress-fill');
       if (progressFill) {
-        const progressPercentage = totalStages > 0 ? (currentStage / totalStages) * 100 : 0;
+        const progressPercentage = totalQuestions > 0 ? (currentQuestionIndex / totalQuestions) * 100 : 0;
         progressFill.style.width = `${progressPercentage}%`;
       }
       
-      // Render current stage
-      this.renderStage(patientCase, currentStage);
+      // Render current stage and question
+      this.renderCurrentQuestion(patientCase, currentStage, currentQuestion);
       
       // Show continue button if case is completed
       const continueBtn = document.getElementById('patient-case-continue-btn');
@@ -63,8 +86,8 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       }
     },
     
-    // Render a specific stage of the patient case
-    renderStage: function(patientCase, stageIndex) {
+    // Render the current question from the current stage
+    renderCurrentQuestion: function(patientCase, stageIndex, questionIndex) {
       if (!patientCase.stages || stageIndex >= patientCase.stages.length) {
         // No more stages, case is completed
         this.setUiState('caseCompleted', true);
@@ -98,28 +121,50 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       // Get current stage
       const stage = patientCase.stages[stageIndex];
       
-      // Render stage content
+      // Check if we have a questions array in this stage
+      if (stage.questions && stage.questions.length > 0) {
+        // Check if we're still within valid questions for this stage
+        if (questionIndex >= stage.questions.length) {
+          // Move to next stage
+          this.moveToNextStage(patientCase, stageIndex);
+          return;
+        }
+        
+        // Get current question from the questions array
+        const question = stage.questions[questionIndex];
+        
+        // Render the question
+        this.renderQuestion(question, stageIndex, questionIndex);
+      } else {
+        // Legacy format: stage itself has a question property
+        this.renderQuestion(stage, stageIndex, questionIndex);
+      }
+    },
+    
+    // Render a specific question
+    renderQuestion: function(questionData, stageIndex, questionIndex) {
+      // Render question content
       const stageContainer = document.getElementById('stage-container');
       if (stageContainer) {
         stageContainer.innerHTML = `
-          <div class="stage-question">${stage.question || 'What do you want to do?'}</div>
+          <div class="stage-question">${questionData.question || questionData.text || 'What do you want to do?'}</div>
           <div id="stage-options"></div>
         `;
         
         // Add options
         const optionsContainer = document.getElementById('stage-options');
-        if (optionsContainer && stage.options) {
-          stage.options.forEach((option, index) => {
+        if (optionsContainer && questionData.options) {
+          questionData.options.forEach((option, optIndex) => {
             const optionBtn = document.createElement('button');
             optionBtn.className = 'btn btn-outline-primary option-btn mb-2 w-100';
             optionBtn.textContent = option.text;
-            optionBtn.dataset.index = index;
+            optionBtn.dataset.index = optIndex;
             
             // Bind action using ComponentUtils method
             this.bindAction(optionBtn, 'click', 'selectOption', {
-              patientCase: patientCase,
               stageIndex: stageIndex,
-              optionIndex: index
+              questionIndex: questionIndex,
+              optionIndex: optIndex
             });
             
             optionsContainer.appendChild(optionBtn);
@@ -138,7 +183,11 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
           break;
           
         case 'selectOption':
-          this.selectOption(data.patientCase, data.stageIndex, data.optionIndex);
+          this.selectOption(nodeData.patient_case, data.stageIndex, data.questionIndex, data.optionIndex);
+          break;
+          
+        case 'nextQuestion':
+          this.moveToNextQuestion(nodeData.patient_case, data.stageIndex, data.nextQuestion);
           break;
           
         default:
@@ -146,11 +195,23 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
       }
     },
     
-    // Select an option in the current stage
-    selectOption: function(patientCase, stageIndex, optionIndex) {
-      // Get the selected option
+    // Select an option for the current question
+    selectOption: function(patientCase, stageIndex, questionIndex, optionIndex) {
+      // Get the current stage
       const stage = patientCase.stages[stageIndex];
-      const option = stage.options[optionIndex];
+      
+      // Get the question data and selected option
+      let question, option;
+      
+      if (stage.questions && stage.questions.length > 0) {
+        // Multi-question format
+        question = stage.questions[questionIndex];
+        option = question.options[optionIndex];
+      } else {
+        // Legacy format
+        question = stage;
+        option = stage.options[optionIndex];
+      }
       
       // Save selected option
       this.setUiState('selectedOption', optionIndex);
@@ -173,24 +234,48 @@ const PatientCaseComponent = ComponentUtils.createComponent('patient_case', {
         nextBtn.className = 'btn btn-primary mt-2';
         nextBtn.textContent = 'Next';
         
-        // Bind action using ComponentUtils method
-        this.bindAction(nextBtn, 'click', 'nextStage', {
-          patientCase: patientCase,
-          nextStage: stageIndex + 1
-        });
+        // Determine if we should go to next question or next stage
+        const hasMoreQuestions = stage.questions && 
+                               questionIndex < stage.questions.length - 1;
+        
+        if (hasMoreQuestions) {
+          // Move to next question in this stage
+          this.bindAction(nextBtn, 'click', 'nextQuestion', {
+            stageIndex: stageIndex,
+            nextQuestion: questionIndex + 1
+          });
+        } else {
+          // Move to first question of next stage
+          this.bindAction(nextBtn, 'click', 'nextQuestion', {
+            stageIndex: stageIndex + 1,
+            nextQuestion: 0
+          });
+        }
         
         stageContainer.appendChild(nextBtn);
       }
     },
     
-    // Move to the next stage
-    nextStage: function(patientCase, nextStageIndex) {
-      // Update current stage
-      this.setUiState('currentStage', nextStageIndex);
+    // Move to the next question
+    moveToNextQuestion: function(patientCase, stageIndex, questionIndex) {
+      // Update current stage and question
+      this.setUiState('currentStage', stageIndex);
+      this.setUiState('currentQuestion', questionIndex);
       this.setUiState('selectedOption', null);
       
-      // Re-render the current stage
-      this.renderStage(patientCase, nextStageIndex);
+      // Re-render the current question
+      this.renderCurrentQuestion(patientCase, stageIndex, questionIndex);
+    },
+    
+    // Move to the next stage
+    moveToNextStage: function(patientCase, currentStage) {
+      // Move to the next stage, reset question index to 0
+      this.setUiState('currentStage', currentStage + 1);
+      this.setUiState('currentQuestion', 0);
+      this.setUiState('selectedOption', null);
+      
+      // Re-render with new stage and question
+      this.renderCurrentQuestion(patientCase, currentStage + 1, 0);
     }
   });
   
