@@ -17,6 +17,10 @@
 /* Import animations */
 @import url('/static/css/animations.css');
 
+/* Add these import lines */
+@import url('/static/css/components/boss.css');
+@import url('/static/css/components/boss_effects.css');
+
 /* Import theme styles last to override component styles */
 @import url('/static/css/themes/retro-theme.css');
 
