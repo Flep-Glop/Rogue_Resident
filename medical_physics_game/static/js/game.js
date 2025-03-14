@@ -94,50 +94,6 @@ function setupEventListeners() {
       }
     });
   }
-
-  // Complete Floor button (for testing)
-  const completeFloorBtn = document.getElementById('complete-floor-btn');
-  if (completeFloorBtn) {
-    completeFloorBtn.addEventListener('click', function() {
-      console.log("Complete Floor button clicked - applying row-based completion");
-      
-      // 1. Get all nodes
-      const allNodes = GameState.getAllNodes();
-      
-      // 2. Get max row (excluding boss)
-      const maxRow = Math.max(...allNodes.filter(n => n.id !== 'boss').map(n => n.position ? n.position.row : 0));
-      
-      // 3. For each row, mark one node as visited
-      for (let row = 1; row <= maxRow; row++) {
-        // Get all nodes in this row
-        const rowNodes = allNodes.filter(n => n.position && n.position.row === row);
-        
-        if (rowNodes.length > 0) {
-          // Pick one random node to mark as completed
-          const randomIndex = Math.floor(Math.random() * rowNodes.length);
-          const selectedNode = rowNodes[randomIndex];
-          
-          console.log(`Marking node ${selectedNode.id} as completed for row ${row}`);
-          selectedNode.visited = true;
-          selectedNode.state = NODE_STATE.COMPLETED;
-        }
-      }
-      
-      // 4. Clear current node
-      GameState.data.currentNode = null;
-      
-      // 5. Update all node states to set boss as available
-      GameState.updateAllNodeStates();
-      
-      // 6. Re-render the map
-      if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
-        MapRenderer.renderMap();
-      }
-      
-      // Show success message
-      UiUtils.showToast("Floor ready for boss! One node completed per row.", "success");
-    });
-  }
   
   // Restart button in game over screen
   const restartBtn = document.getElementById('restart-btn');
@@ -246,7 +202,76 @@ function setupEventListeners() {
     debugButtonContainer.appendChild(debugMapBtn);
     debugButtonContainer.appendChild(debugSummaryBtn);
     debugButtonContainer.appendChild(debugNextFloorBtn);
-    
+    // 4. Debug Boss Test button
+    const debugBossTestBtn = document.createElement('button');
+    debugBossTestBtn.className = 'btn btn-danger mt-2 mb-2 ms-2';
+    debugBossTestBtn.textContent = 'Test Boss';
+    debugBossTestBtn.style.fontSize = '0.7rem';
+    debugBossTestBtn.style.padding = '2px 8px';
+
+    debugBossTestBtn.addEventListener('click', function() {
+      console.log("DEBUG: Testing boss encounter");
+      
+      if (typeof GameState !== 'undefined' && typeof NodeInteraction !== 'undefined') {
+        // First approach: try to use an existing boss node if it exists
+        if (GameState.data && GameState.data.map && GameState.data.map.boss) {
+          console.log("Using existing boss node");
+          NodeInteraction.visitNode('boss');
+        } else {
+          // Second approach: create a mock boss node
+          console.log("Creating mock boss node for testing");
+          
+          const mockBossNode = {
+            id: 'boss_test',
+            type: 'boss',
+            title: 'Quantum Professor Challenge',
+            position: {row: 0, col: 0},
+            paths: [],
+            visited: false,
+            question: {
+              text: "What principle describes the quantum nature of radiation?",
+              options: [
+                "Wave-particle duality",
+                "Mass-energy equivalence",
+                "Thermodynamic equilibrium",
+                "Bernoulli's principle"
+              ],
+              correct: 0,
+              explanation: "Wave-particle duality is a fundamental quantum concept that describes how particles like photons exhibit both wave and particle properties."
+            }
+          };
+          
+          // Store the original function
+          const originalGetNodeById = GameState.getNodeById;
+          
+          // Override temporarily
+          GameState.getNodeById = function(nodeId) {
+            if (nodeId === 'boss_test') {
+              return mockBossNode;
+            }
+            return originalGetNodeById.call(GameState, nodeId);
+          };
+          
+          // Visit the mock boss
+          GameState.setCurrentNode('boss_test');
+          NodeInteraction.visitNode('boss_test');
+          
+          // Restore original function
+          setTimeout(() => {
+            GameState.getNodeById = originalGetNodeById;
+            console.log("Restored original getNodeById function");
+          }, 1000);
+        }
+      } else {
+        console.error("GameState or NodeInteraction not available");
+        if (typeof UiUtils !== 'undefined') {
+          UiUtils.showToast("Cannot test boss - game systems not initialized", "danger");
+        }
+      }
+    });
+
+    // Add the boss test button to the container
+    debugButtonContainer.appendChild(debugBossTestBtn);
     // Insert at the beginning of map container
     mapContainer.insertBefore(debugButtonContainer, mapContainer.firstChild);
     
