@@ -333,3 +333,14 @@
     float-subtle var(--animation-medium) infinite ease-in-out,
     walk-cycle 1.5s steps(4) infinite;
 }
+
+/* Gamble Node */
+.dice-roll {
+  display: inline-block;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
