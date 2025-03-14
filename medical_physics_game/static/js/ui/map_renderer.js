@@ -683,21 +683,6 @@ const MapRenderer = {
     ctx.stroke();
   },
   
-  // Draw floating particles
-  drawParticles: function(ctx) {
-    this.particles.forEach(particle => {
-      ctx.fillStyle = particle.color;
-      ctx.globalAlpha = particle.alpha;
-      ctx.fillRect(
-        Math.floor(particle.x), 
-        Math.floor(particle.y), 
-        particle.size, 
-        particle.size
-      );
-    });
-    
-    ctx.globalAlpha = 1.0; // Reset alpha
-  },
   
   // Draw CRT scanlines effect
   drawScanlines: function(ctx, width, height) {
