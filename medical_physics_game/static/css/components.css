@@ -311,14 +311,15 @@
     animation: pulse-primary var(--animation-long) infinite;
   }
   
-  .character-avatar {
-    display: inline-block;
-    padding: var(--spacing-sm);
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radius-sm);
-    margin-bottom: var(--spacing-sm);
-    border: 2px solid var(--primary-dark);
-    box-shadow: var(--glow-primary);
+  .character-avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto var(--spacing-sm);
+    max-height: 120px;
+    overflow: hidden;
+    width: 100%; /* Add this */
+    text-align: center; /* Add this */
   }
   
   .ascii-character {
@@ -326,9 +327,10 @@
     white-space: pre;
     line-height: 1.2;
     text-align: center;
-    margin: 0;
+    margin: 0 auto; /* Add auto horizontal margins */
     font-size: 16px;
     color: var(--text);
+    display: inline-block; /* Add this */
   }
   
   /* Health/Lives display */

@@ -334,8 +334,11 @@ const MapRenderer = {
     // Add subtle CRT scanline effect
     this.drawScanlines(ctx, canvasWidth, canvasHeight);
     
-    // Add pixel-style floor indicator
-    this.drawFloorIndicator(ctx, currentFloor);
+    // Update map title with floor number
+    const mapTitle = document.querySelector('.panel-title, .map-title, h3');
+    if (mapTitle && mapTitle.textContent.includes('Floor Map')) {
+      mapTitle.textContent = `Floor ${currentFloor} Map`;
+    }
     
     // Check if we need scroll indicators
     this.updateScrollIndicators(canvasHeight);
@@ -581,8 +584,17 @@ const MapRenderer = {
       textColor = '#cccccc';
     }
     
-    // Draw 3D pixelated node shape
-    this.drawPixelatedNode(ctx, x, y, nodeRadius, fillColor, shadowColor, strokeColor);
+    // Draw special shapes for start and boss nodes
+    if (node.type === 'start') {
+      // Draw a star shape for start
+      this.drawStartNode(ctx, x, y, nodeRadius, fillColor, shadowColor, strokeColor);
+    } else if (node.type === 'boss') {
+      // Draw a diamond/crystal shape for boss
+      this.drawBossNode(ctx, x, y, nodeRadius, fillColor, shadowColor, strokeColor);
+    } else {
+      // Draw standard node shape
+      this.drawPixelatedNode(ctx, x, y, nodeRadius, fillColor, shadowColor, strokeColor);
+    }
     
     // Draw node symbol
     ctx.fillStyle = textColor;
@@ -627,6 +639,93 @@ const MapRenderer = {
     ).sort((a, b) => a.position.col - b.position.col);
   },
 
+  // Draw a star shape for start node
+  drawStartNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
+    const spikes = 5;
+    const outerRadius = radius;
+    const innerRadius = radius * 0.4;
+    
+    ctx.beginPath();
+    
+    for(let i = 0; i < spikes * 2; i++) {
+      const r = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = Math.PI * i / spikes - Math.PI / 2;
+      
+      if(i === 0) {
+        ctx.moveTo(x + r * Math.cos(angle), y - 4 + r * Math.sin(angle));
+      } else {
+        ctx.lineTo(x + r * Math.cos(angle), y - 4 + r * Math.sin(angle));
+      }
+    }
+    
+    ctx.closePath();
+    
+    // Draw shadow
+    ctx.fillStyle = shadowColor;
+    ctx.fill();
+    
+    // Draw star raised above shadow
+    ctx.beginPath();
+    for(let i = 0; i < spikes * 2; i++) {
+      const r = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = Math.PI * i / spikes - Math.PI / 2;
+      
+      if(i === 0) {
+        ctx.moveTo(x + r * Math.cos(angle), y - 8 + r * Math.sin(angle));
+      } else {
+        ctx.lineTo(x + r * Math.cos(angle), y - 8 + r * Math.sin(angle));
+      }
+    }
+    
+    ctx.closePath();
+    
+    // Fill and stroke the main shape
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  },
+
+  // Draw a diamond/crystal shape for boss node
+  drawBossNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
+    const diamondHeight = radius * 2;
+    const diamondWidth = radius * 1.6;
+    
+    // Draw shadow first
+    ctx.beginPath();
+    ctx.moveTo(x, y + diamondHeight/2);
+    ctx.lineTo(x - diamondWidth/2, y);
+    ctx.lineTo(x, y - diamondHeight/2);
+    ctx.lineTo(x + diamondWidth/2, y);
+    ctx.closePath();
+    
+    ctx.fillStyle = shadowColor;
+    ctx.fill();
+    
+    // Draw raised boss crystal
+    ctx.beginPath();
+    ctx.moveTo(x, y - 4 + diamondHeight/2);
+    ctx.lineTo(x - diamondWidth/2, y - 4);
+    ctx.lineTo(x, y - 4 - diamondHeight/2);
+    ctx.lineTo(x + diamondWidth/2, y - 4);
+    ctx.closePath();
+    
+    // Fill and stroke the main shape
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Add highlight reflection
+    ctx.beginPath();
+    ctx.moveTo(x - diamondWidth/4, y - 4);
+    ctx.lineTo(x, y - 4 - diamondHeight/4);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = this.adjustColorBrightness(fillColor, 50);
+    ctx.stroke();
+  },
   // Draw a pixelated node shape with 3D effect
   drawPixelatedNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
     // Draw main node shape

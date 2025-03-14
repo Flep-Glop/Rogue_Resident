@@ -52,6 +52,15 @@
       bob 2s ease-in-out infinite,
       walk-cycle 1.5s steps(4) infinite;
     position: relative;
+    transform-origin: center bottom; /* Make sure character bobs from the bottom */
+  }
+  
+  @keyframes bob {
+    0% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-2px) rotate(-1deg); }
+    50% { transform: translateY(-3px) rotate(0deg); }
+    75% { transform: translateY(-2px) rotate(1deg); }
+    100% { transform: translateY(0) rotate(0deg); }
   }
   
   /* Modify the character container to be more compact */

@@ -8,13 +8,6 @@ function resetGame() {
 // Initialize game when document is loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log("Game initializing...");
-  
-  // Show welcome message with slight delay
-  setTimeout(function() {
-    UiUtils.showFloatingText("Welcome to Medical Physics Residency!", "success");
-  }, 1000);
-  
-  // Find this code in game.js (around line 16-29) and replace it with this version:
 
   // Create UI object to hold UI management functions
   window.UI = {
@@ -120,29 +113,6 @@ function setupEventListeners() {
     debugButtonContainer.style.display = 'flex';
     debugButtonContainer.style.gap = '5px';
     
-    // 1. Debug Map button
-    const debugMapBtn = document.createElement('button');
-    debugMapBtn.className = 'btn btn-secondary mt-2 mb-2';
-    debugMapBtn.textContent = 'Debug Map';
-    debugMapBtn.style.fontSize = '0.7rem';
-    debugMapBtn.style.padding = '2px 8px';
-    debugMapBtn.style.opacity = '0.7';
-    
-    debugMapBtn.addEventListener('click', function() {
-      console.clear();
-      console.log("=== DEBUG MAP STATE ===");
-      
-      if (typeof GameState !== 'undefined' && typeof GameState.debugState === 'function') {
-        GameState.debugState();
-      }
-      
-      if (typeof EventSystem !== 'undefined' && typeof EventSystem.debugEvents === 'function') {
-        EventSystem.debugEvents();
-      }
-      
-      console.log("Game State:", JSON.stringify(GameState.getState(), null, 2));
-    });
-    
     // 2. Debug Summary button
     const debugSummaryBtn = document.createElement('button');
     debugSummaryBtn.className = 'btn btn-info mt-2 mb-2 ms-2';
@@ -199,7 +169,6 @@ function setupEventListeners() {
     });
     
     // Add all buttons to the container
-    debugButtonContainer.appendChild(debugMapBtn);
     debugButtonContainer.appendChild(debugSummaryBtn);
     debugButtonContainer.appendChild(debugNextFloorBtn);
     // 4. Debug Boss Test button
@@ -290,9 +259,36 @@ function setupEventListeners() {
 // Function to initialize the game with improved architecture
 function initializeGame() {
   // Show loading indicator
-  showLoadingIndicator();
-  if (typeof DesignBridge !== 'undefined' && typeof DesignBridge.initialize === 'function') {
-    DesignBridge.initialize();
+  function showLoadingIndicator() {
+    const boardContainer = document.getElementById('game-board-container');
+    if (boardContainer) {
+      boardContainer.innerHTML += `
+        <div id="loading-indicator" class="text-center my-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Initializing Medical Physics Adventure...</p>
+          <div class="progress mt-3" style="height: 10px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 role="progressbar" style="width: 0%"></div>
+          </div>
+        </div>
+      `;
+      
+      // Animate progress bar
+      const progressBar = document.querySelector('.progress-bar');
+      if (progressBar) {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 15;
+          if (progress > 95) {
+            clearInterval(interval);
+            progress = 100;
+          }
+          progressBar.style.width = `${progress}%`;
+        }, 300);
+      }
+    }
   }
   // Initialize in the correct order for dependencies
   Promise.resolve()

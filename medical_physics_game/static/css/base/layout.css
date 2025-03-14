@@ -65,6 +65,23 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.panel {
+  background-color: rgba(41, 43, 54, 0.85); /* Slightly transparent dark background */
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--primary);
+}
+
+.panel-title {
+  color: var(--primary);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: var(--spacing-sm);
+}
+
 /* Generic card styling */
 .card {
   background-color: var(--background-alt);
@@ -142,6 +159,19 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Alert styling */

@@ -49,12 +49,6 @@ const EventSystem = {
     this.on(GAME_EVENTS.FLOOR_COMPLETED, (floorNumber) => {
       console.log(`✨ Floor ${floorNumber} completed! Ready for next floor.`);
       
-      // Show next floor button
-      const nextFloorBtn = document.getElementById('next-floor-btn');
-      if (nextFloorBtn) {
-        nextFloorBtn.style.display = 'block';
-      }
-      
       // Show completion notification
       if (typeof UiUtils !== 'undefined' && typeof UiUtils.showToast === 'function') {
         UiUtils.showToast(`Floor ${floorNumber} completed! You can now proceed to the next floor.`, 'success');
