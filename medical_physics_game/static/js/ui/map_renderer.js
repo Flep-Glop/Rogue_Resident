@@ -683,6 +683,11 @@ const MapRenderer = {
     ctx.stroke();
   },
   
+  // Draw floating particles (disabled)
+  drawParticles: function(ctx) {
+    // Function disabled to prevent interface obstruction
+    return;
+  },
   
   // Draw CRT scanlines effect
   drawScanlines: function(ctx, width, height) {
