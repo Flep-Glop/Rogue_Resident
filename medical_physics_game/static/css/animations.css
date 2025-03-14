@@ -1,197 +1,126 @@
-/* animations.css - All animations and transitions */
+/* animations.css - Centralized animation system */
+/* This file replaces scattered animation definitions across multiple CSS files */
 
-/* Animation for floating text */
-@keyframes float-up {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(-50px); opacity: 0; }
+/* ===== MOVEMENT ANIMATIONS ===== */
+
+/* Vertical floating animations */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
 }
 
-.floating-text {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  font-weight: bold;
-  z-index: 1000;
-  animation: float-up 2s ease-out;
-  pointer-events: none;
-  font-family: 'Press Start 2P', cursive;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+@keyframes float-subtle {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
 }
 
-.floating-text-success { color: var(--secondary); }
-.floating-text-danger { color: var(--danger); }
-.floating-text-info { color: var(--primary); }
-.floating-text-warning { color: var(--warning); }
-
-.floating-text-fade {
-  opacity: 0;
-  transition: opacity 1s;
+@keyframes float-dramatic {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
 }
 
-/* Add icon to floating text for better recognition */
-.floating-text .float-icon {
-  margin-right: 8px;
+/* Walking animation for character */
+@keyframes walk-cycle {
+  0% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  100% { transform: translateX(-2px); }
 }
 
-/* Floating text appears from cursor position when from interaction */
-.floating-text-from-cursor {
-  position: absolute;
-  animation: float-up-from-cursor 1.5s ease-out;
+/* Combined walking and bobbing for character */
+@keyframes character-move {
+  0% { transform: translateY(0) translateX(-2px); }
+  25% { transform: translateY(-3px) translateX(0); }
+  50% { transform: translateY(0) translateX(2px); }
+  75% { transform: translateY(-3px) translateX(0); }
+  100% { transform: translateY(0) translateX(-2px); }
 }
 
-@keyframes float-up-from-cursor {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; transform: translateY(-30px); }
-  100% { transform: translateY(-40px); opacity: 0; }
+/* ===== PULSE/GLOW ANIMATIONS ===== */
+
+/* Color-based pulse animations */
+@keyframes pulse-primary {
+  0% { box-shadow: 0 0 3px var(--primary); }
+  50% { box-shadow: 0 0 8px var(--primary); }
+  100% { box-shadow: 0 0 3px var(--primary); }
 }
 
-/* Toast animations */
-@keyframes toast-slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes pulse-secondary {
+  0% { box-shadow: 0 0 3px var(--secondary); }
+  50% { box-shadow: 0 0 8px var(--secondary); }
+  100% { box-shadow: 0 0 3px var(--secondary); }
 }
 
-@keyframes toast-slide-out {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
+@keyframes pulse-danger {
+  0% { box-shadow: 0 0 3px var(--danger); }
+  50% { box-shadow: 0 0 8px var(--danger); }
+  100% { box-shadow: 0 0 3px var(--danger); }
 }
 
-.toast {
-  animation: toast-slide-in 0.3s forwards;
+@keyframes pulse-warning {
+  0% { box-shadow: 0 0 3px var(--warning); }
+  50% { box-shadow: 0 0 8px var(--warning); }
+  100% { box-shadow: 0 0 3px var(--warning); }
 }
 
-.toast.hiding {
-  animation: toast-slide-out 0.3s forwards;
+/* Inner glow pulses */
+@keyframes pulse-inner-primary {
+  0% { box-shadow: var(--glow-inner-primary); }
+  50% { box-shadow: inset 0 0 15px var(--primary); }
+  100% { box-shadow: var(--glow-inner-primary); }
 }
 
-/* Button effects */
-@keyframes button-pulse {
-  0% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.05); filter: brightness(1.1); }
-  100% { transform: scale(1); filter: brightness(1); }
+@keyframes pulse-inner-secondary {
+  0% { box-shadow: var(--glow-inner-secondary); }
+  50% { box-shadow: inset 0 0 15px var(--secondary); }
+  100% { box-shadow: var(--glow-inner-secondary); }
 }
 
-.pulsing-button {
-  animation: button-pulse 2s infinite;
-}
-
-/* Node click animations */
-@keyframes node-click {
+/* Scale-based pulse animations */
+@keyframes pulse-scale {
   0% { transform: scale(1); }
-  50% { transform: scale(0.9); }
+  50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
 
-.node-clicked {
-  animation: node-click 0.2s forwards;
-}
-
-/* Pixel particle animation effects */
-@keyframes pixel-fall {
-  0% { transform: translateY(-20vh); opacity: 0; }
-  10% { opacity: 0.7; }
-  90% { opacity: 0.7; }
-  100% { transform: translateY(120vh); opacity: 0; }
-}
-
-.pixel-decoration {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  z-index: 1;
-  opacity: 0.7;
-  /* Remove the box-shadow property */
-  pointer-events: none;
-  /* Add these properties to fix the black squares */
-  border: none;
-  background-clip: content-box; /* Ensures background stays within dimensions */
-  box-shadow: none; /* Explicitly remove any shadow */
-}
-
-
-
-/* Pulse animations for various elements */
-@keyframes gentle-pulse {
-  0% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.03); filter: brightness(1.1); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-
-.gentle-pulse {
-  animation: gentle-pulse 3s infinite;
-}
-
-/* Attention-grabbing pulse for important elements */
-@keyframes pulse-attention {
+@keyframes pulse-scale-subtle {
   0% { transform: scale(1); }
-  50% { transform: scale(1.05); box-shadow: 0 0 15px var(--secondary); }
+  50% { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
 
-.pulse-attention {
-  animation: pulse-attention 2s infinite;
+/* Opacity-based pulse animations */
+@keyframes pulse-opacity {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
 }
 
-/* Glow effects */
-@keyframes item-glow {
-  0% { box-shadow: 0 0 3px var(--primary) inset; }
-  50% { box-shadow: 0 0 8px var(--primary) inset; }
-  100% { box-shadow: 0 0 3px var(--primary) inset; }
+/* Combined rarity glow animations */
+@keyframes epic-item-pulse {
+  0% { 
+    box-shadow: var(--glow-epic);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: var(--glow-warning-strong);
+    transform: scale(1.02); 
+  }
+  100% { 
+    box-shadow: var(--glow-epic);
+    transform: scale(1);
+  }
 }
 
-.item-glow {
-  animation: item-glow 2s infinite;
+@keyframes rare-item-pulse {
+  0% { box-shadow: 0 0 5px var(--node-rest); }
+  50% { box-shadow: 0 0 12px var(--node-rest); }
+  100% { box-shadow: 0 0 5px var(--node-rest); }
 }
 
-/* Epic item pulse */
-@keyframes epic-pulse {
-  0% { box-shadow: 0 0 3px var(--secondary) inset; }
-  50% { box-shadow: 0 0 8px var(--secondary) inset; }
-  100% { box-shadow: 0 0 3px var(--secondary) inset; }
-}
-
-/* Spinner animation for loading states */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-/* Shake animation for errors */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-.shake {
-  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-
-/* Hover effects */
-.hover-grow {
-  transition: transform var(--transition-fast);
-}
-
-.hover-grow:hover {
-  transform: scale(1.05);
-}
-
-.hover-slide {
-  transition: transform var(--transition-fast);
-}
-
-.hover-slide:hover {
-  transform: translateX(5px);
-}
+/* ===== TRANSITION ANIMATIONS ===== */
 
 /* Fade animations */
 @keyframes fade-in {
@@ -204,40 +133,203 @@
   to { opacity: 0; }
 }
 
-.fade-in {
-  animation: fade-in 0.3s forwards;
+/* Slide animations */
+@keyframes slide-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.fade-out {
-  animation: fade-out 0.3s forwards;
+@keyframes slide-down {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-/* Response to user action animations */
-.item-added {
-  animation: item-added 1s ease-out;
+@keyframes slide-left {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
-@keyframes item-added {
+@keyframes slide-right {
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Modal animations */
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-slide-up {
+  from { transform: translateY(30px); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== ATTENTION ANIMATIONS ===== */
+
+/* Flash animations for highlighting */
+@keyframes flash {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes highlight-flash {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(91, 141, 217, 0.3); }
+  100% { background-color: transparent; }
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Button animations */
+@keyframes button-shine {
+  0% { left: -50%; top: -50%; }
+  100% { left: 150%; top: 150%; }
+}
+
+/* ===== SPECIAL EFFECT ANIMATIONS ===== */
+
+/* Flicker effect for lights/ghosts */
+@keyframes flicker {
+  0% { opacity: 0.7; }
+  10% { opacity: 0.8; }
+  20% { opacity: 0.7; }
+  30% { opacity: 0.8; }
+  40% { opacity: 0.9; }
+  50% { opacity: 0.7; }
+  60% { opacity: 0.9; }
+  70% { opacity: 0.8; }
+  80% { opacity: 0.7; }
+  90% { opacity: 0.9; }
+  100% { opacity: 0.7; }
+}
+
+/* CRT screen flicker */
+@keyframes gentle-flicker {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.25; }
+  100% { opacity: 0.2; }
+}
+
+/* Scanline movement */
+@keyframes scanline-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 calc(var(--pixel-size) * 2); }
+}
+
+/* Pixel background animations */
+@keyframes pixel-pulse {
+  0% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+  100% { opacity: 0.3; transform: scale(1); }
+}
+
+@keyframes pixel-twinkle {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.3; }
+}
+
+/* ===== FEEDBACK ANIMATIONS ===== */
+
+/* Success feedback */
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+/* Error feedback */
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+/* Floating text notifications */
+@keyframes float-up-fade {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
+}
+
+/* Toast notifications */
+@keyframes toast-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* ===== GAME-SPECIFIC ANIMATIONS ===== */
+
+/* Character ability usage */
+@keyframes ability-flash {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Character level up */
+@keyframes level-up-glow {
+  0% { box-shadow: 0 0 10px var(--secondary); }
+  50% { box-shadow: 0 0 30px var(--secondary); }
+  100% { box-shadow: 0 0 10px var(--secondary); }
+}
+
+/* Floor transition */
+@keyframes floor-transition {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Map node hover */
+@keyframes node-hover {
   0% { transform: scale(1); }
-  50% { transform: scale(1.1); background-color: rgba(86, 184, 134, 0.3); }
-  100% { transform: scale(1); }
+  100% { transform: scale(1.1); }
 }
 
-.item-removed {
-  animation: item-removed 0.5s ease-out;
-}
+/* The following are animation utility classes to easily apply these animations */
 
-@keyframes item-removed {
-  0% { transform: scale(1); }
-  100% { transform: scale(0); opacity: 0; }
-}
+/* === UTILITY ANIMATION CLASSES === */
 
-/* Responsive adjustments */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+/* Float animations */
+.anim-float { animation: float var(--animation-medium) infinite ease-in-out; }
+.anim-float-fast { animation: float var(--animation-short) infinite ease-in-out; }
+.anim-float-slow { animation: float var(--animation-long) infinite ease-in-out; }
+.anim-float-subtle { animation: float-subtle var(--animation-medium) infinite ease-in-out; }
+
+/* Pulse animations */
+.anim-pulse-primary { animation: pulse-primary var(--animation-medium) infinite; }
+.anim-pulse-secondary { animation: pulse-secondary var(--animation-medium) infinite; }
+.anim-pulse-danger { animation: pulse-danger var(--animation-medium) infinite; }
+.anim-pulse-warning { animation: pulse-warning var(--animation-medium) infinite; }
+
+.anim-pulse-scale { animation: pulse-scale var(--animation-medium) infinite; }
+.anim-pulse-opacity { animation: pulse-opacity var(--animation-medium) infinite; }
+
+/* Fade animations */
+.anim-fade-in { animation: fade-in var(--transition-medium) forwards; }
+.anim-fade-out { animation: fade-out var(--transition-medium) forwards; }
+
+/* Flash animations */
+.anim-flash { animation: flash 0.5s 3; }
+.anim-highlight { animation: highlight-flash 1s; }
+
+/* Epic item animation */
+.anim-epic { animation: epic-item-pulse var(--animation-medium) infinite; }
+
+/* Character animations */
+.anim-character-walk { 
+  animation: 
+    float-subtle var(--animation-medium) infinite ease-in-out,
+    walk-cycle 1.5s steps(4) infinite;
 }

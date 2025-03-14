@@ -3,9 +3,12 @@
 /* Import base styles first */
 @import url('/static/css/base/reset.css');
 @import url('/static/css/base/variables.css');
+@import url('/static/css/utilities.css'); /* Add this line */
 @import url('/static/css/base/layout.css');
 
+
 /* Import component styles */
+@import url('/static/css/components.css'); /* Add this line */
 @import url('/static/css/components/character.css');
 @import url('/static/css/components/inventory.css');
 @import url('/static/css/components/map.css');

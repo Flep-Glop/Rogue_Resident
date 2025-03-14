@@ -266,7 +266,9 @@ function setupEventListeners() {
 function initializeGame() {
   // Show loading indicator
   showLoadingIndicator();
-  
+  if (typeof DesignBridge !== 'undefined' && typeof DesignBridge.initialize === 'function') {
+    DesignBridge.initialize();
+  }
   // Initialize in the correct order for dependencies
   Promise.resolve()
     .then(() => {

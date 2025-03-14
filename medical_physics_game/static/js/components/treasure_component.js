@@ -6,7 +6,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     console.log("Initializing treasure component");
   },
   
-  // Render the treasure UI
+  // treasure_component.js - Refactored implementation
   render: function(nodeData, container) {
     console.log("Rendering treasure component", nodeData);
     
@@ -14,49 +14,62 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     if (!nodeData.item) {
       this.showToast("No treasure found!", "warning");
       container.innerHTML = `
-        <h3>Treasure Room</h3>
-        <div class="alert alert-warning">
-          <p>The treasure chest is empty!</p>
+        <div class="game-panel game-panel--warning">
+          <h3 class="game-panel__title">Treasure Room</h3>
+          <div class="alert alert-warning">
+            <p>The treasure chest is empty!</p>
+          </div>
+          <button id="treasure-continue-btn" class="game-btn game-btn--primary mt-md">Continue</button>
         </div>
-        <button id="treasure-continue-btn" class="btn btn-primary mt-3">Continue</button>
       `;
       this.bindAction('treasure-continue-btn', 'click', 'continue', { nodeData });
       return;
     }
     
-    // Create treasure UI
+    // Get colors from the design bridge if available
+    const treasureColor = window.DesignBridge?.colors?.nodeTreasure || '#f0c866';
+    
+    // Get item data
     const itemRarity = nodeData.item.rarity || 'common';
+    
+    // Create treasure UI with new component and utility classes
     container.innerHTML = `
-      <div class="treasure-container">
-        <div class="treasure-header">
-          <h3 class="pixel-text">Treasure Found!</h3>
+      <div class="game-panel anim-fade-in">
+        <div class="text-center mb-md">
+          <h3 class="text-warning glow-text anim-pulse-warning">${this.generateTreasureTitle()}</h3>
         </div>
         
-        <div class="treasure-item-card rarity-${itemRarity}">
-          <div class="item-icon-container">
-            <div class="item-pixel-icon ${itemRarity}">
-              ${this.getItemIcon(nodeData.item)}
-            </div>
+        <div class="game-card game-card--${itemRarity} shadow-md mb-lg">
+          <div class="game-card__header">
+            <h4 class="game-card__title">${nodeData.item.name}</h4>
+            <span class="rarity-badge rarity-badge-${itemRarity}">${itemRarity}</span>
           </div>
           
-          <div class="item-details">
-            <div class="item-name-container">
-              <h4 class="item-name">${nodeData.item.name}</h4>
-              <span class="rarity-badge ${itemRarity}">${itemRarity}</span>
+          <div class="game-card__body flex">
+            <div class="flex-shrink-0 mr-md">
+              <div class="item-icon item-icon--${itemRarity}">
+                ${this.getItemIcon(nodeData.item)}
+              </div>
             </div>
             
-            <p class="item-description">${nodeData.item.description}</p>
-            
-            <div class="item-effect-container">
-              <span class="effect-label">Effect:</span>
-              <span class="effect-value">${nodeData.item.effect?.value || 'None'}</span>
+            <div class="flex-grow">
+              <p class="mb-sm">${nodeData.item.description}</p>
+              
+              <div class="item-tooltip__effect mt-md">
+                <span class="text-primary">Effect:</span>
+                <span>${nodeData.item.effect?.value || 'None'}</span>
+              </div>
             </div>
           </div>
         </div>
         
-        <div class="treasure-buttons">
-          <button id="treasure-take-btn" class="btn btn-success mb-2">Take Item</button>
-          <button id="treasure-leave-btn" class="btn btn-outline-secondary">Leave It</button>
+        <div class="flex gap-md">
+          <button id="treasure-take-btn" class="game-btn game-btn--secondary flex-1 anim-pulse-scale">
+            Take Item
+          </button>
+          <button id="treasure-leave-btn" class="game-btn game-btn--primary flex-1">
+            Leave It
+          </button>
         </div>
       </div>
     `;
@@ -67,76 +80,44 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     });
     this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
   },
-  
-  // Handle component actions
-  handleAction: function(nodeData, action, data) {
-    console.log(`Treasure component handling action: ${action}`, data);
+
+  // Add a fun new method that uses the design bridge for fancy titles
+  generateTreasureTitle: function() {
+    const titles = [
+      "Treasure Found!",
+      "Valuable Discovery!",
+      "Artifact Uncovered!",
+      "Mystical Item Found!"
+    ];
     
-    switch (action) {
-      case 'takeItem':
-        this.takeItem(nodeData, data.item);
-        break;
-        
-      case 'continue':
-        this.completeNode(nodeData);
-        break;
-        
-      default:
-        console.warn(`Unknown action: ${action}`);
-    }
+    return titles[Math.floor(Math.random() * titles.length)];
   },
-  
-  // Take the treasure item
-  takeItem: function(nodeData, item) {
-    console.log("Taking item:", item);
-    
-    // Add to inventory
-    const added = this.addItemToInventory(item);
-    
-    if (added) {
-      this.showFeedback(`Added ${item.name} to inventory!`, 'success');
-    } else {
-      this.showToast("Couldn't add item to inventory. It may be full.", "warning");
-    }
-    
-    // Complete the node
-    this.completeNode(nodeData);
-  },
-  
-  // Get color class for rarity badge
-  getRarityColor: function(rarity) {
-    switch(rarity) {
-      case 'common': return 'secondary';
-      case 'uncommon': return 'primary';
-      case 'rare': return 'info';
-      case 'epic': return 'warning';
-      default: return 'secondary';
-    }
-  },
-  
-  // Get pixel art icon for an item
+
+  // Update the getItemIcon method to use design bridge colors
   getItemIcon: function(item) {
+    // Use design bridge for colors if available
+    const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
+    
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixelated">`;
     }
     
-    // Fallback: Use item name to determine a default icon
+    // Map common item types to default icons with color from design bridge
     const itemName = item.name.toLowerCase();
-    let iconFile = "default.png";
+    let iconClass = "default";
     
-    // Map common item types to default icons
     if (itemName.includes('book') || itemName.includes('manual')) {
-      iconFile = "book.png";
+      iconClass = "book";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconFile = "potion.png";
+      iconClass = "potion";
     } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconFile = "shield.png";
+      iconClass = "shield";
     } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
-      iconFile = "detector.png";
+      iconClass = "detector";
     }
     
-    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
+    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};"></i>`;
   }
 });
 
