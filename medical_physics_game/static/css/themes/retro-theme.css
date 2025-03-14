@@ -55,7 +55,7 @@
   background: radial-gradient(ellipse at center, rgba(231, 11, 11, 0) 0%, rgba(255, 0, 0, 0.5) 100%);
   pointer-events: none;
   z-index: 999;
-  opacity: 0.9; /* Subtle CRT effect */
+  opacity: 0.2; /* Subtle CRT effect */
   animation: gentle-flicker 8s infinite; /* Slow, gentle flicker */
 }
 
