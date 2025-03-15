@@ -1,0 +1,514 @@
+/* custom-skill-tree.css - Enhanced styling for the medical physics game skill tree */
+
+/* Import pixel font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Override skill tree base variables to match game theme */
+:root {
+  /* Core theme colors - match the game's palette */
+  --st-background: #0A0E1A;
+  --st-surface: rgba(33, 35, 46, 0.9);
+  --st-surface-light: rgba(42, 46, 58, 0.9);
+  
+  /* Text colors from game */
+  --st-text-primary: var(--text-light, #ecf0f1);
+  --st-text-secondary: var(--text, #d4dae0);
+  --st-text-disabled: var(--text-dark, #a7adb5);
+  
+  /* Node colors that match specializations */
+  --st-theory-color: var(--primary, #5b8dd9);
+  --st-clinical-color: var(--secondary, #56b886);
+  --st-technical-color: var(--node-event, #e99c50);
+  --st-research-color: var(--node-rest, #9c77db);
+  --st-connector-color: var(--warning, #f0c866);
+  --st-core-color: var(--node-patient-case, #4acf8b);
+  
+  /* Enhanced glows */
+  --st-glow-theory: 0 0 10px var(--st-theory-color);
+  --st-glow-clinical: 0 0 10px var(--st-clinical-color);
+  --st-glow-technical: 0 0 10px var(--st-technical-color);
+  --st-glow-research: 0 0 10px var(--st-research-color);
+  --st-glow-connector: 0 0 10px var(--st-connector-color);
+  --st-glow-core: 0 0 15px var(--st-core-color);
+  
+  /* Node state colors */
+  --st-locked-color: rgba(85, 85, 85, 0.5);
+  --st-unlockable-color: rgba(136, 136, 136, 0.7);
+  --st-unlocked-color: rgba(187, 187, 187, 0.9);
+  --st-active-color: rgba(255, 255, 255, 1);
+  
+  /* Retro pixel size */
+  --pixel-size: 3px;
+}
+
+/* Make the skill tree container more immersive */
+#skill-tree-container {
+  background: rgba(0, 0, 0, 0.92);
+  position: fixed;
+  backdrop-filter: blur(3px);
+}
+
+/* Add scanline effect to the entire skill tree */
+#skill-tree-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.2) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9998;
+  animation: scanline-move 0.5s linear infinite;
+  opacity: 0.2;
+}
+
+/* Add a subtle CRT flicker */
+#skill-tree-container::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  pointer-events: none;
+  z-index: 9999;
+  animation: gentle-flicker 0.3s linear infinite;
+}
+
+/* Make the skill tree panel look more like a terminal/console */
+.skill-tree-panel {
+  border: var(--pixel-size) solid var(--text-dark);
+  box-shadow: 0 0 20px rgba(91, 141, 217, 0.5);
+  position: relative;
+  font-family: 'Press Start 2P', cursive;
+  letter-spacing: 1px;
+  overflow: hidden;
+}
+
+/* Add pixel corners to the panel */
+.skill-tree-panel::before,
+.skill-tree-panel::after {
+  content: '';
+  position: absolute;
+  width: calc(var(--pixel-size) * 3);
+  height: calc(var(--pixel-size) * 3);
+  background-color: var(--text-light);
+  z-index: 2;
+}
+
+.skill-tree-panel::before {
+  top: 0;
+  left: 0;
+}
+
+.skill-tree-panel::after {
+  top: 0;
+  right: 0;
+}
+
+.skill-tree-panel .pixel-corner-bl,
+.skill-tree-panel .pixel-corner-br {
+  position: absolute;
+  width: calc(var(--pixel-size) * 3);
+  height: calc(var(--pixel-size) * 3);
+  background-color: var(--text-light);
+  z-index: 2;
+  bottom: 0;
+}
+
+.skill-tree-panel .pixel-corner-bl {
+  left: 0;
+}
+
+.skill-tree-panel .pixel-corner-br {
+  right: 0;
+}
+
+/* Style the header to look more like a terminal title bar */
+.skill-tree-header {
+  background: linear-gradient(to right, var(--primary-dark), var(--dark), var(--primary-dark));
+  padding: 12px 20px;
+  border-bottom: var(--pixel-size) solid var(--text-dark);
+}
+
+.skill-tree-header h2 {
+  font-family: 'Press Start 2P', cursive;
+  color: var(--text-light);
+  text-shadow: 0 0 5px var(--primary);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Custom close button */
+.skill-tree-close-button {
+  background: var(--danger);
+  color: var(--text-light);
+  border: 2px solid var(--text-dark);
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  box-shadow: 0 var(--pixel-size) 0 var(--danger-dark);
+  transition: all 0.2s ease;
+}
+
+.skill-tree-close-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 calc(var(--pixel-size) + 2px) 0 var(--danger-dark);
+}
+
+.skill-tree-close-button:active {
+  transform: translateY(var(--pixel-size));
+  box-shadow: none;
+}
+
+/* Enhance the visualization area */
+#skill-tree-visualization {
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(91, 141, 217, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(86, 184, 134, 0.1) 0%, transparent 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add grid pattern to visualization background */
+#skill-tree-visualization::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* Style the UI panel */
+#skill-tree-ui {
+  background-color: var(--st-surface);
+  border-left: var(--pixel-size) solid var(--text-dark);
+}
+
+/* Style filter tabs */
+.filter-tab {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  padding: 6px 10px;
+  background-color: var(--background-alt);
+  border: 2px solid var(--text-dark);
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 5px var(--primary);
+}
+
+.filter-tab.active {
+  background-color: var(--dark);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+/* Style the stats containers */
+.reputation-container, 
+.skill-points-container {
+  background-color: var(--dark-alt);
+  border-left: 4px solid var(--primary);
+  padding: 8px 12px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.reputation-value {
+  color: var(--warning);
+  text-shadow: 0 0 5px var(--warning);
+}
+
+.skill-points-value {
+  color: var(--secondary);
+  text-shadow: 0 0 5px var(--secondary);
+}
+
+/* Style specialization progress */
+.specialization-progress-container h3 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-bottom: 15px;
+  text-shadow: 0 0 5px var(--primary);
+}
+
+.spec-progress-item {
+  background-color: var(--dark-alt);
+  border-left: 4px solid;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.spec-progress-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Style progress bars */
+.progress-bar-container {
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--text-dark);
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+/* Style node info panel */
+.node-info-panel {
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-md);
+  margin-bottom: 20px;
+}
+
+.node-name {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-shadow: 0 0 5px var(--primary);
+  margin-bottom: 10px;
+}
+
+.node-specialization {
+  font-size: 0.7rem;
+  margin-bottom: 15px;
+}
+
+.node-description {
+  font-size: 0.7rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Style action buttons */
+.skill-action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.unlock-skill-button,
+.activate-skill-button,
+.deactivate-skill-button {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  padding: 8px 12px;
+  border: 2px solid var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unlock-skill-button {
+  background-color: var(--warning);
+  color: black;
+  box-shadow: 0 var(--pixel-size) 0 var(--warning-dark);
+}
+
+.activate-skill-button {
+  background-color: var(--secondary);
+  color: black;
+  box-shadow: 0 var(--pixel-size) 0 var(--secondary-dark);
+}
+
+.deactivate-skill-button {
+  background-color: var(--dark);
+  color: var(--text-light);
+  box-shadow: 0 var(--pixel-size) 0 rgba(0, 0, 0, 0.5);
+}
+
+.unlock-skill-button:hover,
+.activate-skill-button:hover,
+.deactivate-skill-button:hover {
+  transform: translateY(-2px);
+}
+
+.unlock-skill-button:active,
+.activate-skill-button:active,
+.deactivate-skill-button:active {
+  transform: translateY(var(--pixel-size));
+  box-shadow: none;
+}
+
+/* Style the nodes and connections in SVG */
+.connection {
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 1000;
+  }
+}
+
+.node {
+  transition: all 0.3s ease;
+}
+
+.node:hover {
+  filter: brightness(1.5) !important;
+}
+
+.node.node-active {
+  animation: pulse-node 2s infinite alternate;
+}
+
+@keyframes pulse-node {
+  0% { filter: brightness(1.1); }
+  100% { filter: brightness(1.3); }
+}
+
+/* Custom tooltips */
+.tooltip-group rect {
+  stroke: var(--text-dark);
+  stroke-width: 2px;
+}
+
+.tooltip-group text {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+}
+
+/* Pixel art icons for the skill tree nodes */
+.node-icon {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+}
+
+/* Shrink the specialization button */
+.skill-tree-access-button {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem !important;
+  padding: 4px 8px !important;
+  background-color: var(--primary) !important;
+  border: 2px solid var(--text-dark) !important;
+  box-shadow: 0 var(--pixel-size) 0 var(--primary-dark) !important;
+  transition: all 0.2s ease !important;
+  transform: scale(0.8) !important;
+  transform-origin: top right;
+}
+
+.skill-tree-access-button:hover {
+  transform: scale(0.85) translateY(-2px) !important;
+  box-shadow: 0 calc(var(--pixel-size) + 2px) 0 var(--primary-dark), 
+              0 0 10px var(--primary) !important;
+}
+
+.skill-tree-access-button:active {
+  transform: scale(0.8) translateY(var(--pixel-size)) !important;
+  box-shadow: none !important;
+}
+
+.skill-tree-access-button:before {
+  content: '⚛' !important;
+  margin-right: 5px !important;
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Add retro terminal loading animation */
+.skill-tree-loading {
+  background-color: var(--background);
+}
+
+.skill-tree-loading .spinner {
+  border: 4px solid var(--text-dark);
+  border-top-color: var(--primary);
+  animation: spin 1s steps(8) infinite;
+}
+
+.skill-tree-loading:after {
+  content: 'Loading...';
+  display: block;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 15px;
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Add some ambient floating particles to the visualization */
+#skill-tree-visualization::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 2px),
+    radial-gradient(circle at 70% 30%, rgba(255,255,255,0.2) 0%, transparent 1px),
+    radial-gradient(circle at 30% 70%, rgba(255,255,255,0.2) 0%, transparent 1px),
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2) 0%, transparent 1px),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 1px);
+  background-size: 
+    100px 100px,
+    120px 120px,
+    150px 150px,
+    200px 200px,
+    250px 250px;
+  animation: particle-drift 15s linear infinite;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+@keyframes particle-drift {
+  0% {
+    background-position: 
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0;
+  }
+  100% {
+    background-position: 
+      100px 100px,
+      120px -120px,
+      -150px 150px,
+      200px -200px,
+      -250px 250px;
+  }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .skill-tree-header h2 {
+    font-size: 0.8rem;
+  }
+  
+  .skill-tree-access-button {
+    transform: scale(0.75) !important;
+  }
+  
+  .filter-tab {
+    font-size: 0.5rem;
+    padding: 4px 6px;
+  }
+}
