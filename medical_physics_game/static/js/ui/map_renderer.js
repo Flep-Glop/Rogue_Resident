@@ -214,7 +214,38 @@ const MapRenderer = {
       console.error("Could not get canvas context");
       return;
     }
-    
+    // Add this at the beginning of your renderMap function
+    // (Right after getting the ctx)
+    const style = document.createElement('style');
+    style.textContent = `
+      .scroll-indicator {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 15px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--primary);
+        animation: pulse 1.5s infinite;
+        z-index: 100; /* Ensure it's above the map */
+        pointer-events: none;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 3px;
+      }
+      
+      .scroll-indicator.top {
+        top: 15px;
+      }
+      
+      .scroll-indicator.bottom {
+        bottom: 15px;
+      }
+    `;
+    if (!document.head.querySelector('style#map-renderer-styles')) {
+      style.id = 'map-renderer-styles';
+      document.head.appendChild(style);
+    }
     // Get all nodes to determine map dimensions
     const allNodes = GameState.getAllNodes();
     
@@ -867,47 +898,59 @@ const MapRenderer = {
     ctx.restore();
   },
   
-  // Update scroll indicators based on content height
   updateScrollIndicators: function(canvasHeight) {
     const mapContainer = document.querySelector('.map-container');
-    if (mapContainer) {
-      // Remove any existing indicators
-      const existingIndicators = mapContainer.querySelectorAll('.scroll-indicator');
-      existingIndicators.forEach(el => el.remove());
+    if (!mapContainer) return;
+    
+    // Remove any existing indicators
+    const existingIndicators = mapContainer.querySelectorAll('.scroll-indicator');
+    existingIndicators.forEach(el => el.remove());
+    
+    if (canvasHeight > mapContainer.clientHeight) {
+      // Add scroll indicators if the content is taller than container
       
-      if (canvasHeight > mapContainer.clientHeight) {
-        // Add scroll indicators if the content is taller than container
-        
-        // Top indicator (only if scrolled down)
-        const topIndicator = document.createElement('div');
-        topIndicator.className = 'scroll-indicator top';
-        topIndicator.innerHTML = '▲';
-        mapContainer.appendChild(topIndicator);
-        
-        // Bottom indicator
-        const bottomIndicator = document.createElement('div');
-        bottomIndicator.className = 'scroll-indicator bottom';
-        bottomIndicator.innerHTML = '▼';
-        mapContainer.appendChild(bottomIndicator);
-        
-        // Update indicator visibility on scroll
-        mapContainer.addEventListener('scroll', function() {
-          if (this.scrollTop > 20) {
-            topIndicator.style.display = 'block';
-          } else {
-            topIndicator.style.display = 'none';
-          }
-          
-          if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
-            bottomIndicator.style.display = 'none';
-          } else {
-            bottomIndicator.style.display = 'block';
-          }
-        });
-        
-        // Trigger scroll event to set initial state
-        mapContainer.dispatchEvent(new Event('scroll'));
+      // Top indicator (only if scrolled down)
+      const topIndicator = document.createElement('div');
+      topIndicator.className = 'scroll-indicator top';
+      topIndicator.innerHTML = '▲';
+      mapContainer.appendChild(topIndicator);
+      
+      // Bottom indicator
+      const bottomIndicator = document.createElement('div');
+      bottomIndicator.className = 'scroll-indicator bottom';
+      bottomIndicator.innerHTML = '▼';
+      mapContainer.appendChild(bottomIndicator);
+      
+      // Initial indicator visibility based on scroll position
+      updateIndicatorVisibility();
+      
+      // Make sure we remove any previous scroll listener
+      if (this._scrollHandler) {
+        mapContainer.removeEventListener('scroll', this._scrollHandler);
       }
+      
+      // Create and store the scroll handler
+      this._scrollHandler = function() {
+        updateIndicatorVisibility();
+      };
+      
+      // Function to update indicators
+      function updateIndicatorVisibility() {
+        if (mapContainer.scrollTop > 20) {
+          topIndicator.style.display = 'block';
+        } else {
+          topIndicator.style.display = 'none';
+        }
+        
+        if (mapContainer.scrollTop + mapContainer.clientHeight >= mapContainer.scrollHeight - 20) {
+          bottomIndicator.style.display = 'none';
+        } else {
+          bottomIndicator.style.display = 'block';
+        }
+      }
+      
+      // Add scroll listener
+      mapContainer.addEventListener('scroll', this._scrollHandler);
     }
   },
   
