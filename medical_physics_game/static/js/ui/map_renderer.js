@@ -319,13 +319,11 @@ const MapRenderer = {
     
     // Draw retro-style background
     this.drawRetroBackground(ctx, pattern, canvasWidth, canvasHeight);
-    
-    // Draw ambient floating particles
-    this.drawParticles(ctx);
 
     // Draw connections first (so they're behind the nodes)
     this.drawConnections(ctx, canvasWidth, canvasHeight);
-    
+    // Draw ambient floating particles
+    this.drawParticles(ctx);
     // Draw all nodes with enhanced styling
     allNodes.forEach(node => {
       this.drawNode(ctx, node, canvasWidth, canvasHeight);
