@@ -977,7 +977,52 @@ def upload_icon():
             'success': False,
             'error': str(e)
         })
+
+@app.route('/api/skill-tree', methods=['GET'])
+def get_skill_tree():
+    """Return the skill tree data from skill_tree.json"""
+    from data_manager import load_json_data
     
+    skill_tree_data = load_json_data('skill_tree.json')
+    
+    if not skill_tree_data:
+        return jsonify({"error": "Skill tree data not found"}), 404
+    
+    return jsonify(skill_tree_data)
+
+@app.route('/api/skill-progress', methods=['GET'])
+def get_skill_progress():
+    """Get the current user's skill tree progress"""
+    game_id = get_game_id()
+    
+    # Example structure based on what the client expects
+    default_progress = {
+        "reputation": 10,
+        "unlocked_skills": ["core_physics"],
+        "active_skills": ["core_physics"],
+        "skill_points_available": 3,
+        "specialization_progress": {
+            "theory": 0,
+            "clinical": 0,
+            "technical": 0,
+            "research": 0
+        }
+    }
+    
+    # In a real implementation, you'd load this from a database
+    # For now, return default data
+    return jsonify(default_progress)
+
+@app.route('/api/skill-progress', methods=['POST'])
+def save_skill_progress():
+    """Save the user's skill tree progress"""
+    game_id = get_game_id()
+    data = request.json
+    
+    # In a real implementation, you'd save this to a database
+    # For now, just acknowledge receipt
+    return jsonify({"status": "success", "message": "Progress saved"})
+
 @app.route('/api/test-db')
 def test_db():
     """Test the database connection and operations"""
