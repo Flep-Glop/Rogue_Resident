@@ -22,13 +22,11 @@
   }
   
   .character-avatar {
-    display: inline-block;
-    padding: var(--spacing-sm);
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radius-sm);
-    margin-bottom: var(--spacing-sm);
-    border: 2px solid var(--primary-dark);
-    box-shadow: 0 0 10px rgba(91, 141, 217, 0.2);
+    width: 72px;  /* Should match your image size */
+    height: 72px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .ascii-character {
@@ -48,10 +46,9 @@
   }
 
   .character-panel-img {
-      width: 72px;
-      height: 72px;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges; /* Fallback for some browsers */
+    -webkit-font-smoothing: none;
   }
 
   .ascii-character.walking {

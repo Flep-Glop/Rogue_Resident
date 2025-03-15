@@ -11,17 +11,12 @@
     margin: 0 auto;
   }
   
-  /* Character avatar container */
   .character-avatar {
+    width: 72px;  /* Should match your image size */
+    height: 72px;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    margin-bottom: var(--spacing-sm);
-    border: 2px solid var(--primary-dark);
-    box-shadow: 0 0 10px rgba(91, 141, 217, 0.2);
   }
   
   /* Add bobbing animation for character images */
@@ -66,6 +61,10 @@
   }
   
   .character-card .pixel-character-img {
-    width: 80px;
-    height: 80px;
+    width: 72px;  /* Change from 90px to 72px (2x scaling) */
+    height: 72px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    object-fit: contain;
+    animation: pixel-float 3s infinite ease-in-out;
   }
