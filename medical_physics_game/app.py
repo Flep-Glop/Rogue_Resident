@@ -3,6 +3,9 @@ from flask import Flask, render_template, jsonify, request, session
 import os
 import json
 import uuid
+from werkzeug.utils import secure_filename
+import json
+import uuid
 from datetime import datetime
 import copy
 import sys
@@ -742,7 +745,239 @@ def get_random_relics():
         print(f"Error getting random relics: {e}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
+# Item editor page
+@app.route('/item-editor')
+def item_editor():
+    return render_template('item_editor.html')
 
+# API endpoint to get all items and relics
+@app.route('/api/editor/items')
+def get_all_items():
+    try:
+        # Load items from data files
+        with open('data/items.json', 'r') as f:
+            items_data = json.load(f)
+            
+        with open('data/relics.json', 'r') as f:
+            relics_data = json.load(f)
+            
+        # Combine items and relics
+        all_items = items_data.get('items', []) + relics_data.get('relics', [])
+        
+        return jsonify({
+            'success': True,
+            'items': all_items
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+# Get available icons
+@app.route('/api/editor/icons')
+def get_item_icons():
+    try:
+        # Get all PNG files in the items folder
+        items_dir = os.path.join('static', 'img', 'items')
+        icons = [f for f in os.listdir(items_dir) if f.endswith('.png')]
+        
+        return jsonify({
+            'success': True,
+            'icons': icons
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+# Save a single item
+@app.route('/api/editor/save-item', methods=['POST'])
+def save_item():
+    try:
+        item_data = request.json
+        
+        # Validate item data
+        if not item_data.get('id') or not item_data.get('name'):
+            return jsonify({
+                'success': False,
+                'error': 'Item must have an ID and name'
+            })
+            
+        # Load existing data
+        items_path = 'data/items.json'
+        relics_path = 'data/relics.json'
+        
+        with open(items_path, 'r') as f:
+            items_data = json.load(f)
+            
+        with open(relics_path, 'r') as f:
+            relics_data = json.load(f)
+            
+        # Determine if this is an item or relic
+        is_relic = item_data.get('itemType') == 'relic'
+        
+        # Find and update or add the item
+        if is_relic:
+            # Look for existing relic with same ID
+            relic_index = next((i for i, r in enumerate(relics_data['relics']) 
+                               if r['id'] == item_data.get('id')), None)
+                               
+            if relic_index is not None:
+                # Update existing relic
+                relics_data['relics'][relic_index] = item_data
+            else:
+                # Add new relic
+                relics_data['relics'].append(item_data)
+                
+            # Save relics file
+            with open(relics_path, 'w') as f:
+                json.dump(relics_data, f, indent=2)
+        else:
+            # Look for existing item with same ID
+            item_index = next((i for i, item in enumerate(items_data['items']) 
+                              if item['id'] == item_data.get('id')), None)
+                              
+            if item_index is not None:
+                # Update existing item
+                items_data['items'][item_index] = item_data
+            else:
+                # Add new item
+                items_data['items'].append(item_data)
+                
+            # Save items file
+            with open(items_path, 'w') as f:
+                json.dump(items_data, f, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Item saved successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+# Save all changes
+@app.route('/api/editor/save-all', methods=['POST'])
+def save_all_changes():
+    try:
+        changes = request.json.get('changes', {})
+        
+        if not changes:
+            return jsonify({
+                'success': False,
+                'error': 'No changes provided'
+            })
+            
+        # Load existing data
+        items_path = 'data/items.json'
+        relics_path = 'data/relics.json'
+        
+        with open(items_path, 'r') as f:
+            items_data = json.load(f)
+            
+        with open(relics_path, 'r') as f:
+            relics_data = json.load(f)
+            
+        # Process each change
+        for item_id, item_data in changes.items():
+            # Check if item is marked for deletion
+            if item_data.get('deleted'):
+                # Remove from items or relics
+                items_data['items'] = [item for item in items_data['items'] if item['id'] != item_id]
+                relics_data['relics'] = [relic for relic in relics_data['relics'] if relic['id'] != item_id]
+                continue
+                
+            # Determine if this is an item or relic
+            is_relic = item_data.get('itemType') == 'relic'
+            
+            if is_relic:
+                # Look for existing relic with same ID
+                relic_index = next((i for i, r in enumerate(relics_data['relics']) 
+                                   if r['id'] == item_id), None)
+                                   
+                if relic_index is not None:
+                    # Update existing relic
+                    relics_data['relics'][relic_index] = item_data
+                else:
+                    # Add new relic
+                    relics_data['relics'].append(item_data)
+            else:
+                # Look for existing item with same ID
+                item_index = next((i for i, item in enumerate(items_data['items']) 
+                                  if item['id'] == item_id), None)
+                                  
+                if item_index is not None:
+                    # Update existing item
+                    items_data['items'][item_index] = item_data
+                else:
+                    # Add new item
+                    items_data['items'].append(item_data)
+        
+        # Save files
+        with open(items_path, 'w') as f:
+            json.dump(items_data, f, indent=2)
+            
+        with open(relics_path, 'w') as f:
+            json.dump(relics_data, f, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': 'All changes saved successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+# Upload a new icon
+@app.route('/api/editor/upload-icon', methods=['POST'])
+def upload_icon():
+    try:
+        if 'icon' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file uploaded'
+            })
+            
+        file = request.files['icon']
+        
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            })
+            
+        if not file.filename.endswith('.png'):
+            return jsonify({
+                'success': False,
+                'error': 'Only PNG files are supported'
+            })
+            
+        # Generate a unique filename
+        filename = secure_filename(file.filename)
+        base, ext = os.path.splitext(filename)
+        unique_filename = f"{base}_{uuid.uuid4().hex[:8]}{ext}"
+        
+        # Save the file
+        file_path = os.path.join('static', 'img', 'items', unique_filename)
+        file.save(file_path)
+        
+        return jsonify({
+            'success': True,
+            'filename': unique_filename,
+            'message': 'Icon uploaded successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+    
 @app.route('/api/test-db')
 def test_db():
     """Test the database connection and operations"""
