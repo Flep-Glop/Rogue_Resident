@@ -531,3 +531,163 @@
     min-height: 500px;
   }
 }
+
+/* Enhanced UI feedback styles */
+
+/* Node list items with improved hover and selection states */
+.node-list-item {
+  padding: 10px 12px;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.node-list-item:hover {
+  transform: translateX(3px);
+  background-color: var(--dark);
+}
+
+.node-list-item.selected {
+  background-color: rgba(91, 141, 217, 0.2);
+  border-left-color: var(--primary);
+  position: relative;
+}
+
+.node-list-item.selected::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+}
+
+/* Enhanced button styles with shine effect */
+.editor-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.editor-btn:after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.editor-btn:hover:after {
+  opacity: 1;
+}
+
+/* Connection section styles */
+.connection-list {
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: var(--dark-alt);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 15px;
+}
+
+.connection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background-color: var(--dark);
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.connection-item:last-child {
+  margin-bottom: 0;
+}
+
+.connection-item:hover {
+  background-color: rgba(91, 141, 217, 0.2);
+}
+
+.connection-remove {
+  background: none;
+  border: none;
+  color: var(--text-dark);
+  font-size: 18px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.connection-remove:hover {
+  color: var(--danger);
+  background-color: rgba(230, 126, 115, 0.2);
+}
+
+.add-connection-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.subsection-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+/* Error state styling */
+.error-state {
+  padding: 15px;
+  background-color: rgba(230, 126, 115, 0.1);
+  border-left: 4px solid var(--danger);
+  border-radius: 4px;
+}
+
+.error-state h3 {
+  color: var(--danger);
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* Undo/Redo buttons */
+.editor-undo-btn,
+.editor-redo-btn {
+  width: 36px;
+  padding: 0;
+  font-size: 18px;
+}
+
+/* Enhanced empty state */
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-dark);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  border: 1px dashed var(--border);
+}

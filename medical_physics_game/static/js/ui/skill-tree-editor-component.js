@@ -6,10 +6,10 @@
  */
 class SkillTreeEditor {
   /**
-   * Initialize the editor
-   * @param {Object} options - Configuration options
-   */
-  constructor(options = {}) {
+ * Initialize the editor
+ * @param {Object} options - Configuration options
+ */
+  constructor: function(options = {}) {
     this.options = Object.assign({
       containerId: 'skill-tree-editor',
       width: 800,
@@ -32,6 +32,13 @@ class SkillTreeEditor {
       specialization: null,
       tier: null,
       searchTerm: ''
+    };
+    
+    // For undo/redo system
+    this.history = {
+      past: [],
+      future: [],
+      current: null
     };
     
     // Canvas state
@@ -59,6 +66,11 @@ class SkillTreeEditor {
     this.connectionsGroup = null;
     this.nodesGroup = null;
     
+    // For optimized rendering
+    this._renderPending = false;
+    this._lastNodeCount = 0;
+    this._lastConnectionCount = 0;
+    
     // Initialize
     this._init();
   }
@@ -67,7 +79,7 @@ class SkillTreeEditor {
    * Initialize the editor
    * @private
    */
-  _init() {
+  _init: function() {
     // Get container element
     this.elements.container = document.getElementById(this.options.containerId);
     if (!this.elements.container) {
@@ -91,9 +103,15 @@ class SkillTreeEditor {
         // Initialize event listeners
         this._initEventListeners();
         
+        // Initialize undo/redo system
+        this._initializeUndoRedo();
+        
         // Mark as initialized
         this.initialized = true;
         console.log('Skill Tree Editor initialized');
+        
+        // Initialize history with current state
+        this.history.current = JSON.stringify(this.data);
         
         // Show toast
         this._showToast('Editor loaded successfully', 'success');
@@ -471,369 +489,403 @@ class SkillTreeEditor {
   }
   
   /**
-   * Render the node editor
+   * Render the node editor with improved error handling and structure
    * @private
    * @param {Object} node - Node object to edit
    */
-  _renderNodeEditor(node) {
+  _renderNodeEditor: function(node) {
     const panel = this.elements.editorPanelContent;
+    if (!panel || !node) return;
     
-    // Create editor form
-    const form = document.createElement('form');
-    form.className = 'node-editor-form';
-    form.id = 'node-editor-form';
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      this._saveNodeChanges();
-    };
-    
-    // Basic info section
-    const basicInfoSection = document.createElement('div');
-    basicInfoSection.className = 'editor-section';
-    
-    // ID field
-    const idGroup = document.createElement('div');
-    idGroup.className = 'form-group';
-    
-    const idLabel = document.createElement('label');
-    idLabel.className = 'form-label';
-    idLabel.textContent = 'ID';
-    
-    const idInput = document.createElement('input');
-    idInput.className = 'form-input';
-    idInput.name = 'id';
-    idInput.type = 'text';
-    idInput.value = node.id;
-    idInput.disabled = true;
-    
-    idGroup.appendChild(idLabel);
-    idGroup.appendChild(idInput);
-    basicInfoSection.appendChild(idGroup);
-    
-    // Name field
-    const nameGroup = document.createElement('div');
-    nameGroup.className = 'form-group';
-    
-    const nameLabel = document.createElement('label');
-    nameLabel.className = 'form-label';
-    nameLabel.textContent = 'Name';
-    
-    const nameInput = document.createElement('input');
-    nameInput.className = 'form-input';
-    nameInput.name = 'name';
-    nameInput.type = 'text';
-    nameInput.value = node.name || '';
-    
-    nameGroup.appendChild(nameLabel);
-    nameGroup.appendChild(nameInput);
-    basicInfoSection.appendChild(nameGroup);
-    
-    // Specialization field
-    const specGroup = document.createElement('div');
-    specGroup.className = 'form-group';
-    
-    const specLabel = document.createElement('label');
-    specLabel.className = 'form-label';
-    specLabel.textContent = 'Specialization';
-    
-    const specSelect = document.createElement('select');
-    specSelect.className = 'form-select';
-    specSelect.name = 'specialization';
-    
-    // Add null option for core
-    const nullOption = document.createElement('option');
-    nullOption.value = '';
-    nullOption.textContent = 'Core (None)';
-    specSelect.appendChild(nullOption);
-    
-    // Add specialization options
-    this.data.specializations.forEach(spec => {
-      const option = document.createElement('option');
-      option.value = spec.id;
-      option.textContent = spec.name;
-      option.selected = node.specialization === spec.id;
-      specSelect.appendChild(option);
-    });
-    
-    specGroup.appendChild(specLabel);
-    specGroup.appendChild(specSelect);
-    basicInfoSection.appendChild(specGroup);
-    
-    // Tier field
-    const tierGroup = document.createElement('div');
-    tierGroup.className = 'form-group';
-    
-    const tierLabel = document.createElement('label');
-    tierLabel.className = 'form-label';
-    tierLabel.textContent = 'Tier';
-    
-    const tierInput = document.createElement('input');
-    tierInput.className = 'form-input';
-    tierInput.name = 'tier';
-    tierInput.type = 'number';
-    tierInput.min = 0;
-    tierInput.max = 5;
-    tierInput.value = node.tier || 0;
-    
-    tierGroup.appendChild(tierLabel);
-    tierGroup.appendChild(tierInput);
-    basicInfoSection.appendChild(tierGroup);
-    
-    // Description field
-    const descGroup = document.createElement('div');
-    descGroup.className = 'form-group';
-    
-    const descLabel = document.createElement('label');
-    descLabel.className = 'form-label';
-    descLabel.textContent = 'Description';
-    
-    const descInput = document.createElement('textarea');
-    descInput.className = 'form-textarea';
-    descInput.name = 'description';
-    descInput.value = node.description || '';
-    
-    descGroup.appendChild(descLabel);
-    descGroup.appendChild(descInput);
-    basicInfoSection.appendChild(descGroup);
-    
-    // Cost field
-    const costGroup = document.createElement('div');
-    costGroup.className = 'form-group';
-    
-    const costLabel = document.createElement('label');
-    costLabel.className = 'form-label';
-    costLabel.textContent = 'Cost';
-    
-    const costEditor = document.createElement('div');
-    costEditor.className = 'cost-editor';
-    
-    const repGroup = document.createElement('div');
-    repGroup.className = 'cost-field form-group';
-    
-    const repLabel = document.createElement('label');
-    repLabel.className = 'form-label';
-    repLabel.textContent = 'Reputation';
-    
-    const repInput = document.createElement('input');
-    repInput.className = 'form-input';
-    repInput.name = 'cost_reputation';
-    repInput.type = 'number';
-    repInput.min = 0;
-    repInput.value = node.cost?.reputation || 0;
-    
-    repGroup.appendChild(repLabel);
-    repGroup.appendChild(repInput);
-    
-    const spGroup = document.createElement('div');
-    spGroup.className = 'cost-field form-group';
-    
-    const spLabel = document.createElement('label');
-    spLabel.className = 'form-label';
-    spLabel.textContent = 'Skill Points';
-    
-    const spInput = document.createElement('input');
-    spInput.className = 'form-input';
-    spInput.name = 'cost_skill_points';
-    spInput.type = 'number';
-    spInput.min = 0;
-    spInput.value = node.cost?.skill_points || 0;
-    
-    spGroup.appendChild(spLabel);
-    spGroup.appendChild(spInput);
-    
-    costEditor.appendChild(repGroup);
-    costEditor.appendChild(spGroup);
-    
-    costGroup.appendChild(costLabel);
-    costGroup.appendChild(costEditor);
-    basicInfoSection.appendChild(costGroup);
-    
-    // Visual settings
-    const visualGroup = document.createElement('div');
-    visualGroup.className = 'form-group';
-    
-    const visualLabel = document.createElement('label');
-    visualLabel.className = 'form-label';
-    visualLabel.textContent = 'Visual';
-    
-    const visualEditor = document.createElement('div');
-    visualEditor.className = 'visual-editor';
-    
-    const sizeGroup = document.createElement('div');
-    sizeGroup.className = 'form-group';
-    
-    const sizeLabel = document.createElement('label');
-    sizeLabel.className = 'form-label';
-    sizeLabel.textContent = 'Size';
-    
-    const sizeSelect = document.createElement('select');
-    sizeSelect.className = 'form-select';
-    sizeSelect.name = 'visual_size';
-    
-    ['core', 'major', 'minor', 'connector'].forEach(size => {
-      const option = document.createElement('option');
-      option.value = size;
-      option.textContent = size.charAt(0).toUpperCase() + size.slice(1);
-      option.selected = node.visual?.size === size;
-      sizeSelect.appendChild(option);
-    });
-    
-    sizeGroup.appendChild(sizeLabel);
-    sizeGroup.appendChild(sizeSelect);
-    
-    const iconGroup = document.createElement('div');
-    iconGroup.className = 'form-group';
-    
-    const iconLabel = document.createElement('label');
-    iconLabel.className = 'form-label';
-    iconLabel.textContent = 'Icon';
-    
-    const iconInput = document.createElement('input');
-    iconInput.className = 'form-input';
-    iconInput.name = 'visual_icon';
-    iconInput.type = 'text';
-    iconInput.value = node.visual?.icon || '';
-    
-    const iconHelp = document.createElement('div');
-    iconHelp.className = 'form-help';
-    iconHelp.textContent = 'e.g., atom, brain, star, eye, book';
-    
-    iconGroup.appendChild(iconLabel);
-    iconGroup.appendChild(iconInput);
-    iconGroup.appendChild(iconHelp);
-    
-    visualEditor.appendChild(sizeGroup);
-    visualEditor.appendChild(iconGroup);
-    
-    visualGroup.appendChild(visualLabel);
-    visualGroup.appendChild(visualEditor);
-    
-    basicInfoSection.appendChild(visualGroup);
-    
-    // Effects section
-    const effectsSection = document.createElement('div');
-    effectsSection.className = 'editor-section';
-    
-    const effectsLabel = document.createElement('div');
-    effectsLabel.className = 'form-label';
-    effectsLabel.textContent = 'Effects';
-    
-    const effectsList = document.createElement('div');
-    effectsList.className = 'effects-list';
-    
-    if (node.effects && node.effects.length > 0) {
-      node.effects.forEach((effect, index) => {
-        const effectItem = document.createElement('div');
-        effectItem.className = 'effect-item';
-        effectItem.dataset.index = index;
-        
-        const effectHeader = document.createElement('div');
-        effectHeader.className = 'effect-header';
-        
-        const effectType = document.createElement('div');
-        effectType.className = 'effect-type';
-        effectType.textContent = effect.type;
-        
-        const effectActions = document.createElement('div');
-        effectActions.className = 'effect-actions';
-        
-        const editButton = document.createElement('button');
-        editButton.className = 'effect-action';
-        editButton.innerHTML = '✏️';
-        editButton.type = 'button';
-        editButton.title = 'Edit Effect';
-        editButton.addEventListener('click', () => this._editEffect(index));
-        
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'effect-action';
-        deleteButton.innerHTML = '🗑️';
-        deleteButton.type = 'button';
-        deleteButton.title = 'Delete Effect';
-        deleteButton.addEventListener('click', () => this._deleteEffect(index));
-        
-        effectActions.appendChild(editButton);
-        effectActions.appendChild(deleteButton);
-        
-        effectHeader.appendChild(effectType);
-        effectHeader.appendChild(effectActions);
-        
-        const effectDetails = document.createElement('div');
-        effectDetails.className = 'effect-details';
-        
-        const effectValue = document.createElement('div');
-        effectValue.className = 'effect-value';
-        effectValue.textContent = `Value: ${JSON.stringify(effect.value)}`;
-        
-        effectDetails.appendChild(effectValue);
-        
-        if (effect.condition) {
-          const effectCondition = document.createElement('div');
-          effectCondition.className = 'effect-condition';
-          effectCondition.textContent = `Condition: ${effect.condition}`;
-          effectDetails.appendChild(effectCondition);
-        }
-        
-        effectItem.appendChild(effectHeader);
-        effectItem.appendChild(effectDetails);
-        
-        effectsList.appendChild(effectItem);
+    // Create form with proper error handling
+    try {
+      // Clear previous content
+      panel.innerHTML = '';
+      
+      const form = document.createElement('form');
+      form.className = 'node-editor-form';
+      form.id = 'node-editor-form';
+      
+      // Prevent default form submission and use our handler
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this._saveNodeChanges();
       });
-    } else {
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-state';
-      emptyState.textContent = 'No effects defined for this node';
-      effectsList.appendChild(emptyState);
+      
+      // Basic information section
+      const basicInfoSection = document.createElement('div');
+      basicInfoSection.className = 'editor-section';
+      
+      // ID field (disabled)
+      const idGroup = document.createElement('div');
+      idGroup.className = 'form-group';
+      
+      const idLabel = document.createElement('label');
+      idLabel.className = 'form-label';
+      idLabel.textContent = 'ID';
+      
+      const idInput = document.createElement('input');
+      idInput.className = 'form-input';
+      idInput.name = 'id';
+      idInput.type = 'text';
+      idInput.value = node.id || '';
+      idInput.disabled = true;
+      
+      idGroup.appendChild(idLabel);
+      idGroup.appendChild(idInput);
+      basicInfoSection.appendChild(idGroup);
+      
+      // Name field
+      const nameGroup = document.createElement('div');
+      nameGroup.className = 'form-group';
+      
+      const nameLabel = document.createElement('label');
+      nameLabel.className = 'form-label';
+      nameLabel.textContent = 'Name';
+      
+      const nameInput = document.createElement('input');
+      nameInput.className = 'form-input';
+      nameInput.name = 'name';
+      nameInput.type = 'text';
+      nameInput.value = node.name || '';
+      nameInput.required = true;
+      
+      nameGroup.appendChild(nameLabel);
+      nameGroup.appendChild(nameInput);
+      basicInfoSection.appendChild(nameGroup);
+      
+      // Specialization field
+      const specGroup = document.createElement('div');
+      specGroup.className = 'form-group';
+      
+      const specLabel = document.createElement('label');
+      specLabel.className = 'form-label';
+      specLabel.textContent = 'Specialization';
+      
+      const specSelect = document.createElement('select');
+      specSelect.className = 'form-select';
+      specSelect.name = 'specialization';
+      
+      // Add null option for core
+      const nullOption = document.createElement('option');
+      nullOption.value = '';
+      nullOption.textContent = 'Core (None)';
+      specSelect.appendChild(nullOption);
+      
+      // Add specialization options
+      this.data.specializations.forEach(spec => {
+        const option = document.createElement('option');
+        option.value = spec.id;
+        option.textContent = spec.name;
+        option.selected = node.specialization === spec.id;
+        specSelect.appendChild(option);
+      });
+      
+      specGroup.appendChild(specLabel);
+      specGroup.appendChild(specSelect);
+      basicInfoSection.appendChild(specGroup);
+      
+      // Tier field
+      const tierGroup = document.createElement('div');
+      tierGroup.className = 'form-group';
+      
+      const tierLabel = document.createElement('label');
+      tierLabel.className = 'form-label';
+      tierLabel.textContent = 'Tier';
+      
+      const tierInput = document.createElement('input');
+      tierInput.className = 'form-input';
+      tierInput.name = 'tier';
+      tierInput.type = 'number';
+      tierInput.min = 0;
+      tierInput.max = 5;
+      tierInput.value = node.tier || 0;
+      
+      tierGroup.appendChild(tierLabel);
+      tierGroup.appendChild(tierInput);
+      basicInfoSection.appendChild(tierGroup);
+      
+      // Description field
+      const descGroup = document.createElement('div');
+      descGroup.className = 'form-group';
+      
+      const descLabel = document.createElement('label');
+      descLabel.className = 'form-label';
+      descLabel.textContent = 'Description';
+      
+      const descInput = document.createElement('textarea');
+      descInput.className = 'form-textarea';
+      descInput.name = 'description';
+      descInput.value = node.description || '';
+      
+      descGroup.appendChild(descLabel);
+      descGroup.appendChild(descInput);
+      basicInfoSection.appendChild(descGroup);
+      
+      // Cost fields
+      const costGroup = document.createElement('div');
+      costGroup.className = 'form-group';
+      
+      const costLabel = document.createElement('label');
+      costLabel.className = 'form-label';
+      costLabel.textContent = 'Cost';
+      
+      const costEditor = document.createElement('div');
+      costEditor.className = 'cost-editor';
+      
+      // Reputation cost
+      const repGroup = document.createElement('div');
+      repGroup.className = 'cost-field form-group';
+      
+      const repLabel = document.createElement('label');
+      repLabel.className = 'form-label';
+      repLabel.textContent = 'Reputation';
+      
+      const repInput = document.createElement('input');
+      repInput.className = 'form-input';
+      repInput.name = 'cost_reputation';
+      repInput.type = 'number';
+      repInput.min = 0;
+      repInput.value = node.cost?.reputation || 0;
+      
+      repGroup.appendChild(repLabel);
+      repGroup.appendChild(repInput);
+      
+      // Skill points cost
+      const spGroup = document.createElement('div');
+      spGroup.className = 'cost-field form-group';
+      
+      const spLabel = document.createElement('label');
+      spLabel.className = 'form-label';
+      spLabel.textContent = 'Skill Points';
+      
+      const spInput = document.createElement('input');
+      spInput.className = 'form-input';
+      spInput.name = 'cost_skill_points';
+      spInput.type = 'number';
+      spInput.min = 0;
+      spInput.value = node.cost?.skill_points || 0;
+      
+      spGroup.appendChild(spLabel);
+      spGroup.appendChild(spInput);
+      
+      costEditor.appendChild(repGroup);
+      costEditor.appendChild(spGroup);
+      
+      costGroup.appendChild(costLabel);
+      costGroup.appendChild(costEditor);
+      basicInfoSection.appendChild(costGroup);
+      
+      // Visual settings
+      const visualGroup = document.createElement('div');
+      visualGroup.className = 'form-group';
+      
+      const visualLabel = document.createElement('label');
+      visualLabel.className = 'form-label';
+      visualLabel.textContent = 'Visual';
+      
+      const visualEditor = document.createElement('div');
+      visualEditor.className = 'visual-editor';
+      
+      // Node size
+      const sizeGroup = document.createElement('div');
+      sizeGroup.className = 'form-group';
+      
+      const sizeLabel = document.createElement('label');
+      sizeLabel.className = 'form-label';
+      sizeLabel.textContent = 'Size';
+      
+      const sizeSelect = document.createElement('select');
+      sizeSelect.className = 'form-select';
+      sizeSelect.name = 'visual_size';
+      
+      ['core', 'major', 'minor', 'connector'].forEach(size => {
+        const option = document.createElement('option');
+        option.value = size;
+        option.textContent = size.charAt(0).toUpperCase() + size.slice(1);
+        option.selected = node.visual?.size === size;
+        sizeSelect.appendChild(option);
+      });
+      
+      sizeGroup.appendChild(sizeLabel);
+      sizeGroup.appendChild(sizeSelect);
+      
+      // Node icon
+      const iconGroup = document.createElement('div');
+      iconGroup.className = 'form-group';
+      
+      const iconLabel = document.createElement('label');
+      iconLabel.className = 'form-label';
+      iconLabel.textContent = 'Icon';
+      
+      const iconInput = document.createElement('input');
+      iconInput.className = 'form-input';
+      iconInput.name = 'visual_icon';
+      iconInput.type = 'text';
+      iconInput.value = node.visual?.icon || '';
+      
+      const iconHelp = document.createElement('div');
+      iconHelp.className = 'form-help';
+      iconHelp.textContent = 'e.g., atom, brain, star, eye, book';
+      
+      iconGroup.appendChild(iconLabel);
+      iconGroup.appendChild(iconInput);
+      iconGroup.appendChild(iconHelp);
+      
+      visualEditor.appendChild(sizeGroup);
+      visualEditor.appendChild(iconGroup);
+      
+      visualGroup.appendChild(visualLabel);
+      visualGroup.appendChild(visualEditor);
+      
+      basicInfoSection.appendChild(visualGroup);
+      
+      // Effects section
+      const effectsSection = document.createElement('div');
+      effectsSection.className = 'editor-section';
+      
+      const effectsLabel = document.createElement('div');
+      effectsLabel.className = 'section-title';
+      effectsLabel.textContent = 'Effects';
+      
+      const effectsList = document.createElement('div');
+      effectsList.className = 'effects-list';
+      
+      if (node.effects && node.effects.length > 0) {
+        node.effects.forEach((effect, index) => {
+          const effectItem = document.createElement('div');
+          effectItem.className = 'effect-item';
+          effectItem.dataset.index = index;
+          
+          const effectHeader = document.createElement('div');
+          effectHeader.className = 'effect-header';
+          
+          const effectType = document.createElement('div');
+          effectType.className = 'effect-type';
+          effectType.textContent = effect.type;
+          
+          const effectActions = document.createElement('div');
+          effectActions.className = 'effect-actions';
+          
+          const editButton = document.createElement('button');
+          editButton.className = 'effect-action';
+          editButton.innerHTML = '✏️';
+          editButton.type = 'button';
+          editButton.title = 'Edit Effect';
+          editButton.addEventListener('click', () => this._editEffect(index));
+          
+          const deleteButton = document.createElement('button');
+          deleteButton.className = 'effect-action';
+          deleteButton.innerHTML = '🗑️';
+          deleteButton.type = 'button';
+          deleteButton.title = 'Delete Effect';
+          deleteButton.addEventListener('click', () => this._deleteEffect(index));
+          
+          effectActions.appendChild(editButton);
+          effectActions.appendChild(deleteButton);
+          
+          effectHeader.appendChild(effectType);
+          effectHeader.appendChild(effectActions);
+          
+          const effectDetails = document.createElement('div');
+          effectDetails.className = 'effect-details';
+          
+          const effectValue = document.createElement('div');
+          effectValue.className = 'effect-value';
+          effectValue.textContent = `Value: ${JSON.stringify(effect.value)}`;
+          
+          effectDetails.appendChild(effectValue);
+          
+          if (effect.condition) {
+            const effectCondition = document.createElement('div');
+            effectCondition.className = 'effect-condition';
+            effectCondition.textContent = `Condition: ${effect.condition}`;
+            effectDetails.appendChild(effectCondition);
+          }
+          
+          effectItem.appendChild(effectHeader);
+          effectItem.appendChild(effectDetails);
+          
+          effectsList.appendChild(effectItem);
+        });
+      } else {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'No effects defined for this node';
+        effectsList.appendChild(emptyState);
+      }
+      
+      // Add effect control
+      const addEffectControl = document.createElement('div');
+      addEffectControl.className = 'add-effect-control';
+      
+      const addEffectButton = document.createElement('button');
+      addEffectButton.className = 'editor-btn editor-btn-secondary';
+      addEffectButton.textContent = 'Add Effect';
+      addEffectButton.type = 'button';
+      addEffectButton.addEventListener('click', () => this._addEffect());
+      
+      addEffectControl.appendChild(addEffectButton);
+      
+      effectsSection.appendChild(effectsLabel);
+      effectsSection.appendChild(effectsList);
+      effectsSection.appendChild(addEffectControl);
+      
+      // Action buttons
+      const actionButtons = document.createElement('div');
+      actionButtons.className = 'form-actions mt-3';
+      
+      const saveButton = document.createElement('button');
+      saveButton.className = 'editor-btn editor-btn-primary';
+      saveButton.textContent = 'Save Changes';
+      saveButton.type = 'submit';
+      
+      const deleteButton = document.createElement('button');
+      deleteButton.className = 'editor-btn editor-btn-danger';
+      deleteButton.textContent = 'Delete Node';
+      deleteButton.type = 'button';
+      deleteButton.addEventListener('click', () => {
+        if (confirm(`Are you sure you want to delete node "${node.name}"?`)) {
+          this._deleteNode(node.id);
+        }
+      });
+      
+      actionButtons.appendChild(saveButton);
+      actionButtons.appendChild(deleteButton);
+      
+      // Append all sections to form
+      form.appendChild(basicInfoSection);
+      form.appendChild(effectsSection);
+      form.appendChild(actionButtons);
+      
+      // Add the form to the panel
+      panel.appendChild(form);
+    } catch (error) {
+      console.error("Error rendering node editor:", error);
+      
+      // Show error recovery UI
+      panel.innerHTML = `
+        <div class="error-state">
+          <h3>Error Loading Editor</h3>
+          <p>${error.message}</p>
+          <button class="editor-btn editor-btn-primary" id="retry-editor-btn">Retry</button>
+        </div>
+      `;
+      
+      const retryButton = document.getElementById('retry-editor-btn');
+      if (retryButton) {
+        retryButton.addEventListener('click', () => {
+          this._renderNodeEditor(node);
+        });
+      }
     }
-    
-    // Add effect control
-    const addEffectControl = document.createElement('div');
-    addEffectControl.className = 'add-effect-control';
-    
-    const addEffectButton = document.createElement('button');
-    addEffectButton.className = 'editor-btn editor-btn-secondary';
-    addEffectButton.textContent = 'Add Effect';
-    addEffectButton.type = 'button';
-    addEffectButton.addEventListener('click', () => this._addEffect());
-    
-    addEffectControl.appendChild(addEffectButton);
-    
-    effectsSection.appendChild(effectsLabel);
-    effectsSection.appendChild(effectsList);
-    effectsSection.appendChild(addEffectControl);
-    
-    // Action buttons
-    const actionButtons = document.createElement('div');
-    actionButtons.className = 'form-actions mt-3';
-    
-    const saveButton = document.createElement('button');
-    saveButton.className = 'editor-btn editor-btn-primary';
-    saveButton.textContent = 'Save Changes';
-    saveButton.type = 'submit';
-    
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'editor-btn editor-btn-danger';
-    deleteButton.textContent = 'Delete Node';
-    deleteButton.type = 'button';
-    deleteButton.addEventListener('click', () => this._deleteNode(node.id));
-    
-    actionButtons.appendChild(saveButton);
-    actionButtons.appendChild(deleteButton);
-    
-    // Append all sections to form
-    form.appendChild(basicInfoSection);
-    form.appendChild(effectsSection);
-    form.appendChild(actionButtons);
-    
-    // Clear panel and append form
-    panel.innerHTML = '';
-    panel.appendChild(form);
   }
   
   /**
    * Save node changes from the editor form
    * @private
    */
-  _saveNodeChanges() {
+  _saveNodeChanges: function() {
     const form = document.getElementById('node-editor-form');
     if (!form) return;
     
@@ -843,6 +895,9 @@ class SkillTreeEditor {
     // Find the node
     const nodeId = this.selectedNodeId;
     if (!nodeId) return;
+    
+    // Save state before changes
+    this._saveToHistory();
     
     const nodeIndex = this.data.nodes.findIndex(n => n.id === nodeId);
     if (nodeIndex === -1) return;
@@ -867,8 +922,6 @@ class SkillTreeEditor {
       size: formData.get('visual_size'),
       icon: formData.get('visual_icon')
     };
-    
-    // Note: Effects are updated separately through the effect editor
     
     // Update UI
     this._updateNodeList();
@@ -1642,19 +1695,187 @@ class SkillTreeEditor {
   }
   
   /**
-   * Render the canvas
-   * @private
-   */
-  _renderCanvas() {
-    // Clear existing content
-    this.connectionsGroup.innerHTML = '';
-    this.nodesGroup.innerHTML = '';
+ * Render the canvas with optimized performance
+ * @private
+ */
+  _renderCanvas: function() {
+    // Use requestAnimationFrame for smoother rendering
+    if (this._renderPending) return;
     
-    // Draw connections
-    this._drawConnections();
+    this._renderPending = true;
+    requestAnimationFrame(() => {
+      this._renderPending = false;
+      
+      // Clear existing content
+      this.connectionsGroup.innerHTML = '';
+      this.nodesGroup.innerHTML = '';
+      
+      // Create document fragments for batched DOM operations
+      const connectionsFragment = document.createDocumentFragment();
+      const nodesFragment = document.createDocumentFragment();
+      
+      // Filter nodes if needed
+      let nodesToDraw = this.data.nodes;
+      
+      if (this.filter.specialization !== null) {
+        nodesToDraw = nodesToDraw.filter(node => 
+          node.specialization === this.filter.specialization || 
+          node.tier === 0 // Always show tier 0 (core) nodes
+        );
+      }
+      
+      // Create a node map for quick lookups
+      const nodeMap = {};
+      nodesToDraw.forEach(node => {
+        nodeMap[node.id] = node;
+      });
+      
+      // Draw connections first (they should be under nodes)
+      this.data.connections.forEach(connection => {
+        const sourceNode = nodeMap[connection.source];
+        const targetNode = nodeMap[connection.target];
+        
+        // Skip if either node is not visible
+        if (!sourceNode || !targetNode) return;
+        
+        // Get node positions
+        const sourceX = sourceNode.position?.x || 0;
+        const sourceY = sourceNode.position?.y || 0;
+        const targetX = targetNode.position?.x || 0;
+        const targetY = targetNode.position?.y || 0;
+        
+        // Get specialization color
+        let connectionColor = this.config?.colors?.connectionDefault || '#888';
+        
+        if (sourceNode.specialization && this.specializations[sourceNode.specialization]) {
+          connectionColor = this.specializations[sourceNode.specialization].color;
+        }
+        
+        // Create connection line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', sourceX);
+        line.setAttribute('y1', sourceY);
+        line.setAttribute('x2', targetX);
+        line.setAttribute('y2', targetY);
+        line.setAttribute('stroke', connectionColor);
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('class', `connection connection-${connection.source} connection-${connection.target}`);
+        
+        // Add data attributes
+        line.dataset.source = connection.source;
+        line.dataset.target = connection.target;
+        
+        // Add event listener for connection deletion (dblclick)
+        line.addEventListener('dblclick', () => {
+          if (confirm('Delete this connection?')) {
+            this._removeConnection(connection.source, connection.target);
+          }
+        });
+        
+        connectionsFragment.appendChild(line);
+      });
+      
+      // Draw nodes
+      nodesToDraw.forEach(node => {
+        // Get node properties
+        const nodeSize = node.visual?.size || 'minor';
+        const x = node.position?.x || 0;
+        const y = node.position?.y || 0;
+        
+        // Determine node color based on specialization
+        let nodeColor = this.config?.colors?.connectionDefault || '#888';
+        
+        if (node.specialization && this.specializations[node.specialization]) {
+          nodeColor = this.specializations[node.specialization].color;
+        } else if (node.id === 'core_physics' || nodeSize === 'core') {
+          nodeColor = this.config?.colors?.core || '#4682B4';
+        }
+        
+        // Get radius based on node size
+        const radius = this.config?.nodeRadius?.[nodeSize] || 15;
+        
+        // Create node circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('fill', nodeColor);
+        
+        // Set fill opacity based on state
+        let fillOpacity = 0.7;
+        switch (node.state) {
+          case 'locked': fillOpacity = 0.3; break;
+          case 'unlockable': fillOpacity = 0.6; break;
+          case 'unlocked': fillOpacity = 0.8; break;
+          case 'active': fillOpacity = 1.0; break;
+        }
+        
+        circle.setAttribute('fill-opacity', fillOpacity);
+        circle.setAttribute('stroke', this.config?.colors?.nodeStroke || '#fff');
+        circle.setAttribute('stroke-width', node.id === this.selectedNodeId ? '4' : '2');
+        circle.setAttribute('class', `node node-${node.id} node-size-${nodeSize}`);
+        
+        // Add data attributes
+        circle.dataset.nodeId = node.id;
+        circle.dataset.nodeName = node.name;
+        circle.dataset.nodeState = node.state;
+        
+        // Add event listeners
+        circle.addEventListener('mouseenter', this.handleNodeMouseEnter.bind(this, node));
+        circle.addEventListener('mouseleave', this.handleNodeMouseLeave.bind(this, node));
+        circle.addEventListener('click', this.handleNodeClick.bind(this, node));
+        circle.addEventListener('mousedown', (e) => {
+          // Only handle left-click for dragging nodes
+          if (e.button !== 0) return;
+          
+          e.stopPropagation();
+          this._startNodeDrag(node.id, e);
+        });
+        
+        // Add node to fragment
+        nodesFragment.appendChild(circle);
+        
+        // Create node label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y + radius + 15);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', this.config?.colors?.text || '#fff');
+        text.setAttribute('font-size', '12');
+        text.setAttribute('class', `node-label node-label-${node.id}`);
+        text.textContent = node.name;
+        
+        // Add label to fragment
+        nodesFragment.appendChild(text);
+        
+        // Create node icon if available
+        if (node.visual?.icon) {
+          this._createNodeIcon(node, x, y, radius, nodesFragment);
+        }
+      });
+      
+      // Append fragments to their respective groups
+      this.connectionsGroup.appendChild(connectionsFragment);
+      this.nodesGroup.appendChild(nodesFragment);
+      
+      // Apply canvas transform
+      this._applyCanvasTransform();
+    });
+  }
+
+  // Helper for clearing or reusing elements
+  _clearOrReuseElements: function() {
+    // Cache node and connection counts for comparison
+    const nodeCount = this.data.nodes.length;
+    const connectionCount = this.data.connections.length;
     
-    // Draw nodes
-    this._drawNodes();
+    // Only rebuild if necessary
+    if (this._lastNodeCount !== nodeCount || this._lastConnectionCount !== connectionCount) {
+      this.connectionsGroup.innerHTML = '';
+      this.nodesGroup.innerHTML = '';
+      this._lastNodeCount = nodeCount;
+      this._lastConnectionCount = connectionCount;
+    }
   }
   
   /**
