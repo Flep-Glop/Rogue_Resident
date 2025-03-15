@@ -182,74 +182,63 @@ const SkillTreeController = {
         attemptInitialization();
       });
     },
-    /**
-     * Initialize all components with improved error handling and dependency checks
-     * @returns {Promise} Promise that resolves when initialization is complete
-     */
     initializeComponents: function() {
-      console.log("Initializing skill tree components with improved error handling...");
+      console.log("Initializing skill tree components in sequence...");
       
       return new Promise((resolve, reject) => {
         // First check if DOM containers exist
         this.checkContainers()
           .then(() => {
+            console.log("Containers verified, initializing SkillEffectSystem...");
             // Initialize SkillEffectSystem first
-            return this.initializeWithRetry(
-              SkillEffectSystem.initialize.bind(SkillEffectSystem),
-              "SkillEffectSystem",
-              3
-            );
+            return SkillEffectSystem.initialize();
           })
           .then(() => {
-            console.log("SkillEffectSystem initialized");
-            
+            console.log("SkillEffectSystem initialized, initializing SkillTreeManager...");
             // Then initialize SkillTreeManager
-            return this.initializeWithRetry(
-              SkillTreeManager.initialize.bind(SkillTreeManager),
-              "SkillTreeManager",
-              3
-            );
+            return SkillTreeManager.initialize();
           })
           .then(() => {
-            console.log("SkillTreeManager initialized");
+            console.log("SkillTreeManager initialized, initializing renderer...");
+            // Initialize the renderer
+            const rendererInitialized = SkillTreeRenderer.initialize(this.config.renderContainerId, {
+              width: 800,
+              height: 800
+            });
             
-            // Initialize the renderer with error handling
-            try {
-              const rendererInitialized = SkillTreeRenderer.initialize(this.config.renderContainerId, {
-                width: 800,
-                height: 800
-              });
-              
-              if (!rendererInitialized) {
-                throw new Error("Failed to initialize SkillTreeRenderer");
-              }
-              
-              console.log("SkillTreeRenderer initialized");
-            } catch (error) {
-              console.error("SkillTreeRenderer initialization failed:", error);
-              // Continue despite renderer error
+            if (!rendererInitialized) {
+              console.warn("SkillTreeRenderer initialization failed, will retry...");
+              setTimeout(() => {
+                SkillTreeRenderer.initialize(this.config.renderContainerId, {
+                  width: 800,
+                  height: 800
+                });
+              }, 500);
             }
             
-            // Initialize the UI with error handling
-            try {
-              SkillTreeUI.initialize({
-                containerId: this.config.uiContainerId,
-                controlsContainerId: this.config.controlsContainerId,
-                infoContainerId: this.config.infoContainerId
-              });
-              
-              console.log("SkillTreeUI initialized");
-            } catch (error) {
-              console.error("SkillTreeUI initialization failed:", error);
-              // Continue despite UI error
+            console.log("Renderer initialized, initializing UI...");
+            
+            // Initialize the UI
+            const uiInitialized = SkillTreeUI.initialize({
+              containerId: this.config.uiContainerId
+            });
+            
+            if (!uiInitialized) {
+              console.warn("SkillTreeUI initialization failed, will retry...");
+              setTimeout(() => {
+                SkillTreeUI.initialize({
+                  containerId: this.config.uiContainerId
+                });
+              }, 500);
             }
             
-            // Complete initialization even if some components failed
+            // Complete initialization
             resolve();
           })
           .catch(error => {
             console.error("Component initialization failed:", error);
-            reject(error);
+            // Still try to continue with partial initialization
+            resolve();
           });
       });
     },

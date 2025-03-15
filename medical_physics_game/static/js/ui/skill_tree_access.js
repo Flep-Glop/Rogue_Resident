@@ -48,28 +48,25 @@ const SkillTreeAccess = {
         return this;
     },
     
-    /**
-     * Create the complete modal DOM structure
-     */
     createModalStructure: function() {
         console.log("Creating skill tree modal structure...");
         
         // Check if container already exists
         let container = document.getElementById(this.config.containerId);
         
-        // If it exists, keep it but verify its structure
+        // If container already exists, completely rebuild its structure
         if (container) {
-            console.log("Skill tree container already exists, verifying structure...");
-            this.verifyContainerStructure(container);
-            return;
+            console.log("Rebuilding existing skill tree container structure...");
+            container.innerHTML = ''; // Clear existing content
+        } else {
+            // Create container
+            container = document.createElement('div');
+            container.id = this.config.containerId;
+            container.className = 'skill-tree-container';
+            document.body.appendChild(container);
         }
         
-        // Create container
-        container = document.createElement('div');
-        container.id = this.config.containerId;
-        container.className = 'skill-tree-container';
-        
-        // Create panel structure
+        // Create complete panel structure with all required containers
         container.innerHTML = `
             <div class="skill-tree-panel">
                 <div class="skill-tree-header">
@@ -86,9 +83,7 @@ const SkillTreeAccess = {
             </div>
         `;
         
-        // Append to body
-        document.body.appendChild(container);
-        console.log("Skill tree modal structure created");
+        console.log("Skill tree modal structure created with all containers");
     },
     
     /**
@@ -369,7 +364,32 @@ const SkillTreeAccess = {
         
         console.groupEnd();
     },
-
+    // Add this to skill_tree_access.js
+    debugSkillTree: function() {
+        console.group("Skill Tree Debug Information");
+        
+        // Check containers
+        console.log("DOM Structure:");
+        console.log(`- Main container: ${document.getElementById(this.config.containerId) ? 'Found' : 'Missing'}`);
+        console.log(`- Visualization: ${document.getElementById(this.config.visualizationId) ? 'Found' : 'Missing'}`);
+        console.log(`- UI container: ${document.getElementById(this.config.uiId) ? 'Found' : 'Missing'}`);
+        console.log(`- Controls: ${document.getElementById(this.config.controlsId) ? 'Found' : 'Missing'}`);
+        console.log(`- Info panel: ${document.getElementById(this.config.infoId) ? 'Found' : 'Missing'}`);
+        
+        // Check components
+        console.log("Components:");
+        console.log(`- SkillTreeAccess: ${this.isInitialized ? 'Initialized' : 'Not initialized'}`);
+        console.log(`- SkillTreeController: ${window.SkillTreeController?.initialized ? 'Initialized' : 'Not initialized'}`);
+        console.log(`- SkillTreeManager: ${window.SkillTreeManager?.initialized ? 'Initialized' : 'Not initialized'}`);
+        console.log(`- SkillTreeRenderer: ${window.SkillTreeRenderer?.initialized ? 'Initialized' : 'Not initialized'}`);
+        console.log(`- SkillTreeUI: ${window.SkillTreeUI?.initialized ? 'Initialized' : 'Not initialized'}`);
+        console.log(`- SkillEffectSystem: ${window.SkillEffectSystem?.initialized ? 'Initialized' : 'Not initialized'}`);
+        
+        console.groupEnd();
+        
+        // Return a message for the console
+        return "Debug information logged to console. Check the console for details.";
+    },
 
     initializeSkillTree: function() {
         // Only proceed if we have a valid container structure

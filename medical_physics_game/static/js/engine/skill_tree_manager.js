@@ -39,7 +39,7 @@ const SKILL_STATE = {
       console.log("Initializing skill tree manager...");
       
       if (this.initialized) {
-        console.warn("SkillTreeManager already initialized!");
+        console.log("SkillTreeManager already initialized - skipping initialization");
         return Promise.resolve(this);
       }
       
@@ -53,12 +53,7 @@ const SKILL_STATE = {
           return response.json();
         })
         .then(data => {
-          console.log("Skill tree data loaded successfully:", data);
-          
-          // Check if data has the expected structure
-          if (!data.nodes || !data.specializations) {
-            console.warn("Skill tree data has unexpected structure:", data);
-          }
+          console.log("Skill tree data loaded successfully");
           
           // Process skill tree data
           this._processSkillTreeData(data);
@@ -86,23 +81,17 @@ const SKILL_STATE = {
           return this;
         })
         .catch(error => {
+          // Handle error and create fallback data
+          console.error("Error initializing skill tree manager:", error);
+          
           ErrorHandler.handleError(
             error,
             "Skill Tree Initialization",
             ErrorHandler.SEVERITY.ERROR
           );
           
-          // Create fallback data to ensure functionality
           this._createFallbackData();
-          
           this.initialized = true;
-          this.notifyObservers('skillTreeInitialized', {
-            skills: this.skills,
-            specializations: this.specializations,
-            unlockedSkills: this.unlockedSkills,
-            activeSkills: this.activeSkills,
-            specialization_progress: this.specialization_progress
-          });
           
           console.log("Skill tree manager initialized with fallback data");
           return this;
