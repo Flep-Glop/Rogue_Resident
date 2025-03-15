@@ -434,6 +434,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export globally
 window.SkillTreeAccess = SkillTreeAccess;
 
+// Add to the end of skill_tree_access.js
+// Make the debug function available globally
+window.debugSkillTree = function() {
+    return SkillTreeAccess.debugSkillTree();
+  };
+
 // Legacy support for older code
 window.toggleSkillTree = function() {
     if (SkillTreeAccess.isVisible) {
