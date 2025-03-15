@@ -659,7 +659,7 @@ const SkillEffectSystem = {
   
   // Export the SkillEffectSystem object
   window.SkillEffectSystem = SkillEffectSystem;
-  
+  console.log("Loaded: skill_effect_system.js");
   // Helper function to check specialization for conditions
   window.has_specialization = function(specializationId) {
     return SkillEffectSystem.hasSpecialization(specializationId);

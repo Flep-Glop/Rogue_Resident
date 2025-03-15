@@ -35,7 +35,6 @@ const SKILL_STATE = {
       skillPointsChanged: []
     },
     
-    // Initialize the skill tree manager
     initialize: function() {
       console.log("Initializing skill tree manager...");
       
@@ -44,15 +43,23 @@ const SKILL_STATE = {
         return Promise.resolve(this);
       }
       
-      // Load skill tree data
+      // Load skill tree data with improved error handling
       return fetch('/api/skill-tree')
         .then(response => {
           if (!response.ok) {
+            console.error(`API error: ${response.status} when loading skill tree data`);
             throw new Error(`Failed to load skill tree data: ${response.status}`);
           }
           return response.json();
         })
         .then(data => {
+          console.log("Skill tree data loaded successfully:", data);
+          
+          // Check if data has the expected structure
+          if (!data.nodes || !data.specializations) {
+            console.warn("Skill tree data has unexpected structure:", data);
+          }
+          
           // Process skill tree data
           this._processSkillTreeData(data);
           
@@ -1022,7 +1029,136 @@ const SKILL_STATE = {
       
       return false;
     },
-    
+    // Create fallback data in case of error
+    _createFallbackData: function() {
+      console.warn("Creating fallback skill tree data - this indicates an API failure");
+      
+      // Create basic specializations
+      this.specializations = {
+        "theory": {
+          "id": "theory",
+          "name": "Theory Specialist",
+          "description": "Focus on physics principles and mathematical understanding",
+          "color": "#4287f5",
+          "threshold": 5,
+          "mastery_threshold": 8
+        },
+        "clinical": {
+          "id": "clinical",
+          "name": "Clinical Expert",
+          "description": "Focus on patient care and treatment application",
+          "color": "#42f575",
+          "threshold": 5,
+          "mastery_threshold": 8
+        }
+      };
+      
+      // Create basic skills
+      this.skills = {
+        "core_physics": {
+          "id": "core_physics",
+          "name": "Core Physics",
+          "specialization": null,
+          "tier": 0,
+          "description": "Fundamental knowledge of medical physics principles.",
+          "effects": [
+            {
+              "type": "insight_gain_flat",
+              "value": 5,
+              "condition": null
+            }
+          ],
+          "position": {"x": 400, "y": 300},
+          "connections": ["quantum_comprehension", "bedside_manner"],
+          "cost": {
+            "reputation": 0,
+            "skill_points": 0
+          },
+          "state": SKILL_STATE.UNLOCKED,
+          "visual": {
+            "size": "core",
+            "icon": "atom"
+          }
+        },
+        "quantum_comprehension": {
+          "id": "quantum_comprehension",
+          "name": "Quantum Comprehension",
+          "specialization": "theory",
+          "tier": 1,
+          "description": "Increases Insight gained from quantum physics questions by 25%",
+          "effects": [
+            {
+              "type": "insight_gain_multiplier",
+              "condition": "question_category == 'quantum'",
+              "value": 1.25
+            }
+          ],
+          "position": {"x": 300, "y": 150},
+          "connections": [],
+          "cost": {
+            "reputation": 10,
+            "skill_points": 2
+          },
+          "state": SKILL_STATE.LOCKED,
+          "visual": {
+            "size": "minor",
+            "icon": "brain"
+          }
+        },
+        "bedside_manner": {
+          "id": "bedside_manner",
+          "name": "Bedside Manner",
+          "specialization": "clinical",
+          "tier": 1,
+          "description": "+30% to patient outcome ratings",
+          "effects": [
+            {
+              "type": "patient_outcome_multiplier",
+              "condition": null,
+              "value": 1.3
+            }
+          ],
+          "position": {"x": 500, "y": 150},
+          "connections": [],
+          "cost": {
+            "reputation": 10,
+            "skill_points": 2
+          },
+          "state": SKILL_STATE.LOCKED,
+          "visual": {
+            "size": "minor",
+            "icon": "heart"
+          }
+        }
+      };
+      
+      // Create basic connections
+      this.connections = [
+        {"source": "core_physics", "target": "quantum_comprehension"},
+        {"source": "core_physics", "target": "bedside_manner"}
+      ];
+      
+      // Initialize specialization progress
+      this.specialization_progress = {
+        "theory": 0,
+        "clinical": 0
+      };
+      
+      // Set core skill as unlocked and active
+      this.unlockedSkills = ['core_physics'];
+      this.activeSkills = ['core_physics'];
+      this.skillPointsAvailable = 3;
+      this.reputation = 0;
+      
+      // Update all skill states
+      this.updateAllSkillStates();
+      
+      console.log("Fallback skill tree data created with:", {
+        skills: Object.keys(this.skills).length,
+        specializations: Object.keys(this.specializations).length,
+        connections: this.connections.length
+      });
+    },
     // Notify observers
     notifyObservers: function(eventType, data) {
       console.log(`Skill tree update: ${eventType}`, data);
@@ -1073,6 +1209,9 @@ const SKILL_STATE = {
     }
   };
   
+
+  
   // Export the SkillTreeManager object and constants
   window.SkillTreeManager = SkillTreeManager;
   window.SKILL_STATE = SKILL_STATE;
+  console.log("Loaded: skill_tree_manager.js");

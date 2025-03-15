@@ -927,3 +927,4 @@ const SkillTreeRenderer = {
   
   // Export the SkillTreeRenderer object
   window.SkillTreeRenderer = SkillTreeRenderer;
+  console.log("Loaded: skill_tree_renderer.js");

@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
             startNewGame(selectedCharacter);
         }
     });
-});
 // Add this code to character_select.js (or at the end of your script block in character_select.html)
 
 // Initialize skill tree container when document is loaded

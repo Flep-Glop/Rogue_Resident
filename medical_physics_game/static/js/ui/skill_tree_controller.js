@@ -12,15 +12,29 @@ const SkillTreeController = {
     // State
     initialized: false,
     
-    // Initialize the controller and components
+    // Inside SkillTreeController
     initialize: function(options = {}) {
-      console.log("Initializing Skill Tree Controller");
+      console.log("SkillTreeController initializing with options:", options);
       
       // Apply options
       Object.assign(this.config, options);
       
+      // Check if containers exist
+      console.log("DOM elements present:", {
+        renderContainerId: this.config.renderContainerId,
+        uiContainerId: this.config.uiContainerId,
+        renderContainer: document.getElementById(this.config.renderContainerId) !== null,
+        uiContainer: document.getElementById(this.config.uiContainerId) !== null
+      });
+      
       // Create containers if they don't exist
       this.ensureContainers();
+      
+      // Check containers again after ensuring they exist
+      console.log("DOM elements after ensureContainers:", {
+        renderContainer: document.getElementById(this.config.renderContainerId) !== null,
+        uiContainer: document.getElementById(this.config.uiContainerId) !== null
+      });
       
       // Initialize components
       this.initializeComponents()
@@ -43,6 +57,7 @@ const SkillTreeController = {
           document.dispatchEvent(event);
         })
         .catch(error => {
+          console.error("Failed to initialize SkillTreeController components:", error);
           ErrorHandler.handleError(
             error,
             "Skill Tree Controller Initialization",
@@ -395,3 +410,4 @@ const SkillTreeController = {
   
   // Export the SkillTreeController object
   window.SkillTreeController = SkillTreeController;
+  console.log("Loaded: skill_tree_controller.js");

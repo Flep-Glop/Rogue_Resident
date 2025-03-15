@@ -789,3 +789,4 @@ const SkillTreeUI = {
   
   // Export the SkillTreeUI object
   window.SkillTreeUI = SkillTreeUI;
+  console.log("Loaded: skill_tree_ui.js");

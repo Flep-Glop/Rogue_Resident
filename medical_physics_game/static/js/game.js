@@ -258,37 +258,8 @@ function setupEventListeners() {
 // Function to initialize the game with improved architecture
 function initializeGame() {
   // Show loading indicator
-  function showLoadingIndicator() {
-    const boardContainer = document.getElementById('game-board-container');
-    if (boardContainer) {
-      boardContainer.innerHTML += `
-        <div id="loading-indicator" class="text-center my-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">Initializing Medical Physics Adventure...</p>
-          <div class="progress mt-3" style="height: 10px;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                 role="progressbar" style="width: 0%"></div>
-          </div>
-        </div>
-      `;
-      
-      // Animate progress bar
-      const progressBar = document.querySelector('.progress-bar');
-      if (progressBar) {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15;
-          if (progress > 95) {
-            clearInterval(interval);
-            progress = 100;
-          }
-          progressBar.style.width = `${progress}%`;
-        }, 300);
-      }
-    }
-  }
+  showLoadingIndicator();
+
   // Initialize in the correct order for dependencies
   Promise.resolve()
     .then(() => {
@@ -302,85 +273,111 @@ function initializeGame() {
     .then(() => {
       // 2. Initialize event system
       if (typeof EventSystem !== 'undefined' && typeof EventSystem.initialize === 'function') {
+        console.log("Initializing EventSystem");
         return EventSystem.initialize();
       }
     })
     .then(() => {
       // 3. Initialize node registry (defines node types)
       if (typeof NodeRegistry !== 'undefined' && typeof NodeRegistry.initialize === 'function') {
+        console.log("Initializing NodeRegistry");
         return NodeRegistry.initialize();
       }
     })
     .then(() => {
-      // Make sure this runs before loading component scripts
+      // 4. Initialize node components system
       if (typeof NodeComponents !== 'undefined' && typeof NodeComponents.initialize === 'function') {
+        console.log("Initializing NodeComponents");
         return NodeComponents.initialize();
       }
     })
     .then(() => {
-      // Then ensure components are loaded and registered
+      // 5. Ensure components are loaded and registered
       if (typeof NodeSystemIntegrator !== 'undefined' && typeof NodeSystemIntegrator.initialize === 'function') {
+        console.log("Initializing NodeSystemIntegrator");
         return NodeSystemIntegrator.initialize();
       }
     })
     .then(() => {
-      // 5. Initialize progression manager
+      // 6. Initialize progression manager
       if (typeof ProgressionManager !== 'undefined' && typeof ProgressionManager.initialize === 'function') {
+        console.log("Initializing ProgressionManager");
         return ProgressionManager.initialize(PROGRESSION_TYPE.PATH_BASED);
       }
     })
     .then(() => {
-      // 6. Initialize UI feedback system
+      // 7. Initialize UI feedback system
       if (typeof FeedbackSystem !== 'undefined' && typeof FeedbackSystem.initialize === 'function') {
+        console.log("Initializing FeedbackSystem");
         return FeedbackSystem.initialize();
       }
     })
     .then(() => {
-      // 7. Initialize node interaction system
+      // 8. Initialize node interaction system
       if (typeof NodeInteraction !== 'undefined' && typeof NodeInteraction.initialize === 'function') {
+        console.log("Initializing NodeInteraction");
         return NodeInteraction.initialize();
       }
     })
     .then(() => {
-      // 8. Initialize special interactions system
+      // 9. Initialize special interactions system
       if (typeof SpecialInteractions !== 'undefined' && typeof SpecialInteractions.initialize === 'function') {
+        console.log("Initializing SpecialInteractions");
         return SpecialInteractions.initialize();
       }
     })
     .then(() => {
-      // 9. Initialize game state - this loads current game data
+      // 10. Initialize game state - this loads current game data
       if (typeof GameState !== 'undefined' && typeof GameState.initialize === 'function') {
+        console.log("Initializing GameState");
         return GameState.initialize();
       }
     })
-    // Add to the initialization chain in game.js
     .then(() => {
-      // Initialize item manager
+      // 11. Initialize item manager
       if (typeof ItemManager !== 'undefined' && typeof ItemManager.initialize === 'function') {
-        ItemManager.initialize();
+        console.log("Initializing ItemManager");
+        return ItemManager.initialize();
       }
     })
     .then(() => {
-      // 10. Initialize map renderer after game state is loaded
+      // 12. Initialize skill effect system - must be before skill tree manager
+      if (typeof SkillEffectSystem !== 'undefined' && typeof SkillEffectSystem.initialize === 'function') {
+        console.log("Initializing SkillEffectSystem");
+        return SkillEffectSystem.initialize();
+      }
+    })
+    .then(() => {
+      // 13. Initialize skill tree manager
+      if (typeof SkillTreeManager !== 'undefined' && typeof SkillTreeManager.initialize === 'function') {
+        console.log("Initializing SkillTreeManager");
+        return SkillTreeManager.initialize();
+      }
+    })
+    .then(() => {
+      // 14. Initialize map renderer after game state is loaded
       if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
+        console.log("Initializing MapRenderer");
         MapRenderer.initialize('floor-map');
       }
-        // Initialize pixel background after map renderer
-        if (typeof PixelBackgroundGenerator !== 'undefined') {
-          PixelBackgroundGenerator.initialize('floor-map');
-          
-          // Add event handler to refresh pixels when map is redrawn
-          if (typeof EventSystem !== 'undefined') {
-            EventSystem.on(GAME_EVENTS.MAP_UPDATED, function() {
-              // Short delay to ensure the map is fully rendered
-              setTimeout(function() {
-                PixelBackgroundGenerator.refresh();
-              }, 100);
-            });
-          }
+      
+      // 15. Initialize pixel background if available
+      if (typeof PixelBackgroundGenerator !== 'undefined') {
+        console.log("Initializing PixelBackgroundGenerator");
+        PixelBackgroundGenerator.initialize('floor-map');
+        
+        // Add event handler to refresh pixels when map is redrawn
+        if (typeof EventSystem !== 'undefined') {
+          EventSystem.on(GAME_EVENTS.MAP_UPDATED, function() {
+            // Short delay to ensure the map is fully rendered
+            setTimeout(function() {
+              PixelBackgroundGenerator.refresh();
+            }, 100);
+          });
         }
+      }
 
-      // 11. Force an initial map render after a slight delay
+      // 16. Force an initial map render after a slight delay
       setTimeout(() => {
         if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
           console.log("Forcing initial map render...");
@@ -388,51 +385,49 @@ function initializeGame() {
         }
       }, 500);
 
-      // 12. Initialize character panel
+      // 17. Initialize character panel
       if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
+        console.log("Initializing CharacterPanel");
         CharacterPanel.initialize();
       }
       
-      // 13. Initialize inventory system
+      // 18. Initialize inventory system
       if (typeof InventorySystem !== 'undefined' && typeof InventorySystem.initialize === 'function') {
+        console.log("Initializing InventorySystem");
         InventorySystem.initialize();
       }
       
-      // 14. Initialize skill effect system
-      if (typeof SkillEffectSystem !== 'undefined' && typeof SkillEffectSystem.initialize === 'function') {
-        return SkillEffectSystem.initialize();
-      }
-    })
-
-    .then(() => {
-      // 15. Initialize skill tree manager
-      if (typeof SkillTreeManager !== 'undefined' && typeof SkillTreeManager.initialize === 'function') {
-        return SkillTreeManager.initialize();
-      }
-    })
-    .then(() => {
-      // 16. Initialize skill tree controller
+      // 19. Initialize skill tree controller
       if (typeof SkillTreeController !== 'undefined' && 
           typeof SkillTreeController.initialize === 'function' &&
           !SkillTreeController.initialized) {
-        SkillTreeController.initialize();
+        console.log("Initializing SkillTreeController");
+        SkillTreeController.initialize({
+          renderContainerId: 'skill-tree-visualization',
+          uiContainerId: 'skill-tree-ui',
+          autoInitialize: false  // We're manually initializing
+        });
       }
       
-      // 17. Initialize reputation system
+      // 20. Initialize reputation system
       if (typeof ReputationSystem !== 'undefined' && typeof ReputationSystem.initialize === 'function') {
+        console.log("Initializing ReputationSystem");
         ReputationSystem.initialize();
       }
       
-      // 18. Create skill tree access button
-      createSkillTreeButton();
+      // 21. Create skill tree access button
+      console.log("Creating skill tree button");
+      createGameSkillTreeButton(); // Use the renamed function
 
-      // 14. Initialize save manager
+      // 22. Initialize save manager
       if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
+        console.log("Initializing SaveManager");
         SaveManager.initialize();
       }
       
-      // 15. Initialize debug tools if needed
+      // 23. Initialize debug tools if needed
       if (typeof DebugTools !== 'undefined' && typeof DebugTools.initialize === 'function') {
+        console.log("Initializing DebugTools");
         DebugTools.initialize();
       }
       
@@ -444,8 +439,11 @@ function initializeGame() {
       
       // Emit game initialized event
       if (typeof EventSystem !== 'undefined') {
+        console.log("Emitting game initialized event");
         EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
       }
+      
+      console.log("Game initialization complete!");
     })
     .catch(error => {
       console.error('Error initializing game:', error);
@@ -457,9 +455,8 @@ function initializeGame() {
     });
 }
 
-// Replace the existing createSkillTreeButton function in game.js with this improved version
-
-function createSkillTreeButton() {
+/// Renamed to avoid conflict with skill_tree_access.js
+function createGameSkillTreeButton() {
   console.log("Creating skill tree access button for game UI");
   
   // Find or create the skill tree button
@@ -510,10 +507,10 @@ function createSkillTreeButton() {
   // Add click event
   button.addEventListener('click', function() {
       // Make sure skill tree container exists
-      initializeSkillTreeContainer();
+      initializeGameSkillTreeContainer();
       
       // Toggle skill tree visibility
-      toggleSkillTree();
+      toggleGameSkillTree();
   });
   
   // Find a suitable parent element to add the button to
@@ -543,48 +540,8 @@ function createSkillTreeButton() {
   return button;
 }
 
-// Initialize the skill tree container
-function initializeSkillTreeContainer() {
-  // Check if container already exists
-  let container = document.getElementById('skill-tree-container');
-  
-  if (!container) {
-      container = document.createElement('div');
-      container.id = 'skill-tree-container';
-      
-      // Create inner structure
-      container.innerHTML = `
-          <div class="skill-tree-panel">
-              <div class="skill-tree-header">
-                  <h2>Specialization Tree</h2>
-                  <button class="skill-tree-close-button">&times;</button>
-              </div>
-              <div id="skill-tree-visualization"></div>
-              <div id="skill-tree-ui"></div>
-          </div>
-      `;
-      
-      // Add close button functionality
-      const closeButton = container.querySelector('.skill-tree-close-button');
-      if (closeButton) {
-          closeButton.addEventListener('click', toggleSkillTree);
-      }
-      
-      document.body.appendChild(container);
-      
-      // Add escape key handler
-      document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && container.classList.contains('visible')) {
-              toggleSkillTree();
-          }
-      });
-  }
-  
-  return container;
-}
-
-// Improved function to toggle skill tree visibility
-function toggleSkillTree() {
+// Renamed to avoid conflict
+function toggleGameSkillTree() {
   const container = document.getElementById('skill-tree-container');
   
   if (!container) {
@@ -621,12 +578,52 @@ function toggleSkillTree() {
       disableGameUI();
       
       // Make sure skill tree is initialized and loaded
-      ensureSkillTreeInitialized();
+      ensureGameSkillTreeInitialized();
   }
 }
 
-// Initialize or refresh skill tree components
-function ensureSkillTreeInitialized() {
+// Renamed to avoid conflict
+function initializeGameSkillTreeContainer() {
+  // Check if container already exists
+  let container = document.getElementById('skill-tree-container');
+  
+  if (!container) {
+      container = document.createElement('div');
+      container.id = 'skill-tree-container';
+      
+      // Create inner structure
+      container.innerHTML = `
+          <div class="skill-tree-panel">
+              <div class="skill-tree-header">
+                  <h2>Specialization Tree</h2>
+                  <button class="skill-tree-close-button">&times;</button>
+              </div>
+              <div id="skill-tree-visualization"></div>
+              <div id="skill-tree-ui"></div>
+          </div>
+      `;
+      
+      // Add close button functionality
+      const closeButton = container.querySelector('.skill-tree-close-button');
+      if (closeButton) {
+          closeButton.addEventListener('click', toggleGameSkillTree);
+      }
+      
+      document.body.appendChild(container);
+      
+      // Add escape key handler
+      document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && container.classList.contains('visible')) {
+              toggleGameSkillTree();
+          }
+      });
+  }
+  
+  return container;
+}
+
+// Renamed to avoid conflict
+function ensureGameSkillTreeInitialized() {
   console.log("Ensuring skill tree is initialized");
   
   // Check if SkillTreeController exists and is initialized
@@ -656,32 +653,6 @@ function ensureSkillTreeInitialized() {
       }
   }
 }
-
-// Disable game UI elements while skill tree is open
-function disableGameUI() {
-  // Add any UI disabling logic here if needed
-  // For example, disable node clicking, inventory buttons, etc.
-  
-  // Add overlay class to indicate game is paused
-  document.body.classList.add('game-paused');
-  
-  // Emit event that game UI is disabled
-  if (typeof EventSystem !== 'undefined') {
-      EventSystem.emit('GAME_UI_DISABLED', { reason: 'skill_tree_open' });
-  }
-}
-
-// Re-enable game UI elements when skill tree is closed
-function enableGameUI() {
-  // Remove paused class
-  document.body.classList.remove('game-paused');
-  
-  // Emit event that game UI is enabled
-  if (typeof EventSystem !== 'undefined') {
-      EventSystem.emit('GAME_UI_ENABLED', { reason: 'skill_tree_closed' });
-  }
-}
-
 
 // Helper functions for UI
 function showLoadingIndicator() {

@@ -6,7 +6,8 @@
     <title>Medical Physics Residency: The Roguelike Challenge</title>
     <link href="/static/css/main.css" rel="stylesheet">
     <link href="/static/css/character_image_styles.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/skill_tree.css">
+    <link href="/static/css/skill_tree.css" rel="stylesheet">
+    <link href="/static/css/skill_tree_modal.css" rel="stylesheet">
     <a href="/item-editor" class="editor-link">Item Editor</a>
 </head>
 <body>
@@ -21,9 +22,16 @@
                 <h1 class="game-title">Medical Physics Residency</h1>
                 <p class="subtitle">The Roguelike Challenge</p>
             </div>
-            <!-- And make sure this container exists in your HTML -->
+            <!-- Replace your existing skill-tree-container with this -->
             <div id="skill-tree-container" class="skill-tree-container">
-                <div id="skill-tree-visualization" class="skill-tree-visualization"></div>
+                <div class="skill-tree-panel">
+                    <div class="skill-tree-header">
+                        <h2>Specialization Tree</h2>
+                        <button class="skill-tree-close-button">&times;</button>
+                    </div>
+                    <div id="skill-tree-visualization" class="skill-tree-visualization"></div>
+                    <div id="skill-tree-ui" class="skill-tree-ui"></div>
+                </div>
             </div>
             <!-- Main game board container -->
             <div id="game-board-container">
