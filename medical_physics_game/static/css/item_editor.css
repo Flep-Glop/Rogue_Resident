@@ -562,3 +562,143 @@
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
   }
+
+/* Enable better scrolling throughout the editor */
+.editor-container {
+    display: flex;
+    flex-direction: column; /* Change to column on smaller screens */
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 50px auto;
+    background-color: var(--background-alt);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    min-height: 70vh;
+    overflow: visible; /* Allow content to expand */
+  }
+  
+  @media (min-width: 992px) {
+    .editor-container {
+      flex-direction: row; /* Return to row on larger screens */
+    }
+  }
+  
+  /* Item sidebar */
+  .item-sidebar {
+    width: 100%; /* Full width on mobile */
+    background-color: var(--dark);
+    border-right: 2px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    max-height: 300px; /* Limit height on mobile */
+    overflow: hidden; /* Container uses hidden, but content scrolls */
+  }
+  
+  @media (min-width: 992px) {
+    .item-sidebar {
+      width: 300px; /* Fixed width on desktop */
+      max-height: none; /* No max height on desktop */
+      height: auto; /* Let it expand with content */
+    }
+  }
+  
+  /* Item list scrolling fix */
+  .item-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: var(--spacing-sm);
+    max-height: 500px; /* Ensure the list is scrollable */
+  }
+  
+  /* Item editor - main area */
+  .item-editor {
+    flex-grow: 1;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    overflow: visible; /* Let content expand */
+  }
+  
+  /* Make editor sections responsive */
+  .editor-top {
+    display: flex;
+    flex-direction: column; /* Stack on mobile */
+    margin-bottom: var(--spacing-md);
+    width: 100%;
+  }
+  
+  @media (min-width: 768px) {
+    .editor-top {
+      flex-direction: row; /* Side by side on desktop */
+    }
+  }
+  
+  .preview-panel {
+    width: 100%; /* Full width on mobile */
+    background-color: var(--dark-alt);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  @media (min-width: 768px) {
+    .preview-panel {
+      width: 220px; /* Fixed width on desktop */
+      margin-right: var(--spacing-md);
+      margin-bottom: 0;
+    }
+  }
+  
+  .core-properties {
+    flex-grow: 1;
+    padding: var(--spacing-sm);
+    background-color: var(--dark-alt);
+    border-radius: var(--border-radius-sm);
+    width: 100%;
+  }
+  
+  .editor-bottom {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  @media (min-width: 768px) {
+    .editor-bottom {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+  
+  .description-panel, .effect-panel {
+    width: 100%;
+    padding: var(--spacing-sm);
+    background-color: var(--dark-alt);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  @media (min-width: 768px) {
+    .description-panel, .effect-panel {
+      flex: 1;
+      min-width: 300px;
+      margin-right: var(--spacing-md);
+    }
+  }
+  
+  /* Ensure all form inputs are visible */
+  .form-group {
+    margin-bottom: var(--spacing-sm);
+    width: 100%;
+  }
+  
+  .action-panel {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--dark-alt);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-md);
+  }
