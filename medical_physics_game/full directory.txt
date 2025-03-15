@@ -9,6 +9,7 @@ medical_physics_game/
 │   ├── node_types.json 🔴         # Node type definitions
 │   ├── patient_cases.json         # Clinical scenarios
 │   └── questions.json             # Question database
+│   └── relics.json             # Relics database
 │
 ├── plugins/                       # Plugin system
 │   ├── __init__.py
@@ -17,28 +18,49 @@ medical_physics_game/
 ├── static/
 │   ├── css/                       # Styling
 │   │   ├── animations.css         # Animation definitions
-│   │   ├── main.css               # Main CSS import file
+│   │   ├── character_image_styles.css
+│   │   ├── components.css       
+│   │   ├── item_editor.css               
+│   │   ├── main.css                # Main CSS import file
+│   │   ├── utilities.css           
 │   │   ├── base/
 │   │   │   ├── layout.css         # Core layout styling
 │   │   │   ├── reset.css          # CSS reset
 │   │   │   └── variables.css 🟢   # CSS variables (colors, sizes)
 │   │   ├── components/
+│   │   │   ├── boss_effects.css      
+│   │   │   ├── boss.css      
 │   │   │   ├── character.css      # Character panel styling
 │   │   │   ├── inventory.css      # Inventory styling
 │   │   │   ├── map.css            # Map styling
 │   │   │   └── nodes.css 🟢       # Node styling
 │   │   └── themes/
 │   │       └── retro-theme.css 🟢 # Theme styling
+│   ├── img/                       # Styling
+│   │   ├── characters/
+│   │   │   ├── .png files
+│   │       └── .png files
 │   │
 │   └── js/                        # JavaScript files
 │       ├── api-client.js          # API communication
+│       ├── chararacter_assets.js       
+│       ├── character_select.js  
+│       ├── design_bridge.js      
 │       ├── error_handler.js       # Error handling system
 │       ├── game.js 🟡             # Main game initialization
+│       ├── item_editor.js           
 │       ├── ui-utils.js            # UI utilities
 │       ├── components/            # Node type components
+│       │   ├── boss_component.js
+│       │   ├── boss_effects.js 🔴
+│       │   ├── boss_helpers.js 🔴
+│       │   ├── boss_professor.js 🔴
 │       │   ├── elite_component.js
 │       │   ├── event_component.js 🔴
-│       │   ├── question_component.js 🔴
+│       │   ├── gamble_component.js 🔴
+│       │   ├── patient_case_component.js 🔴
+│       │   ├── question_component.js
+│       │   ├── rest_component.js 🔴
 │       │   ├── shop_component.js 🔴
 │       │   └── treasure_component.js 🔴
 │       ├── engine/                # Core game engine
@@ -62,11 +84,18 @@ medical_physics_game/
 ├── templates/                     # HTML templates
 │   ├── character_select.html
 │   ├── index.html                 # Main game page
+│   ├── item_editor.html
 │   └── landing.html               # Landing page
 │
 ├── app.py 🟡                      # Flask application (backend)
+├── creative-direction-doc.txt           
 ├── data_manager.py                # JSON data loading/saving
 ├── db_utils.py                    # Database utilities
+├── dev-guide.txt
+├── full directory.txt
+├── game_data.db                                          
 ├── game_state.py 🟡               # Backend game state
 ├── map_generator.py               # Floor map generation
-└── node_plugins.py 🔵             # Plugin system for node types
+├── node_plugins.py 🔵             # Plugin system for node types
+├── README.md
+└── requirements.txt

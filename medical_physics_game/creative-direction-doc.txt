@@ -1,0 +1,242 @@
+# MEDICAL PHYSICS ROGUELIKE
+## Creative Direction Document
+
+---
+
+## GAME CONCEPT
+
+*Medical Physics Residency: The Roguelike Challenge* is an educational roguelike game that combines authentic medical physics knowledge with engaging gameplay. Players navigate the challenges of a medical physics residency through procedurally generated encounters, building knowledge and skills while experiencing the unique blend of scientific rigor and healthcare realities.
+
+The game balances educational content with roguelike mechanics, creating a system where players learn through repeated attempts, gradual mastery, and varied approaches to problem-solving.
+
+---
+
+## GAME STRUCTURE
+
+### Macro Structure: Residency Program
+
+- **Complete Run** = One "Residency Year"
+- Each successful run culminates in a "board exam" (boss encounter)
+- Failing a run represents washing out of that year's program
+- Meta-progression carries between runs via reputation and specialization
+
+### Rotation System
+
+The game is segmented into **themed rotation clusters**:
+
+- Each rotation consists of 2-3 floors focused on a specific area of medical physics
+- Rotations have their own visual themes, item pools, and challenge types
+- Example rotations:
+  - Radiation Safety
+  - Imaging Physics
+  - Treatment Planning
+  - Nuclear Medicine
+  - Quality Assurance
+  - Radiobiology
+
+### Floor Organization
+
+- **Semi-randomized progression** creates variety while maintaining learning flow
+- First rotation always introduces fundamentals (onboarding for new players)
+- Middle rotations draw from a larger pool with controlled randomization
+- Final rotation leads to the comprehensive challenge (boss encounter)
+- Different "residency programs" offer different rotation sequences as difficulty modes
+
+### Node Types
+
+The game map contains various encounter types:
+- **Question Nodes**: Physics knowledge challenges
+- **Patient Case Nodes**: Clinical application scenarios
+- **Event Nodes**: Narrative encounters with choices
+- **Shop Nodes**: Opportunity to acquire items and upgrades
+- **Rest Nodes**: Recover resources and make development choices
+- **Elite Nodes**: Challenging encounters with greater rewards
+- **Treasure Nodes**: Discover items and relics
+- **Boss Nodes**: Major challenges testing comprehensive knowledge
+
+---
+
+## PROGRESSION SYSTEMS
+
+### In-Run Progression
+
+The core roguelike experience centers on progress within a single run:
+
+- Beginning each run with baseline character capabilities
+- Acquiring temporary items, relics, and knowledge during the run
+- Building synergies between abilities and equipment
+- Most progress is lost upon run completion (win or loss)
+
+### Meta-Progression: Specialization & Reputation
+
+A controlled amount of permanent progress occurs between runs:
+
+- **Reputation** accumulates slowly across runs
+- Reputation can be spent to permanently enhance character baselines
+- Specialization paths unlock as reputation thresholds are reached
+- Characters evolve from generic "residents" to specialized experts
+- Meta-progression enhances variety without undermining the roguelike challenge
+
+---
+
+## ECONOMY & CURRENCIES
+
+### Dual Currency System
+
+The game employs two primary in-run currencies that create tension between theoretical and practical approaches:
+
+1. **Insight**:
+   - Represents theoretical knowledge and understanding
+   - Earned through answering questions, solving problems, studying
+   - Used for unlocking advanced concepts, skills, and certain items
+   - Functions as both a score metric and a spendable resource
+
+2. **Funding/Grants**:
+   - Represents material resources and practical support
+   - Earned through successful patient outcomes, practical applications
+   - Used to purchase equipment, supplies, textbooks, and practical tools
+   - Creates resource management decisions
+
+### Meta-Currency: Reputation
+
+- Earned in small amounts through notable achievements in runs
+- Different specialties have their own reputation tracks
+- Used to permanently unlock character capabilities between runs
+- Spent on specialization options that define character development
+
+---
+
+## CHARACTER DEVELOPMENT
+
+### Starting Characters
+
+- Begin with a basic roster of "Medical Physics Residents"
+- Initial differences are subtle, providing varied starting approaches
+- All characters share a common foundation of physics knowledge
+
+### Specialization System
+
+Characters evolve through specialization choices as they gain reputation:
+
+- **Theory Specialist**: Emphasizes deep understanding of physics principles
+  - Better insight gains, special access to advanced concepts
+  - Unique relics: "Advanced Textbooks", "Quantum Understanding"
+  
+- **Clinical Expert**: Focuses on patient care and practical applications
+  - Better patient outcomes, special dialogue options
+  - Unique relics: "Bedside Manner", "Clinical Intuition"
+  
+- **Technical Savant**: Masters equipment and technical procedures
+  - Equipment bonuses, calibration advantages
+  - Unique relics: "Calibration Tools", "Engineer's Handbook"
+  
+- **Research Focus**: Prioritizes investigation and publication
+  - Publication bonuses, experimental equipment access
+  - Unique relics: "Research Grant", "Peer Review Network"
+
+### Skill Trees
+
+As characters gain reputation, they unlock specialized skill trees:
+- Each specialization has its own branching development path
+- Skills provide passive bonuses or active abilities
+- Later branches offer powerful, specialized effects
+- Players can mix specializations for hybrid builds
+
+---
+
+## ITEMS & RELICS SYSTEM
+
+### Items (Consumables)
+
+- **One-time use** tools, resources, and aids
+- Provide temporary advantages for specific situations
+- Examples:
+  - "Existential Relief Potion" - Restores 1 life
+  - "Groundhog Day Wristwatch" - Retry a failed question without penalty
+
+### Relics (Permanents)
+
+- **Persistent effects** that last for the entire run
+- Define character builds and create synergies
+- Examples:
+  - "Nihilist's Clipboard" - Passively increases insight gain
+  - "Schrödinger's Spectacles" - 50% chance to auto-solve quantum questions
+
+### Synergy System
+
+Items and relics create meaningful combinations:
+- Complementary effects that enhance each other
+- Encourage diverse strategic approaches
+- Support different specialization paths
+- Create memorable, unique runs
+
+---
+
+## EDUCATIONAL APPROACH
+
+### Knowledge Implementation
+
+Rather than relying on memorizable content, the game focuses on:
+
+1. **Parameterized Knowledge Testing**:
+   - Questions with variable parameters that test understanding of relationships
+   - Example: "A [X] MeV electron beam has range [Y] cm in water. Calculate Z."
+
+2. **Context-Dependent Solutions**:
+   - Correct approaches vary based on randomly generated conditions
+   - Patient characteristics modify optimal treatment approaches
+   - Equipment limitations force alternative solutions
+
+3. **Application Over Recall**:
+   - Emphasis on applying knowledge rather than reciting facts
+   - Interactive scenarios that require interpreting data and making decisions
+   - Problem-solving with multiple valid approaches
+
+### Difficulty Scaling
+
+- **Adaptive difficulty** adjusts to player performance
+- Early rotations focus on fundamentals
+- Later rotations introduce more complex concepts
+- Board exam (boss) challenges comprehensive understanding
+- Optional fellowship mode for mastery-level challenges
+
+---
+
+## VISUAL & NARRATIVE DIRECTION
+
+### Visual Style
+
+- **Retro-inspired pixel art** with modern flourishes
+- Clean, readable UI for educational content
+- Distinctive visual themes for each rotation area
+- Character portraits with personality and progression visual cues
+
+### Narrative Tone
+
+- Balance of **medical seriousness** with **academic absurdity**
+- Acknowledges the existential aspects of medical physics
+- Humor that resonates with those familiar with academic/medical culture
+- Characters that capture the diversity of approaches to the field
+
+### Writing Approach
+
+- Clear, accurate physics content presented accessibly
+- Dialogue that reflects the unique culture of medical physics
+- Events that capture both the technical and human elements of healthcare
+- Touches of philosophical reflection on the nature of medicine, physics, and education
+
+---
+
+## IMPLEMENTATION PRIORITIES
+
+1. **Core Loop**: Question encounters, basic progression, run structure
+2. **Currency System**: Insight and Funding mechanics
+3. **Item System**: Basic items and relics with clear effects
+4. **Character Progression**: Specialization framework and initial options
+5. **Rotation Structure**: Floor organization and themed content
+6. **Advanced Content**: Complex scenarios, synergies, and specialized challenges
+
+---
+
+*Document Version 1.0*  
+*Created March 2025*
