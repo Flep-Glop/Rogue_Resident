@@ -177,119 +177,116 @@ window.ApiClient = {
         reject(error);
       });
     });
-  }
-};
+  },
 
-// Add these functions to your existing api-client.js file
-
-// API client for skill tree
-const ApiClient = ApiClient || {};
-
-// Load skill tree data
-ApiClient.loadSkillTree = function() {
-  return fetch('/api/skill-tree')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to load skill tree: ${response.status}`);
-      }
-      return response.json();
-    })
-    .catch(error => {
-      console.error("Error loading skill tree:", error);
-      // Return a promise that resolves to null, so the caller can handle the error
-      return Promise.resolve(null);
-    });
-};
-
-// Load player skill progress
-ApiClient.loadSkillProgress = function() {
-  return fetch('/api/skill-progress')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to load skill progress: ${response.status}`);
-      }
-      return response.json();
-    })
-    .catch(error => {
-      console.error("Error loading skill progress:", error);
-      // Return default progress data
-      return Promise.resolve({
-        reputation: 0,
-        unlocked_skills: ['core_physics'],
-        active_skills: ['core_physics'],
-        skill_points_available: 3,
-        specialization_progress: {}
+  // SKILL TREE METHODS - ADD THESE TO THE EXISTING OBJECT
+  
+  // Load skill tree data
+  loadSkillTree: function() {
+    return fetch('/api/skill-tree')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load skill tree: ${response.status}`);
+        }
+        return response.json();
+      })
+      .catch(error => {
+        console.error("Error loading skill tree:", error);
+        // Return a promise that resolves to null, so the caller can handle the error
+        return Promise.resolve(null);
       });
+  },
+
+  // Load player skill progress
+  loadSkillProgress: function() {
+    return fetch('/api/skill-progress')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load skill progress: ${response.status}`);
+        }
+        return response.json();
+      })
+      .catch(error => {
+        console.error("Error loading skill progress:", error);
+        // Return default progress data
+        return Promise.resolve({
+          reputation: 0,
+          unlocked_skills: ['core_physics'],
+          active_skills: ['core_physics'],
+          skill_points_available: 3,
+          specialization_progress: {}
+        });
+      });
+  },
+
+  // Save skill progress
+  saveSkillProgress: function(progressData) {
+    return fetch('/api/skill-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(progressData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to save skill progress: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error("Error saving skill progress:", error);
+      // Return a promise that resolves to false, so the caller can handle the error
+      return Promise.resolve(false);
     });
-};
+  },
 
-// Save skill progress
-ApiClient.saveSkillProgress = function(progressData) {
-  return fetch('/api/skill-progress', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(progressData)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Failed to save skill progress: ${response.status}`);
-    }
-    return response.json();
-  })
-  .catch(error => {
-    console.error("Error saving skill progress:", error);
-    // Return a promise that resolves to false, so the caller can handle the error
-    return Promise.resolve(false);
-  });
-};
+  // Unlock a skill 
+  unlockSkill: function(skillId) {
+    return fetch(`/api/skill/unlock/${skillId}`, {
+      method: 'POST'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to unlock skill: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error(`Error unlocking skill ${skillId}:`, error);
+      return Promise.resolve(false);
+    });
+  },
 
-// Unlock a skill 
-ApiClient.unlockSkill = function(skillId) {
-  return fetch(`/api/skill/unlock/${skillId}`, {
-    method: 'POST'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Failed to unlock skill: ${response.status}`);
-    }
-    return response.json();
-  })
-  .catch(error => {
-    console.error(`Error unlocking skill ${skillId}:`, error);
-    return Promise.resolve(false);
-  });
-};
+  // Activate a skill
+  activateSkill: function(skillId) {
+    return fetch(`/api/skill/activate/${skillId}`, {
+      method: 'POST'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to activate skill: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error(`Error activating skill ${skillId}:`, error);
+      return Promise.resolve(false);
+    });
+  },
 
-// Activate a skill
-ApiClient.activateSkill = function(skillId) {
-  return fetch(`/api/skill/activate/${skillId}`, {
-    method: 'POST'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Failed to activate skill: ${response.status}`);
-    }
-    return response.json();
-  })
-  .catch(error => {
-    console.error(`Error activating skill ${skillId}:`, error);
-    return Promise.resolve(false);
-  });
-};
-
-// Deactivate a skill
-ApiClient.deactivateSkill = function(skillId) {
-  return fetch(`/api/skill/deactivate/${skillId}`, {
-    method: 'POST'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Failed to deactivate skill: ${response.status}`);
-    }
-    return response.json();
-  })
-  .catch(error => {
-    console.error(`Error deactivating skill ${skillId}:`, error);
-    return Promise.resolve(false);
-  });
+  // Deactivate a skill
+  deactivateSkill: function(skillId) {
+    return fetch(`/api/skill/deactivate/${skillId}`, {
+      method: 'POST'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to deactivate skill: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error(`Error deactivating skill ${skillId}:`, error);
+      return Promise.resolve(false);
+    });
+  }
 };
