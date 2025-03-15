@@ -14,7 +14,7 @@ The skill tree system serves as the meta-progression backbone of the Medical Phy
 - **Interconnected Knowledge**: Skills connect across specializations, mimicking the interdisciplinary nature of medical physics
 - **Visual Metaphor**: The tree visually resembles atomic/radiation patterns, reinforcing the game's theme
 
-### Visual Reference
+### Visual Reference 
 The skill tree should resemble the interconnected node structure seen in Path of Exile, but with:
 - A central core that represents fundamental knowledge
 - Four primary branching paths representing specializations
