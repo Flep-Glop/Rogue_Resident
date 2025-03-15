@@ -214,38 +214,7 @@ const MapRenderer = {
       console.error("Could not get canvas context");
       return;
     }
-    // Add this at the beginning of your renderMap function
-    // (Right after getting the ctx)
-    const style = document.createElement('style');
-    style.textContent = `
-      .scroll-indicator {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 15px;
-        text-align: center;
-        font-size: 14px;
-        color: var(--primary);
-        animation: pulse 1.5s infinite;
-        z-index: 100; /* Ensure it's above the map */
-        pointer-events: none;
-        background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 3px;
-      }
-      
-      .scroll-indicator.top {
-        top: 15px;
-      }
-      
-      .scroll-indicator.bottom {
-        bottom: 15px;
-      }
-    `;
-    if (!document.head.querySelector('style#map-renderer-styles')) {
-      style.id = 'map-renderer-styles';
-      document.head.appendChild(style);
-    }
+    
     // Get all nodes to determine map dimensions
     const allNodes = GameState.getAllNodes();
     
@@ -618,44 +587,41 @@ const MapRenderer = {
     ).sort((a, b) => a.position.col - b.position.col);
   },
 
-  // Draw a star shape for start node
+  // Draw a hexagon shape for start node
   drawStartNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
-    const spikes = 5;
-    const outerRadius = radius;
-    const innerRadius = radius * 0.4;
+    const sides = 6; // Hexagon has 6 sides
+    const angleOffset = Math.PI / 6; // Rotate slightly to make flat sides at top/bottom
     
+    // Draw shadow first
     ctx.beginPath();
-    
-    for(let i = 0; i < spikes * 2; i++) {
-      const r = i % 2 === 0 ? outerRadius : innerRadius;
-      const angle = Math.PI * i / spikes - Math.PI / 2;
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i / sides) + angleOffset;
+      const pointX = x + radius * Math.cos(angle);
+      const pointY = y + radius * Math.sin(angle) + 4; // Add 4px for shadow offset
       
-      if(i === 0) {
-        ctx.moveTo(x + r * Math.cos(angle), y - 4 + r * Math.sin(angle));
+      if (i === 0) {
+        ctx.moveTo(pointX, pointY);
       } else {
-        ctx.lineTo(x + r * Math.cos(angle), y - 4 + r * Math.sin(angle));
+        ctx.lineTo(pointX, pointY);
       }
     }
-    
     ctx.closePath();
-    
-    // Draw shadow
     ctx.fillStyle = shadowColor;
     ctx.fill();
     
-    // Draw star raised above shadow
+    // Draw main hexagon
     ctx.beginPath();
-    for(let i = 0; i < spikes * 2; i++) {
-      const r = i % 2 === 0 ? outerRadius : innerRadius;
-      const angle = Math.PI * i / spikes - Math.PI / 2;
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i / sides) + angleOffset;
+      const pointX = x + radius * Math.cos(angle);
+      const pointY = y + radius * Math.sin(angle);
       
-      if(i === 0) {
-        ctx.moveTo(x + r * Math.cos(angle), y - 8 + r * Math.sin(angle));
+      if (i === 0) {
+        ctx.moveTo(pointX, pointY);
       } else {
-        ctx.lineTo(x + r * Math.cos(angle), y - 8 + r * Math.sin(angle));
+        ctx.lineTo(pointX, pointY);
       }
     }
-    
     ctx.closePath();
     
     // Fill and stroke the main shape
@@ -663,6 +629,18 @@ const MapRenderer = {
     ctx.fill();
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Add highlight effect
+    ctx.beginPath();
+    const highlightAngle1 = angleOffset - Math.PI/6;
+    const highlightAngle2 = angleOffset + Math.PI/6;
+    ctx.moveTo(x + (radius * 0.6) * Math.cos(highlightAngle1), 
+              y + (radius * 0.6) * Math.sin(highlightAngle1));
+    ctx.lineTo(x + (radius * 0.6) * Math.cos(highlightAngle2), 
+              y + (radius * 0.6) * Math.sin(highlightAngle2));
+    ctx.strokeStyle = this.adjustColorBrightness(fillColor, 50);
+    ctx.lineWidth = 1;
     ctx.stroke();
   },
 
@@ -899,59 +877,7 @@ const MapRenderer = {
   },
   
   updateScrollIndicators: function(canvasHeight) {
-    const mapContainer = document.querySelector('.map-container');
-    if (!mapContainer) return;
-    
-    // Remove any existing indicators
-    const existingIndicators = mapContainer.querySelectorAll('.scroll-indicator');
-    existingIndicators.forEach(el => el.remove());
-    
-    if (canvasHeight > mapContainer.clientHeight) {
-      // Add scroll indicators if the content is taller than container
-      
-      // Top indicator (only if scrolled down)
-      const topIndicator = document.createElement('div');
-      topIndicator.className = 'scroll-indicator top';
-      topIndicator.innerHTML = '▲';
-      mapContainer.appendChild(topIndicator);
-      
-      // Bottom indicator
-      const bottomIndicator = document.createElement('div');
-      bottomIndicator.className = 'scroll-indicator bottom';
-      bottomIndicator.innerHTML = '▼';
-      mapContainer.appendChild(bottomIndicator);
-      
-      // Initial indicator visibility based on scroll position
-      updateIndicatorVisibility();
-      
-      // Make sure we remove any previous scroll listener
-      if (this._scrollHandler) {
-        mapContainer.removeEventListener('scroll', this._scrollHandler);
-      }
-      
-      // Create and store the scroll handler
-      this._scrollHandler = function() {
-        updateIndicatorVisibility();
-      };
-      
-      // Function to update indicators
-      function updateIndicatorVisibility() {
-        if (mapContainer.scrollTop > 20) {
-          topIndicator.style.display = 'block';
-        } else {
-          topIndicator.style.display = 'none';
-        }
-        
-        if (mapContainer.scrollTop + mapContainer.clientHeight >= mapContainer.scrollHeight - 20) {
-          bottomIndicator.style.display = 'none';
-        } else {
-          bottomIndicator.style.display = 'block';
-        }
-      }
-      
-      // Add scroll listener
-      mapContainer.addEventListener('scroll', this._scrollHandler);
-    }
+    // Function intentionally left empty to disable scroll indicators
   },
   
   // Update the handleMapClick function

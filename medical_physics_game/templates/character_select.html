@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Your Character</title>
     <link href="/static/css/main.css" rel="stylesheet">
+    <link href="/static/css/character_image_styles.css" rel="stylesheet">
     <style>
         /* Base container styling */
         .character-selection {
@@ -91,7 +92,7 @@
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
         }
         
-        /* ASCII art character visualization */
+        /* Character avatar styling - updated for pixel art */
         .character-avatar {
             background-color: rgba(0, 0, 0, 0.3);
             padding: 15px;
@@ -105,13 +106,31 @@
             align-items: center;
         }
         
-        .ascii-art {
-            font-family: monospace;
-            white-space: pre;
-            color: white;
-            font-size: 16px;
-            line-height: 1.2;
-            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+        /* Pixel character img styling */
+        .character-card .character-avatar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px auto;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        
+        .character-card .pixel-character-img {
+            width: 90px;
+            height: 90px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            object-fit: contain;
+            animation: pixel-float 3s infinite ease-in-out;
+        }
+        
+        @keyframes pixel-float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0); }
         }
         
         /* Character description area */
@@ -212,23 +231,20 @@
             padding-left: 10px;
         }
         
-        /* Copy this complete CSS and replace the entire .carousel-arrow section in character_select.html */
-
-        /* Carousel navigation arrows - ENHANCED VERSION */
+        /* Carousel navigation arrows */
         .carousel-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 60px;  /* Increased size from 40px */
-            height: 60px; /* Increased size from 40px */
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 32px; /* Larger arrow symbols */
+            font-size: 32px;
             cursor: pointer;
             z-index: 10;
-            /* Style with pixelated look */
-            background-color: rgba(91, 141, 217, 0.7); /* Semi-transparent background */
+            background-color: rgba(91, 141, 217, 0.7);
             color: white;
             border: 3px solid #ffffff;
             box-shadow: 
@@ -236,11 +252,9 @@
                 0 0 0 2px rgba(0, 0, 0, 0.1);
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
-            /* Add fade-in/fade-out animation */
             animation: arrow-pulse 2s infinite ease-in-out;
         }
 
-        /* Define the pulsing animation */
         @keyframes arrow-pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -248,9 +262,9 @@
         }
 
         .carousel-arrow:hover {
-            background-color: rgba(86, 184, 134, 0.9); /* More opaque on hover */
+            background-color: rgba(86, 184, 134, 0.9);
             transform: translateY(-50%) scale(1.1);
-            animation: none; /* Stop the animation on hover */
+            animation: none;
             opacity: 1;
         }
 
@@ -260,13 +274,12 @@
         }
 
         .carousel-arrow.prev {
-            left: 0px; /* Position closer to edge */
+            left: 0px;
         }
 
         .carousel-arrow.next {
-            right: 0px; /* Position closer to edge */
+            right: 0px;
         }
-        /* Make sure the arrows have simple text inside (no ::after pseudo-elements) */
 
         /* Carousel indicators */
         .carousel-indicators {
@@ -404,6 +417,9 @@
         </div>
     </div>
 
+    <!-- Add the character assets manager script -->
+    <script src="/static/js/character_assets.js"></script>
+
     <script>
         // Character selection logic with carousel functionality
         let selectedCharacter = null;
@@ -455,7 +471,7 @@
                 });
         }
         
-        // Replace the renderCharacters function with this version:
+        // Updated renderCharacters function to use pixel images
         function renderCharacters(characters) {
             const carousel = document.getElementById('character-carousel');
             const indicators = document.getElementById('carousel-indicators');
@@ -481,15 +497,15 @@
                 const insightPercent = Math.min(100, (character.starting_stats.insight / maxInsight) * 100);
                 const levelPercent = Math.min(100, (character.starting_stats.level / maxLevel) * 100);
                 
-                // Custom ASCII art for each character type
-                let asciiArt = character.ascii_art || getAsciiArt(character.id);
+                // Get character image path
+                const imagePath = CharacterAssets.getCharacterImagePath(character.id);
                 
                 card.innerHTML = `
                     <div class="character-header">
                         <h3>${character.name}</h3>
                     </div>
                     <div class="character-avatar">
-                        <pre class="ascii-art">${asciiArt}</pre>
+                        <img src="${imagePath}" alt="${character.name}" class="pixel-character-img">
                     </div>
                     <div class="character-description">
                         <p>${character.description}</p>
@@ -560,7 +576,7 @@
             navigateToCharacter(newIndex);
         }
         
-        // Replace the navigateToCharacter function with this version:
+        // Navigate to character implementation
         function navigateToCharacter(index) {
             // Update current index
             currentCharacterIndex = index;
@@ -643,7 +659,7 @@
             playSelectionSound();
         }
         
-        // Replace the startNewGame function with this simplified version:
+        // Start new game function
         function startNewGame(characterId) {
             // If no character is explicitly provided, use the currently active one
             if (!characterId) {
@@ -676,12 +692,6 @@
             .catch(error => console.error('Error starting new game:', error));
         }
 
-        // Also update the event listener for the start button:
-        document.getElementById('start-game-btn').addEventListener('click', function() {
-            // Just call startNewGame without parameters - it will use the active character
-            startNewGame();
-        });
-        
         // Sound effects
         function playNavigationSound() {
             // When we add audio files, we'll uncomment this
@@ -695,57 +705,6 @@
             // const sound = new Audio('/static/audio/select.mp3');
             // sound.volume = 0.3;
             // sound.play();
-        }
-        
-        // Replace the getAsciiArt function with this enhanced version
-        function getAsciiArt(characterId) {
-            switch(characterId) {
-                case 'resident':
-                    // Medical Physics Resident - with lab coat and clipboard
-                    return `   _O_\n  __|__\n   | |\n  / \\ \\`;
-                    
-                case 'physicist':
-                    // Junior Physicist - with equations floating
-                    return `   *o*\n  -\\|/-\n   /|\\\n  / \\ \\`;
-                    
-                case 'qa_specialist':
-                    // QA Specialist - with measurement device
-                    return `   [O]\n  /|=|\\\n  _|_\n  / \\`;
-                    
-                case 'debug_mode':
-                    // Debug Mode - with digital theme
-                    return `   {0}\n  <|01|\\\n   ||\n  /_\\`;
-                    
-                default:
-                    // Default character
-                    return `   O\n  /|\\\n  / \\`;
-            }
-        }
-
-        // Alternate more detailed versions if the above are too simple:
-
-        function getDetailedAsciiArt(characterId) {
-            switch(characterId) {
-                case 'resident':
-                    // Medical Physics Resident - with lab coat and badge
-                    return `    ,+,\n   (o.o)\n  /|\\Y/|\\\n   || ||\n  /|| ||\\\n    ==`;
-                    
-                case 'physicist':
-                    // Junior Physicist - updated with glasses and physics symbols
-                    return `   .---.\n  [o--o]\n /|_⚛_|\\\n  |/__\\|\n  // \\\\`;
-                    
-                case 'qa_specialist':
-                    // QA Specialist - with testing devices
-                    return `    ,+,\n   [o-o]\n  /|\\#/|\\\n   |QA|\n  // \\\\`;
-                    
-                case 'debug_mode':
-                    // Debug Mode - updated with digital/circuit theme
-                    return `  $[01]$\n  {>_<}\n =|▢▣▢|=\n  /|¦|\\\n  /¦ ¦\\`;
-                    
-                default:
-                    // Default character
-                    return `    O\n   /|\\\n   / \\`;
-            }
         }
     </script>
 </body>

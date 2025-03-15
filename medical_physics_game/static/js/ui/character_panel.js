@@ -2,7 +2,7 @@
 
 // CharacterPanel singleton - manages character UI
 const CharacterPanel = {
-  // Also update the initialize function to ensure animations are reset on initialization
+  // Initialize the character panel
   initialize: function() {
     console.log("Initializing character panel...");
     
@@ -30,30 +30,15 @@ const CharacterPanel = {
     return this;
   },
   
-  // Complete updateCharacterDisplay function
+  // Update character display with new character data
   updateCharacterDisplay: function(character) {
     if (!character) return;
     
     // Get character data
     this.getCharacterData(character.name)
       .then(characterData => {
-        // Get initial animation frame from our animation set
-        let initialFrame = this.getHighResAsciiArt(character.name);
-        
-        // If we have animation frames for this character type, use the first one
-        if (character.name.includes('Physicist') && this.animationFrames.physicist) {
-          initialFrame = this.animationFrames.physicist[0];
-        } else if (character.name.includes('QA') && this.animationFrames.qa_specialist) {
-          initialFrame = this.animationFrames.qa_specialist[0];
-        } else if (character.name.includes('Debug') && this.animationFrames.debug_mode) {
-          initialFrame = this.animationFrames.debug_mode[0];
-        } else {
-          // Default to resident
-          initialFrame = this.animationFrames.resident[0];
-        }
-        
-        // Create styled ASCII art
-        const styledAsciiArt = this.styleAnimationFrame(initialFrame, character.name);
+        // Get character ID
+        const characterId = CharacterAssets.getCharacterIdFromName(character.name);
         
         // Create HTML for character display
         const charInfoHtml = `
@@ -61,7 +46,9 @@ const CharacterPanel = {
             <p><strong>${character.name}</strong></p>
             <div class="character-avatar-container">
               <div class="character-avatar">
-                <pre class="ascii-character walking">${styledAsciiArt}</pre>
+                <img src="${CharacterAssets.getCharacterImagePath(characterId)}" 
+                     alt="${character.name}" 
+                     class="character-panel-img pixel-character-img">
               </div>
             </div>
             <div class="insight-bar-container">
@@ -87,15 +74,7 @@ const CharacterPanel = {
             characterStats.classList.remove('debug-physicist', 'resident-character', 'qa-specialist', 'physicist-character');
             
             // Add appropriate class based on character name
-            if (character.name.includes('Debug')) {
-              characterStats.classList.add('debug-physicist');
-            } else if (character.name.includes('QA')) {
-              characterStats.classList.add('qa-specialist');
-            } else if (character.name.includes('Physicist')) {
-              characterStats.classList.add('physicist-character');
-            } else {
-              characterStats.classList.add('resident-character');
-            }
+            characterStats.classList.add(`${characterId}-character`);
           }
         }
         
@@ -167,9 +146,6 @@ const CharacterPanel = {
       });
   },
   
-  // Find this function in CharacterPanel (static/js/ui/character_panel.js)
-  // and replace it with this version:
-
   // Update lives visualization to handle large values
   updateLivesDisplay: function(lives, maxLives) {
     const livesContainer = document.getElementById('lives-container');
@@ -208,47 +184,47 @@ const CharacterPanel = {
     }
   },
   
-  // Replace the getDefaultAsciiArt function in character_panel.js
+  // Default ASCII art - kept for backward compatibility
   getDefaultAsciiArt: function() {
     return `    ,+,
-    (o o)
-    /|\\Y/|\\
-    || ||
-    /|| ||\\
-      ==`;
+   (o o)
+   /|\\Y/|\\
+   || ||
+   /|| ||\\
+     ==`;
   },
+  
+  // High res ASCII art - kept for backward compatibility
   getHighResAsciiArt: function(characterName) {
     if (characterName.includes('Physicist')) {
-      // New distinctive Junior Physicist design
       return `   .---.
-     [o--o]
-    /|_⚛_|\\
-     |/__\\|
-     // \\\\`;
+  [o--o]
+ /|_⚛_|\\
+  |/__\\|
+  // \\\\`;
     } else if (characterName.includes('QA')) {
       return `    ,+,
-      [o-o]
-      /|\\#/|\\
-      |QA|
-      // \\\\`;
+   [o-o]
+  /|\\#/|\\
+   |QA|
+   // \\\\`;
     } else if (characterName.includes('Debug')) {
-      // New distinctive Debug Physicist design
       return `  $[01]$
-     {>_<}
-    =|▢▣▢|=
-     /|¦|\\
-     /¦ ¦\\`;
+ {>_<}
+=|▢▣▢|=
+ /|¦|\\
+ /¦ ¦\\`;
     } else {
-      // Default for Resident
       return `    ,+,
-      (o.o)
-      /|\\Y/|\\
-      || ||
-      /|| ||\\
-        ==`;
+   (o.o)
+  /|\\Y/|\\
+   || ||
+  /|| ||\\
+    ==`;
     }
   },
-  // Update the styleAsciiArt function to use high res art
+  
+  // Style ASCII art - kept for backward compatibility
   styleAsciiArt: function(asciiArt, characterName) {
     // Always use high res art instead of passed-in ASCII
     const highResArt = this.getHighResAsciiArt(characterName);
@@ -377,152 +353,130 @@ const CharacterPanel = {
       ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
     }
   },
-  // Add this to character_panel.js
-
-  // Update the animation frames for the physicist and debug characters:
+  
+  // Animation frames - kept for backward compatibility
   animationFrames: {
-    // Physicist frames - updated
+    // Physicist frames
     physicist: [
       // Frame 1: Regular pose
       `   .---.
-    [o--o]
-    /|_⚛_|\\
-    |/__\\|
-    // \\\\`,
+  [o--o]
+ /|_⚛_|\\
+  |/__\\|
+  // \\\\`,
       // Frame 2: Slight arm movement
       `   .---.
-    [o--o]
-    /|_⚛~|\\
-    |/__\\|
-    // \\\\`,
+  [o--o]
+ /|_⚛~|\\
+  |/__\\|
+  // \\\\`,
       // Frame 3: More arm movement
       `   .---.
-    [o--o]
-    /|~⚛_|\\
-    |/__\\|
-    // \\\\`,
+  [o--o]
+ /|~⚛_|\\
+  |/__\\|
+  // \\\\`,
     ],
     
     // Resident frames
     resident: [
       // Frame 1: Regular pose
       `    ,+,
-    (o.o)
-    /|\\Y/|\\
-    || ||
-    /|| ||\\
-      ==`,
+   (o.o)
+  /|\\Y/|\\
+   || ||
+  /|| ||\\
+    ==`,
       // Frame 2: Slight movement
       `    ,+,
-    (o.o)
-    /|\\Y/|\\
-    || ||
-    /|/ \\|\\
-      ==`,
+   (o.o)
+  /|\\Y/|\\
+   || ||
+  /|/ \\|\\
+    ==`,
       // Frame 3: More movement
       `    ,+,
-    (o.o)
-    /|\\Y/|\\
-    || ||
-    /|| ||\\
-      ==`,
+   (o.o)
+  /|\\Y/|\\
+   || ||
+  /|| ||\\
+    ==`,
     ],
     
     // QA Specialist frames
     qa_specialist: [
       // Frame 1: Regular pose
       `    ,+,
-    [o-o]
-    /|\\#/|\\
-    |QA|
-    // \\\\`,
+   [o-o]
+  /|\\#/|\\
+   |QA|
+   // \\\\`,
       // Frame 2: Measurement pose
       `    ,+,
-    [o-o]
-    /|\\#-|\\
-    |QA|
-    // \\\\`,
+   [o-o]
+  /|\\#-|\\
+   |QA|
+   // \\\\`,
       // Frame 3: Another pose
       `    ,+,
-    [o-o]
-    /|-#/|\\
-    |QA|
-    // \\\\`,
+   [o-o]
+  /|-#/|\\
+   |QA|
+   // \\\\`,
     ],
     
-    // Debug mode frames with digital animations
+    // Debug mode frames
     debug_mode: [
       // Frame 1: Regular pose
       `  $[01]$
-    {>_<}
-    =|▢▣▢|=
-    /|¦|\\
-    /¦ ¦\\`,
+ {>_<}
+=|▢▣▢|=
+ /|¦|\\
+ /¦ ¦\\`,
       // Frame 2: Binary change
       `  $[10]$
-    {^_^}
-    =|▣▢▣|=
-    /|¦|\\
-    /¦ ¦\\`,
+ {^_^}
+=|▣▢▣|=
+ /|¦|\\
+ /¦ ¦\\`,
       // Frame 3: More circuit changes
       `  $[11]$
-    {>_<}
-    =|▢▢▢|=
-    /|¦|\\
-    /¦ ¦\\`,
+ {>_<}
+=|▢▢▢|=
+ /|¦|\\
+ /¦ ¦\\`,
     ]
   },
 
-  // Current animation frame and timer
+  // Current animation frame and timer - keeping these for compatibility
   currentAnimationFrame: 0,
   animationTimer: null,
 
-  // Start the animation loop
+  // Start the animation for pixel character 
   startCharacterAnimation: function() {
     // Clear any existing animation
     if (this.animationTimer) {
       clearInterval(this.animationTimer);
+      this.animationTimer = null;
     }
     
-    // Set up animation interval (change every 500ms)
-    this.animationTimer = setInterval(() => {
-      this.updateCharacterAnimation();
-    }, 500);
+    // Apply bobbing animation to character image
+    const characterImg = document.querySelector('.character-panel-img');
+    if (characterImg) {
+      characterImg.classList.add('pixel-bobbing');
+    }
+    
+    // In the future, you could implement sprite-based animation here
+    // by cycling through different images
   },
 
-  // Update the character animation frame
+  // This is kept empty for compatibility with any code that might call it
   updateCharacterAnimation: function() {
-    // Get the current character name
-    const character = GameState.data.character;
-    if (!character) return;
-    
-    // Determine which animation set to use
-    let frameSet = this.animationFrames.resident; // Default
-    
-    if (character.name.includes('Physicist')) {
-      frameSet = this.animationFrames.physicist;
-    } else if (character.name.includes('QA')) {
-      frameSet = this.animationFrames.qa_specialist;
-    } else if (character.name.includes('Debug')) {
-      frameSet = this.animationFrames.debug_mode;
-    }
-    
-    // Update the animation frame
-    this.currentAnimationFrame = (this.currentAnimationFrame + 1) % frameSet.length;
-    
-    // Get the new frame
-    const newFrame = frameSet[this.currentAnimationFrame];
-    
-    // Update the character display
-    const characterArt = document.querySelector('.ascii-character');
-    if (characterArt) {
-      // Create styled ASCII frame
-      const styledArt = this.styleAnimationFrame(newFrame, character.name);
-      characterArt.innerHTML = styledArt;
-    }
+    // No longer needed for static pixel images
+    // But kept for backward compatibility
   },
 
-  // Style an animation frame
+  // This is kept for backward compatibility
   styleAnimationFrame: function(frame, characterName) {
     // Add color based on character type
     let color = '#5b8dd9'; // Default blue for resident
@@ -539,7 +493,6 @@ const CharacterPanel = {
     const coloredArt = frame
       .split('\n')
       .map((line, index) => {
-        // Add slight color variation for each line for a more dynamic look
         const shade = Math.min(100, 80 + index * 5);
         return `<span style="color: ${color}; filter: brightness(${shade}%)">${line}</span>`;
       })
@@ -547,6 +500,7 @@ const CharacterPanel = {
     
     return coloredArt;
   },
+  
   // Initialize inventory system
   initializeInventory: function() {
     InventorySystem.initialize();

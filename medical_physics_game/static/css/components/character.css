@@ -47,6 +47,13 @@
     transition: transform 0.2s ease-in-out;
   }
 
+  .character-panel-img {
+      width: 72px;
+      height: 72px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+  }
+
   .ascii-character.walking {
     animation: 
       bob 2s ease-in-out infinite,

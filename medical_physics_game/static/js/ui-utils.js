@@ -257,7 +257,37 @@ const UiUtils = {
         element.classList.remove('pulse-effect');
       }, duration);
     },
-    
+    // Show floor transition screen
+    showFloorTransition: function(floorNumber, floorName, floorDescription, onComplete) {
+      console.log(`Showing floor transition to Floor ${floorNumber}: ${floorName}`);
+      
+      // Create transition screen element
+      const transitionScreen = document.createElement('div');
+      transitionScreen.className = 'floor-transition-screen';
+      
+      // Add floor information
+      transitionScreen.innerHTML = `
+        <h2 class="floor-title">Floor ${floorNumber}</h2>
+        <h3 class="floor-subtitle">${floorName}</h3>
+        <p class="floor-description">${floorDescription}</p>
+      `;
+      
+      // Add to DOM
+      document.body.appendChild(transitionScreen);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        transitionScreen.style.animation = 'floor-transition-out 1s forwards';
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+          transitionScreen.remove();
+          if (typeof onComplete === 'function') {
+            onComplete();
+          }
+        }, 1000);
+      }, 3000);
+    },
     // Simplified alert (for when bootstrap is not available)
     showAlert: function(message, type = 'info', container = document.body) {
       if (typeof container === 'string') {
