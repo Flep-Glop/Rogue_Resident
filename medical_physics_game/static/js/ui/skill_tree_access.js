@@ -1,110 +1,340 @@
-// skill_tree_access.js - Fixed layout structure
+// skill_tree_access.js - Properly manages skill tree modal creation and access
 
-// Function to toggle skill tree visibility
-function toggleSkillTree() {
-    const container = document.getElementById('skill-tree-container');
-    if (!container) {
-        console.error("Skill tree container not found");
-        return;
-    }
+/**
+ * Handles the skill tree modal access, ensuring proper DOM structure
+ * and initialization sequence to prevent "querySelector on null" errors.
+ */
+const SkillTreeAccess = {
+    // Configuration
+    config: {
+        containerId: 'skill-tree-container',
+        visualizationId: 'skill-tree-visualization',
+        uiId: 'skill-tree-ui',
+        controlsId: 'skill-tree-controls',
+        infoId: 'skill-tree-info',
+        headerText: 'Specialization Tree',
+        buttonText: 'Specializations'
+    },
     
-    // Toggle visibility
-    container.classList.toggle('visible');
+    // State tracking
+    isInitialized: false,
+    isVisible: false,
     
-    // If now visible, ensure skill tree is loaded
-    if (container.classList.contains('visible')) {
-        // Refresh skill tree data if needed
-        if (typeof SkillTreeController !== 'undefined' && SkillTreeController.initialized) {
-            SkillTreeController.loadSkillTree();
-        }
-    }
-}
-
-// Function to create skill tree access button
-function createSkillTreeButton(parentElement, label = "Specialization Tree") {
-    if (!parentElement) {
-        console.error("Parent element not provided for skill tree button");
-        return null;
-    }
-    
-    const button = document.createElement('button');
-    button.className = 'skill-tree-access-button';
-    button.textContent = label;
-    button.addEventListener('click', toggleSkillTree);
-    
-    parentElement.appendChild(button);
-    return button;
-}
-
-// Initialize skill tree container with proper structure
-function initializeSkillTreeContainer() {
-    // Check if container already exists
-    let container = document.getElementById('skill-tree-container');
-    
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'skill-tree-container';
+    /**
+     * Initialize the skill tree access (DOM structure and event handlers)
+     * @returns {Object} The SkillTreeAccess object (for chaining)
+     */
+    initialize: function() {
+        console.log("Initializing skill tree access...");
         
-        // Create inner structure with proper content divs
+        if (this.isInitialized) {
+            console.log("Skill tree access already initialized");
+            return this;
+        }
+        
+        // Create modal container with full structure
+        this.createModalStructure();
+        
+        // Set up event handlers
+        this.setupEventHandlers();
+        
+        // Track initialization
+        this.isInitialized = true;
+        console.log("Skill tree access initialized successfully");
+        
+        // Add buttons to the UI
+        this.addAccessButtons();
+        
+        return this;
+    },
+    
+    /**
+     * Create the complete modal DOM structure
+     */
+    createModalStructure: function() {
+        console.log("Creating skill tree modal structure...");
+        
+        // Check if container already exists
+        let container = document.getElementById(this.config.containerId);
+        
+        // If it exists, keep it but verify its structure
+        if (container) {
+            console.log("Skill tree container already exists, verifying structure...");
+            this.verifyContainerStructure(container);
+            return;
+        }
+        
+        // Create container
+        container = document.createElement('div');
+        container.id = this.config.containerId;
+        container.className = 'skill-tree-container';
+        
+        // Create panel structure
         container.innerHTML = `
             <div class="skill-tree-panel">
                 <div class="skill-tree-header">
-                    <h2>Specialization Tree</h2>
+                    <h2>${this.config.headerText}</h2>
                     <button class="skill-tree-close-button">&times;</button>
                 </div>
                 <div class="skill-tree-content">
-                    <div id="skill-tree-visualization"></div>
-                    <div id="skill-tree-ui">
-                        <div id="skill-tree-controls" class="skill-tree-controls"></div>
-                        <div id="skill-tree-info" class="skill-tree-info"></div>
+                    <div id="${this.config.visualizationId}" class="skill-tree-visualization"></div>
+                    <div id="${this.config.uiId}" class="skill-tree-ui">
+                        <div id="${this.config.controlsId}" class="skill-tree-controls"></div>
+                        <div id="${this.config.infoId}" class="skill-tree-info"></div>
                     </div>
                 </div>
             </div>
         `;
         
-        // Add close button functionality
-        const closeButton = container.querySelector('.skill-tree-close-button');
-        if (closeButton) {
-            closeButton.addEventListener('click', toggleSkillTree);
+        // Append to body
+        document.body.appendChild(container);
+        console.log("Skill tree modal structure created");
+    },
+    
+    /**
+     * Verify and fix container structure if needed
+     * @param {HTMLElement} container - The container element
+     */
+    verifyContainerStructure: function(container) {
+        // Check for visualization container
+        if (!document.getElementById(this.config.visualizationId)) {
+            console.warn("Missing visualization container, fixing...");
+            const content = container.querySelector('.skill-tree-content');
+            
+            if (content) {
+                const vizDiv = document.createElement('div');
+                vizDiv.id = this.config.visualizationId;
+                vizDiv.className = 'skill-tree-visualization';
+                content.appendChild(vizDiv);
+            } else {
+                console.error("Cannot find .skill-tree-content to add visualization container");
+            }
         }
         
-        document.body.appendChild(container);
-    }
+        // Check for UI container
+        if (!document.getElementById(this.config.uiId)) {
+            console.warn("Missing UI container, fixing...");
+            const content = container.querySelector('.skill-tree-content');
+            
+            if (content) {
+                const uiDiv = document.createElement('div');
+                uiDiv.id = this.config.uiId;
+                uiDiv.className = 'skill-tree-ui';
+                
+                // Add controls and info sections
+                uiDiv.innerHTML = `
+                    <div id="${this.config.controlsId}" class="skill-tree-controls"></div>
+                    <div id="${this.config.infoId}" class="skill-tree-info"></div>
+                `;
+                
+                content.appendChild(uiDiv);
+            } else {
+                console.error("Cannot find .skill-tree-content to add UI container");
+            }
+        }
+        
+        // Check for controls container
+        if (!document.getElementById(this.config.controlsId)) {
+            console.warn("Missing controls container, fixing...");
+            const uiDiv = document.getElementById(this.config.uiId);
+            
+            if (uiDiv) {
+                const controlsDiv = document.createElement('div');
+                controlsDiv.id = this.config.controlsId;
+                controlsDiv.className = 'skill-tree-controls';
+                uiDiv.appendChild(controlsDiv);
+            } else {
+                console.error("Cannot find UI container to add controls");
+            }
+        }
+        
+        // Check for info container
+        if (!document.getElementById(this.config.infoId)) {
+            console.warn("Missing info container, fixing...");
+            const uiDiv = document.getElementById(this.config.uiId);
+            
+            if (uiDiv) {
+                const infoDiv = document.createElement('div');
+                infoDiv.id = this.config.infoId;
+                infoDiv.className = 'skill-tree-info';
+                uiDiv.appendChild(infoDiv);
+            } else {
+                console.error("Cannot find UI container to add info section");
+            }
+        }
+    },
     
-    return container;
-}
-
-// Function to set up skill tree access in game
-function setupSkillTreeAccess() {
-    // Initialize container with proper structure
-    initializeSkillTreeContainer();
-    
-    // Add button to game UI (during run)
-    const gameUI = document.querySelector('.game-ui') || document.querySelector('.hud-container');
-    if (gameUI) {
-        createSkillTreeButton(gameUI, "Specializations");
-    }
-    
-    // Add button to character selection screen
-    const characterSelection = document.querySelector('.character-selection');
-    if (characterSelection) {
-        createSkillTreeButton(characterSelection, "View Specializations");
-    }
-    
-    // Initialize skill tree components if not already initialized
-    if (typeof SkillTreeController !== 'undefined' && !SkillTreeController.initialized) {
-        SkillTreeController.initialize({
-            renderContainerId: 'skill-tree-visualization',
-            uiContainerId: 'skill-tree-ui',
-            controlsContainerId: 'skill-tree-controls',
-            infoContainerId: 'skill-tree-info'
+    /**
+     * Set up event handlers for the modal
+     */
+    setupEventHandlers: function() {
+        // Get close button
+        const closeButton = document.querySelector(`#${this.config.containerId} .skill-tree-close-button`);
+        
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                this.hideSkillTree();
+            });
+        } else {
+            console.warn("Close button not found in skill tree modal");
+        }
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isVisible) {
+                this.hideSkillTree();
+            }
         });
+        
+        // Close when clicking outside the panel
+        const container = document.getElementById(this.config.containerId);
+        if (container) {
+            container.addEventListener('click', (e) => {
+                // Check if click is directly on the container (not its children)
+                if (e.target === container) {
+                    this.hideSkillTree();
+                }
+            });
+        }
+    },
+    
+    /**
+     * Add skill tree access buttons to the UI
+     */
+    addAccessButtons: function() {
+        // Try to add to game UI
+        const gameUI = document.querySelector('.game-ui') || document.querySelector('.hud-container');
+        if (gameUI) {
+            this.createAccessButton(gameUI, this.config.buttonText);
+        }
+        
+        // Try to add to character selection
+        const characterSelection = document.querySelector('.character-selection');
+        if (characterSelection) {
+            this.createAccessButton(characterSelection, 'View ' + this.config.buttonText);
+        }
+    },
+    
+    /**
+     * Create and append an access button
+     * @param {HTMLElement} parent - Parent element to append to
+     * @param {string} text - Button text
+     * @returns {HTMLElement} The created button
+     */
+    createAccessButton: function(parent, text) {
+        // Check if button already exists
+        const existingButton = parent.querySelector('.skill-tree-access-button');
+        if (existingButton) {
+            return existingButton;
+        }
+        
+        // Create button
+        const button = document.createElement('button');
+        button.className = 'skill-tree-access-button';
+        button.textContent = text;
+        
+        // Add click handler
+        button.addEventListener('click', () => {
+            this.showSkillTree();
+        });
+        
+        // Append to parent
+        parent.appendChild(button);
+        
+        return button;
+    },
+    
+    /**
+     * Show the skill tree modal
+     */
+    showSkillTree: function() {
+        console.log("Showing skill tree");
+        
+        // Ensure initialized
+        if (!this.isInitialized) {
+            this.initialize();
+        }
+        
+        // Get container
+        const container = document.getElementById(this.config.containerId);
+        if (!container) {
+            console.error("Cannot show skill tree: container not found");
+            return;
+        }
+        
+        // Show the container
+        container.classList.add('visible');
+        this.isVisible = true;
+        
+        // Initialize skill tree components if needed
+        this.initializeSkillTree();
+    },
+    
+    /**
+     * Hide the skill tree modal
+     */
+    hideSkillTree: function() {
+        console.log("Hiding skill tree");
+        
+        // Get container
+        const container = document.getElementById(this.config.containerId);
+        if (!container) {
+            return;
+        }
+        
+        // Hide the container
+        container.classList.remove('visible');
+        this.isVisible = false;
+    },
+    
+    /**
+     * Initialize skill tree components (controller, renderer, UI)
+     */
+    initializeSkillTree: function() {
+        // Only proceed if we have a valid container structure
+        if (!document.getElementById(this.config.visualizationId) || 
+            !document.getElementById(this.config.uiId)) {
+            console.error("Cannot initialize skill tree: containers not ready");
+            return;
+        }
+        
+        // Initialize controller if available and not already initialized
+        if (typeof SkillTreeController !== 'undefined') {
+            if (!SkillTreeController.initialized) {
+                console.log("Initializing skill tree controller...");
+                SkillTreeController.initialize({
+                    renderContainerId: this.config.visualizationId,
+                    uiContainerId: this.config.uiId,
+                    controlsContainerId: this.config.controlsId,
+                    infoContainerId: this.config.infoId
+                });
+            } else {
+                // Refresh data if already initialized
+                console.log("Refreshing skill tree data...");
+                SkillTreeController.loadSkillTree();
+            }
+        } else {
+            console.warn("SkillTreeController not available");
+        }
     }
-}
+};
 
-// Call setup on document ready
-document.addEventListener('DOMContentLoaded', setupSkillTreeAccess);
+// Initialize on DOM content loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay slightly to ensure all scripts are loaded
+    setTimeout(() => {
+        SkillTreeAccess.initialize();
+    }, 100);
+});
 
-// Make functions globally available
-window.toggleSkillTree = toggleSkillTree;
-window.setupSkillTreeAccess = setupSkillTreeAccess;
+// Export globally
+window.SkillTreeAccess = SkillTreeAccess;
+
+// Legacy support for older code
+window.toggleSkillTree = function() {
+    if (SkillTreeAccess.isVisible) {
+        SkillTreeAccess.hideSkillTree();
+    } else {
+        SkillTreeAccess.showSkillTree();
+    }
+};

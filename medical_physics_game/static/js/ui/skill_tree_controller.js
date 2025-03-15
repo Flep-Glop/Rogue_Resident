@@ -86,39 +86,169 @@ const SkillTreeController = {
         document.body.appendChild(uiContainer);
       }
     },
-    
-    // Initialize all skill tree components
-    initializeComponents: function() {
+    /**
+     * Check if required DOM containers exist
+     * @returns {Promise} Promise that resolves when containers are ready
+     */
+    checkContainers: function() {
       return new Promise((resolve, reject) => {
-        // Initialize SkillEffectSystem first
-        SkillEffectSystem.initialize()
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const checkForContainers = () => {
+          attempts++;
+          
+          const renderContainer = document.getElementById(this.config.renderContainerId);
+          const uiContainer = document.getElementById(this.config.uiContainerId);
+          
+          console.log("Checking for containers (attempt " + attempts + "):", {
+            renderContainer: !!renderContainer,
+            uiContainer: !!uiContainer
+          });
+          
+          if (renderContainer && uiContainer) {
+            resolve();
+            return;
+          }
+          
+          if (attempts >= maxAttempts) {
+            if (!renderContainer) {
+              console.error("Render container not found after " + maxAttempts + " attempts");
+            }
+            if (!uiContainer) {
+              console.error("UI container not found after " + maxAttempts + " attempts");
+            }
+            
+            // Try to create missing containers as a last resort
+            this.ensureContainers();
+            
+            // Resolve anyway to continue initialization
+            resolve();
+            return;
+          }
+          
+          setTimeout(checkForContainers, 200);
+        };
+        
+        checkForContainers();
+      });
+    },
+
+    /**
+     * Initialize a component with retry logic
+     * @param {Function} initFunction - Component initialization function to call
+     * @param {String} componentName - Name of the component for logging
+     * @param {Number} maxRetries - Maximum number of retries
+     * @returns {Promise} Promise that resolves when initialization is complete
+     */
+    initializeWithRetry: function(initFunction, componentName, maxRetries = 3) {
+      return new Promise((resolve, reject) => {
+        let attempts = 0;
+        
+        const attemptInitialization = () => {
+          attempts++;
+          console.log(`Initializing ${componentName} (attempt ${attempts}/${maxRetries})...`);
+          
+          try {
+            // Call the initialization function (which should return a promise)
+            Promise.resolve(initFunction())
+              .then(result => {
+                resolve(result);
+              })
+              .catch(error => {
+                console.error(`${componentName} initialization failed (attempt ${attempts}/${maxRetries}):`, error);
+                
+                if (attempts < maxRetries) {
+                  console.log(`Retrying ${componentName} initialization in 500ms...`);
+                  setTimeout(attemptInitialization, 500);
+                } else {
+                  console.error(`${componentName} initialization failed after ${maxRetries} attempts`);
+                  reject(error);
+                }
+              });
+          } catch (error) {
+            console.error(`Error during ${componentName} initialization (attempt ${attempts}/${maxRetries}):`, error);
+            
+            if (attempts < maxRetries) {
+              console.log(`Retrying ${componentName} initialization in 500ms...`);
+              setTimeout(attemptInitialization, 500);
+            } else {
+              console.error(`${componentName} initialization failed after ${maxRetries} attempts`);
+              reject(error);
+            }
+          }
+        };
+        
+        attemptInitialization();
+      });
+    },
+    /**
+     * Initialize all components with improved error handling and dependency checks
+     * @returns {Promise} Promise that resolves when initialization is complete
+     */
+    initializeComponents: function() {
+      console.log("Initializing skill tree components with improved error handling...");
+      
+      return new Promise((resolve, reject) => {
+        // First check if DOM containers exist
+        this.checkContainers()
+          .then(() => {
+            // Initialize SkillEffectSystem first
+            return this.initializeWithRetry(
+              SkillEffectSystem.initialize.bind(SkillEffectSystem),
+              "SkillEffectSystem",
+              3
+            );
+          })
           .then(() => {
             console.log("SkillEffectSystem initialized");
             
             // Then initialize SkillTreeManager
-            return SkillTreeManager.initialize();
+            return this.initializeWithRetry(
+              SkillTreeManager.initialize.bind(SkillTreeManager),
+              "SkillTreeManager",
+              3
+            );
           })
           .then(() => {
             console.log("SkillTreeManager initialized");
             
-            // Initialize the renderer
-            const rendererInitialized = SkillTreeRenderer.initialize(this.config.renderContainerId, {
-              width: 800,
-              height: 800
-            });
-            
-            if (!rendererInitialized) {
-              throw new Error("Failed to initialize SkillTreeRenderer");
+            // Initialize the renderer with error handling
+            try {
+              const rendererInitialized = SkillTreeRenderer.initialize(this.config.renderContainerId, {
+                width: 800,
+                height: 800
+              });
+              
+              if (!rendererInitialized) {
+                throw new Error("Failed to initialize SkillTreeRenderer");
+              }
+              
+              console.log("SkillTreeRenderer initialized");
+            } catch (error) {
+              console.error("SkillTreeRenderer initialization failed:", error);
+              // Continue despite renderer error
             }
             
-            // Initialize the UI
-            SkillTreeUI.initialize({
-              containerId: this.config.uiContainerId
-            });
+            // Initialize the UI with error handling
+            try {
+              SkillTreeUI.initialize({
+                containerId: this.config.uiContainerId,
+                controlsContainerId: this.config.controlsContainerId,
+                infoContainerId: this.config.infoContainerId
+              });
+              
+              console.log("SkillTreeUI initialized");
+            } catch (error) {
+              console.error("SkillTreeUI initialization failed:", error);
+              // Continue despite UI error
+            }
             
+            // Complete initialization even if some components failed
             resolve();
           })
           .catch(error => {
+            console.error("Component initialization failed:", error);
             reject(error);
           });
       });
@@ -173,41 +303,88 @@ const SkillTreeController = {
       });
     },
     
-    // Load the skill tree data
+    /**
+     * Load skill tree data with improved error handling
+     */
     loadSkillTree: function() {
-      console.log("Loading skill tree data");
+      console.log("Loading skill tree data with improved error handling");
       
-      const skills = SkillTreeManager.skills;
-      const specializations = SkillTreeManager.specializations;
-      const connections = SkillTreeManager.connections;
+      // Check if manager is initialized
+      if (!SkillTreeManager.initialized) {
+        console.warn("SkillTreeManager not initialized, cannot load skill tree");
+        return;
+      }
       
-      // Set up specialization filters in UI
-      SkillTreeUI.setupSpecializationFilters(specializations);
-      
-      // Create node state map
-      const nodeStates = {};
-      Object.keys(skills).forEach(skillId => {
-        nodeStates[skillId] = skills[skillId].state;
-      });
-      
-      // Load data into renderer
-      SkillTreeRenderer.loadSkillTree({
-        nodes: skills,
-        connections: connections,
-        specializations: specializations
-      });
-      
-      // Update node states
-      SkillTreeRenderer.updateNodeStates(nodeStates);
-      
-      // Update UI stats
-      SkillTreeUI.updateStats(
-        SkillTreeManager.reputation,
-        SkillTreeManager.skillPointsAvailable,
-        SkillTreeManager.specialization_progress
-      );
-      
-      console.log("Skill tree loaded successfully");
+      try {
+        const skills = SkillTreeManager.skills;
+        const specializations = SkillTreeManager.specializations;
+        const connections = SkillTreeManager.connections;
+        
+        console.log(`Loading skill tree with ${Object.keys(skills).length} skills, ${Object.keys(specializations).length} specializations`);
+        
+        // Set up specialization filters in UI with error handling
+        if (SkillTreeUI.initialized && typeof SkillTreeUI.setupSpecializationFilters === 'function') {
+          try {
+            SkillTreeUI.setupSpecializationFilters(specializations);
+          } catch (error) {
+            console.error("Failed to set up specialization filters:", error);
+          }
+        } else {
+          console.warn("SkillTreeUI not initialized or missing setupSpecializationFilters method");
+        }
+        
+        // Create node state map
+        const nodeStates = {};
+        Object.keys(skills).forEach(skillId => {
+          nodeStates[skillId] = skills[skillId].state;
+        });
+        
+        // Load data into renderer with error handling
+        if (SkillTreeRenderer.initialized) {
+          try {
+            SkillTreeRenderer.loadSkillTree({
+              nodes: skills,
+              connections: connections,
+              specializations: specializations
+            });
+          } catch (error) {
+            console.error("Failed to load skill tree in renderer:", error);
+          }
+          
+          // Update node states
+          try {
+            SkillTreeRenderer.updateNodeStates(nodeStates);
+          } catch (error) {
+            console.error("Failed to update node states in renderer:", error);
+          }
+        } else {
+          console.warn("SkillTreeRenderer not initialized, cannot load skill tree visualization");
+        }
+        
+        // Update UI stats with error handling
+        if (SkillTreeUI.initialized && typeof SkillTreeUI.updateStats === 'function') {
+          try {
+            SkillTreeUI.updateStats(
+              SkillTreeManager.reputation,
+              SkillTreeManager.skillPointsAvailable,
+              SkillTreeManager.specialization_progress
+            );
+          } catch (error) {
+            console.error("Failed to update UI stats:", error);
+          }
+        } else {
+          console.warn("SkillTreeUI not initialized or missing updateStats method");
+        }
+        
+        console.log("Skill tree loaded successfully");
+      } catch (error) {
+        console.error("Error loading skill tree:", error);
+        ErrorHandler.handleError(
+          error,
+          "Skill Tree Loading",
+          ErrorHandler.SEVERITY.ERROR
+        );
+      }
     },
     
     // Event Handlers

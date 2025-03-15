@@ -244,34 +244,77 @@ const SkillTreeUI = {
     this.elements.info.appendChild(nodeInfoPanel);
   },
   
-  // Set up specialization filters - avoid duplication
   setupSpecializationFilters: function(specializations) {
-    // Clear existing tabs except 'All'
-    const allTab = this.elements.filterMenu.querySelector('.tab-all');
-    this.elements.filterMenu.innerHTML = '';
-    if (allTab) {
-      this.elements.filterMenu.appendChild(allTab);
+    console.log("Setting up specialization filters...");
+    
+    // Safely get filter menu element
+    if (!this.elements.filterMenu) {
+      console.error("Filter menu element not found");
+      
+      // Try to get it again
+      this.elements.filterMenu = document.getElementById(this.config.filterMenuId);
+      
+      // If still not found, try to create it
+      if (!this.elements.filterMenu) {
+        console.warn("Creating missing filter menu element");
+        
+        if (this.elements.controls) {
+          this.elements.filterMenu = document.createElement('div');
+          this.elements.filterMenu.id = this.config.filterMenuId;
+          this.elements.filterMenu.className = 'specialization-filter';
+          this.elements.controls.appendChild(this.elements.filterMenu);
+        } else {
+          console.error("Controls container not found, cannot create filter menu");
+          return false;
+        }
+      }
     }
     
-    // Reset mapping
+    // Ensure the filter menu is empty before adding tabs
+    this.elements.filterMenu.innerHTML = '';
+    
+    // Create "All" tab first
+    const allTab = document.createElement('div');
+    allTab.className = 'filter-tab tab-all active';
+    allTab.textContent = 'All';
+    allTab.dataset.specialization = 'all';
+    this.elements.filterMenu.appendChild(allTab);
+    
+    // Reset specialization tabs collection
     this.elements.specializationTabs = {};
     
-    // Add specialization tabs
+    // Check if specializations data is valid
+    if (!specializations || typeof specializations !== 'object') {
+      console.warn("Invalid specializations data:", specializations);
+      return false;
+    }
+    
+    // Add tabs for each specialization
     Object.values(specializations).forEach(spec => {
+      if (!spec || !spec.id || !spec.name) {
+        console.warn("Invalid specialization data:", spec);
+        return;
+      }
+      
       const specTab = document.createElement('div');
       specTab.className = `filter-tab tab-${spec.id}`;
       specTab.textContent = spec.name;
       specTab.dataset.specialization = spec.id;
       
-      // Add color indicator
-      const colorIndicator = document.createElement('span');
-      colorIndicator.className = 'color-indicator';
-      colorIndicator.style.backgroundColor = spec.color;
-      specTab.prepend(colorIndicator);
+      // Add color indicator if color is available
+      if (spec.color) {
+        const colorIndicator = document.createElement('span');
+        colorIndicator.className = 'color-indicator';
+        colorIndicator.style.backgroundColor = spec.color;
+        specTab.prepend(colorIndicator);
+      }
       
       this.elements.filterMenu.appendChild(specTab);
       this.elements.specializationTabs[spec.id] = specTab;
     });
+    
+    console.log(`Set up ${Object.keys(this.elements.specializationTabs).length} specialization tabs`);
+    return true;
   },
   
   // Rest of the methods remain the same...
