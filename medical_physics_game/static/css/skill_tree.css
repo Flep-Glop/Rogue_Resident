@@ -787,3 +787,131 @@
     max-height: 40%;
   }
 }
+
+/* Add this to skill_tree.css */
+.node-label {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.node:hover + .node-label,
+.node.node-active + .node-label {
+  opacity: 1;
+}
+
+/* Add these styles to skill_tree.css to condense the side panel */
+
+/* Make the UI panel more compact */
+#skill-tree-ui {
+  width: 280px;
+  min-width: 280px;
+  background-color: rgba(26, 30, 42, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Condense controls section */
+.skill-tree-controls {
+  padding: 12px;
+}
+
+/* Make specialization filter more compact */
+.specialization-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.filter-tab {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 12px;
+  background-color: rgba(42, 46, 58, 0.8);
+}
+
+.filter-tab:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Streamline stats display */
+.skill-tree-stats {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reputation-container,
+.skill-points-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: rgba(42, 46, 58, 0.6);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Condense specialization progress */
+.specialization-progress-container h3 {
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.spec-progress-item {
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: rgba(42, 46, 58, 0.6);
+}
+
+.spec-name {
+  font-size: 12px;
+}
+
+/* Condense skill info panel */
+.skill-tree-info {
+  padding: 12px;
+}
+
+.node-name {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.node-specialization {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.node-description {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.node-info-panel h3 {
+  font-size: 13px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.effects-list li,
+.requirements-list li {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+/* More compact buttons */
+.skill-action-buttons {
+  margin-top: 12px;
+}
+
+.unlock-skill-button,
+.activate-skill-button,
+.deactivate-skill-button {
+  padding: 6px 10px;
+  font-size: 12px;
+  height: 30px;
+}

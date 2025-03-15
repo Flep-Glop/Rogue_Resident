@@ -323,7 +323,9 @@ const SkillTreeRenderer = {
     return true;
   },
 
-  // Ensure all nodes have proper positions
+  // Add this to skill_tree_renderer.js to handle the core cluster
+
+  // Modify the _ensureNodePositions function to properly position the core cluster
   _ensureNodePositions: function() {
     const centerX = this.config.width / 2;
     const centerY = this.config.height / 2;
@@ -355,27 +357,64 @@ const SkillTreeRenderer = {
     Object.entries(nodesByTier).forEach(([tier, nodes]) => {
       const tierInt = parseInt(tier);
       
-      // Core node (tier 0) goes in center
+      // Special handling for tier 0 (core cluster)
       if (tierInt === 0) {
-        nodes.forEach(node => {
-          if (!node.position) {
-            node.position = { x: centerX, y: centerY };
+        // Check if we have multiple core nodes (our cluster)
+        if (nodes.length > 1) {
+          // Identify core nodes
+          const coreNodes = nodes.filter(node => 
+            node.specialization === 'core' || 
+            ['radiation_physics', 'medical_instrumentation', 'patient_care', 'medical_science'].includes(node.id)
+          );
+          
+          // Position core nodes in a small cluster
+          if (coreNodes.length > 0) {
+            const clusterRadius = 40; // Radius for the cluster
+            const angleStep = (Math.PI * 2) / coreNodes.length;
+            
+            coreNodes.forEach((node, index) => {
+              if (!node.position || !node.position.x || !node.position.y) {
+                const angle = index * angleStep;
+                const x = centerX + Math.cos(angle) * clusterRadius;
+                const y = centerY + Math.sin(angle) * clusterRadius;
+                
+                node.position = { x, y };
+              }
+            });
+            
+            // Position any remaining tier 0 nodes at center
+            const nonCoreNodes = nodes.filter(node => !coreNodes.includes(node));
+            nonCoreNodes.forEach(node => {
+              if (!node.position) {
+                node.position = { x: centerX, y: centerY };
+              }
+            });
+          } else {
+            // Fallback: position all at center
+            nodes.forEach(node => {
+              if (!node.position) {
+                node.position = { x: centerX, y: centerY };
+              }
+            });
           }
-        });
+        } else {
+          // Single core node - place at center
+          nodes.forEach(node => {
+            if (!node.position) {
+              node.position = { x: centerX, y: centerY };
+            }
+          });
+        }
         return;
       }
       
-      // Get orbit radius for this tier
+      // Other tiers follow orbital layout as before
       const orbitRadius = this.config.orbitRadius[tierInt - 1];
       const count = nodes.length;
-      
-      // Calculate angle step based on number of nodes
       const angleStep = (Math.PI * 2) / count;
       
-      // Position nodes around the orbit that don't have explicit positions
       nodes.forEach((node, index) => {
         if (!node.position) {
-          // Calculate position based on angle
           const angle = index * angleStep;
           const x = centerX + Math.cos(angle) * orbitRadius;
           const y = centerY + Math.sin(angle) * orbitRadius;
@@ -383,6 +422,36 @@ const SkillTreeRenderer = {
           node.position = { x, y };
         }
       });
+    });
+  },
+
+  // Add a special highlighting function for the core cluster
+  highlightCoreCluster: function() {
+    // Find core nodes
+    const coreNodeIds = Object.values(this.nodes)
+      .filter(node => node.specialization === 'core')
+      .map(node => node.id);
+    
+    // Get connections between core nodes
+    const coreConnections = this.connectionsGroup.querySelectorAll('.connection')
+    Array.from(coreConnections).forEach(connection => {
+      const sourceId = connection.dataset.source;
+      const targetId = connection.dataset.target;
+      
+      if (coreNodeIds.includes(sourceId) && coreNodeIds.includes(targetId)) {
+        // Highlight core connections
+        connection.setAttribute('stroke-width', '3');
+        connection.style.strokeOpacity = '0.8';
+        connection.style.stroke = '#777777'; // Grey color for core
+      }
+    });
+    
+    // Highlight core nodes
+    coreNodeIds.forEach(nodeId => {
+      const nodeElement = this.nodeElements[nodeId];
+      if (nodeElement) {
+        nodeElement.style.filter = 'brightness(110%)';
+      }
     });
   },
   // Add new method to center the view
@@ -635,14 +704,18 @@ const SkillTreeRenderer = {
     this.nodesGroup.appendChild(text);
   },
   
-  // Draw node labels
+  // Modified drawNodeLabels function for skill_tree_renderer.js
   drawNodeLabels: function() {
-    console.log('Drawing node labels');
+    console.log('Drawing node labels with hover visibility');
+    
+    // Clear existing labels
+    this.labelsGroup.innerHTML = '';
     
     // Draw label for each node
     Object.values(this.nodes).forEach(node => {
       const x = node.position?.x || 0;
       const y = node.position?.y || 0;
+      const nodeId = node.id;
       
       // Create label text
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -651,8 +724,10 @@ const SkillTreeRenderer = {
       text.setAttribute('text-anchor', 'middle');
       text.setAttribute('font-size', '12');
       text.setAttribute('fill', this.config.colors.text);
-      text.setAttribute('class', `node-label node-label-${node.id}`);
+      text.setAttribute('class', `node-label node-label-${nodeId}`);
       text.style.pointerEvents = 'none';
+      text.style.opacity = '0'; // Hidden by default
+      text.style.transition = 'opacity 0.2s ease';
       
       // Add text shadow for better readability
       text.style.textShadow = `1px 1px 2px ${this.config.colors.textShadow}`;
@@ -662,6 +737,34 @@ const SkillTreeRenderer = {
       
       // Add label to group
       this.labelsGroup.appendChild(text);
+    });
+    
+    // Add event listeners to show/hide labels on hover
+    Object.values(this.nodeElements).forEach(nodeElement => {
+      const nodeId = nodeElement.dataset.nodeId;
+      const labelElement = this.labelsGroup.querySelector(`.node-label-${nodeId}`);
+      
+      if (labelElement) {
+        // Show label on mouseenter
+        nodeElement.addEventListener('mouseenter', () => {
+          labelElement.style.opacity = '1';
+        });
+        
+        // Hide label on mouseleave
+        nodeElement.addEventListener('mouseleave', () => {
+          // Don't hide if it's the active node
+          const node = this.nodes[nodeId];
+          if (node && node.state !== 'active') {
+            labelElement.style.opacity = '0';
+          }
+        });
+        
+        // Active nodes should always show their label
+        const node = this.nodes[nodeId];
+        if (node && node.state === 'active') {
+          labelElement.style.opacity = '1';
+        }
+      }
     });
   },
   
