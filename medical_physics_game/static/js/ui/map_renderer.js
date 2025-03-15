@@ -83,7 +83,6 @@ const MapRenderer = {
     return this;
   },
   
-  // Replace this method:
   initParticles: function() {
     // Create particles based on floor
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
@@ -109,19 +108,18 @@ const MapRenderer = {
         speedX: (Math.random() - 0.5) * 0.5,
         speedY: (Math.random() - 0.5) * 0.3,
         color: i % 5 === 0 ? pattern.accentColor : pattern.dotColor,
-        alpha: Math.random() * 0.7 + 0.3,
+        alpha: Math.random() * 0.4 + 0.2, // Reduced opacity
         lastX: 0, // Track last position for dirty checking
         lastY: 0
       });
     }
   },
   
-  // Replace this method:
   startAnimationLoop: function() {
     if (!this._animationFrame) {
       // Track frame timing for throttling
       let lastFrameTime = 0;
-      const targetFPS = 30; // Limit to 30fps for particles
+      const targetFPS = 20; // Limit to 20fps for particles
       const frameInterval = 1000 / targetFPS;
       
       const animate = (timestamp) => {
@@ -157,29 +155,13 @@ const MapRenderer = {
       this._animationFrame = null;
     }
   },
-  
-  // Replace this method:
   updateParticles: function() {
     // Only proceed if canvas is visible
     const canvas = document.getElementById(this.canvasId);
     if (!canvas || canvas.offsetParent === null) return;
     
     // Don't update particles during node interactions
-    if (GameState.data.currentNode) return;
-    
-    // Get canvas context for direct particle rendering
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Check if we need to do a full redraw or just update particles
-    let needsFullRedraw = false;
-    const now = Date.now();
-    
-    // Only do full redraw every 2 seconds or on first run
-    if (!this._lastFullRedraw || now - this._lastFullRedraw > 2000) {
-      needsFullRedraw = true;
-      this._lastFullRedraw = now;
-    }
+    if (GameState.data && GameState.data.currentNode) return;
     
     // Update particle positions
     this.particles.forEach(particle => {
@@ -198,47 +180,8 @@ const MapRenderer = {
       if (particle.y > canvas.height) particle.y = 0;
     });
     
-    // Determine if we need to redraw the map or just update particles
-    if (needsFullRedraw) {
-      // Full redraw of map and particles
-      this.renderMap();
-    } else {
-      // Optimize by only clearing and redrawing the particles
-      this.updateParticlesOnly(ctx);
-    }
-  },
-
-  // Add this new method:
-  updateParticlesOnly: function(ctx) {
-    if (!ctx) return;
-    
-    // Save current drawing state
-    ctx.save();
-    
-    // Clear only the areas where particles were and will be
-    this.particles.forEach(particle => {
-      // Clear previous position (with a slightly larger area to ensure full coverage)
-      ctx.clearRect(
-        Math.floor(particle.lastX) - particle.size - 1,
-        Math.floor(particle.lastY) - particle.size - 1,
-        particle.size * 2 + 2,
-        particle.size * 2 + 2
-      );
-      
-      // Clear new position area
-      ctx.clearRect(
-        Math.floor(particle.x) - particle.size - 1,
-        Math.floor(particle.y) - particle.size - 1,
-        particle.size * 2 + 2,
-        particle.size * 2 + 2
-      );
-    });
-    
-    // Draw all particles in their new positions
-    this.drawParticles(ctx);
-    
-    // Restore drawing state
-    ctx.restore();
+    // MODIFIED: Always do a full redraw to maintain correct z-ordering
+    this.renderMap();
   },
 
   // Handle state changes from GameState
@@ -259,7 +202,6 @@ const MapRenderer = {
     }
   },
   
-  // Enhanced render map function with retro styling
   renderMap: function() {
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
@@ -319,12 +261,14 @@ const MapRenderer = {
     
     // Draw retro-style background
     this.drawRetroBackground(ctx, pattern, canvasWidth, canvasHeight);
-
-    // Draw connections first (so they're behind the nodes)
-    this.drawConnections(ctx, canvasWidth, canvasHeight);
-    // Draw ambient floating particles
+    
+    // Draw ambient floating particles (IMMEDIATELY AFTER BACKGROUND)
     this.drawParticles(ctx);
-    // Draw all nodes with enhanced styling
+    
+    // Draw connections next (on top of particles)
+    this.drawConnections(ctx, canvasWidth, canvasHeight);
+    
+    // Draw all nodes with enhanced styling (on top of connections & particles)
     allNodes.forEach(node => {
       this.drawNode(ctx, node, canvasWidth, canvasHeight);
     });
@@ -786,7 +730,6 @@ const MapRenderer = {
     ctx.stroke();
   },
   
-  // Draw floating particles
   drawParticles: function(ctx) {
     this.particles.forEach(particle => {
       ctx.fillStyle = particle.color;
