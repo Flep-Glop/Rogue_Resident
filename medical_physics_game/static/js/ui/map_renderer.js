@@ -320,11 +320,11 @@ const MapRenderer = {
     // Draw retro-style background
     this.drawRetroBackground(ctx, pattern, canvasWidth, canvasHeight);
     
-    // Draw connections first (so they're behind the nodes)
-    this.drawConnections(ctx, canvasWidth, canvasHeight);
-    
     // Draw ambient floating particles
     this.drawParticles(ctx);
+
+    // Draw connections first (so they're behind the nodes)
+    this.drawConnections(ctx, canvasWidth, canvasHeight);
     
     // Draw all nodes with enhanced styling
     allNodes.forEach(node => {
@@ -551,6 +551,7 @@ const MapRenderer = {
     const x = startX + (colIndex * colSpacing);
     const y = 100 + (node.position.row * rowSpacing);
     
+    // Set larger radius for boss and start nodes
     let nodeRadius = 25; // Default node radius
     if (node.type === 'boss') {
       nodeRadius = 40; // Larger radius for boss nodes
@@ -1009,6 +1010,7 @@ const MapRenderer = {
       const dx = clickX - nodeX;
       const dy = clickY - nodeY;
       const distance = Math.sqrt(dx*dx + dy*dy);
+      const nodeRadius = 25;
       
       // Check if click is within node radius
       if (distance <= nodeRadius) {
