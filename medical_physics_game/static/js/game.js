@@ -398,6 +398,34 @@ function initializeGame() {
         InventorySystem.initialize();
       }
       
+      // 14. Initialize skill effect system
+      if (typeof SkillEffectSystem !== 'undefined' && typeof SkillEffectSystem.initialize === 'function') {
+        return SkillEffectSystem.initialize();
+      }
+    })
+
+    .then(() => {
+      // 15. Initialize skill tree manager
+      if (typeof SkillTreeManager !== 'undefined' && typeof SkillTreeManager.initialize === 'function') {
+        return SkillTreeManager.initialize();
+      }
+    })
+    .then(() => {
+      // 16. Initialize skill tree controller
+      if (typeof SkillTreeController !== 'undefined' && 
+          typeof SkillTreeController.initialize === 'function' &&
+          !SkillTreeController.initialized) {
+        SkillTreeController.initialize();
+      }
+      
+      // 17. Initialize reputation system
+      if (typeof ReputationSystem !== 'undefined' && typeof ReputationSystem.initialize === 'function') {
+        ReputationSystem.initialize();
+      }
+      
+      // 18. Create skill tree access button
+      createSkillTreeButton();
+
       // 14. Initialize save manager
       if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
         SaveManager.initialize();
@@ -428,6 +456,57 @@ function initializeGame() {
       }
     });
 }
+
+function createSkillTreeButton() {
+  console.log("Creating skill tree access button");
+  
+  // Create button element
+  const button = document.createElement('button');
+  button.id = 'skill-tree-button';
+  button.className = 'game-btn game-btn--primary skill-tree-access-button';
+  button.innerHTML = '<span class="button-icon">⚛</span> Skill Tree';
+  button.title = "View and manage your skills";
+  
+  // Add click event
+  button.addEventListener('click', toggleSkillTree);
+  
+  // Find your game controls container and append the button
+  const controlsContainer = document.querySelector('.game-controls') || document.body;
+  controlsContainer.appendChild(button);
+}
+
+/**
+ * Toggle skill tree visibility
+ */
+function toggleSkillTree() {
+  const container = document.getElementById('skill-tree-container');
+  
+  if (!container) return;
+  
+  if (container.classList.contains('visible')) {
+    // Hide skill tree
+    container.classList.remove('visible');
+    
+    // Resume game if it was paused
+    if (typeof GameState !== 'undefined' && GameState.resumeGame) {
+      GameState.resumeGame();
+    }
+  } else {
+    // Show skill tree
+    container.classList.add('visible');
+    
+    // Pause game if possible
+    if (typeof GameState !== 'undefined' && GameState.pauseGame) {
+      GameState.pauseGame();
+    }
+    
+    // Make sure skill tree is initialized
+    if (!SkillTreeController.initialized) {
+      SkillTreeController.initialize();
+    }
+  }
+}
+
 
 // Helper functions for UI
 function showLoadingIndicator() {

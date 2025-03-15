@@ -252,7 +252,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       });
   },
   
-  // Show question result
+  /// Add immediately after your existing showQuestionResult declaration:
   showQuestionResult: function(data, selectedIndex, question) {
     const resultDiv = document.getElementById('question-result');
     
@@ -279,10 +279,45 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Show floating feedback
     if (data.correct) {
       this.showFeedback(`+${data.insight_gained || 10} Insight`, 'success');
+      
+      // NEW CODE: Emit event for skill effects to process
+      if (typeof EventSystem !== 'undefined' && EventSystem.emit) {
+        EventSystem.emit(GAME_EVENTS.QUESTION_CORRECT, {
+          type: GAME_EVENTS.QUESTION_CORRECT,
+          question: question,
+          insightGained: data.insight_gained || 10
+        });
+      }
+      
     } else {
       this.showFeedback('-1 Life', 'danger');
+      
+      // NEW CODE: Emit event for skill effects to process
+      if (typeof EventSystem !== 'undefined' && EventSystem.emit) {
+        EventSystem.emit(GAME_EVENTS.QUESTION_WRONG, {
+          type: GAME_EVENTS.QUESTION_WRONG,
+          question: question
+        });
+      }
     }
-    
+    // Add this inside showQuestionResult function in question_component.js
+    // Right after the feedback code
+
+    // Emit event for skill effects to process - for correct answers
+    if (data.correct && typeof EventSystem !== 'undefined' && typeof EventSystem.emit === 'function') {
+      EventSystem.emit(GAME_EVENTS.QUESTION_CORRECT, {
+        type: GAME_EVENTS.QUESTION_CORRECT,
+        question: question,
+        insightGained: data.insight_gained || 10
+      });
+    } 
+    // Emit event for wrong answers
+    else if (!data.correct && typeof EventSystem !== 'undefined' && typeof EventSystem.emit === 'function') {
+      EventSystem.emit(GAME_EVENTS.QUESTION_WRONG, {
+        type: GAME_EVENTS.QUESTION_WRONG,
+        question: question
+      });
+    }
     // Show result
     resultDiv.style.display = 'block';
   },

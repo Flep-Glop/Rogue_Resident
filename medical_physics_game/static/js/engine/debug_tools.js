@@ -5,7 +5,7 @@ const DebugTools = {
     // Is debug mode active
     debugMode: false,
     
-    // Initialize debug tools
+    // Modify the initialize method in DebugTools
     initialize: function() {
       console.log("Initializing debug tools...");
       
@@ -18,7 +18,13 @@ const DebugTools = {
       if (this.debugMode) {
         this.setupDebugUI();
         this.setupKeyboardShortcuts();
+        
+        // Add this line to set up skill tree debug tools
+        this.setupSkillTreeDebug();
       }
+      
+      // Make test skill tree available globally even in non-debug mode
+      window.testSkillTree = this.testSkillTree.bind(this);
       
       return this;
     },
@@ -194,7 +200,103 @@ const DebugTools = {
         isDragging = false;
       });
     },
-    
+    // Add these methods to your DebugTools object in debug_tools.js
+
+    // Add a new method for skill tree debugging
+    setupSkillTreeDebug: function() {
+      console.log("Setting up skill tree debug features");
+      
+      // Get the existing debug panel if it exists
+      const debugPanel = document.getElementById('debug-panel');
+      
+      if (!debugPanel) {
+        console.warn("Debug panel not found, creating a minimal one for skill tree testing");
+        
+        // Create a minimal debug panel if it doesn't exist
+        const minimalPanel = document.createElement('div');
+        minimalPanel.id = 'minimal-debug-panel';
+        minimalPanel.style.position = 'fixed';
+        minimalPanel.style.bottom = '10px';
+        minimalPanel.style.right = '10px';
+        minimalPanel.style.zIndex = '9999';
+        document.body.appendChild(minimalPanel);
+        
+        // Add the skill tree test button to this minimal panel
+        const skillTreeTestBtn = document.createElement('button');
+        skillTreeTestBtn.className = 'debug-btn';
+        skillTreeTestBtn.textContent = 'Test Skill Tree';
+        skillTreeTestBtn.style.padding = '8px 12px';
+        skillTreeTestBtn.style.background = '#333';
+        skillTreeTestBtn.style.color = 'white';
+        skillTreeTestBtn.style.border = '1px solid #555';
+        skillTreeTestBtn.style.borderRadius = '4px';
+        skillTreeTestBtn.addEventListener('click', this.testSkillTree.bind(this));
+        minimalPanel.appendChild(skillTreeTestBtn);
+        
+        return;
+      }
+      
+      // Add the skill tree test button to the existing debug panel
+      const skillTreeTestBtn = document.createElement('button');
+      skillTreeTestBtn.className = 'debug-btn';
+      skillTreeTestBtn.textContent = 'Test Skill Tree';
+      skillTreeTestBtn.addEventListener('click', this.testSkillTree.bind(this));
+      debugPanel.appendChild(skillTreeTestBtn);
+      
+      // Add section divider
+      const divider = document.createElement('hr');
+      divider.className = 'debug-divider';
+      debugPanel.appendChild(divider);
+    },
+
+    // Skill tree test function
+    testSkillTree: function() {
+      console.group("Skill Tree Test");
+      
+      // Check if systems are initialized
+      console.log("SkillEffectSystem initialized:", 
+          typeof SkillEffectSystem !== 'undefined' && !!SkillEffectSystem.initialized);
+      console.log("SkillTreeManager initialized:", 
+          typeof SkillTreeManager !== 'undefined' && !!SkillTreeManager.initialized);
+      console.log("SkillTreeController initialized:", 
+          typeof SkillTreeController !== 'undefined' && !!SkillTreeController.initialized);
+      
+      // Test skill tree data
+      if (typeof SkillTreeManager !== 'undefined' && SkillTreeManager.initialized) {
+        console.log("Available skills:", Object.keys(SkillTreeManager.skills).length);
+        console.log("Specializations:", Object.keys(SkillTreeManager.specializations));
+        console.log("Current reputation:", SkillTreeManager.reputation);
+        
+        // Test adding reputation
+        const oldRep = SkillTreeManager.reputation || 0;
+        SkillTreeManager.addReputation(10);
+        console.log("After adding 10 reputation:", SkillTreeManager.reputation);
+        
+        // Test skill states
+        SkillTreeManager.debugState();
+      } else {
+        console.warn("SkillTreeManager not initialized");
+      }
+      
+      // Test UI visibility
+      const container = document.getElementById('skill-tree-container');
+      if (container) {
+        console.log("Skill tree container found");
+        console.log("Current visibility:", container.classList.contains('visible'));
+        console.log("Toggle visibility by calling 'toggleSkillTree()'");
+      } else {
+        console.warn("Skill tree container not found in DOM");
+      }
+      
+      console.groupEnd();
+      
+      // Show toast notification
+      if (typeof UIUtils !== 'undefined' && UIUtils.showToast) {
+        UIUtils.showToast("Skill tree test complete. Check console for details.", "info");
+      }
+      
+      return "Skill Tree test complete. Check console for details.";
+    },
     // Set up event listeners for debug UI
     setupDebugEvents: function() {
       // Toggle debug panel

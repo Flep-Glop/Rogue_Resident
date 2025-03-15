@@ -538,7 +538,7 @@ window.EventSystem = EventSystem;
 
 // Common event types - used to prevent typos
 const GAME_EVENTS = {
-  // Game state events
+  // Existing events
   GAME_INITIALIZED: 'gameInitialized',
   GAME_RESET: 'gameReset',
   GAME_OVER: 'gameOver',
@@ -567,7 +567,24 @@ const GAME_EVENTS = {
   // UI events
   UI_CONTAINER_CHANGED: 'uiContainerChanged',
   UI_TOAST_SHOWN: 'uiToastShown',
-  UI_FEEDBACK_SHOWN: 'uiFeedbackShown'
+  UI_FEEDBACK_SHOWN: 'uiFeedbackShown',
+  
+  // Skill tree related events - using underscores for consistency with existing naming
+  QUESTION_CORRECT: 'question_correct',
+  QUESTION_WRONG: 'question_wrong',
+  PATIENT_CASE_STARTED: 'patient_case_started',
+  PATIENT_CASE_COMPLETED: 'patient_case_completed',
+  EQUIPMENT_ACTIVATED: 'equipment_activated',
+  EQUIPMENT_MALFUNCTION: 'equipment_malfunction',
+  CRITICAL_INSIGHT: 'critical_insight',
+  SPECIALIZATION_ACHIEVED: 'specialization_achieved',
+  SPECIALIZATION_MASTERY_ACHIEVED: 'specialization_mastery_achieved',
+  RUN_STARTED: 'run_started',
+  RUN_COMPLETED: 'run_completed',
+  
+  // New reputation events
+  REPUTATION_GAINED: 'reputation_gained',
+  REPUTATION_SPENT: 'reputation_spent'
 };
 
 // Attach event types to window
