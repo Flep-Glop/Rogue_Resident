@@ -1,0 +1,351 @@
+# MEDICAL PHYSICS ROGUELIKE
+## Skill Tree Development Guide
+
+---
+
+## 1. OVERVIEW & VISION
+
+### Core Concept
+The skill tree system serves as the meta-progression backbone of the Medical Physics Roguelike. Unlike traditional skill trees with fixed paths, our system enables players to create unique specialization paths for their resident characters that persist and evolve across multiple runs.
+
+### Design Philosophy
+- **Player Agency**: Players shape their own unique medical physicist through meaningful choices
+- **Emergent Specialization**: Expertise develops organically through skill investment rather than predefined paths
+- **Interconnected Knowledge**: Skills connect across specializations, mimicking the interdisciplinary nature of medical physics
+- **Visual Metaphor**: The tree visually resembles atomic/radiation patterns, reinforcing the game's theme
+
+### Visual Reference
+The skill tree should resemble the interconnected node structure seen in Path of Exile, but with:
+- A central core that represents fundamental knowledge
+- Four primary branching paths representing specializations
+- Cross-connections enabling hybrid builds
+- A cosmic/atomic visual theme that fits the medical physics subject matter
+
+---
+
+## 2. CORE SYSTEMS DESIGN
+
+### 2.1 Specialization Branches
+
+The tree features four primary specialization areas:
+
+#### Theory Specialist (Blue)
+- Focus on physics principles and mathematical understanding
+- Grants bonuses to insight generation and question solving
+- Example skill: "Quantum Comprehension" - +25% insight from quantum physics questions
+
+#### Clinical Expert (Green)
+- Focus on patient care and treatment application
+- Grants bonuses to patient outcomes and treatment effectiveness
+- Example skill: "Diagnostic Intuition" - Reveals one hidden patient parameter at case start
+
+#### Technical Savant (Orange)
+- Focus on equipment expertise and quality assurance
+- Grants bonuses to calibration and machine operation
+- Example skill: "Machine Whisperer" - 40% reduced penalty from equipment malfunctions
+
+#### Research Focus (Purple)
+- Focus on academic advancement and publication
+- Grants bonuses to funding and research opportunities
+- Example skill: "Grant Writing" - +25% funding gain from all sources
+
+### 2.2 Node Types
+
+The skill tree contains various node types:
+
+1. **Core Node** (Central)
+   - Starting point for all characters
+   - Represents fundamental knowledge
+
+2. **Major Nodes** (Large)
+   - Represent significant skills that define specializations
+   - Unlock access to clusters of minor nodes
+   - Visually larger than minor nodes
+
+3. **Minor Nodes** (Small)
+   - Represent incremental skills and abilities
+   - Connect to form paths between major nodes
+   - Provide smaller but meaningful bonuses
+
+4. **Connector Nodes** (Special)
+   - Bridge between different specialization areas
+   - Enable unique hybrid builds
+   - Require investment in multiple branches to unlock
+
+5. **Threshold Nodes** (Milestone)
+   - Unlock when reaching certain investment levels in a specialization
+   - Grant title changes and significant unique abilities
+   - Mark important progression milestones
+
+### 2.3 Progression Systems
+
+#### Meta-Progression (Between Runs)
+- **Reputation**: Meta-currency earned through achievements in runs
+- **Permanent Unlocks**: Skills unlocked with reputation remain available for all future runs
+- **Specialization Development**: Track progress toward specialization thresholds across all runs
+
+#### In-Run Progression
+- **Skill Points**: Currency earned during a run to activate skills from unlocked pool
+- **Activation Choices**: Players choose which unlocked skills to activate for current run
+- **Build Development**: Each run involves creating a viable build from available skills
+
+### 2.4 Specialization Mechanics
+
+- **Specialization Threshold**: Investing 5+ points in a specialization area grants that specialization title
+- **Multi-Specialization**: Players can invest in multiple areas for hybrid builds
+- **Proximity Bonuses**: Skills closer to character's "center of gravity" cost less to activate
+- **Mastery Effects**: Additional bonuses unlock when heavily invested in one area (8+ skills)
+
+---
+
+## 3. TECHNICAL IMPLEMENTATION
+
+### 3.1 Data Structure
+
+#### Skill Definition
+```json
+{
+  "id": "quantum_comprehension",
+  "name": "Quantum Comprehension",
+  "specialization": "theory",
+  "tier": 2,
+  "description": "Increases Insight gained from quantum physics questions by 25%",
+  "effects": [
+    {
+      "type": "insight_gain_multiplier",
+      "condition": "question_category == 'quantum'",
+      "value": 1.25
+    }
+  ],
+  "position": {"x": 350, "y": 200},
+  "connections": ["core_physics", "schrodingers_insight"],
+  "cost": {
+    "reputation": 15,
+    "skill_points": 3
+  },
+  "visual": {
+    "size": "minor",
+    "icon": "brain"
+  }
+}
+```
+
+#### Character Save Data
+```json
+{
+  "character_id": "player_physicist_01",
+  "name": "Dr. Cooper",
+  "reputation": 45,
+  "total_runs": 7,
+  "unlocked_skills": [
+    "core_physics",
+    "quantum_comprehension",
+    "machine_calibration",
+    "diagnostic_intuition"
+  ],
+  "specialization_progress": {
+    "theory": 3,
+    "clinical": 1,
+    "technical": 1,
+    "research": 0
+  },
+  "current_run": {
+    "active_skills": ["core_physics", "quantum_comprehension"],
+    "available_skill_points": 2
+  }
+}
+```
+
+#### Skill Tree Map
+```json
+{
+  "tree_version": "1.0",
+  "nodes": [
+    // Array of all skill node definitions
+  ],
+  "connections": [
+    // Array of all valid connections between nodes
+  ],
+  "specializations": [
+    // Definition of specialization areas and thresholds
+  ]
+}
+```
+
+### 3.2 Core Systems
+
+#### Required Components
+
+1. **Skill Tree Manager**
+   - Loads and maintains skill data
+   - Handles skill unlocking and activation
+   - Tracks specialization progress
+
+2. **Skill Tree Renderer**
+   - Visualizes the tree based on node data
+   - Handles zoom, pan, and navigation
+   - Renders different node states (locked, unlocked, active)
+
+3. **Persistence Manager**
+   - Saves and loads character progression
+   - Maintains meta-progression between runs
+   - Handles run-specific skill activation
+
+4. **Effect System**
+   - Implements skill effects in gameplay
+   - Manages conditional bonuses
+   - Tracks and applies specialization thresholds
+
+### 3.3 Technical Requirements
+
+#### Rendering
+- Support for rendering 100+ nodes with connections
+- Smooth zoom and pan capability
+- Visual indicators for node states
+- Particle effects for active connections
+
+#### State Management
+- Clear distinction between permanent unlocks and run activations
+- Efficient skill lookup for effect implementation
+- Serialization for save/load functionality
+
+#### UI/UX
+- Clear tooltips showing skill effects and requirements
+- Visual feedback when unlocking or activating skills
+- Search and filter functionality for larger trees
+- Skill path highlighting
+
+---
+
+## 4. IMPLEMENTATION ROADMAP
+
+### Phase 1: Prototype (2-3 weeks)
+1. Implement basic tree visualization
+2. Create simplified data structure for ~20-30 skills
+3. Build core node selection and state management
+4. Implement basic save/load functionality
+
+### Phase 2: Core Functionality (3-4 weeks)
+1. Develop complete skill data structure
+2. Implement full specialization tracking
+3. Build UI for skill interaction
+4. Connect skills to gameplay effects
+
+### Phase 3: Polishing (2-3 weeks)
+1. Add visual effects and animations
+2. Improve UI/UX based on testing
+3. Balance skill costs and effects
+4. Implement advanced features (search, filters, etc.)
+
+### Phase 4: Integration (4+ weeks)
+1. Connect skill system to full game progression
+2. Implement reputation gain mechanics
+3. Balance meta-progression pace
+4. Extensive testing with various build paths
+
+---
+
+## 5. ASSET REQUIREMENTS
+
+### Visual Assets
+- Node background graphics (4 specialization types + connectors)
+- Skill icons (~15-20 per specialization)
+- Selection and highlight effects
+- Specialization background patterns
+- Particle effects for connections
+
+### UI Elements
+- Tooltip frames and backgrounds
+- Button states (unlock, activate, deactivate)
+- Specialization indicators
+- Currency displays
+- Filter and search UI
+
+### Animation
+- Node unlock animation
+- Skill activation effect
+- Specialization threshold achievement
+- Connection activation flow
+
+---
+
+## 6. TESTING STRATEGY
+
+### Technical Testing
+- Performance testing with full skill tree
+- Save/load validation
+- Effect implementation verification
+- UI responsiveness across resolutions
+
+### Gameplay Testing
+- Balance testing of various specialization paths
+- Meta-progression pace evaluation
+- Skill synergy discovery
+- Player satisfaction with character development
+
+### User Testing Focus Areas
+- Intuitive understanding of the skill system
+- Satisfaction with specialization development
+- Clarity of information presentation
+- Long-term engagement with meta-progression
+
+---
+
+## 7. SKILL LIST: STARTER SET
+
+Below is a starter set of skills (8 per specialization) for the initial prototype:
+
+### Theory Specialist
+1. **Quantum Comprehension** - +25% insight from quantum physics
+2. **Radiative Transfer Mastery** - 20% chance to auto-solve radiation calculations
+3. **Schrödinger's Insight** - Critical insights give double rewards
+4. **Mathematical Modeling** - See hidden mathematical relationships
+5. **Scholarly Memory** - Remember similar questions from past runs
+6. **Theoretical Framework** - +15% to all insight gains
+7. **Physics Intuition** - Reveal one parameter in complex problems
+8. **Uncertainty Principle** - Convert failures into partial successes
+
+### Clinical Expert
+1. **Bedside Manner** - +30% to patient outcome ratings
+2. **Diagnostic Intuition** - Reveal one hidden patient parameter
+3. **Treatment Optimization** - +15% effectiveness of treatments
+4. **Patient Advocate** - Unlock special dialogue options
+5. **Clinical Workflow** - Reduce time costs of patient interactions
+6. **Interdisciplinary Consult** - Call for help once per floor
+7. **Safety Protocol** - Reduce adverse events by 25%
+8. **Treatment Planning** - See expected outcomes before choosing treatments
+
+### Technical Savant
+1. **Calibration Expert** - Equipment calibrations always succeed
+2. **Machine Whisperer** - 40% reduced penalty from malfunctions
+3. **Engineering Mindset** - See equipment internals, reduce repair costs
+4. **Quality Assurance** - Auto-detect QA issues before they affect patients
+5. **Efficient Operation** - Reduce equipment operation costs
+6. **Technical Improvisation** - Create temporary fixes for broken equipment
+7. **Radiation Detection** - Identify radiation anomalies automatically
+8. **Systems Approach** - Bonus when using multiple equipment types together
+
+### Research Focus
+1. **Literature Review** - Start runs with 3 research papers
+2. **Grant Writing** - +25% funding gain
+3. **Peer Network** - Call in a favor once per run
+4. **Publication Bonus** - Convert excess insight to reputation
+5. **Experimental Design** - Unlock experimental treatments
+6. **Research Assistant** - Gain a companion who helps with tasks
+7. **Academic Presentation** - Convert clinical successes to reputation
+8. **Collaborative Research** - Bonuses when combining multiple specializations
+
+---
+
+## 8. REFERENCES & INSPIRATION
+
+- Path of Exile passive skill tree
+- Final Fantasy X Sphere Grid
+- Medical physics educational competencies
+- Atomic and radiation visual motifs
+- Roguelike progression systems (Hades, Slay the Spire)
+
+---
+
+*Document Version 1.0*  
+*Created March 2025*

@@ -98,4 +98,7 @@ medical_physics_game/
 ├── map_generator.py               # Floor map generation
 ├── node_plugins.py 🔵             # Plugin system for node types
 ├── README.md
-└── requirements.txt
+├── requirements.txt          
+├── skill-tree-concept.svg
+└── skill-tree-dev-guide.txt
+

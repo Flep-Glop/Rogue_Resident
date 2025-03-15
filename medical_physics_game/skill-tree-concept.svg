@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <!-- Background -->
+  <rect width="800" height="800" fill="#0A0E1A"/>
+  
+  <!-- Orbital rings -->
+  <circle cx="400" cy="400" r="75" fill="none" stroke="#2A3A5C" stroke-width="1"/>
+  <circle cx="400" cy="400" r="175" fill="none" stroke="#2A3A5C" stroke-width="1"/>
+  <circle cx="400" cy="400" r="275" fill="none" stroke="#2A3A5C" stroke-width="1"/>
+  <circle cx="400" cy="400" r="350" fill="none" stroke="#2A3A5C" stroke-width="1"/>
+  
+  <!-- Core node -->
+  <circle cx="400" cy="400" r="30" fill="#4682B4" stroke="#87CEEB" stroke-width="3"/>
+  <text x="400" y="405" font-family="Arial" font-size="12" fill="white" text-anchor="middle">CORE</text>
+  
+  <!-- Theory branch (blue) -->
+  <text x="400" y="250" font-family="Arial" font-size="16" fill="#87CEEB" text-anchor="middle" font-weight="bold">THEORY SPECIALIST</text>
+  
+  <!-- Theory mid nodes -->
+  <circle cx="400" cy="300" r="18" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="350" cy="325" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="450" cy="325" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  
+  <!-- Theory outer nodes -->
+  <circle cx="400" cy="175" r="18" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="340" cy="200" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="460" cy="200" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="300" cy="230" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <circle cx="500" cy="230" r="15" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  
+  <!-- Clinical branch (green) -->
+  <text x="600" y="400" font-family="Arial" font-size="16" fill="#90EE90" text-anchor="middle" font-weight="bold">CLINICAL EXPERT</text>
+  
+  <!-- Clinical mid nodes -->
+  <circle cx="500" cy="400" r="18" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="475" cy="350" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="475" cy="450" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  
+  <!-- Clinical outer nodes -->
+  <circle cx="625" cy="400" r="18" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="600" cy="350" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="600" cy="450" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="670" cy="320" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <circle cx="670" cy="480" r="15" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  
+  <!-- Technical branch (orange) -->
+  <text x="400" y="550" font-family="Arial" font-size="16" fill="#FFA500" text-anchor="middle" font-weight="bold">TECHNICAL SAVANT</text>
+  
+  <!-- Technical mid nodes -->
+  <circle cx="400" cy="500" r="18" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="350" cy="475" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="450" cy="475" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  
+  <!-- Technical outer nodes -->
+  <circle cx="400" cy="625" r="18" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="340" cy="600" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="460" cy="600" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="300" cy="570" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <circle cx="500" cy="570" r="15" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  
+  <!-- Research branch (purple) -->
+  <text x="200" y="400" font-family="Arial" font-size="16" fill="#DDA0DD" text-anchor="middle" font-weight="bold">RESEARCH FOCUS</text>
+  
+  <!-- Research mid nodes -->
+  <circle cx="300" cy="400" r="18" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="325" cy="350" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="325" cy="450" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  
+  <!-- Research outer nodes -->
+  <circle cx="175" cy="400" r="18" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="200" cy="350" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="200" cy="450" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="130" cy="320" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <circle cx="130" cy="480" r="15" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  
+  <!-- Connecting lines from core to specialization main nodes -->
+  <line x1="400" y1="370" x2="400" y2="300" stroke="#87CEEB" stroke-width="3"/>
+  <line x1="430" y1="400" x2="500" y2="400" stroke="#90EE90" stroke-width="3"/>
+  <line x1="400" y1="430" x2="400" y2="500" stroke="#FFA500" stroke-width="3"/>
+  <line x1="370" y1="400" x2="300" y2="400" stroke="#DDA0DD" stroke-width="3"/>
+  
+  <!-- Theory connections -->
+  <line x1="400" y1="300" x2="350" y2="325" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="400" y1="300" x2="450" y2="325" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="400" y1="300" x2="400" y2="175" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="400" y1="175" x2="340" y2="200" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="400" y1="175" x2="460" y2="200" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="340" y1="200" x2="300" y2="230" stroke="#87CEEB" stroke-width="2"/>
+  <line x1="460" y1="200" x2="500" y2="230" stroke="#87CEEB" stroke-width="2"/>
+  
+  <!-- Clinical connections -->
+  <line x1="500" y1="400" x2="475" y2="350" stroke="#90EE90" stroke-width="2"/>
+  <line x1="500" y1="400" x2="475" y2="450" stroke="#90EE90" stroke-width="2"/>
+  <line x1="500" y1="400" x2="625" y2="400" stroke="#90EE90" stroke-width="2"/>
+  <line x1="625" y1="400" x2="600" y2="350" stroke="#90EE90" stroke-width="2"/>
+  <line x1="625" y1="400" x2="600" y2="450" stroke="#90EE90" stroke-width="2"/>
+  <line x1="600" y1="350" x2="670" y2="320" stroke="#90EE90" stroke-width="2"/>
+  <line x1="600" y1="450" x2="670" y2="480" stroke="#90EE90" stroke-width="2"/>
+  
+  <!-- Technical connections -->
+  <line x1="400" y1="500" x2="350" y2="475" stroke="#FFA500" stroke-width="2"/>
+  <line x1="400" y1="500" x2="450" y2="475" stroke="#FFA500" stroke-width="2"/>
+  <line x1="400" y1="500" x2="400" y2="625" stroke="#FFA500" stroke-width="2"/>
+  <line x1="400" y1="625" x2="340" y2="600" stroke="#FFA500" stroke-width="2"/>
+  <line x1="400" y1="625" x2="460" y2="600" stroke="#FFA500" stroke-width="2"/>
+  <line x1="340" y1="600" x2="300" y2="570" stroke="#FFA500" stroke-width="2"/>
+  <line x1="460" y1="600" x2="500" y2="570" stroke="#FFA500" stroke-width="2"/>
+  
+  <!-- Research connections -->
+  <line x1="300" y1="400" x2="325" y2="350" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="300" y1="400" x2="325" y2="450" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="300" y1="400" x2="175" y2="400" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="175" y1="400" x2="200" y2="350" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="175" y1="400" x2="200" y2="450" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="200" y1="350" x2="130" y2="320" stroke="#DDA0DD" stroke-width="2"/>
+  <line x1="200" y1="450" x2="130" y2="480" stroke="#DDA0DD" stroke-width="2"/>
+  
+  <!-- Cross-specialization connections -->
+  <line x1="350" y1="325" x2="325" y2="350" stroke="#FFD700" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="450" y1="325" x2="475" y2="350" stroke="#FFD700" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="350" y1="475" x2="325" y2="450" stroke="#FFD700" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="450" y1="475" x2="475" y2="450" stroke="#FFD700" stroke-width="1.5" stroke-dasharray="5,3"/>
+  
+  <!-- Rotation-themed node clusters -->
+  <circle cx="275" cy="275" r="25" fill="rgba(255,0,0,0.15)" stroke="#FF6347" stroke-width="1"/>
+  <text x="275" y="279" font-family="Arial" font-size="10" fill="white" text-anchor="middle">RAD</text>
+  <text x="275" y="289" font-family="Arial" font-size="10" fill="white" text-anchor="middle">SAFETY</text>
+  
+  <circle cx="525" cy="275" r="25" fill="rgba(0,255,0,0.15)" stroke="#32CD32" stroke-width="1"/>
+  <text x="525" y="279" font-family="Arial" font-size="10" fill="white" text-anchor="middle">IMAGING</text>
+  
+  <circle cx="525" cy="525" r="25" fill="rgba(0,0,255,0.15)" stroke="#4169E1" stroke-width="1"/>
+  <text x="525" y="529" font-family="Arial" font-size="10" fill="white" text-anchor="middle">TREATMENT</text>
+  
+  <circle cx="275" cy="525" r="25" fill="rgba(255,255,0,0.15)" stroke="#FFD700" stroke-width="1"/>
+  <text x="275" y="529" font-family="Arial" font-size="10" fill="white" text-anchor="middle">NUCLEAR</text>
+  
+  <!-- Legend -->
+  <rect x="600" y="500" width="150" height="150" fill="rgba(0,0,0,0.5)" rx="10"/>
+  <text x="675" y="520" font-family="Arial" font-size="14" fill="white" text-anchor="middle">LEGEND</text>
+  
+  <circle cx="620" cy="540" r="8" fill="#1D4E89" stroke="#87CEEB" stroke-width="2"/>
+  <text x="675" y="545" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Theory Skills</text>
+  
+  <circle cx="620" cy="565" r="8" fill="#2E8B57" stroke="#90EE90" stroke-width="2"/>
+  <text x="675" y="570" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Clinical Skills</text>
+  
+  <circle cx="620" cy="590" r="8" fill="#B8860B" stroke="#FFA500" stroke-width="2"/>
+  <text x="675" y="595" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Technical Skills</text>
+  
+  <circle cx="620" cy="615" r="8" fill="#663399" stroke="#DDA0DD" stroke-width="2"/>
+  <text x="675" y="620" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Research Skills</text>
+  
+  <line x1="620" y1="635" x2="640" y2="635" stroke="#FFD700" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="675" y="640" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Cross-Specialization</text>
+</svg>
