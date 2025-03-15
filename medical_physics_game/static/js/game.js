@@ -247,7 +247,6 @@ function setupEventListeners() {
     console.log("Debug buttons added:", {
       container: debugButtonContainer,
       buttonCount: debugButtonContainer.childElementCount,
-      mapBtn: debugMapBtn,
       summaryBtn: debugSummaryBtn,
       nextFloorBtn: debugNextFloorBtn
     });

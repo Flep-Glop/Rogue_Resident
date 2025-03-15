@@ -5,31 +5,31 @@ const CharacterAssets = {
     // Character image data
     characters: {
         'resident': {
-            imagePath: '/static/images/characters/resident.png',
+            imagePath: '/static/img/characters/resident.png',
             // You can add animation frames later if needed
             animationFrames: [
-                '/static/images/characters/resident.png',
+                '/static/img/characters/resident.png',
                 // Add more frames if you create them
             ]
         },
         'physicist': {
-            imagePath: '/static/images/characters/physicist.png',
+            imagePath: '/static/img/characters/physicist.png',
             animationFrames: [
-                '/static/images/characters/physicist.png',
+                '/static/img/characters/physicist.png',
                 // Add more frames if you create them
             ]
         },
         'qa_specialist': {
-            imagePath: '/static/images/characters/qa_specialist.png',
+            imagePath: '/static/img/characters/qa_specialist.png',
             animationFrames: [
-                '/static/images/characters/qa_specialist.png',
+                '/static/img/characters/qa_specialist.png',
                 // Add more frames if you create them
             ]
         },
         'debug_mode': {
-            imagePath: '/static/images/characters/debug_mode.png',
+            imagePath: '/static/img/characters/debug_mode.png',
             animationFrames: [
-                '/static/images/characters/debug_mode.png',
+                '/static/img/characters/debug_mode.png',
                 // Add more frames if you create them
             ]
         }
@@ -49,7 +49,7 @@ const CharacterAssets = {
         const characterId = characterIdOrName.includes(' ') ? 
             this.getCharacterIdFromName(characterIdOrName) : characterIdOrName;
             
-        return this.characters[characterId]?.imagePath || '/static/images/characters/resident.png';
+        return this.characters[characterId]?.imagePath || '/static/img/characters/resident.png';
     },
     
     // Get animation frames for a character
