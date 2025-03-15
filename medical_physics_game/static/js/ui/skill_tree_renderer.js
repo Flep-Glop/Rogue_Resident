@@ -78,12 +78,26 @@ const SkillTreeRenderer = {
     return true;
   },
   
-  // Create SVG canvas
+  // Create SVG canvas - improved
   createSvgCanvas: function() {
     // Clear existing content
     if (this.svg) {
       this.svgContainer.innerHTML = '';
     }
+    
+    // Create loading indicator
+    const loading = document.createElement('div');
+    loading.className = 'skill-tree-loading';
+    
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    loading.appendChild(spinner);
+    
+    const loadingText = document.createElement('div');
+    loadingText.textContent = 'Loading skill tree...';
+    loading.appendChild(loadingText);
+    
+    this.svgContainer.appendChild(loading);
     
     // Create SVG element
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -117,9 +131,16 @@ const SkillTreeRenderer = {
     this.svg.appendChild(this.labelsGroup);
     this.svg.appendChild(this.tooltipGroup);
     
-    // Add SVG to container
-    this.svgContainer.appendChild(this.svg);
+    // Add SVG to container - insert before loading
+    this.svgContainer.insertBefore(this.svg, loading);
     
+    // Remove loading after a short delay
+    setTimeout(() => {
+      if (loading.parentNode === this.svgContainer) {
+        this.svgContainer.removeChild(loading);
+      }
+    }, 1000);
+
     console.log('SVG canvas created');
   },
   
@@ -279,7 +300,7 @@ const SkillTreeRenderer = {
     // Note: SVG with preserveAspectRatio should handle this automatically
   },
   
-  // Load skill tree data
+  // Improved load skill tree function with proper position calculations
   loadSkillTree: function(data) {
     console.log('Loading skill tree data');
     
@@ -288,12 +309,99 @@ const SkillTreeRenderer = {
     this.nodes = data.nodes || {};
     this.connections = data.connections || [];
     
+    // Calculate proper positions if needed
+    this._ensureNodePositions();
+    
     // Render the tree
     this.renderSkillTree();
     
+    // Center the view
+    setTimeout(() => {
+      this.centerView();
+    }, 100);
+    
     return true;
   },
-  
+
+  // Ensure all nodes have proper positions
+  _ensureNodePositions: function() {
+    const centerX = this.config.width / 2;
+    const centerY = this.config.height / 2;
+    
+    // Group nodes by tier for orbital layout
+    const nodesByTier = {};
+    let maxTier = 0;
+    
+    // First pass - group nodes and find max tier
+    Object.values(this.nodes).forEach(node => {
+      const tier = node.tier || 0;
+      maxTier = Math.max(maxTier, tier);
+      
+      if (!nodesByTier[tier]) {
+        nodesByTier[tier] = [];
+      }
+      
+      nodesByTier[tier].push(node);
+    });
+    
+    // Make sure orbital radius array has enough entries
+    while (this.config.orbitRadius.length <= maxTier) {
+      const lastRadius = this.config.orbitRadius[this.config.orbitRadius.length - 1];
+      const newRadius = lastRadius + 100;
+      this.config.orbitRadius.push(newRadius);
+    }
+    
+    // Second pass - calculate positions if needed
+    Object.entries(nodesByTier).forEach(([tier, nodes]) => {
+      const tierInt = parseInt(tier);
+      
+      // Core node (tier 0) goes in center
+      if (tierInt === 0) {
+        nodes.forEach(node => {
+          if (!node.position) {
+            node.position = { x: centerX, y: centerY };
+          }
+        });
+        return;
+      }
+      
+      // Get orbit radius for this tier
+      const orbitRadius = this.config.orbitRadius[tierInt - 1];
+      const count = nodes.length;
+      
+      // Calculate angle step based on number of nodes
+      const angleStep = (Math.PI * 2) / count;
+      
+      // Position nodes around the orbit that don't have explicit positions
+      nodes.forEach((node, index) => {
+        if (!node.position) {
+          // Calculate position based on angle
+          const angle = index * angleStep;
+          const x = centerX + Math.cos(angle) * orbitRadius;
+          const y = centerY + Math.sin(angle) * orbitRadius;
+          
+          node.position = { x, y };
+        }
+      });
+    });
+  },
+  // Add new method to center the view
+  centerView: function() {
+    const centerX = this.config.width / 2;
+    const centerY = this.config.height / 2;
+    
+    // If d3 is available
+    if (typeof d3 !== 'undefined' && this.zoom) {
+      d3.select(this.svg).call(
+        this.zoom.transform,
+        d3.zoomIdentity.translate(0, 0).scale(0.8)
+      );
+    } else {
+      this.currentTransform = { k: 0.8, x: 0, y: 0 };
+      this.applyTransform();
+    }
+  },
+
   // Render the entire skill tree
   renderSkillTree: function() {
     console.log('Rendering skill tree...');
@@ -397,7 +505,7 @@ const SkillTreeRenderer = {
     });
   },
   
-  // Draw skill nodes
+  // Improved drawing of nodes with better visibility
   drawNodes: function() {
     console.log('Drawing skill nodes');
     
@@ -426,7 +534,17 @@ const SkillTreeRenderer = {
       circle.setAttribute('cy', y);
       circle.setAttribute('r', radius);
       circle.setAttribute('fill', nodeColor);
-      circle.setAttribute('fill-opacity', '0.7');
+      
+      // Set fill opacity based on state
+      let fillOpacity = 0.7;
+      switch (node.state) {
+        case 'locked': fillOpacity = 0.3; break;
+        case 'unlockable': fillOpacity = 0.6; break;
+        case 'unlocked': fillOpacity = 0.8; break;
+        case 'active': fillOpacity = 1.0; break;
+      }
+      
+      circle.setAttribute('fill-opacity', fillOpacity);
       circle.setAttribute('stroke', this.config.colors.nodeStroke);
       circle.setAttribute('stroke-width', '2');
       circle.setAttribute('class', `node node-${node.id} node-${node.state} node-size-${nodeSize}`);
