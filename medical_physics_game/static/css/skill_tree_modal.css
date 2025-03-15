@@ -1,0 +1,224 @@
+/* Add this to a new file: medical_physics_game/static/css/skill_tree_modal.css */
+
+/* Skill Tree Modal Container */
+#skill-tree-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+#skill-tree-container.visible {
+    display: flex;
+    opacity: 1;
+}
+
+/* Skill Tree Panel */
+.skill-tree-panel {
+    width: 90%;
+    height: 90%;
+    max-width: 1400px;
+    background-color: var(--st-surface, #1A1E2A);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: skill-tree-panel-enter 0.3s ease forwards;
+}
+
+@keyframes skill-tree-panel-enter {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Skill Tree Header */
+.skill-tree-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background-color: var(--st-surface-light, #2A2E3A);
+    border-bottom: 1px solid var(--st-border, #444444);
+}
+
+.skill-tree-header h2 {
+    margin: 0;
+    font-size: var(--st-font-lg, 18px);
+    color: var(--st-text-primary, white);
+}
+
+.skill-tree-close-button {
+    background: none;
+    border: none;
+    color: var(--st-text-primary, white);
+    font-size: 24px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.skill-tree-close-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Content containers */
+.skill-tree-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+#skill-tree-visualization {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+#skill-tree-ui {
+    width: 300px;
+    border-left: 1px solid var(--st-border, #444444);
+    overflow-y: auto;
+}
+
+/* Skill Tree Access Button - Character Selection */
+.character-card .skill-tree-access-button {
+    background-color: #4287f5;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.character-card .skill-tree-access-button:hover {
+    background-color: #5b8dd9;
+    transform: translateY(-2px);
+}
+
+.character-card .skill-tree-access-button:before {
+    content: '⚛';
+    margin-right: 8px;
+}
+
+/* Skill Tree Access Button - Game UI */
+.game-ui .skill-tree-access-button,
+.hud-container .skill-tree-access-button,
+.map-container .skill-tree-access-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    padding: 8px 16px;
+    background-color: #4287f5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.game-ui .skill-tree-access-button:hover,
+.hud-container .skill-tree-access-button:hover,
+.map-container .skill-tree-access-button:hover {
+    background-color: #5b8dd9;
+    transform: translateY(-2px);
+}
+
+.skill-tree-access-button .button-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+/* Game Paused Overlay */
+body.game-paused:after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .skill-tree-panel {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        flex-direction: column;
+    }
+    
+    .skill-tree-content {
+        flex-direction: column;
+    }
+    
+    #skill-tree-ui {
+        width: 100%;
+        max-height: 40%;
+        border-left: none;
+        border-top: 1px solid var(--st-border, #444444);
+    }
+}
+
+/* Animations */
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px rgba(66, 135, 245, 0.5); }
+    50% { box-shadow: 0 0 15px rgba(66, 135, 245, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(66, 135, 245, 0.5); }
+}
+
+.skill-tree-access-button.new-points {
+    animation: pulse-glow 2s infinite;
+}
+
+/* Loading indicator for skill tree */
+.skill-tree-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--st-text-primary, white);
+}
+
+.skill-tree-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: var(--st-theory-color, #4287f5);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

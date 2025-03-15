@@ -457,53 +457,228 @@ function initializeGame() {
     });
 }
 
+// Replace the existing createSkillTreeButton function in game.js with this improved version
+
 function createSkillTreeButton() {
-  console.log("Creating skill tree access button");
+  console.log("Creating skill tree access button for game UI");
+  
+  // Find or create the skill tree button
+  let button = document.getElementById('skill-tree-button');
+  
+  if (button) {
+      // Button already exists, just update it
+      button.innerHTML = '<span class="button-icon">⚛</span> Specializations';
+      return button;
+  }
   
   // Create button element
-  const button = document.createElement('button');
+  button = document.createElement('button');
   button.id = 'skill-tree-button';
-  button.className = 'game-btn game-btn--primary skill-tree-access-button';
-  button.innerHTML = '<span class="button-icon">⚛</span> Skill Tree';
-  button.title = "View and manage your skills";
+  button.className = 'skill-tree-access-button';
+  button.innerHTML = '<span class="button-icon">⚛</span> Specializations';
+  button.title = "View and manage your specialization tree";
+  
+  // Style the button
+  Object.assign(button.style, {
+      position: 'absolute',
+      top: '10px',
+      right: '10px',
+      zIndex: '100',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '8px 15px',
+      backgroundColor: '#4287f5',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      fontWeight: 'bold',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+      cursor: 'pointer'
+  });
+  
+  // Add hover effect
+  button.addEventListener('mouseenter', function() {
+      button.style.backgroundColor = '#5b8dd9';
+      button.style.transform = 'translateY(-2px)';
+  });
+  
+  button.addEventListener('mouseleave', function() {
+      button.style.backgroundColor = '#4287f5';
+      button.style.transform = 'translateY(0)';
+  });
   
   // Add click event
-  button.addEventListener('click', toggleSkillTree);
+  button.addEventListener('click', function() {
+      // Make sure skill tree container exists
+      initializeSkillTreeContainer();
+      
+      // Toggle skill tree visibility
+      toggleSkillTree();
+  });
   
-  // Find your game controls container and append the button
-  const controlsContainer = document.querySelector('.game-controls') || document.body;
-  controlsContainer.appendChild(button);
+  // Find a suitable parent element to add the button to
+  const possibleParents = [
+      document.querySelector('.game-controls'),
+      document.querySelector('.game-ui'),
+      document.querySelector('.hud-container'),
+      document.querySelector('.map-container'),
+      document.getElementById('game-board-container')
+  ];
+  
+  // Add to the first found parent
+  for (const parent of possibleParents) {
+      if (parent) {
+          parent.appendChild(button);
+          console.log("Added skill tree button to:", parent);
+          break;
+      }
+  }
+  
+  // If no parent found, add to body as fallback
+  if (!button.parentElement) {
+      document.body.appendChild(button);
+      console.log("Added skill tree button to document body (fallback)");
+  }
+  
+  return button;
 }
 
-/**
- * Toggle skill tree visibility
- */
+// Initialize the skill tree container
+function initializeSkillTreeContainer() {
+  // Check if container already exists
+  let container = document.getElementById('skill-tree-container');
+  
+  if (!container) {
+      container = document.createElement('div');
+      container.id = 'skill-tree-container';
+      
+      // Create inner structure
+      container.innerHTML = `
+          <div class="skill-tree-panel">
+              <div class="skill-tree-header">
+                  <h2>Specialization Tree</h2>
+                  <button class="skill-tree-close-button">&times;</button>
+              </div>
+              <div id="skill-tree-visualization"></div>
+              <div id="skill-tree-ui"></div>
+          </div>
+      `;
+      
+      // Add close button functionality
+      const closeButton = container.querySelector('.skill-tree-close-button');
+      if (closeButton) {
+          closeButton.addEventListener('click', toggleSkillTree);
+      }
+      
+      document.body.appendChild(container);
+      
+      // Add escape key handler
+      document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && container.classList.contains('visible')) {
+              toggleSkillTree();
+          }
+      });
+  }
+  
+  return container;
+}
+
+// Improved function to toggle skill tree visibility
 function toggleSkillTree() {
   const container = document.getElementById('skill-tree-container');
   
-  if (!container) return;
+  if (!container) {
+      console.error("Skill tree container not found");
+      return;
+  }
   
   if (container.classList.contains('visible')) {
-    // Hide skill tree
-    container.classList.remove('visible');
-    
-    // Resume game if it was paused
-    if (typeof GameState !== 'undefined' && GameState.resumeGame) {
-      GameState.resumeGame();
-    }
+      // Hide skill tree
+      container.classList.remove('visible');
+      
+      // Resume game if it was paused
+      if (typeof GameState !== 'undefined' && GameState.resumeGame) {
+          GameState.resumeGame();
+      }
+      
+      // Show notification that changes are saved
+      if (typeof UiUtils !== 'undefined' && UiUtils.showToast) {
+          UiUtils.showToast("Specialization changes saved", "success");
+      }
+      
+      // Re-enable UI elements that might have been disabled
+      enableGameUI();
   } else {
-    // Show skill tree
-    container.classList.add('visible');
-    
-    // Pause game if possible
-    if (typeof GameState !== 'undefined' && GameState.pauseGame) {
-      GameState.pauseGame();
-    }
-    
-    // Make sure skill tree is initialized
-    if (!SkillTreeController.initialized) {
-      SkillTreeController.initialize();
-    }
+      // Show skill tree
+      container.classList.add('visible');
+      
+      // Pause game if possible
+      if (typeof GameState !== 'undefined' && GameState.pauseGame) {
+          GameState.pauseGame();
+      }
+      
+      // Disable certain UI elements while skill tree is open
+      disableGameUI();
+      
+      // Make sure skill tree is initialized and loaded
+      ensureSkillTreeInitialized();
+  }
+}
+
+// Initialize or refresh skill tree components
+function ensureSkillTreeInitialized() {
+  console.log("Ensuring skill tree is initialized");
+  
+  // Check if SkillTreeController exists and is initialized
+  if (typeof SkillTreeController !== 'undefined') {
+      if (!SkillTreeController.initialized) {
+          console.log("Initializing SkillTreeController");
+          SkillTreeController.initialize({
+              renderContainerId: 'skill-tree-visualization',
+              uiContainerId: 'skill-tree-ui'
+          });
+      } else {
+          console.log("Refreshing skill tree data");
+          SkillTreeController.loadSkillTree();
+      }
+  } else {
+      console.error("SkillTreeController not available");
+      
+      // Show error message in skill tree container
+      const container = document.getElementById('skill-tree-visualization');
+      if (container) {
+          container.innerHTML = `
+              <div style="padding: 20px; text-align: center;">
+                  <h3>Skill Tree Not Available</h3>
+                  <p>The skill tree system could not be loaded.</p>
+              </div>
+          `;
+      }
+  }
+}
+
+// Disable game UI elements while skill tree is open
+function disableGameUI() {
+  // Add any UI disabling logic here if needed
+  // For example, disable node clicking, inventory buttons, etc.
+  
+  // Add overlay class to indicate game is paused
+  document.body.classList.add('game-paused');
+  
+  // Emit event that game UI is disabled
+  if (typeof EventSystem !== 'undefined') {
+      EventSystem.emit('GAME_UI_DISABLED', { reason: 'skill_tree_open' });
+  }
+}
+
+// Re-enable game UI elements when skill tree is closed
+function enableGameUI() {
+  // Remove paused class
+  document.body.classList.remove('game-paused');
+  
+  // Emit event that game UI is enabled
+  if (typeof EventSystem !== 'undefined') {
+      EventSystem.emit('GAME_UI_ENABLED', { reason: 'skill_tree_closed' });
   }
 }
 

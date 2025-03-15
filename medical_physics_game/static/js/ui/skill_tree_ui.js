@@ -636,7 +636,28 @@ const SkillTreeUI = {
     },
     
     // Event Handlers
-    
+    // Add to skill_tree_ui.js
+    showSkillUnlockAnimation: function(nodeId) {
+      const node = document.querySelector(`.node-${nodeId}`);
+      if (!node) return;
+      
+      // Create particle effect
+      const particles = document.createElement('div');
+      particles.className = 'skill-unlock-particles';
+      
+      // Position near node
+      const rect = node.getBoundingClientRect();
+      particles.style.left = `${rect.left + rect.width/2}px`;
+      particles.style.top = `${rect.top + rect.height/2}px`;
+      
+      // Add to DOM
+      document.body.appendChild(particles);
+      
+      // Remove after animation
+      setTimeout(() => {
+        document.body.removeChild(particles);
+      }, 1500);
+    },
     // Handle node selection
     handleNodeSelected: function(event) {
       const nodeId = event.detail.nodeId;

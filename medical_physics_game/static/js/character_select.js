@@ -17,7 +17,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('next-character').addEventListener('click', function() {
         navigateCarousel(1);
     });
+    // Set up skill tree container
+    initializeSkillTreeContainer();
     
+    // Add skill tree button after character selection is complete
+    document.addEventListener('charactersLoaded', enhanceCharacterSelection);
+    });
+
     // Set up start button
     document.getElementById('start-game-btn').addEventListener('click', function() {
         if (selectedCharacter) {
@@ -36,6 +42,313 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// Add this code to character_select.js (or at the end of your script block in character_select.html)
+
+// Initialize skill tree container when document is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up skill tree container
+    initializeSkillTreeContainer();
+    
+    // Add skill tree button after character selection is complete
+    document.addEventListener('charactersLoaded', enhanceCharacterSelection);
+});
+
+// Initialize skill tree container
+function initializeSkillTreeContainer() {
+    // Check if container already exists
+    let container = document.getElementById('skill-tree-container');
+    
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'skill-tree-container';
+        
+        // Create inner structure
+        container.innerHTML = `
+            <div class="skill-tree-panel">
+                <div class="skill-tree-header">
+                    <h2>Specialization Tree</h2>
+                    <button class="skill-tree-close-button">&times;</button>
+                </div>
+                <div id="skill-tree-visualization"></div>
+                <div id="skill-tree-ui"></div>
+            </div>
+        `;
+        
+        // Add close button functionality
+        const closeButton = container.querySelector('.skill-tree-close-button');
+        if (closeButton) {
+            closeButton.addEventListener('click', toggleSkillTree);
+        }
+        
+        document.body.appendChild(container);
+    }
+    
+    return container;
+}
+
+// Add skill tree button to character cards
+function enhanceCharacterSelection() {
+    console.log("Enhancing character selection with specialization tree buttons");
+    
+    // Add button below each character card
+    const characterCards = document.querySelectorAll('.character-card');
+    
+    characterCards.forEach(card => {
+        // Check if button already exists
+        if (card.querySelector('.skill-tree-access-button')) return;
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'character-buttons';
+        buttonContainer.style.textAlign = 'center';
+        buttonContainer.style.marginTop = '10px';
+        
+        // Create specialization button
+        const specButton = document.createElement('button');
+        specButton.className = 'skill-tree-access-button';
+        specButton.textContent = 'View Specializations';
+        
+        // Get character ID
+        const characterId = card.dataset.characterId;
+        
+        // Add button click handler
+        specButton.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent character selection when clicking button
+            
+            // Update selected character first
+            selectedCharacter = characterId;
+            const index = parseInt(card.dataset.index);
+            navigateToCharacter(index);
+            
+            // Show skill tree
+            toggleSkillTree();
+        });
+        
+        buttonContainer.appendChild(specButton);
+        
+        // Add button container to card - right before the special ability section
+        const specialAbility = card.querySelector('.special-ability');
+        if (specialAbility) {
+            card.insertBefore(buttonContainer, specialAbility);
+        } else {
+            card.appendChild(buttonContainer);
+        }
+    });
+    
+    // Add CSS for the button if needed
+    addSkillTreeStyles();
+}
+
+// Function to toggle skill tree visibility
+function toggleSkillTree() {
+    const container = document.getElementById('skill-tree-container');
+    if (!container) {
+        console.error("Skill tree container not found");
+        return;
+    }
+    
+    // Toggle visibility
+    container.classList.toggle('visible');
+    
+    // If now visible, ensure skill tree is loaded
+    if (container.classList.contains('visible')) {
+        // Initialize skill tree if needed
+        initializeSkillTree();
+    }
+}
+
+// Initialize skill tree (or load character's skill tree)
+function initializeSkillTree() {
+    // Get the selected character ID
+    const characterId = selectedCharacter;
+    
+    if (!characterId) {
+        console.warn("No character selected for skill tree");
+        return;
+    }
+    
+    console.log(`Loading skill tree for character: ${characterId}`);
+    
+    // Check if required libraries are loaded
+    if (typeof SkillTreeController === 'undefined') {
+        console.error("SkillTreeController not available. Loading required scripts...");
+        
+        // Load required scripts dynamically
+        loadSkillTreeScripts().then(() => {
+            // Initialize skill tree after scripts are loaded
+            initializeSkillTreeComponents(characterId);
+        });
+    } else {
+        // Initialize skill tree directly
+        initializeSkillTreeComponents(characterId);
+    }
+}
+
+// Initialize skill tree components
+function initializeSkillTreeComponents(characterId) {
+    // Check if already initialized
+    if (typeof SkillTreeController !== 'undefined' && SkillTreeController.initialized) {
+        // Just load character skill tree
+        if (typeof SkillTreeManager !== 'undefined' && 
+            typeof SkillTreeManager.loadCharacterSkillTree === 'function') {
+            SkillTreeManager.loadCharacterSkillTree(characterId);
+        }
+        return;
+    }
+    
+    // Initialize components in the right order
+    if (typeof SkillEffectSystem !== 'undefined' && !SkillEffectSystem.initialized) {
+        SkillEffectSystem.initialize();
+    }
+    
+    if (typeof SkillTreeManager !== 'undefined' && !SkillTreeManager.initialized) {
+        SkillTreeManager.initialize();
+    }
+    
+    if (typeof SkillTreeController !== 'undefined' && !SkillTreeController.initialized) {
+        SkillTreeController.initialize({
+            renderContainerId: 'skill-tree-visualization',
+            uiContainerId: 'skill-tree-ui'
+        });
+    }
+}
+
+// Load required skill tree scripts dynamically
+function loadSkillTreeScripts() {
+    return new Promise((resolve, reject) => {
+        const scripts = [
+            '/static/js/engine/skill_effect_system.js',
+            '/static/js/engine/skill_tree_manager.js',
+            '/static/js/ui/skill_tree_renderer.js',
+            '/static/js/ui/skill_tree_ui.js',
+            '/static/js/ui/skill_tree_controller.js'
+        ];
+        
+        let loaded = 0;
+        
+        scripts.forEach(src => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => {
+                loaded++;
+                if (loaded === scripts.length) {
+                    resolve();
+                }
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    });
+}
+
+// Add required CSS styles for skill tree button and modal
+function addSkillTreeStyles() {
+    // Check if styles already added
+    if (document.getElementById('skill-tree-access-styles')) return;
+    
+    const styleEl = document.createElement('style');
+    styleEl.id = 'skill-tree-access-styles';
+    styleEl.textContent = `
+        /* Skill Tree Modal Container */
+        #skill-tree-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #skill-tree-container.visible {
+            display: flex;
+        }
+        
+        /* Skill Tree Panel */
+        .skill-tree-panel {
+            width: 90%;
+            height: 90%;
+            max-width: 1400px;
+            background-color: #1A1E2A;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: skill-tree-panel-enter 0.3s ease forwards;
+        }
+        
+        @keyframes skill-tree-panel-enter {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Skill Tree Header */
+        .skill-tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: #2A2E3A;
+            border-bottom: 1px solid #444444;
+        }
+        
+        .skill-tree-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .skill-tree-close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+        }
+        
+        .skill-tree-close-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Skill Tree Access Button */
+        .skill-tree-access-button {
+            background-color: #4287f5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-top: 10px;
+        }
+        
+        .skill-tree-access-button:hover {
+            background-color: #5b8dd9;
+            transform: translateY(-2px);
+        }
+        
+        .skill-tree-access-button:before {
+            content: '⚛';
+            margin-right: 8px;
+        }
+    `;
+    
+    document.head.appendChild(styleEl);
+}
 
 function fetchCharacters() {
     fetch('/api/characters')
@@ -49,6 +362,18 @@ function fetchCharacters() {
             document.getElementById('character-carousel').innerHTML = 
                 '<p class="error">Failed to load characters. Please try again.</p>';
         });
+    // Modify fetchCharacters function to emit an event when characters are loaded
+    const originalFetchCharacters = fetchCharacters;
+    fetchCharacters = function() {
+        originalFetchCharacters();
+        
+        // Add a delay to allow characters to be rendered
+        setTimeout(() => {
+            // Dispatch event that characters have been loaded
+            const event = new CustomEvent('charactersLoaded');
+            document.dispatchEvent(event);
+        }, 1000);
+    };
 }
 
 // Updated renderCharacters function
