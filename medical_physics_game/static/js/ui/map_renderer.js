@@ -449,10 +449,6 @@ const MapRenderer = {
             ctx.strokeStyle = 'rgba(255,255,255,0.1)';
             ctx.lineWidth = 1;
           }
-        } else {
-          // All other paths - extremely faint
-          ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-          ctx.lineWidth = 1;
         }
         
         // Also, if BOTH nodes are completed, make the path even more prominent
