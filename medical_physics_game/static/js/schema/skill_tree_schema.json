@@ -1,0 +1,226 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Medical Physics Game Skill Tree",
+    "description": "Schema for skill tree data including specializations, nodes and connections",
+    "type": "object",
+    "required": ["tree_version", "specializations", "nodes"],
+    "properties": {
+      "tree_version": {
+        "type": "string",
+        "description": "Version of the skill tree structure"
+      },
+      "specializations": {
+        "type": "array",
+        "description": "List of specializations available in the skill tree",
+        "items": {
+          "type": "object",
+          "required": ["id", "name", "description", "color", "threshold", "mastery_threshold"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the specialization"
+            },
+            "name": {
+              "type": "string",
+              "description": "Display name for the specialization"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the specialization and its focus"
+            },
+            "color": {
+              "type": "string",
+              "description": "Color code (hex) for the specialization",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "themeClass": {
+              "type": "string",
+              "description": "Optional CSS class for theming"
+            },
+            "threshold": {
+              "type": "integer",
+              "description": "Number of unlocked skills required to gain this specialization",
+              "minimum": 1
+            },
+            "mastery_threshold": {
+              "type": "integer",
+              "description": "Number of unlocked skills required to master this specialization",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "nodes": {
+        "type": "array",
+        "description": "List of skill nodes in the tree",
+        "items": {
+          "type": "object",
+          "required": ["id", "name", "tier", "description", "effects", "position", "connections", "cost"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the node"
+            },
+            "name": {
+              "type": "string",
+              "description": "Display name for the node"
+            },
+            "specialization": {
+              "type": ["string", "null"],
+              "description": "Specialization this node belongs to (null for core nodes)"
+            },
+            "tier": {
+              "type": "integer",
+              "description": "Tier/level of the node (0 for core, higher numbers for specializations)",
+              "minimum": 0
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of what the node does"
+            },
+            "effects": {
+              "type": "array",
+              "description": "List of effects this node provides when active",
+              "items": {
+                "type": "object",
+                "required": ["type", "value"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Type of effect",
+                    "enum": [
+                      "insight_gain_flat",
+                      "insight_gain_multiplier",
+                      "patient_outcome_multiplier",
+                      "equipment_cost_reduction",
+                      "reveal_parameter",
+                      "reveal_patient_parameter",
+                      "critical_insight_multiplier",
+                      "auto_solve_chance",
+                      "calibration_success",
+                      "unlock_dialogue_options",
+                      "unlock_experimental_treatments",
+                      "time_cost_reduction",
+                      "consult_help",
+                      "adverse_event_reduction",
+                      "preview_outcomes",
+                      "malfunction_penalty_reduction",
+                      "repair_cost_reduction",
+                      "reveal_equipment_internals",
+                      "auto_detect_qa_issues",
+                      "auto_detect_radiation_anomalies",
+                      "multi_equipment_bonus",
+                      "temporary_equipment_fix",
+                      "start_with_items",
+                      "funding_multiplier",
+                      "favor_usage",
+                      "insight_to_reputation_conversion",
+                      "clinical_to_reputation_conversion",
+                      "multi_specialization_bonus",
+                      "companion",
+                      "specialization_synergy",
+                      "recall_similar_questions",
+                      "failure_conversion"
+                    ]
+                  },
+                  "value": {
+                    "description": "Value for the effect (can be number, boolean, string or object)",
+                    "oneOf": [
+                      { "type": "number" },
+                      { "type": "boolean" },
+                      { "type": "string" },
+                      { "type": "object" }
+                    ]
+                  },
+                  "condition": {
+                    "type": ["string", "null"],
+                    "description": "Optional condition for when the effect applies"
+                  }
+                }
+              }
+            },
+            "position": {
+              "type": "object",
+              "description": "Position of the node in the visualization",
+              "required": ["x", "y"],
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate"
+                }
+              }
+            },
+            "connections": {
+              "type": "array",
+              "description": "List of node IDs this node connects to",
+              "items": {
+                "type": "string"
+              }
+            },
+            "cost": {
+              "type": "object",
+              "description": "Cost to unlock and activate this node",
+              "required": ["reputation", "skill_points"],
+              "properties": {
+                "reputation": {
+                  "type": "integer",
+                  "description": "Reputation cost to unlock",
+                  "minimum": 0
+                },
+                "skill_points": {
+                  "type": "integer",
+                  "description": "Skill points cost to activate",
+                  "minimum": 0
+                }
+              }
+            },
+            "visual": {
+              "type": "object",
+              "description": "Visual appearance of the node",
+              "required": ["size", "icon"],
+              "properties": {
+                "size": {
+                  "type": "string",
+                  "description": "Size category of the node",
+                  "enum": ["core", "major", "minor", "connector"]
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Icon to display in the node"
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "description": "Optional tags for categorizing or filtering nodes",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "connections": {
+        "type": "array",
+        "description": "List of connections between nodes",
+        "items": {
+          "type": "object",
+          "required": ["source", "target"],
+          "properties": {
+            "source": {
+              "type": "string",
+              "description": "ID of the source node"
+            },
+            "target": {
+              "type": "string",
+              "description": "ID of the target node"
+            }
+          }
+        }
+      }
+    }
+  }

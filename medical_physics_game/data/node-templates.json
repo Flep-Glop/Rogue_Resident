@@ -1,0 +1,56 @@
+{
+  "templates": {
+    "insightBoost": {
+      "effects": [
+        {
+          "type": "insight_gain_multiplier",
+          "condition": null,
+          "value": 1.15
+        }
+      ],
+      "visual": {
+        "size": "minor",
+        "icon": "brain"
+      }
+    },
+    "reputationGenerator": {
+      "effects": [
+        {
+          "type": "insight_to_reputation_conversion",
+          "condition": null,
+          "value": 0.1
+        }
+      ],
+      "visual": {
+        "size": "minor",
+        "icon": "award"
+      }
+    },
+    "parameterReveal": {
+      "effects": [
+        {
+          "type": "reveal_parameter",
+          "condition": null,
+          "value": 1
+        }
+      ],
+      "visual": {
+        "size": "minor",
+        "icon": "eye"
+      }
+    },
+    "criticalChance": {
+      "effects": [
+        {
+          "type": "critical_insight_multiplier",
+          "condition": null,
+          "value": 1.5
+        }
+      ],
+      "visual": {
+        "size": "minor",
+        "icon": "target"
+      }
+    }
+  }
+}
