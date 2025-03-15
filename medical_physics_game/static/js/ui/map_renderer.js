@@ -447,12 +447,12 @@ const MapRenderer = {
           } else {
             // INACCESSIBLE PATH - VERY FAINT
             ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 1;
           }
         } else {
           // All other paths - extremely faint
           ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-          ctx.lineWidth = 100;
+          ctx.lineWidth = 1000;
         }
         
         // Also, if BOTH nodes are completed, make the path even more prominent
