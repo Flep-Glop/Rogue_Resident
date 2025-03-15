@@ -1,0 +1,442 @@
+/* skill_tree.css - Styles for the skill tree components */
+
+/* Base variables */
+:root {
+    /* Color theme - dark mode by default */
+    --st-background: #0A0E1A;
+    --st-surface: #1A1E2A;
+    --st-surface-light: #2A2E3A;
+    --st-text-primary: #FFFFFF;
+    --st-text-secondary: #BBBBBB;
+    --st-text-disabled: #777777;
+    --st-border: #444444;
+    
+    /* Specialization colors */
+    --st-theory-color: #4287f5;    /* Blue */
+    --st-clinical-color: #42f575;  /* Green */
+    --st-technical-color: #f59142; /* Orange */
+    --st-research-color: #a142f5;  /* Purple */
+    --st-connector-color: #f5d442; /* Yellow */
+    --st-core-color: #4682B4;      /* Steel Blue */
+    
+    /* State colors */
+    --st-locked-color: #555555;
+    --st-unlockable-color: #888888;
+    --st-unlocked-color: #BBBBBB;
+    --st-active-color: #FFFFFF;
+    
+    /* Shadows */
+    --st-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --st-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --st-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.3);
+    
+    /* Spacing */
+    --st-spacing-xs: 4px;
+    --st-spacing-sm: 8px;
+    --st-spacing-md: 16px;
+    --st-spacing-lg: 24px;
+    --st-spacing-xl: 32px;
+    
+    /* Font sizes */
+    --st-font-xs: 12px;
+    --st-font-sm: 14px;
+    --st-font-md: 16px;
+    --st-font-lg: 18px;
+    --st-font-xl: 24px;
+    
+    /* Animation */
+    --st-transition-fast: 0.15s ease;
+    --st-transition-normal: 0.3s ease;
+    --st-transition-slow: 0.5s ease;
+    
+    /* Components */
+    --st-border-radius: 4px;
+    --st-button-height: 36px;
+  }
+  
+  /* Light theme variables */
+  .theme-light {
+    --st-background: #F0F2F5;
+    --st-surface: #FFFFFF;
+    --st-surface-light: #F5F5F5;
+    --st-text-primary: #333333;
+    --st-text-secondary: #555555;
+    --st-text-disabled: #AAAAAA;
+    --st-border: #DDDDDD;
+    
+    /* Shadows for light theme */
+    --st-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --st-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --st-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Main container styles */
+  .skill-tree-container {
+    display: flex;
+    width: 100%;
+    height: 700px;
+    background-color: var(--st-background);
+    color: var(--st-text-primary);
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    position: relative;
+    border-radius: var(--st-border-radius);
+    box-shadow: var(--st-shadow-lg);
+  }
+  
+  /* Visualization container */
+  .skill-tree-visualization {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+  }
+  
+  .skill-tree-visualization svg {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+  }
+  
+  /* Node elements */
+  .node {
+    cursor: pointer;
+    transition: fill var(--st-transition-fast), stroke var(--st-transition-fast), stroke-width var(--st-transition-fast);
+  }
+  
+  .node:hover {
+    stroke-width: 3px !important;
+  }
+  
+  .node.state-locked {
+    cursor: not-allowed;
+  }
+  
+  .node.state-unlockable {
+    cursor: pointer;
+  }
+  
+  /* Connection lines */
+  .connection {
+    pointer-events: none;
+    transition: stroke var(--st-transition-fast), stroke-width var(--st-transition-fast);
+  }
+  
+  /* Node labels */
+  .node-label {
+    pointer-events: none;
+    font-size: var(--st-font-xs);
+    user-select: none;
+    transition: opacity var(--st-transition-fast);
+  }
+  
+  /* UI container */
+  .skill-tree-ui {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--st-surface);
+    box-shadow: var(--st-shadow-md);
+    z-index: 10;
+    overflow: auto;
+  }
+  
+  /* Controls panel */
+  .skill-tree-controls {
+    padding: var(--st-spacing-md);
+    border-bottom: 1px solid var(--st-border);
+  }
+  
+  /* Specialization filter */
+  .specialization-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--st-spacing-sm);
+    margin-bottom: var(--st-spacing-md);
+  }
+  
+  .filter-tab {
+    padding: var(--st-spacing-xs) var(--st-spacing-sm);
+    background-color: var(--st-surface-light);
+    border-radius: var(--st-border-radius);
+    cursor: pointer;
+    font-size: var(--st-font-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--st-spacing-xs);
+    transition: background-color var(--st-transition-fast);
+  }
+  
+  .filter-tab:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .filter-tab.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+  }
+  
+  .color-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  
+  /* Stats container */
+  .skill-tree-stats {
+    margin-top: var(--st-spacing-md);
+  }
+  
+  .reputation-container,
+  .skill-points-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--st-spacing-sm);
+    padding: var(--st-spacing-sm);
+    background-color: var(--st-surface-light);
+    border-radius: var(--st-border-radius);
+  }
+  
+  .stat-label {
+    font-weight: bold;
+  }
+  
+  .reputation-value {
+    color: var(--st-connector-color);
+  }
+  
+  .skill-points-value {
+    color: var(--st-clinical-color);
+  }
+  
+  /* Specialization progress */
+  .specialization-progress-container {
+    margin-top: var(--st-spacing-md);
+  }
+  
+  .specialization-progress-container h3 {
+    margin-top: 0;
+    margin-bottom: var(--st-spacing-sm);
+    font-size: var(--st-font-md);
+  }
+  
+  .spec-progress-item {
+    margin-bottom: var(--st-spacing-sm);
+    padding: var(--st-spacing-sm);
+    background-color: var(--st-surface-light);
+    border-radius: var(--st-border-radius);
+  }
+  
+  .spec-name {
+    font-weight: bold;
+    margin-bottom: var(--st-spacing-xs);
+  }
+  
+  .progress-bar-container {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: var(--st-spacing-xs);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--st-transition-normal);
+  }
+  
+  .threshold-marker,
+  .mastery-marker {
+    position: absolute;
+    width: 2px;
+    height: 200%;
+    top: -50%;
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .mastery-marker {
+    background-color: gold;
+  }
+  
+  .progress-text {
+    font-size: var(--st-font-xs);
+    text-align: right;
+  }
+  
+  .spec-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: var(--st-spacing-sm);
+    background-color: var(--st-surface);
+  }
+  
+  .spec-badge {
+    background-color: #5a6cf3;
+    color: white;
+  }
+  
+  .mastery-badge {
+    background-color: gold;
+    color: black;
+  }
+  
+  /* Info panel */
+  .skill-tree-info {
+    padding: var(--st-spacing-md);
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .node-info-panel {
+    margin-bottom: var(--st-spacing-lg);
+  }
+  
+  .node-name {
+    margin-top: 0;
+    margin-bottom: var(--st-spacing-xs);
+    font-size: var(--st-font-lg);
+  }
+  
+  .node-specialization {
+    font-style: italic;
+    margin-bottom: var(--st-spacing-md);
+    color: var(--st-text-secondary);
+  }
+  
+  .node-description {
+    margin-bottom: var(--st-spacing-md);
+    line-height: 1.5;
+  }
+  
+  .node-info-panel h3 {
+    margin-top: var(--st-spacing-md);
+    margin-bottom: var(--st-spacing-sm);
+    font-size: var(--st-font-md);
+  }
+  
+  .effects-list,
+  .requirements-list {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .effects-list li,
+  .requirements-list li {
+    margin-bottom: var(--st-spacing-xs);
+  }
+  
+  /* Action buttons */
+  .skill-action-buttons {
+    display: flex;
+    gap: var(--st-spacing-sm);
+    margin-top: var(--st-spacing-lg);
+  }
+  
+  .unlock-skill-button,
+  .activate-skill-button,
+  .deactivate-skill-button {
+    padding: var(--st-spacing-sm) var(--st-spacing-md);
+    border: none;
+    border-radius: var(--st-border-radius);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color var(--st-transition-fast);
+    flex: 1;
+    height: var(--st-button-height);
+  }
+  
+  .unlock-skill-button {
+    background-color: var(--st-connector-color);
+    color: black;
+  }
+  
+  .activate-skill-button {
+    background-color: var(--st-clinical-color);
+    color: black;
+  }
+  
+  .deactivate-skill-button {
+    background-color: var(--st-surface-light);
+    color: var(--st-text-primary);
+  }
+  
+  .unlock-skill-button:hover,
+  .activate-skill-button:hover,
+  .deactivate-skill-button:hover {
+    filter: brightness(1.1);
+  }
+  
+  .unlock-skill-button:disabled,
+  .activate-skill-button:disabled,
+  .deactivate-skill-button:disabled {
+    background-color: var(--st-surface-light);
+    color: var(--st-text-disabled);
+    cursor: not-allowed;
+    filter: none;
+  }
+  
+  /* Node tooltip in SVG */
+  .node-tooltip text {
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1200px) {
+    .skill-tree-container {
+      flex-direction: column;
+      height: auto;
+    }
+    
+    .skill-tree-visualization {
+      height: 500px;
+    }
+    
+    .skill-tree-ui {
+      width: 100%;
+      height: auto;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .skill-tree-visualization {
+      height: 400px;
+    }
+    
+    .specialization-filter {
+      flex-wrap: wrap;
+    }
+  }
+  
+  /* Utility classes */
+  .text-center {
+    text-align: center;
+  }
+  
+  .mt-1 {
+    margin-top: var(--st-spacing-sm);
+  }
+  
+  .mt-2 {
+    margin-top: var(--st-spacing-md);
+  }
+  
+  .mt-3 {
+    margin-top: var(--st-spacing-lg);
+  }
+  
+  .mb-1 {
+    margin-bottom: var(--st-spacing-sm);
+  }
+  
+  .mb-2 {
+    margin-bottom: var(--st-spacing-md);
+  }
+  
+  .mb-3 {
+    margin-bottom: var(--st-spacing-lg);
+  }
