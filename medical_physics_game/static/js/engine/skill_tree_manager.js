@@ -161,36 +161,54 @@ const SKILL_STATE = {
       });
     },
     
+    // Replace the _loadPlayerProgress function in skill_tree_manager.js with this improved version
+
     // Load player progress from server
     _loadPlayerProgress: function() {
       console.log("Loading player skill tree progress...");
       
-      return fetch('/api/skill-progress')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Failed to load skill progress: ${response.status}`);
-          }
-          return response.json();
-        })
+      // Use our ApiClient to load progress
+      return ApiClient.loadSkillProgress()
         .then(data => {
+          if (!data) {
+            throw new Error("Failed to load skill progress data");
+          }
+          
           // Set reputation
           this.reputation = data.reputation || 0;
           
-          // Set unlocked skills
+          // Set unlocked skills (ensure core_physics is always included)
           this.unlockedSkills = data.unlocked_skills || [];
+          if (!this.unlockedSkills.includes('core_physics')) {
+            this.unlockedSkills.push('core_physics');
+          }
           
-          // Set active skills
+          // Set active skills (ensure core_physics is always included)
           this.activeSkills = data.active_skills || [];
+          if (!this.activeSkills.includes('core_physics')) {
+            this.activeSkills.push('core_physics');
+          }
           
           // Set skill points available
-          this.skillPointsAvailable = data.skill_points_available || 0;
+          this.skillPointsAvailable = data.skill_points_available || 3;
           
           // Load specialization progress
           if (data.specialization_progress) {
+            // Initialize all specializations to 0 first
+            Object.keys(this.specializations).forEach(specId => {
+              this.specialization_progress[specId] = 0;
+            });
+            
+            // Then update with actual progress
             Object.keys(data.specialization_progress).forEach(specId => {
               if (this.specialization_progress[specId] !== undefined) {
                 this.specialization_progress[specId] = data.specialization_progress[specId];
               }
+            });
+          } else {
+            // Initialize all to 0
+            Object.keys(this.specializations).forEach(specId => {
+              this.specialization_progress[specId] = 0;
             });
           }
           
@@ -198,6 +216,13 @@ const SKILL_STATE = {
           this.updateAllSkillStates();
           
           console.log(`Loaded player progress: ${this.unlockedSkills.length} unlocked skills, ${this.reputation} reputation`);
+          
+          // If no skills are loaded (new player), add a debug message
+          if (this.unlockedSkills.length <= 1) {
+            console.log("New player detected, only core_physics skill is unlocked");
+          }
+          
+          return true;
         })
         .catch(error => {
           ErrorHandler.handleError(
@@ -206,8 +231,10 @@ const SKILL_STATE = {
             ErrorHandler.SEVERITY.WARNING
           );
           
+          console.warn("Using default progress data due to load failure:", error);
+          
           // Create empty progress data on error
-          this.reputation = 0;
+          this.reputation = 10; // Start with 10 reputation to unlock something
           this.unlockedSkills = ['core_physics']; // Always have core physics
           this.activeSkills = ['core_physics'];   // Always have core physics active
           this.skillPointsAvailable = 3;          // Start with some skill points
@@ -220,7 +247,7 @@ const SKILL_STATE = {
           // Update all skill states
           this.updateAllSkillStates();
           
-          console.log("Using default progress data due to load failure");
+          return false;
         });
     },
     

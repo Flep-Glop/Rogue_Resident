@@ -582,7 +582,193 @@ function toggleGameSkillTree() {
       ensureSkillTreeInitialized();
   }
 }
+// Add these functions to game.js to improve skill tree integration
 
+// Initialize skill tree systems
+function initializeSkillTreeSystems() {
+  return Promise.resolve()
+    .then(() => {
+      console.log("Initializing skill tree systems");
+      
+      // 1. Initialize skill effect system first
+      if (typeof SkillEffectSystem !== 'undefined' && typeof SkillEffectSystem.initialize === 'function') {
+        console.log("Initializing SkillEffectSystem");
+        return SkillEffectSystem.initialize();
+      } else {
+        console.warn("SkillEffectSystem not available");
+        return Promise.resolve(null);
+      }
+    })
+    .then(() => {
+      // 2. Initialize skill tree manager
+      if (typeof SkillTreeManager !== 'undefined' && typeof SkillTreeManager.initialize === 'function') {
+        console.log("Initializing SkillTreeManager");
+        return SkillTreeManager.initialize();
+      } else {
+        console.warn("SkillTreeManager not available");
+        return Promise.resolve(null);
+      }
+    })
+    .then(() => {
+      // 3. Initialize skill tree controller with specified containers
+      if (typeof SkillTreeController !== 'undefined' && typeof SkillTreeController.initialize === 'function') {
+        console.log("Initializing SkillTreeController");
+        return SkillTreeController.initialize({
+          renderContainerId: 'skill-tree-visualization',
+          uiContainerId: 'skill-tree-ui',
+          autoInitialize: false // We're manually initializing
+        });
+      } else {
+        console.warn("SkillTreeController not available");
+        return Promise.resolve(null);
+      }
+    })
+    .then(() => {
+      // 4. Initialize reputation system
+      if (typeof ReputationSystem !== 'undefined' && typeof ReputationSystem.initialize === 'function') {
+        console.log("Initializing ReputationSystem");
+        return ReputationSystem.initialize();
+      } else {
+        console.warn("ReputationSystem not available");
+        return Promise.resolve(null);
+      }
+    })
+    .then(() => {
+      // 5. Make skill tree button visible after all systems are initialized
+      const button = document.querySelector('.skill-tree-access-button');
+      if (button) {
+        button.style.display = 'flex';
+      } else {
+        // Create the button if it doesn't exist
+        createGameSkillTreeButton();
+      }
+      
+      console.log("Skill tree systems initialization complete");
+      return true;
+    })
+    .catch(error => {
+      console.error("Error initializing skill tree systems:", error);
+      ErrorHandler.handleError(
+        error,
+        "Skill Tree Systems",
+        ErrorHandler.SEVERITY.ERROR
+      );
+      return false;
+    });
+}
+
+// Ensure proper skill tree container initialization
+function ensureSkillTreeContainer() {
+  // Check if container exists
+  let container = document.getElementById('skill-tree-container');
+  
+  if (!container) {
+    console.log("Creating skill tree container");
+    container = document.createElement('div');
+    container.id = 'skill-tree-container';
+    
+    // Create structure
+    container.innerHTML = `
+      <div class="skill-tree-panel">
+        <div class="skill-tree-header">
+          <h2>Specialization Tree</h2>
+          <button class="skill-tree-close-button">&times;</button>
+        </div>
+        <div class="skill-tree-content">
+          <div id="skill-tree-visualization" class="skill-tree-visualization">
+            <div class="skill-tree-loading">
+              <div class="spinner"></div>
+              <p>Loading skill tree...</p>
+            </div>
+          </div>
+          <div id="skill-tree-ui" class="skill-tree-ui"></div>
+        </div>
+      </div>
+    `;
+    
+    // Add close functionality
+    const closeButton = container.querySelector('.skill-tree-close-button');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        container.classList.remove('visible');
+        enableGameUI(); // Re-enable game UI when skill tree is closed
+      });
+    }
+    
+    // Add ESC key handler
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && container.classList.contains('visible')) {
+        container.classList.remove('visible');
+        enableGameUI();
+      }
+    });
+    
+    document.body.appendChild(container);
+  }
+  
+  return container;
+}
+
+// Debug function to test skill tree
+function testSkillTree() {
+  console.group("Skill Tree Test");
+  
+  // Check if systems are initialized
+  const effectSystemInitialized = typeof SkillEffectSystem !== 'undefined' && SkillEffectSystem.initialized;
+  const treeManagerInitialized = typeof SkillTreeManager !== 'undefined' && SkillTreeManager.initialized;
+  const treeControllerInitialized = typeof SkillTreeController !== 'undefined' && SkillTreeController.initialized;
+  
+  console.log("Systems initialized:", {
+    SkillEffectSystem: effectSystemInitialized,
+    SkillTreeManager: treeManagerInitialized,
+    SkillTreeController: treeControllerInitialized
+  });
+  
+  // Check skill tree container
+  const container = document.getElementById('skill-tree-container');
+  console.log("Skill tree container exists:", !!container);
+  
+  // Check visualization container
+  const vizContainer = document.getElementById('skill-tree-visualization');
+  console.log("Visualization container exists:", !!vizContainer);
+  
+  // Check UI container
+  const uiContainer = document.getElementById('skill-tree-ui');
+  console.log("UI container exists:", !!uiContainer);
+  
+  // If not all systems are initialized, try to initialize them
+  if (!effectSystemInitialized || !treeManagerInitialized || !treeControllerInitialized) {
+    console.log("Some systems not initialized, attempting initialization");
+    initializeSkillTreeSystems().then(result => {
+      console.log("Initialization result:", result);
+    });
+  }
+  
+  // Test container
+  if (!container) {
+    console.log("Creating skill tree container");
+    ensureSkillTreeContainer();
+  }
+  
+  // Show the skill tree
+  const skillTreeContainer = document.getElementById('skill-tree-container');
+  if (skillTreeContainer) {
+    console.log("Making skill tree visible");
+    skillTreeContainer.classList.add('visible');
+    
+    // Force controller reload if available
+    if (typeof SkillTreeController !== 'undefined' && SkillTreeController.initialized) {
+      console.log("Reloading skill tree data");
+      SkillTreeController.loadSkillTree();
+    }
+  }
+  
+  console.groupEnd();
+  return "Skill tree test complete. Check console for details.";
+}
+
+// Add this to ensure the skill tree is properly loaded
+window.testSkillTree = testSkillTree;
 // Renamed to avoid conflict
 function initializeGameSkillTreeContainer() {
   // Check if container already exists

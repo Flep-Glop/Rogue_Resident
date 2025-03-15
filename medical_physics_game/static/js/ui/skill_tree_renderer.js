@@ -1,927 +1,886 @@
 // skill_tree_renderer.js - Renders the skill tree visualization
 
 const SkillTreeRenderer = {
-  // Configuration settings
+  // Configuration
   config: {
-    container: null,          // DOM container element
-    width: 800,               // Canvas width
-    height: 800,              // Canvas height
-    nodeSize: {               // Node size by type
+    width: 800,
+    height: 800,
+    nodeRadius: {
       core: 30,
       major: 18,
       minor: 15,
-      connector: 20
+      connector: 12
     },
-    padding: 50,              // Padding around the canvas
-    zoomLevel: 1,             // Current zoom level
-    maxZoom: 2,               // Maximum zoom level
-    minZoom: 0.5,             // Minimum zoom level
-    panOffset: { x: 0, y: 0 }, // Pan offset
-    highlightedNodes: [],     // Currently highlighted nodes
-    selectedNode: null,       // Currently selected node
-    hoveredNode: null,        // Currently hovered node
-    specializationOpacity: 1.0, // Opacity for non-active specializations
-    showLabels: true,         // Whether to show node labels
-    animationSpeed: 300,      // Animation speed in ms
-    theme: {
+    nodeSpacing: 120,
+    orbitRadius: [75, 175, 275, 350],
+    zoomLimits: {
+      min: 0.5,
+      max: 2.0
+    },
+    colors: {
       background: '#0A0E1A',
-      orbitalRings: '#2A3A5C',
-      connectionDefault: '#4A5A7C',
-      nodeStrokeDefault: '#FFFFFF',
-      nodeStrokeWidth: 2,
-      nodeStrokeSelected: '#FFD700',
-      nodeStrokeHighlighted: '#FFFFFF',
-      textColor: '#FFFFFF',
-      specializationColors: {
-        theory: '#4287f5',    // Blue
-        clinical: '#42f575',  // Green
-        technical: '#f59142', // Orange
-        research: '#a142f5',  // Purple
-        connector: '#f5d442', // Yellow
-        null: '#4682B4'       // Core physics (null specialization)
-      },
-      nodeStateColors: {
-        locked: '#555555',
-        unlockable: '#888888',
-        unlocked: '#BBBBBB',  
-        active: '#FFFFFF'
-      }
-    }
+      orbits: '#2A3A5C',
+      text: '#FFFFFF',
+      textShadow: '#000000',
+      tooltip: 'rgba(0, 0, 0, 0.8)',
+      tooltipText: '#FFFFFF',
+      connectionDefault: '#333333',
+      nodeStroke: '#FFFFFF'
+    },
+    theme: 'dark'
   },
-  
-  // SVG namespace
-  svgNS: 'http://www.w3.org/2000/svg',
   
   // SVG elements
   svg: null,
+  svgContainer: null,
   nodesGroup: null,
   connectionsGroup: null,
-  orbitalRingsGroup: null,
   labelsGroup: null,
-  uiGroup: null,
+  tooltipGroup: null,
+  orbitsGroup: null,
+  zoom: null,
   
-  // Cached data
+  // State
+  initialized: false,
+  currentTransform: { k: 1, x: 0, y: 0 },
+  selectedNode: null,
+  hoveredNode: null,
+  specializations: {},
   nodes: {},
   connections: [],
-  specializations: {},
+  nodeElements: {},
   
   // Initialize the renderer
   initialize: function(containerId, options = {}) {
     console.log(`Initializing skill tree renderer in container: ${containerId}`);
     
-    // Get container
-    this.config.container = document.getElementById(containerId);
-    if (!this.config.container) {
-      ErrorHandler.handleError(
-        new Error(`Container not found: ${containerId}`),
-        "Skill Tree Renderer",
-        ErrorHandler.SEVERITY.ERROR
-      );
-      return false;
-    }
-    
     // Apply options
     Object.assign(this.config, options);
     
-    // Create SVG element
-    this.createSVG();
+    // Get container element
+    this.svgContainer = document.getElementById(containerId);
+    if (!this.svgContainer) {
+      console.error(`Container element not found: ${containerId}`);
+      return false;
+    }
     
-    // Set up event listeners
+    // Create SVG element
+    this.createSvgCanvas();
+    
+    // Set up zoom and pan behavior if d3 is available
+    this.setupZoomAndPan();
+    
+    // Add event listeners
     this.setupEventListeners();
+    
+    this.initialized = true;
     
     return true;
   },
   
-  // Create the SVG canvas
-  createSVG: function() {
-    // Clear container
-    this.config.container.innerHTML = '';
+  // Create SVG canvas
+  createSvgCanvas: function() {
+    // Clear existing content
+    if (this.svg) {
+      this.svgContainer.innerHTML = '';
+    }
     
     // Create SVG element
-    this.svg = document.createElementNS(this.svgNS, 'svg');
-    this.svg.setAttribute('width', this.config.width);
-    this.svg.setAttribute('height', this.config.height);
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.setAttribute('width', '100%');
+    this.svg.setAttribute('height', '100%');
     this.svg.setAttribute('viewBox', `0 0 ${this.config.width} ${this.config.height}`);
-    this.svg.style.background = this.config.theme.background;
+    this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    this.svg.setAttribute('class', 'skill-tree-svg');
     
-    // Create groups for organization and layering
-    this.orbitalRingsGroup = document.createElementNS(this.svgNS, 'g');
-    this.orbitalRingsGroup.setAttribute('class', 'orbital-rings');
+    // Create main groups
+    this.orbitsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.orbitsGroup.setAttribute('class', 'orbits-group');
     
-    this.connectionsGroup = document.createElementNS(this.svgNS, 'g');
-    this.connectionsGroup.setAttribute('class', 'connections');
+    this.connectionsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.connectionsGroup.setAttribute('class', 'connections-group');
     
-    this.nodesGroup = document.createElementNS(this.svgNS, 'g');
-    this.nodesGroup.setAttribute('class', 'nodes');
+    this.nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.nodesGroup.setAttribute('class', 'nodes-group');
     
-    this.labelsGroup = document.createElementNS(this.svgNS, 'g');
-    this.labelsGroup.setAttribute('class', 'labels');
+    this.labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.labelsGroup.setAttribute('class', 'labels-group');
     
-    this.uiGroup = document.createElementNS(this.svgNS, 'g');
-    this.uiGroup.setAttribute('class', 'ui');
+    this.tooltipGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.tooltipGroup.setAttribute('class', 'tooltip-group');
+    this.tooltipGroup.style.pointerEvents = 'none';
     
-    // Add groups to SVG in correct order (back to front)
-    this.svg.appendChild(this.orbitalRingsGroup);
+    // Append groups in correct order
+    this.svg.appendChild(this.orbitsGroup);
     this.svg.appendChild(this.connectionsGroup);
     this.svg.appendChild(this.nodesGroup);
     this.svg.appendChild(this.labelsGroup);
-    this.svg.appendChild(this.uiGroup);
+    this.svg.appendChild(this.tooltipGroup);
     
     // Add SVG to container
-    this.config.container.appendChild(this.svg);
+    this.svgContainer.appendChild(this.svg);
     
-    console.log("SVG canvas created");
+    console.log('SVG canvas created');
   },
   
-  // Set up event listeners for interaction
-  setupEventListeners: function() {
-    // Pan events with mouse drag
-    let dragging = false;
-    let lastX, lastY;
+  // Set up zoom and pan behavior
+  setupZoomAndPan: function() {
+    // Check if d3 is available
+    if (typeof d3 !== 'undefined') {
+      // Create zoom behavior
+      this.zoom = d3.zoom()
+        .scaleExtent([this.config.zoomLimits.min, this.config.zoomLimits.max])
+        .on('zoom', (event) => {
+          this.currentTransform = event.transform;
+          
+          // Apply transform to all groups
+          this.orbitsGroup.setAttribute('transform', event.transform);
+          this.connectionsGroup.setAttribute('transform', event.transform);
+          this.nodesGroup.setAttribute('transform', event.transform);
+          this.labelsGroup.setAttribute('transform', event.transform);
+          
+          // Update labels visibility based on zoom level
+          this.updateLabelsVisibility(event.transform.k);
+        });
+      
+      // Apply zoom behavior to SVG
+      d3.select(this.svg).call(this.zoom);
+    } else {
+      // Fallback to manual pan/zoom implementation if d3 is not available
+      this.setupManualZoomAndPan();
+    }
+  },
+  
+  // Manual zoom and pan implementation without d3
+  setupManualZoomAndPan: function() {
+    let isDragging = false;
+    let startX, startY;
+    let lastX = 0, lastY = 0;
+    let scale = 1;
     
-    this.svg.addEventListener('mousedown', (e) => {
-      // Only start drag if not on a node
-      if (e.target.classList.contains('node')) return;
-      
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      this.svg.style.cursor = 'grabbing';
-    });
-    
-    document.addEventListener('mousemove', (e) => {
-      if (!dragging) return;
-      
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      
-      this.config.panOffset.x += dx / this.config.zoomLevel;
-      this.config.panOffset.y += dy / this.config.zoomLevel;
-      
-      this.applyTransform();
-      
-      lastX = e.clientX;
-      lastY = e.clientY;
-    });
-    
-    document.addEventListener('mouseup', () => {
-      dragging = false;
-      this.svg.style.cursor = 'default';
-    });
-    
-    // Zoom with mouse wheel
+    // Mouse wheel for zoom
     this.svg.addEventListener('wheel', (e) => {
       e.preventDefault();
       
-      // Get mouse position relative to SVG
-      const rect = this.svg.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      
-      // Change zoom level
-      const zoomDelta = -e.deltaY * 0.001;
-      const newZoom = Math.max(
-        this.config.minZoom,
-        Math.min(
-          this.config.maxZoom,
-          this.config.zoomLevel + zoomDelta
-        )
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      const newScale = Math.max(
+        this.config.zoomLimits.min,
+        Math.min(this.config.zoomLimits.max, scale + delta)
       );
       
-      // Adjust pan offset to zoom toward mouse position
-      if (newZoom !== this.config.zoomLevel) {
-        const zoomRatio = newZoom / this.config.zoomLevel;
+      const scaleChange = newScale / scale;
+      scale = newScale;
+      
+      // Apply transform
+      lastX = lastX * scaleChange;
+      lastY = lastY * scaleChange;
+      
+      this.currentTransform = { k: scale, x: lastX, y: lastY };
+      this.applyTransform();
+      
+      // Update labels visibility
+      this.updateLabelsVisibility(scale);
+    });
+    
+    // Mouse down for pan
+    this.svg.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Left mouse button
+        isDragging = true;
+        startX = e.clientX - lastX;
+        startY = e.clientY - lastY;
+        this.svg.style.cursor = 'grabbing';
+      }
+    });
+    
+    // Mouse move for pan
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        lastX = e.clientX - startX;
+        lastY = e.clientY - startY;
         
-        // Calculate the world-coordinates for the mouse position before zoom
-        const oldWorldX = (mouseX - this.config.panOffset.x) / this.config.zoomLevel;
-        const oldWorldY = (mouseY - this.config.panOffset.y) / this.config.zoomLevel;
-        
-        // Calculate the screen-coordinates for the mouse position after zoom
-        const newScreenX = oldWorldX * newZoom;
-        const newScreenY = oldWorldY * newZoom;
-        
-        // Adjust pan offset so mouse stays over the same world position
-        this.config.panOffset.x += mouseX - (this.config.panOffset.x + newScreenX);
-        this.config.panOffset.y += mouseY - (this.config.panOffset.y + newScreenY);
-        
-        this.config.zoomLevel = newZoom;
+        this.currentTransform = { k: scale, x: lastX, y: lastY };
         this.applyTransform();
       }
     });
     
-    // Double-click to reset view
-    this.svg.addEventListener('dblclick', (e) => {
-      // Only reset if not on a node
-      if (e.target.classList.contains('node')) return;
-      
-      this.resetView();
+    // Mouse up to stop panning
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      this.svg.style.cursor = 'grab';
     });
+    
+    // Set initial cursor
+    this.svg.style.cursor = 'grab';
   },
   
-  // Apply pan and zoom transform
+  // Apply transform to all groups
   applyTransform: function() {
-    const transform = `translate(${this.config.panOffset.x}px, ${this.config.panOffset.y}px) scale(${this.config.zoomLevel})`;
+    const transform = `translate(${this.currentTransform.x}, ${this.currentTransform.y}) scale(${this.currentTransform.k})`;
     
-    this.orbitalRingsGroup.style.transform = transform;
-    this.connectionsGroup.style.transform = transform;
-    this.nodesGroup.style.transform = transform;
-    this.labelsGroup.style.transform = transform;
+    this.orbitsGroup.setAttribute('transform', transform);
+    this.connectionsGroup.setAttribute('transform', transform);
+    this.nodesGroup.setAttribute('transform', transform);
+    this.labelsGroup.setAttribute('transform', transform);
   },
   
-  // Reset view to default
-  resetView: function() {
-    this.config.zoomLevel = 1;
-    this.config.panOffset = { x: 0, y: 0 };
-    this.applyTransform();
+  // Update labels visibility based on zoom level
+  updateLabelsVisibility: function(zoomLevel) {
+    const labels = this.labelsGroup.querySelectorAll('text');
+    
+    if (zoomLevel < 0.7) {
+      // Hide all labels if zoom is too low
+      labels.forEach(label => {
+        label.style.opacity = '0';
+      });
+    } else {
+      // Show labels with scaling opacity based on zoom
+      const opacity = Math.min(1, (zoomLevel - 0.7) * 3.3);
+      
+      labels.forEach(label => {
+        label.style.opacity = `${opacity}`;
+      });
+    }
   },
   
-  // Load skill tree data and render
+  // Set up event listeners
+  setupEventListeners: function() {
+    // Double-click to reset zoom
+    this.svg.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      this.resetZoom();
+    });
+    
+    // Touch events for mobile
+    if ('ontouchstart' in window) {
+      this.setupTouchEvents();
+    }
+    
+    // Window resize event
+    window.addEventListener('resize', this.handleResize.bind(this));
+  },
+  
+  // Reset zoom to default
+  resetZoom: function() {
+    if (typeof d3 !== 'undefined' && this.zoom) {
+      d3.select(this.svg).transition().duration(750).call(
+        this.zoom.transform,
+        d3.zoomIdentity.translate(0, 0).scale(1)
+      );
+    } else {
+      this.currentTransform = { k: 1, x: 0, y: 0 };
+      this.applyTransform();
+      this.updateLabelsVisibility(1);
+    }
+  },
+  
+  // Handle window resize
+  handleResize: function() {
+    // Adjust viewBox if needed
+    // Note: SVG with preserveAspectRatio should handle this automatically
+  },
+  
+  // Load skill tree data
   loadSkillTree: function(data) {
-    console.log("Loading skill tree data");
+    console.log('Loading skill tree data');
     
-    // Cache data
+    // Store data
+    this.specializations = data.specializations || {};
     this.nodes = data.nodes || {};
     this.connections = data.connections || [];
-    this.specializations = data.specializations || {};
     
-    // Clear existing tree
-    this.clearTree();
-    
-    // Draw tree
-    this.drawOrbitalRings();
-    this.drawConnections();
-    this.drawNodes();
-    this.drawLabels();
-    
-    console.log("Skill tree rendered");
+    // Render the tree
+    this.renderSkillTree();
     
     return true;
   },
   
-  // Clear the tree visualization
-  clearTree: function() {
-    this.orbitalRingsGroup.innerHTML = '';
+  // Render the entire skill tree
+  renderSkillTree: function() {
+    console.log('Rendering skill tree...');
+    
+    // Clear existing content
+    this.orbitsGroup.innerHTML = '';
     this.connectionsGroup.innerHTML = '';
     this.nodesGroup.innerHTML = '';
     this.labelsGroup.innerHTML = '';
+    this.tooltipGroup.innerHTML = '';
+    
+    // Reset collections
+    this.nodeElements = {};
+    
+    // Draw orbits
+    this.drawOrbitalRings();
+    
+    // Draw connections between nodes
+    this.drawConnections();
+    
+    // Draw nodes
+    this.drawNodes();
+    
+    // Draw labels
+    this.drawNodeLabels();
+    
+    console.log('Skill tree rendered');
   },
   
-  // Draw orbital rings for visual organization
+  // Draw orbital rings
   drawOrbitalRings: function() {
-    console.log("Drawing orbital rings");
+    console.log('Drawing orbital rings');
     
-    // Find max tier to determine number of rings
-    let maxTier = 0;
-    Object.values(this.nodes).forEach(node => {
-      if (node.tier > maxTier) maxTier = node.tier;
-    });
-    
-    // Draw rings for each tier
     const centerX = this.config.width / 2;
     const centerY = this.config.height / 2;
-    const ringStep = Math.min(this.config.width, this.config.height) / (maxTier * 2 + 4);
     
-    for (let tier = 0; tier <= maxTier; tier++) {
-      const ring = document.createElementNS(this.svgNS, 'circle');
+    // Draw each orbit
+    this.config.orbitRadius.forEach(radius => {
+      const orbit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      orbit.setAttribute('cx', centerX);
+      orbit.setAttribute('cy', centerY);
+      orbit.setAttribute('r', radius);
+      orbit.setAttribute('fill', 'none');
+      orbit.setAttribute('stroke', this.config.colors.orbits);
+      orbit.setAttribute('stroke-width', '1');
+      orbit.setAttribute('stroke-opacity', '0.5');
       
-      ring.setAttribute('cx', centerX);
-      ring.setAttribute('cy', centerY);
-      ring.setAttribute('r', (tier + 1) * ringStep);
-      ring.setAttribute('fill', 'none');
-      ring.setAttribute('stroke', this.config.theme.orbitalRings);
-      ring.setAttribute('stroke-width', '1');
-      
-      this.orbitalRingsGroup.appendChild(ring);
-    }
+      this.orbitsGroup.appendChild(orbit);
+    });
   },
   
   // Draw connections between nodes
   drawConnections: function() {
-    console.log("Drawing connections between nodes");
+    console.log('Drawing connections between nodes');
     
+    // Create a map for quick node lookups
+    const nodeMap = {};
+    Object.values(this.nodes).forEach(node => {
+      nodeMap[node.id] = node;
+    });
+    
+    // Draw each connection
     this.connections.forEach(connection => {
-      const sourceNode = this.nodes[connection.source];
-      const targetNode = this.nodes[connection.target];
+      const sourceNode = nodeMap[connection.source];
+      const targetNode = nodeMap[connection.target];
       
       if (!sourceNode || !targetNode) {
-        console.warn(`Invalid connection: ${connection.source} -> ${connection.target}`);
+        console.warn(`Connection ${connection.source} -> ${connection.target} references missing node(s)`);
         return;
       }
       
-      // Create line element
-      const line = document.createElementNS(this.svgNS, 'line');
+      // Get node positions
+      const sourceX = sourceNode.position?.x || 0;
+      const sourceY = sourceNode.position?.y || 0;
+      const targetX = targetNode.position?.x || 0;
+      const targetY = targetNode.position?.y || 0;
       
-      // Set attributes
-      line.setAttribute('x1', sourceNode.position.x);
-      line.setAttribute('y1', sourceNode.position.y);
-      line.setAttribute('x2', targetNode.position.x);
-      line.setAttribute('y2', targetNode.position.y);
+      // Get specialization color
+      let connectionColor = this.config.colors.connectionDefault;
       
-      // Determine connection style based on specialization
-      let strokeColor = this.config.theme.connectionDefault;
-      let strokeWidth = 1.5;
-      let strokeDasharray = '';
-      
-      // Use proper color if nodes have the same specialization
-      if (sourceNode.specialization && 
-          sourceNode.specialization === targetNode.specialization) {
-        strokeColor = this.config.theme.specializationColors[sourceNode.specialization];
-        strokeWidth = 2;
+      if (sourceNode.specialization && this.specializations[sourceNode.specialization]) {
+        connectionColor = this.specializations[sourceNode.specialization].color;
       }
       
-      // Special styling for connector specialization links
-      if (sourceNode.specialization !== targetNode.specialization &&
-          (sourceNode.specialization === 'connector' || targetNode.specialization === 'connector')) {
-        strokeDasharray = '5,3';
-        strokeColor = this.config.theme.specializationColors.connector;
-      }
+      // Create connection line
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', sourceX);
+      line.setAttribute('y1', sourceY);
+      line.setAttribute('x2', targetX);
+      line.setAttribute('y2', targetY);
+      line.setAttribute('stroke', connectionColor);
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-opacity', '0.6');
+      line.setAttribute('class', `connection connection-${connection.source} connection-${connection.target}`);
       
-      // Apply styling
-      line.setAttribute('stroke', strokeColor);
-      line.setAttribute('stroke-width', strokeWidth);
-      
-      if (strokeDasharray) {
-        line.setAttribute('stroke-dasharray', strokeDasharray);
-      }
-      
-      // Set class for easier selection
-      line.setAttribute('class', `connection 
-                                from-${connection.source} 
-                                to-${connection.target}
-                                spec-${sourceNode.specialization || 'core'}`);
-      
-      // Store node IDs for reference
+      // Add data attributes
       line.dataset.source = connection.source;
       line.dataset.target = connection.target;
       
-      // Add to connections group
       this.connectionsGroup.appendChild(line);
     });
   },
   
   // Draw skill nodes
   drawNodes: function() {
-    console.log("Drawing skill nodes");
+    console.log('Drawing skill nodes');
     
+    // Draw each node
     Object.values(this.nodes).forEach(node => {
-      // Create circle element
-      const circle = document.createElementNS(this.svgNS, 'circle');
+      // Get node properties
+      const nodeSize = node.visual?.size || 'minor';
+      const x = node.position?.x || 0;
+      const y = node.position?.y || 0;
       
-      // Set position
-      circle.setAttribute('cx', node.position.x);
-      circle.setAttribute('cy', node.position.y);
+      // Determine node color based on specialization
+      let nodeColor = this.config.colors.connectionDefault;
       
-      // Set size based on node type
-      const nodeSize = this.config.nodeSize[node.visual?.size || 'minor'];
-      circle.setAttribute('r', nodeSize);
-      
-      // Set fill color based on specialization and state
-      const specializationColor = this.config.theme.specializationColors[node.specialization || 'null'];
-      const stateColor = this.config.theme.nodeStateColors[node.state || 'locked'];
-      
-      // Darken color for locked/unlockable states
-      let fillColor = specializationColor;
-      if (node.state === 'locked' || node.state === 'unlockable') {
-        // Create darker version of specialization color
-        const colorObj = this.hexToRgb(specializationColor);
-        const darkenFactor = node.state === 'locked' ? 0.3 : 0.5;
-        fillColor = `rgb(${colorObj.r * darkenFactor}, ${colorObj.g * darkenFactor}, ${colorObj.b * darkenFactor})`;
+      if (node.specialization && this.specializations[node.specialization]) {
+        nodeColor = this.specializations[node.specialization].color;
+      } else if (node.id === 'core_physics' || nodeSize === 'core') {
+        nodeColor = this.config.colors.core || '#4682B4';
       }
       
-      circle.setAttribute('fill', fillColor);
+      // Get radius based on node size
+      const radius = this.config.nodeRadius[nodeSize] || this.config.nodeRadius.minor;
       
-      // Set stroke based on state
-      let strokeColor = this.config.theme.nodeStrokeDefault;
-      let strokeWidth = this.config.theme.nodeStrokeWidth;
+      // Create node circle
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', radius);
+      circle.setAttribute('fill', nodeColor);
+      circle.setAttribute('fill-opacity', '0.7');
+      circle.setAttribute('stroke', this.config.colors.nodeStroke);
+      circle.setAttribute('stroke-width', '2');
+      circle.setAttribute('class', `node node-${node.id} node-${node.state} node-size-${nodeSize}`);
       
-      if (node.id === this.config.selectedNode) {
-        strokeColor = this.config.theme.nodeStrokeSelected;
-        strokeWidth = 3;
-      } else if (this.config.highlightedNodes.includes(node.id)) {
-        strokeColor = this.config.theme.nodeStrokeHighlighted;
-        strokeWidth = 3;
-      }
-      
-      circle.setAttribute('stroke', strokeColor);
-      circle.setAttribute('stroke-width', strokeWidth);
-      
-      // Set class for easier selection
-      circle.setAttribute('class', `node 
-                                node-${node.id} 
-                                spec-${node.specialization || 'core'} 
-                                state-${node.state || 'locked'} 
-                                tier-${node.tier}`);
-      
-      // Store node ID for reference
+      // Add data attributes
       circle.dataset.nodeId = node.id;
+      circle.dataset.nodeName = node.name;
+      circle.dataset.nodeState = node.state;
       
-      // Add event listeners for interaction
-      circle.addEventListener('mouseenter', () => this.handleNodeHover(node.id, true));
-      circle.addEventListener('mouseleave', () => this.handleNodeHover(node.id, false));
-      circle.addEventListener('click', () => this.handleNodeClick(node.id));
+      // Add event listeners
+      circle.addEventListener('mouseenter', this.handleNodeMouseEnter.bind(this, node));
+      circle.addEventListener('mouseleave', this.handleNodeMouseLeave.bind(this, node));
+      circle.addEventListener('click', this.handleNodeClick.bind(this, node));
       
-      // Add to nodes group
+      // Add node to group
       this.nodesGroup.appendChild(circle);
       
-      // Add icon if specified
+      // Store node element for later reference
+      this.nodeElements[node.id] = circle;
+      
+      // Create node icon if available
       if (node.visual?.icon) {
-        this.addNodeIcon(node);
+        this.createNodeIcon(node, x, y, radius);
       }
     });
   },
   
-  // Add icon to node
-  addNodeIcon: function(node) {
-    // Only support a few basic icons for now
-    // This could be expanded with a proper icon system
+  // Create node icon
+  createNodeIcon: function(node, x, y, radius) {
+    const iconSize = radius * 0.7;
     
-    const iconMap = {
-      'atom': '⚛',
-      'brain': '🧠',
-      'heart': '❤',
-      'star': '★',
-      'book': '📚',
-      'chart': '📊',
-      'lightbulb': '💡',
-      'eye': '👁',
-      'stethoscope': '🩺',
-      'shield': '🛡',
-      'target': '🎯',
-      'clock': '🕒',
-      'users': '👥',
-      'tool': '🔧',
-      'cpu': '💻',
-      'settings': '⚙',
-      'layers': '📑',
-      'database': '🗄',
-      'flask': '🧪',
-      'award': '🏆',
-      'dollar-sign': '💰',
-      'presentation': '📊',
-      'check-circle': '✓',
-      'x-ray': '📷',
-      'activity': '📈',
-      'clipboard': '📋',
-      'message': '💬',
-      'file-text': '📄',
-      'zap': '⚡',
-      'shuffle': '🔄'
-    };
-    
-    if (!iconMap[node.visual.icon]) return;
-    
-    // Create text element for icon
-    const text = document.createElementNS(this.svgNS, 'text');
-    
-    // Position in center of node
-    text.setAttribute('x', node.position.x);
-    text.setAttribute('y', node.position.y);
+    // Create icon text
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', y);
     text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('dominant-baseline', 'central');
+    text.setAttribute('font-size', iconSize);
+    text.setAttribute('fill', this.config.colors.text);
+    text.setAttribute('class', `node-icon node-icon-${node.id}`);
+    text.style.pointerEvents = 'none';
     
-    // Calculate font size based on node size
-    const fontSize = this.config.nodeSize[node.visual?.size || 'minor'] * 0.8;
-    text.setAttribute('font-size', fontSize);
+    // Determine icon character
+    let iconChar = '';
     
-    // Set color
-    text.setAttribute('fill', this.config.theme.textColor);
+    // This is a simple mapping - in a real implementation, you'd use an icon font
+    // or define a complete mapping of icon names to characters
+    switch (node.visual.icon) {
+      case 'atom': iconChar = '⚛'; break;
+      case 'brain': iconChar = '🧠'; break;
+      case 'radiation': iconChar = '☢'; break;
+      case 'star': iconChar = '★'; break;
+      case 'chart': iconChar = '📊'; break;
+      case 'book': iconChar = '📚'; break;
+      case 'lightbulb': iconChar = '💡'; break;
+      case 'eye': iconChar = '👁'; break;
+      case 'shuffle': iconChar = '🔄'; break;
+      case 'heart': iconChar = '❤'; break;
+      case 'stethoscope': iconChar = '⚕'; break;
+      case 'target': iconChar = '🎯'; break;
+      case 'message': iconChar = '💬'; break;
+      case 'clock': iconChar = '⏰'; break;
+      case 'users': iconChar = '👥'; break;
+      case 'shield': iconChar = '🛡'; break;
+      case 'file-text': iconChar = '📄'; break;
+      case 'tool': iconChar = '🔧'; break;
+      case 'cpu': iconChar = '🖥'; break;
+      case 'settings': iconChar = '⚙'; break;
+      case 'check-circle': iconChar = '✓'; break;
+      case 'zap': iconChar = '⚡'; break;
+      case 'dollar-sign': iconChar = '💲'; break;
+      case 'layers': iconChar = '📋'; break;
+      case 'book-open': iconChar = '📖'; break;
+      case 'award': iconChar = '🏆'; break;
+      case 'flask': iconChar = '🧪'; break;
+      case 'user-plus': iconChar = '👤+'; break;
+      case 'presentation': iconChar = '📊'; break;
+      case 'x-ray': iconChar = '🔍'; break;
+      case 'activity': iconChar = '📈'; break;
+      case 'clipboard': iconChar = '📋'; break;
+      case 'database': iconChar = '🗄'; break;
+      default: iconChar = '?';
+    }
     
-    // Set class for easier selection
-    text.setAttribute('class', `node-icon icon-${node.visual.icon}`);
+    text.textContent = iconChar;
     
-    // Set text content with icon
-    text.textContent = iconMap[node.visual.icon];
-    
-    // Add to nodes group
+    // Add icon to nodes group
     this.nodesGroup.appendChild(text);
   },
   
   // Draw node labels
-  drawLabels: function() {
-    if (!this.config.showLabels) return;
+  drawNodeLabels: function() {
+    console.log('Drawing node labels');
     
-    console.log("Drawing node labels");
-    
+    // Draw label for each node
     Object.values(this.nodes).forEach(node => {
-      // Create text element
-      const text = document.createElementNS(this.svgNS, 'text');
+      const x = node.position?.x || 0;
+      const y = node.position?.y || 0;
       
-      // Position below node
-      text.setAttribute('x', node.position.x);
-      text.setAttribute('y', node.position.y + this.config.nodeSize[node.visual?.size || 'minor'] + 15);
+      // Create label text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y + this.config.nodeRadius.minor + 15);
       text.setAttribute('text-anchor', 'middle');
-      
-      // Set styling
-      text.setAttribute('fill', this.config.theme.textColor);
       text.setAttribute('font-size', '12');
-      text.setAttribute('class', `node-label label-${node.id}`);
+      text.setAttribute('fill', this.config.colors.text);
+      text.setAttribute('class', `node-label node-label-${node.id}`);
+      text.style.pointerEvents = 'none';
+      
+      // Add text shadow for better readability
+      text.style.textShadow = `1px 1px 2px ${this.config.colors.textShadow}`;
       
       // Set text content
       text.textContent = node.name;
       
-      // Make labels for locked nodes fainter
-      if (node.state === 'locked') {
-        text.setAttribute('opacity', '0.5');
-      }
-      
-      // Add to labels group
+      // Add label to group
       this.labelsGroup.appendChild(text);
     });
   },
   
-  // Handle node hover
-  handleNodeHover: function(nodeId, isHovering) {
-    if (isHovering) {
-      this.config.hoveredNode = nodeId;
-      
-      // Highlight connected nodes
-      this.highlightConnectedNodes(nodeId);
-      
-      // Show tooltip with node info
-      this.showNodeTooltip(nodeId);
-    } else {
-      this.config.hoveredNode = null;
-      
-      // Remove highlights if not the selected node
-      if (nodeId !== this.config.selectedNode) {
-        this.clearHighlights();
-      }
-      
-      // Hide tooltip
-      this.hideNodeTooltip();
+  // Event Handlers
+  
+  // Handle node mouse enter
+  handleNodeMouseEnter: function(node, event) {
+    // Skip if tooltip is already visible for this node
+    if (this.hoveredNode === node.id) return;
+    
+    this.hoveredNode = node.id;
+    
+    // Show tooltip
+    this.showNodeTooltip(node);
+    
+    // Highlight node and connections
+    this.highlightNodeAndConnections(node.id);
+  },
+  
+  // Handle node mouse leave
+  handleNodeMouseLeave: function(node, event) {
+    this.hoveredNode = null;
+    
+    // Hide tooltip
+    this.hideNodeTooltip();
+    
+    // Remove highlights, unless this node is selected
+    if (this.selectedNode !== node.id) {
+      this.unhighlightAll();
     }
   },
   
   // Handle node click
-  handleNodeClick: function(nodeId) {
-    console.log(`Node clicked: ${nodeId}`);
+  handleNodeClick: function(node, event) {
+    event.stopPropagation();
     
     // Set as selected node
-    this.selectNode(nodeId);
+    this.selectedNode = node.id;
     
-    // Trigger custom event for skill tree interaction
-    const event = new CustomEvent('skillNodeSelected', {
-      detail: { nodeId: nodeId }
-    });
-    document.dispatchEvent(event);
-  },
-  
-  // Select a node
-  selectNode: function(nodeId) {
-    // Deselect previous node
-    if (this.config.selectedNode) {
-      const prevNode = document.querySelector(`.node-${this.config.selectedNode}`);
-      if (prevNode) {
-        prevNode.setAttribute('stroke', this.config.theme.nodeStrokeDefault);
-        prevNode.setAttribute('stroke-width', this.config.theme.nodeStrokeWidth);
-      }
-    }
+    // Highlight node and connections
+    this.highlightNodeAndConnections(node.id);
     
-    // Select new node
-    this.config.selectedNode = nodeId;
-    const newNode = document.querySelector(`.node-${nodeId}`);
-    if (newNode) {
-      newNode.setAttribute('stroke', this.config.theme.nodeStrokeSelected);
-      newNode.setAttribute('stroke-width', '3');
-    }
-    
-    // Highlight connected nodes
-    this.highlightConnectedNodes(nodeId);
-  },
-  
-  // Highlight nodes connected to the given node
-  highlightConnectedNodes: function(nodeId) {
-    // Clear previous highlights
-    this.clearHighlights();
-    
-    // Find connected nodes
-    const connectedNodeIds = this.getConnectedNodes(nodeId);
-    
-    // Highlight connections
-    connectedNodeIds.forEach(connectedId => {
-      // Highlight connection between nodes
-      this.highlightConnection(nodeId, connectedId);
-      
-      // Add to highlighted nodes
-      this.config.highlightedNodes.push(connectedId);
-      
-      // Update node stroke
-      const connectedNode = document.querySelector(`.node-${connectedId}`);
-      if (connectedNode) {
-        connectedNode.setAttribute('stroke', this.config.theme.nodeStrokeHighlighted);
-        connectedNode.setAttribute('stroke-width', '3');
-      }
-    });
-  },
-  
-  // Highlight a connection between two nodes
-  highlightConnection: function(nodeId1, nodeId2) {
-    // Find the connection between the nodes (in either direction)
-    const connection = document.querySelector(`.connection.from-${nodeId1}.to-${nodeId2}, .connection.from-${nodeId2}.to-${nodeId1}`);
-    
-    if (connection) {
-      connection.setAttribute('stroke-width', '3');
-      connection.setAttribute('stroke', this.config.theme.nodeStrokeHighlighted);
-    }
-  },
-  
-  // Clear all highlights
-  clearHighlights: function() {
-    // Reset connection styling
-    document.querySelectorAll('.connection').forEach(connection => {
-      const source = connection.dataset.source;
-      const target = connection.dataset.target;
-      
-      const sourceNode = this.nodes[source];
-      const targetNode = this.nodes[target];
-      
-      // Determine default connection style based on specialization
-      let strokeColor = this.config.theme.connectionDefault;
-      let strokeWidth = 1.5;
-      let strokeDasharray = '';
-      
-      // Use proper color if nodes have the same specialization
-      if (sourceNode.specialization && 
-          sourceNode.specialization === targetNode.specialization) {
-        strokeColor = this.config.theme.specializationColors[sourceNode.specialization];
-        strokeWidth = 2;
-      }
-      
-      // Special styling for connector specialization links
-      if (sourceNode.specialization !== targetNode.specialization &&
-          (sourceNode.specialization === 'connector' || targetNode.specialization === 'connector')) {
-        strokeDasharray = '5,3';
-        strokeColor = this.config.theme.specializationColors.connector;
-      }
-      
-      // Apply styling
-      connection.setAttribute('stroke', strokeColor);
-      connection.setAttribute('stroke-width', strokeWidth);
-      
-      if (strokeDasharray) {
-        connection.setAttribute('stroke-dasharray', strokeDasharray);
-      } else {
-        connection.removeAttribute('stroke-dasharray');
+    // Trigger custom event
+    const customEvent = new CustomEvent('skillNodeSelected', {
+      detail: {
+        nodeId: node.id,
+        node: node
       }
     });
     
-    // Reset node styling for previously highlighted nodes
-    this.config.highlightedNodes.forEach(nodeId => {
-      const node = document.querySelector(`.node-${nodeId}`);
-      if (node && nodeId !== this.config.selectedNode) {
-        node.setAttribute('stroke', this.config.theme.nodeStrokeDefault);
-        node.setAttribute('stroke-width', this.config.theme.nodeStrokeWidth);
-      }
-    });
-    
-    // Clear highlighted nodes list
-    this.config.highlightedNodes = [];
+    document.dispatchEvent(customEvent);
   },
   
-  // Show tooltip with node information
-  showNodeTooltip: function(nodeId) {
-    const node = this.nodes[nodeId];
-    if (!node) return;
+  // Show node tooltip
+  showNodeTooltip: function(node) {
+    // Clear existing tooltip
+    this.tooltipGroup.innerHTML = '';
     
-    // Remove any existing tooltip
-    this.hideNodeTooltip();
+    const x = node.position?.x || 0;
+    const y = node.position?.y || 0;
     
-    // Create tooltip group
-    const tooltip = document.createElementNS(this.svgNS, 'g');
-    tooltip.setAttribute('class', 'node-tooltip');
+    // Create tooltip rectangle
+    const tooltipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    tooltipRect.setAttribute('rx', '5');
+    tooltipRect.setAttribute('ry', '5');
+    tooltipRect.setAttribute('fill', this.config.colors.tooltip);
     
-    // Position tooltip near node (adjust based on position to avoid going off-screen)
-    const nodeX = node.position.x;
-    const nodeY = node.position.y;
+    // Create tooltip title
+    const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    titleText.setAttribute('x', x);
+    titleText.setAttribute('y', y - 40);
+    titleText.setAttribute('text-anchor', 'middle');
+    titleText.setAttribute('font-size', '14');
+    titleText.setAttribute('font-weight', 'bold');
+    titleText.setAttribute('fill', this.config.colors.tooltipText);
+    titleText.textContent = node.name;
     
-    // Determine tooltip position (right side of node by default)
-    let tooltipX = nodeX + this.config.nodeSize[node.visual?.size || 'minor'] + 10;
-    let tooltipY = nodeY - 10;
+    // Create tooltip description
+    const descText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    descText.setAttribute('x', x);
+    descText.setAttribute('y', y - 20);
+    descText.setAttribute('text-anchor', 'middle');
+    descText.setAttribute('font-size', '12');
+    descText.setAttribute('fill', this.config.colors.tooltipText);
     
-    // Calculate tooltip dimensions
-    const tooltipWidth = 200;
-    const tooltipHeight = 140;
-    
-    // Check if tooltip would go off-screen and adjust
-    if (tooltipX + tooltipWidth > this.config.width - this.config.padding) {
-      tooltipX = nodeX - tooltipWidth - this.config.nodeSize[node.visual?.size || 'minor'] - 10;
+    // Truncate description if too long
+    const maxLength = 30;
+    let description = node.description || '';
+    if (description.length > maxLength) {
+      description = description.substring(0, maxLength) + '...';
     }
     
-    // Create tooltip background
-    const background = document.createElementNS(this.svgNS, 'rect');
-    background.setAttribute('x', tooltipX);
-    background.setAttribute('y', tooltipY);
-    background.setAttribute('width', tooltipWidth);
-    background.setAttribute('height', tooltipHeight);
-    background.setAttribute('rx', '5');
-    background.setAttribute('ry', '5');
-    background.setAttribute('fill', 'rgba(0,0,0,0.8)');
-    background.setAttribute('stroke', this.config.theme.specializationColors[node.specialization || 'null']);
-    background.setAttribute('stroke-width', '2');
+    descText.textContent = description;
     
-    tooltip.appendChild(background);
+    // Create tooltip state text
+    const stateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    stateText.setAttribute('x', x);
+    stateText.setAttribute('y', y - 60);
+    stateText.setAttribute('text-anchor', 'middle');
+    stateText.setAttribute('font-size', '12');
+    stateText.setAttribute('fill', this.config.colors.tooltipText);
     
-    // Add node name
-    const nameText = document.createElementNS(this.svgNS, 'text');
-    nameText.setAttribute('x', tooltipX + 10);
-    nameText.setAttribute('y', tooltipY + 20);
-    nameText.setAttribute('fill', this.config.theme.textColor);
-    nameText.setAttribute('font-weight', 'bold');
-    nameText.textContent = node.name;
-    
-    tooltip.appendChild(nameText);
-    
-    // Add specialization
-    if (node.specialization) {
-      const specializationText = document.createElementNS(this.svgNS, 'text');
-      specializationText.setAttribute('x', tooltipX + 10);
-      specializationText.setAttribute('y', tooltipY + 40);
-      specializationText.setAttribute('fill', this.config.theme.specializationColors[node.specialization]);
-      specializationText.setAttribute('font-style', 'italic');
-      
-      // Get specialization name from cached data
-      const specName = this.specializations[node.specialization]?.name || node.specialization;
-      specializationText.textContent = specName;
-      
-      tooltip.appendChild(specializationText);
+    // Get state display text
+    let stateDisplay = 'Unknown';
+    switch (node.state) {
+      case 'locked': stateDisplay = 'Locked'; break;
+      case 'unlockable': stateDisplay = 'Can Unlock'; break;
+      case 'unlocked': stateDisplay = 'Unlocked'; break;
+      case 'active': stateDisplay = 'Active'; break;
     }
     
-    // Add description
-    const descriptionText = document.createElementNS(this.svgNS, 'text');
-    descriptionText.setAttribute('x', tooltipX + 10);
-    descriptionText.setAttribute('y', tooltipY + 60);
-    descriptionText.setAttribute('fill', this.config.theme.textColor);
+    stateText.textContent = stateDisplay;
     
-    // Wrap text to fit tooltip width
-    const words = node.description.split(' ');
-    let line = '';
-    let lineNumber = 0;
-    const lineHeight = 20;
+    // Position tooltip background
+    tooltipRect.setAttribute('x', x - 100);
+    tooltipRect.setAttribute('y', y - 80);
+    tooltipRect.setAttribute('width', 200);
+    tooltipRect.setAttribute('height', 70);
     
-    words.forEach(word => {
-      const testLine = line + word + ' ';
-      
-      // If line would exceed tooltip width, create a new line
-      if (testLine.length * 6 > tooltipWidth - 20) {
-        // Add current line
-        const tspan = document.createElementNS(this.svgNS, 'tspan');
-        tspan.setAttribute('x', tooltipX + 10);
-        tspan.setAttribute('y', tooltipY + 60 + lineNumber * lineHeight);
-        tspan.textContent = line;
-        descriptionText.appendChild(tspan);
-        
-        // Start new line
-        line = word + ' ';
-        lineNumber++;
-      } else {
-        line = testLine;
-      }
-    });
-    
-    // Add last line
-    const tspan = document.createElementNS(this.svgNS, 'tspan');
-    tspan.setAttribute('x', tooltipX + 10);
-    tspan.setAttribute('y', tooltipY + 60 + lineNumber * lineHeight);
-    tspan.textContent = line;
-    descriptionText.appendChild(tspan);
-    
-    tooltip.appendChild(descriptionText);
-    
-    // Add cost information
-    const costY = tooltipY + 120;
-    const costText = document.createElementNS(this.svgNS, 'text');
-    costText.setAttribute('x', tooltipX + 10);
-    costText.setAttribute('y', costY);
-    costText.setAttribute('fill', this.config.theme.textColor);
-    
-    // Show different text based on node state
-    if (node.state === 'locked') {
-      costText.textContent = `Cost: ${node.cost.reputation} Reputation`;
-    } else if (node.state === 'unlockable') {
-      costText.setAttribute('fill', '#FFD700');
-      costText.textContent = `Unlock: ${node.cost.reputation} Reputation`;
-    } else if (node.state === 'unlocked') {
-      costText.setAttribute('fill', '#00FF00');
-      costText.textContent = `Activate: ${node.cost.skill_points} Skill Points`;
-    } else {
-      costText.setAttribute('fill', '#00FF00');
-      costText.textContent = `Active`;
-    }
-    
-    tooltip.appendChild(costText);
-    
-    // Add tooltip to UI group
-    this.uiGroup.appendChild(tooltip);
+    // Add elements to tooltip group
+    this.tooltipGroup.appendChild(tooltipRect);
+    this.tooltipGroup.appendChild(stateText);
+    this.tooltipGroup.appendChild(titleText);
+    this.tooltipGroup.appendChild(descText);
   },
   
-  // Hide the node tooltip
+  // Hide node tooltip
   hideNodeTooltip: function() {
-    const tooltip = this.uiGroup.querySelector('.node-tooltip');
-    if (tooltip) {
-      this.uiGroup.removeChild(tooltip);
-    }
+    this.tooltipGroup.innerHTML = '';
   },
   
-  // Filter skill tree to show only specific specializations
-  filterBySpecialization: function(specializationId = null) {
-    // If no specialization specified, show all
-    if (specializationId === null) {
-      // Reset all opacities
-      document.querySelectorAll('.node, .connection').forEach(element => {
-        element.style.opacity = '1';
-      });
-      return;
+  // Highlight node and its connections
+  highlightNodeAndConnections: function(nodeId) {
+    // Reset all nodes and connections to normal state
+    this.unhighlightAll();
+    
+    // Highlight the node
+    const nodeElement = this.nodeElements[nodeId];
+    if (nodeElement) {
+      nodeElement.setAttribute('stroke-width', '3');
+      nodeElement.style.filter = 'brightness(120%)';
     }
     
-    // Apply filtering
-    document.querySelectorAll('.node, .connection').forEach(element => {
-      // Check if element belongs to the specified specialization
-      const spec = element.classList.toString().match(/spec-([a-z_]+)/);
+    // Find and highlight connections
+    const connections = this.connectionsGroup.querySelectorAll(
+      `.connection-${nodeId}`
+    );
+    
+    connections.forEach(connection => {
+      connection.setAttribute('stroke-width', '3');
+      connection.style.strokeOpacity = '1';
       
-      if (spec && spec[1] === specializationId || spec && spec[1] === 'core') {
-        // Show elements for selected specialization and core
-        element.style.opacity = '1';
-      } else {
-        // Fade others
-        element.style.opacity = this.config.specializationOpacity.toString();
+      // Get the connected node ID
+      const sourceId = connection.dataset.source;
+      const targetId = connection.dataset.target;
+      const connectedId = sourceId === nodeId ? targetId : sourceId;
+      
+      // Highlight the connected node
+      const connectedElement = this.nodeElements[connectedId];
+      if (connectedElement) {
+        connectedElement.setAttribute('stroke-width', '3');
+        connectedElement.style.filter = 'brightness(110%)';
       }
     });
   },
   
-  // Get all nodes connected to the given node
-  getConnectedNodes: function(nodeId) {
-    const connectedNodes = [];
-    
-    // Find all connections from this node
-    this.connections.forEach(connection => {
-      if (connection.source === nodeId) {
-        connectedNodes.push(connection.target);
-      } else if (connection.target === nodeId) {
-        connectedNodes.push(connection.source);
-      }
+  // Remove all highlights
+  unhighlightAll: function() {
+    // Reset nodes
+    Object.values(this.nodeElements).forEach(nodeElement => {
+      nodeElement.setAttribute('stroke-width', '2');
+      nodeElement.style.filter = '';
     });
     
-    return connectedNodes;
+    // Reset connections
+    const connections = this.connectionsGroup.querySelectorAll('.connection');
+    connections.forEach(connection => {
+      connection.setAttribute('stroke-width', '2');
+      connection.style.strokeOpacity = '0.6';
+    });
   },
   
   // Update node states
   updateNodeStates: function(nodeStates) {
-    console.log("Updating node states");
+    console.log('Updating node states');
     
-    Object.keys(nodeStates).forEach(nodeId => {
-      const state = nodeStates[nodeId];
+    // Update each node state
+    Object.entries(nodeStates).forEach(([nodeId, state]) => {
+      const nodeElement = this.nodeElements[nodeId];
+      if (!nodeElement) return;
       
-      // Update local data
-      if (this.nodes[nodeId]) {
-        this.nodes[nodeId].state = state;
-      }
+      // Update data attribute
+      nodeElement.dataset.nodeState = state;
       
-      // Update DOM
-      const nodeElement = document.querySelector(`.node-${nodeId}`);
-      if (nodeElement) {
-        // Remove old state class
-        nodeElement.classList.forEach(className => {
-          if (className.startsWith('state-')) {
-            nodeElement.classList.remove(className);
-          }
-        });
-        
-        // Add new state class
-        nodeElement.classList.add(`state-${state}`);
-        
-        // Update fill color
-        const specializationColor = this.config.theme.specializationColors[this.nodes[nodeId]?.specialization || 'null'];
-        
-        if (state === 'locked' || state === 'unlockable') {
-          // Create darker version of specialization color
-          const colorObj = this.hexToRgb(specializationColor);
-          const darkenFactor = state === 'locked' ? 0.3 : 0.5;
-          const fillColor = `rgb(${colorObj.r * darkenFactor}, ${colorObj.g * darkenFactor}, ${colorObj.b * darkenFactor})`;
-          nodeElement.setAttribute('fill', fillColor);
-        } else {
-          nodeElement.setAttribute('fill', specializationColor);
-        }
-      }
+      // Remove old state classes
+      nodeElement.classList.remove('node-locked', 'node-unlockable', 'node-unlocked', 'node-active');
       
-      // Update label opacity
-      const labelElement = document.querySelector(`.label-${nodeId}`);
-      if (labelElement) {
-        labelElement.setAttribute('opacity', state === 'locked' ? '0.5' : '1');
+      // Add new state class
+      nodeElement.classList.add(`node-${state}`);
+      
+      // Update visual appearance based on state
+      switch (state) {
+        case 'locked':
+          nodeElement.setAttribute('fill-opacity', '0.3');
+          break;
+        case 'unlockable':
+          nodeElement.setAttribute('fill-opacity', '0.6');
+          nodeElement.style.filter = 'brightness(110%)';
+          break;
+        case 'unlocked':
+          nodeElement.setAttribute('fill-opacity', '0.8');
+          break;
+        case 'active':
+          nodeElement.setAttribute('fill-opacity', '1');
+          nodeElement.style.filter = 'brightness(120%)';
+          break;
       }
     });
   },
   
-  // Utility: Convert hex color to RGB object
-  hexToRgb: function(hex) {
-    // Remove # if present
-    hex = hex.replace('#', '');
+  // Filter the tree by specialization
+  filterBySpecialization: function(specializationId) {
+    // If no specialization selected, show all nodes
+    if (!specializationId) {
+      Object.values(this.nodeElements).forEach(nodeElement => {
+        nodeElement.style.opacity = '1';
+      });
+      
+      // Show all connections
+      const connections = this.connectionsGroup.querySelectorAll('.connection');
+      connections.forEach(connection => {
+        connection.style.opacity = '1';
+      });
+      
+      // Show all labels
+      const labels = this.labelsGroup.querySelectorAll('.node-label');
+      labels.forEach(label => {
+        label.style.opacity = '1';
+      });
+      
+      return;
+    }
     
-    // Parse hex components
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+    // Create a set to track nodes in this specialization and connected nodes
+    const visibleNodes = new Set();
     
-    return { r, g, b };
+    // Add nodes of the selected specialization
+    Object.values(this.nodes).forEach(node => {
+      if (node.specialization === specializationId || node.id === 'core_physics') {
+        visibleNodes.add(node.id);
+      }
+    });
+    
+    // Update visibility of nodes
+    Object.entries(this.nodeElements).forEach(([nodeId, element]) => {
+      if (visibleNodes.has(nodeId)) {
+        element.style.opacity = '1';
+      } else {
+        element.style.opacity = '0.2';
+      }
+    });
+    
+    // Update visibility of connections
+    const connections = this.connectionsGroup.querySelectorAll('.connection');
+    connections.forEach(connection => {
+      const sourceId = connection.dataset.source;
+      const targetId = connection.dataset.target;
+      
+      if (visibleNodes.has(sourceId) && visibleNodes.has(targetId)) {
+        connection.style.opacity = '1';
+      } else {
+        connection.style.opacity = '0.2';
+      }
+    });
+    
+    // Update visibility of labels
+    const labels = this.labelsGroup.querySelectorAll('.node-label');
+    labels.forEach(label => {
+      const nodeId = label.classList[1].replace('node-label-', '');
+      
+      if (visibleNodes.has(nodeId)) {
+        label.style.opacity = '1';
+      } else {
+        label.style.opacity = '0.2';
+      }
+    });
+  },
+  
+  // Calculate node positions in orbital layout
+  calculateOrbitalPositions: function() {
+    // Center point
+    const centerX = this.config.width / 2;
+    const centerY = this.config.height / 2;
+    
+    // Group nodes by tier
+    const nodesByTier = {};
+    
+    Object.values(this.nodes).forEach(node => {
+      const tier = node.tier || 0;
+      
+      if (!nodesByTier[tier]) {
+        nodesByTier[tier] = [];
+      }
+      
+      nodesByTier[tier].push(node);
+    });
+    
+    // Calculate positions for each tier
+    Object.entries(nodesByTier).forEach(([tier, nodes]) => {
+      const tierInt = parseInt(tier);
+      
+      // Skip tier 0 (core node)
+      if (tierInt === 0) {
+        nodes.forEach(node => {
+          node.position = { x: centerX, y: centerY };
+        });
+        return;
+      }
+      
+      // Get orbit radius for this tier
+      const orbitRadius = this.config.orbitRadius[tierInt - 1] || 
+                          this.config.orbitRadius[this.config.orbitRadius.length - 1];
+      
+      // Calculate angle step
+      const angleStep = (Math.PI * 2) / nodes.length;
+      
+      // Assign positions
+      nodes.forEach((node, index) => {
+        const angle = index * angleStep;
+        
+        // Calculate position
+        const x = centerX + Math.cos(angle) * orbitRadius;
+        const y = centerY + Math.sin(angle) * orbitRadius;
+        
+        node.position = { x, y };
+      });
+    });
   }
 };
 
