@@ -540,7 +540,8 @@ function createGameSkillTreeButton() {
   return button;
 }
 
-// Renamed to avoid conflict
+// Replace the toggleGameSkillTree function in game.js with this version
+
 function toggleGameSkillTree() {
   const container = document.getElementById('skill-tree-container');
   
@@ -578,7 +579,7 @@ function toggleGameSkillTree() {
       disableGameUI();
       
       // Make sure skill tree is initialized and loaded
-      ensureGameSkillTreeInitialized();
+      ensureSkillTreeInitialized();
   }
 }
 
@@ -689,7 +690,97 @@ function removeLoadingIndicator() {
     loadingIndicator.remove();
   }
 }
+// Add these functions to the game.js file
 
+// Disable game UI elements when skill tree is open
+function disableGameUI() {
+  console.log("Disabling game UI elements while skill tree is open");
+  
+  // Add a class to body to indicate game is paused
+  document.body.classList.add('game-paused');
+  
+  // Disable node interactions
+  const nodes = document.querySelectorAll('.node');
+  nodes.forEach(node => {
+    node.style.pointerEvents = 'none';
+  });
+  
+  // Disable buttons
+  const buttons = document.querySelectorAll('.game-btn, .retro-btn');
+  buttons.forEach(button => {
+    if (!button.classList.contains('skill-tree-close-button')) {
+      button.disabled = true;
+    }
+  });
+  
+  // Hide any visible modals that might interfere
+  const modals = document.querySelectorAll('.modal');
+  modals.forEach(modal => {
+    if (modal.style.display !== 'none') {
+      modal.dataset.wasVisible = 'true';
+      modal.style.display = 'none';
+    }
+  });
+}
+
+// Re-enable game UI elements when skill tree is closed
+function enableGameUI() {
+  console.log("Re-enabling game UI elements");
+  
+  // Remove paused class
+  document.body.classList.remove('game-paused');
+  
+  // Re-enable node interactions
+  const nodes = document.querySelectorAll('.node');
+  nodes.forEach(node => {
+    node.style.pointerEvents = 'auto';
+  });
+  
+  // Re-enable buttons
+  const buttons = document.querySelectorAll('.game-btn, .retro-btn');
+  buttons.forEach(button => {
+    button.disabled = false;
+  });
+  
+  // Restore any modals that were visible
+  const modals = document.querySelectorAll('.modal[data-was-visible="true"]');
+  modals.forEach(modal => {
+    modal.style.display = 'block';
+    modal.dataset.wasVisible = 'false';
+  });
+}
+
+// Function to ensure the skill tree is initialized
+function ensureSkillTreeInitialized() {
+  console.log("Ensuring skill tree is initialized");
+  
+  // Check if SkillTreeController exists and is initialized
+  if (typeof SkillTreeController !== 'undefined') {
+    if (!SkillTreeController.initialized) {
+      console.log("Initializing SkillTreeController");
+      SkillTreeController.initialize({
+          renderContainerId: 'skill-tree-visualization',
+          uiContainerId: 'skill-tree-ui'
+      });
+    } else {
+      console.log("Refreshing skill tree data");
+      SkillTreeController.loadSkillTree();
+    }
+  } else {
+    console.error("SkillTreeController not available");
+    
+    // Show error message in skill tree container
+    const container = document.getElementById('skill-tree-visualization');
+    if (container) {
+        container.innerHTML = `
+            <div style="padding: 20px; text-align: center;">
+                <h3>Skill Tree Not Available</h3>
+                <p>The skill tree system could not be loaded.</p>
+            </div>
+        `;
+    }
+  }
+}
 function showErrorMessage(message) {
   // Remove loading indicator
   removeLoadingIndicator();
