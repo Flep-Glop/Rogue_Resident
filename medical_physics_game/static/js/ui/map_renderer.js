@@ -551,7 +551,12 @@ const MapRenderer = {
     const x = startX + (colIndex * colSpacing);
     const y = 100 + (node.position.row * rowSpacing);
     
-    const nodeRadius = 25; // Node radius
+    let nodeRadius = 25; // Default node radius
+    if (node.type === 'boss') {
+      nodeRadius = 40; // Larger radius for boss nodes
+    } else if (node.type === 'start') {
+      nodeRadius = 35; // Larger radius for starting nodes
+    }
     
     // Save context for node styling
     ctx.save();
@@ -1004,7 +1009,6 @@ const MapRenderer = {
       const dx = clickX - nodeX;
       const dy = clickY - nodeY;
       const distance = Math.sqrt(dx*dx + dy*dy);
-      const nodeRadius = 25;
       
       // Check if click is within node radius
       if (distance <= nodeRadius) {

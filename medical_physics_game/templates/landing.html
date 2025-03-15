@@ -133,5 +133,43 @@
             });
         });
     </script>
+    <!-- Add this script block just before the closing </body> tag -->
+<script>
+    // Pixel background animation for landing page
+    function createPixelBackground() {
+      const container = document.querySelector('.pixel-container');
+      if (!container) return;
+      
+      // Remove any existing pixels
+      document.querySelectorAll('.pixel-decoration').forEach(el => el.remove());
+      
+      // Create 150 pixel decorations
+      for (let i = 0; i < 150; i++) {
+        const pixel = document.createElement('div');
+        pixel.className = 'pixel-decoration';
+        
+        // Random position
+        pixel.style.left = `${Math.random() * 100}%`;
+        pixel.style.top = `${Math.random() * 100}%`;
+        
+        // Random color
+        const colors = ['#5b8dd9', '#56b886', '#e67e73', '#f0c866', '#ffffff'];
+        pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Random animation
+        const animationTypes = ['pixel-float', 'pixel-twinkle', 'pixel-float pixel-twinkle'];
+        const animationType = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+        pixel.style.animation = `${animationType} ${5 + Math.random() * 10}s infinite ease-in-out`;
+        
+        container.appendChild(pixel);
+      }
+    }
+  
+    // Call when page loads
+    document.addEventListener('DOMContentLoaded', createPixelBackground);
+    
+    // Add periodic refresh to keep animation lively
+    setInterval(createPixelBackground, 30000); // Refresh every 30 seconds
+  </script>
 </body>
 </html>
