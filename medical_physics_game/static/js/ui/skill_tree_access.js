@@ -286,37 +286,121 @@ const SkillTreeAccess = {
         container.classList.remove('visible');
         this.isVisible = false;
     },
-    
     /**
-     * Initialize skill tree components (controller, renderer, UI)
+     * Ensure skill tree UI is ready
+     * @returns {boolean} Whether UI is ready
      */
+    ensureSkillTreeUI: function() {
+        // If UI is not initialized but the controller thinks it is
+        if (!SkillTreeUI.initialized && SkillTreeController.initialized) {
+        console.log("Attempting to repair SkillTreeUI initialization...");
+        
+        // Try to initialize UI again
+        if (SkillTreeUI.initialize({
+            containerId: this.config.uiId,
+            controlsContainerId: this.config.controlsId,
+            infoContainerId: this.config.infoId
+        })) {
+            console.log("Successfully re-initialized SkillTreeUI");
+            return true;
+        } else {
+            console.warn("Failed to repair SkillTreeUI initialization");
+            return false;
+        }
+        }
+        
+        return SkillTreeUI.initialized;
+    },
+
+    /**
+     * Show debug information about the skill tree components
+     */
+    showDebugInfo: function() {
+        console.group("Skill Tree Components Debug Info");
+        
+        // Access
+        console.log("SkillTreeAccess:", {
+        initialized: this.isInitialized,
+        visible: this.isVisible,
+        containers: {
+            main: !!document.getElementById(this.config.containerId),
+            visualization: !!document.getElementById(this.config.visualizationId),
+            ui: !!document.getElementById(this.config.uiId),
+            controls: !!document.getElementById(this.config.controlsId),
+            info: !!document.getElementById(this.config.infoId)
+        }
+        });
+        
+        // Controller
+        if (typeof SkillTreeController !== 'undefined') {
+        console.log("SkillTreeController:", {
+            initialized: SkillTreeController.initialized
+        });
+        }
+        
+        // Manager
+        if (typeof SkillTreeManager !== 'undefined') {
+        console.log("SkillTreeManager:", {
+            initialized: SkillTreeManager.initialized,
+            skillCount: Object.keys(SkillTreeManager.skills || {}).length,
+            specializationCount: Object.keys(SkillTreeManager.specializations || {}).length
+        });
+        }
+        
+        // Renderer
+        if (typeof SkillTreeRenderer !== 'undefined') {
+        console.log("SkillTreeRenderer:", {
+            initialized: SkillTreeRenderer.initialized,
+            svgCreated: !!SkillTreeRenderer.svg
+        });
+        }
+        
+        // UI
+        if (typeof SkillTreeUI !== 'undefined') {
+        console.log("SkillTreeUI:", {
+            initialized: SkillTreeUI.initialized,
+            elements: {
+            controls: !!SkillTreeUI.elements?.controls,
+            info: !!SkillTreeUI.elements?.info,
+            filterMenu: !!SkillTreeUI.elements?.filterMenu
+            }
+        });
+        }
+        
+        console.groupEnd();
+    },
+
+
     initializeSkillTree: function() {
         // Only proceed if we have a valid container structure
         if (!document.getElementById(this.config.visualizationId) || 
             !document.getElementById(this.config.uiId)) {
-            console.error("Cannot initialize skill tree: containers not ready");
-            return;
+          console.error("Cannot initialize skill tree: containers not ready");
+          return;
         }
         
         // Initialize controller if available and not already initialized
         if (typeof SkillTreeController !== 'undefined') {
-            if (!SkillTreeController.initialized) {
-                console.log("Initializing skill tree controller...");
-                SkillTreeController.initialize({
-                    renderContainerId: this.config.visualizationId,
-                    uiContainerId: this.config.uiId,
-                    controlsContainerId: this.config.controlsId,
-                    infoContainerId: this.config.infoId
-                });
-            } else {
-                // Refresh data if already initialized
-                console.log("Refreshing skill tree data...");
-                SkillTreeController.loadSkillTree();
-            }
+          if (!SkillTreeController.initialized) {
+            console.log("Initializing skill tree controller...");
+            SkillTreeController.initialize({
+              renderContainerId: this.config.visualizationId,
+              uiContainerId: this.config.uiId,
+              controlsContainerId: this.config.controlsId,
+              infoContainerId: this.config.infoId
+            });
+          } else {
+            // Ensure UI is properly initialized before refreshing data
+            this.ensureSkillTreeUI();
+            
+            // Refresh data if already initialized
+            console.log("Refreshing skill tree data...");
+            SkillTreeController.loadSkillTree();
+          }
         } else {
-            console.warn("SkillTreeController not available");
+          console.warn("SkillTreeController not available");
         }
-    }
+      }
 };
 
 // Initialize on DOM content loaded

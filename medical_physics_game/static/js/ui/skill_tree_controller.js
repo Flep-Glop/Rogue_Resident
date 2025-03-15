@@ -322,15 +322,50 @@ const SkillTreeController = {
         
         console.log(`Loading skill tree with ${Object.keys(skills).length} skills, ${Object.keys(specializations).length} specializations`);
         
-        // Set up specialization filters in UI with error handling
-        if (SkillTreeUI.initialized && typeof SkillTreeUI.setupSpecializationFilters === 'function') {
-          try {
-            SkillTreeUI.setupSpecializationFilters(specializations);
-          } catch (error) {
-            console.error("Failed to set up specialization filters:", error);
+        // Set up specialization filters in UI with error handling and retry logic
+        const setupUI = () => {
+          if (SkillTreeUI.initialized && typeof SkillTreeUI.setupSpecializationFilters === 'function') {
+            try {
+              SkillTreeUI.setupSpecializationFilters(specializations);
+              
+              // After filters are set up, try to update stats too
+              if (typeof SkillTreeUI.updateStats === 'function') {
+                try {
+                  SkillTreeUI.updateStats(
+                    SkillTreeManager.reputation,
+                    SkillTreeManager.skillPointsAvailable,
+                    SkillTreeManager.specialization_progress
+                  );
+                } catch (error) {
+                  console.error("Failed to update UI stats:", error);
+                }
+              }
+              
+              return true;
+            } catch (error) {
+              console.error("Failed to set up specialization filters:", error);
+              return false;
+            }
+          } else {
+            console.warn("SkillTreeUI not initialized or missing setupSpecializationFilters method");
+            return false;
           }
-        } else {
-          console.warn("SkillTreeUI not initialized or missing setupSpecializationFilters method");
+        };
+
+        // Try immediately
+        if (!setupUI()) {
+          // If failed, try again after a brief delay
+          console.log("Will retry UI setup after delay...");
+          setTimeout(() => {
+            // If SkillTreeAccess is available, try to repair UI first
+            if (typeof SkillTreeAccess !== 'undefined' && 
+                typeof SkillTreeAccess.ensureSkillTreeUI === 'function') {
+              SkillTreeAccess.ensureSkillTreeUI();
+            }
+            
+            // Try UI setup again
+            setupUI();
+          }, 300);
         }
         
         // Create node state map

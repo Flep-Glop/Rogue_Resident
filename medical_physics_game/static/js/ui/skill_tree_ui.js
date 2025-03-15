@@ -31,39 +31,96 @@ const SkillTreeUI = {
   selectedNode: null,
   initialized: false,
   
-  // Initialize the UI
+  // Completely reworked initialize method for skill_tree_ui.js
+
+  /**
+   * Initialize the UI with robust container handling
+   * @param {Object} options - Configuration options
+   * @returns {boolean} Success status
+   */
   initialize: function(options = {}) {
-    console.log("Initializing skill tree UI");
+    console.log("Initializing skill tree UI with robust error handling");
     
     // Apply options
     Object.assign(this.config, options);
     
-    // Get container elements
-    this.elements.controls = document.getElementById(this.config.controlsContainerId);
-    this.elements.info = document.getElementById(this.config.infoContainerId);
-    
-    // Create UI elements if containers exist
-    if (this.elements.controls && this.elements.info) {
-      // Clear existing content first to prevent duplication
-      this.elements.controls.innerHTML = '';
-      this.elements.info.innerHTML = '';
-      
-      this.createUIElements();
-      this.setupEventListeners();
-    } else {
-      console.error("Required containers not found:", {
-        controls: this.config.controlsContainerId,
-        info: this.config.infoContainerId
-      });
-      return false;
+    // Track attempt to prevent duplicate initialization
+    if (this.initialized) {
+      console.log("SkillTreeUI already initialized");
+      return true;
     }
     
-    // Add theme class to body
-    document.body.classList.add(`theme-${this.config.theme}`);
+    // Get container elements with direct DOM access to avoid null errors
+    const controlsId = this.config.controlsContainerId || 'skill-tree-controls';
+    const infoId = this.config.infoContainerId || 'skill-tree-info';
     
+    console.log(`Looking for containers: controls=${controlsId}, info=${infoId}`);
+    
+    // Create a retry mechanism for container acquisition
+    const getContainers = () => {
+      this.elements.controls = document.getElementById(controlsId);
+      this.elements.info = document.getElementById(infoId);
+      
+      console.log("Container check:", {
+        controls: !!this.elements.controls,
+        info: !!this.elements.info
+      });
+      
+      return this.elements.controls && this.elements.info;
+    };
+    
+    // Try to get containers immediately
+    if (!getContainers()) {
+      console.warn("Containers not found, will create them");
+      
+      // Find parent containers
+      const uiContainer = document.getElementById(this.config.containerId || 'skill-tree-ui');
+      
+      if (!uiContainer) {
+        console.error("UI container not found, cannot initialize");
+        return false;
+      }
+      
+      // Create missing elements
+      if (!this.elements.controls) {
+        console.log(`Creating missing controls container with ID: ${controlsId}`);
+        this.elements.controls = document.createElement('div');
+        this.elements.controls.id = controlsId;
+        this.elements.controls.className = 'skill-tree-controls';
+        uiContainer.appendChild(this.elements.controls);
+      }
+      
+      if (!this.elements.info) {
+        console.log(`Creating missing info container with ID: ${infoId}`);
+        this.elements.info = document.createElement('div');
+        this.elements.info.id = infoId;
+        this.elements.info.className = 'skill-tree-info';
+        uiContainer.appendChild(this.elements.info);
+      }
+      
+      // Check again
+      if (!getContainers()) {
+        console.error("Failed to create and acquire containers");
+        return false;
+      }
+    }
+    
+    // Now we've ensured containers exist
+    console.log("UI containers acquired successfully");
+    
+    // Clear existing content to prevent duplication
+    this.elements.controls.innerHTML = '';
+    this.elements.info.innerHTML = '';
+    
+    // Create UI elements
+    this.createUIElements();
+    this.setupEventListeners();
+    
+    // Mark as initialized
     this.initialized = true;
+    console.log("SkillTreeUI initialized successfully");
     
-    return this;
+    return true;
   },
   
   // Create UI elements
