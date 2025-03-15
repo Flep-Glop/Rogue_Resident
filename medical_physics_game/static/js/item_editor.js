@@ -512,41 +512,68 @@ function cloneCurrentItem() {
 
 // Delete the current item
 function deleteCurrentItem() {
-  if (!currentItem) {
-    showStatusMessage('No item selected to delete', 'error');
-    return;
-  }
-  
-  // Confirm deletion
-  if (confirm(`Are you sure you want to delete "${currentItem.name}"?`)) {
-    const itemId = currentItem.id;
-    
-    // Remove from items list
-    allItems = allItems.filter(item => item.id !== itemId);
-    
-    // Add to delete queue (if not a new unsaved item)
-    if (!unsavedChanges[itemId]?.isNew) {
-      unsavedChanges[itemId] = { id: itemId, deleted: true };
-    } else {
-      // If it was a new item, just remove it from changes
-      delete unsavedChanges[itemId];
+    if (!currentItem) {
+      showStatusMessage('No item selected to delete', 'error');
+      return;
     }
     
-    // Reset current item
-    currentItem = null;
+    // Create a custom modal for deletion confirmation
+    const modalHTML = `
+      <div class="delete-confirmation-modal">
+        <div class="delete-modal-content">
+          <h3>Delete Item</h3>
+          <p>Are you sure you want to delete "${currentItem.name}"?</p>
+          <p><strong>This action cannot be undone!</strong></p>
+          
+          <div class="delete-modal-buttons">
+            <button id="cancel-delete-btn" class="retro-btn">Cancel</button>
+            <button id="confirm-delete-btn" class="retro-btn danger">Delete Item</button>
+          </div>
+        </div>
+      </div>
+    `;
     
-    // Re-render list
-    renderItemList(allItems);
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Clear form
-    document.getElementById('item-id').value = '';
-    document.getElementById('item-name').value = '';
-    document.getElementById('item-description').value = '';
+    // Set up event listeners
+    document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+      // Remove the modal
+      document.querySelector('.delete-confirmation-modal').remove();
+    });
     
-    // Show message
-    showStatusMessage('Item deleted! Remember to save your changes.', 'success');
+    document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+      const itemId = currentItem.id;
+      
+      // Remove from items list
+      allItems = allItems.filter(item => item.id !== itemId);
+      
+      // Add to delete queue (if not a new unsaved item)
+      if (!unsavedChanges[itemId]?.isNew) {
+        unsavedChanges[itemId] = { id: itemId, deleted: true };
+      } else {
+        // If it was a new item, just remove it from changes
+        delete unsavedChanges[itemId];
+      }
+      
+      // Reset current item
+      currentItem = null;
+      
+      // Re-render list
+      renderItemList(allItems);
+      
+      // Clear form
+      document.getElementById('item-id').value = '';
+      document.getElementById('item-name').value = '';
+      document.getElementById('item-description').value = '';
+      
+      // Remove the modal
+      document.querySelector('.delete-confirmation-modal').remove();
+      
+      // Show success message
+      showStatusMessage('Item deleted! Remember to save your changes.', 'success');
+    });
   }
-}
 
 // Track changes to form fields
 function trackChanges() {
