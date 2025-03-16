@@ -97,8 +97,8 @@ class SkillTreeEditor {
         return this._loadSkillTreeData();
       })
       .then(() => {
-        // Initialize canvas
         this._initCanvas();
+        // Initialize canvas
         
         // Initialize event listeners
         this._initEventListeners();
