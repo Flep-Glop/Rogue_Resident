@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical Physics Game{% endblock %}</title>
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base/layout.css') }}">
+    
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/retro_theme.css') }}">
+    
+    {% block additional_css %}{% endblock %}
+</head>
+<body>
+    <div id="app">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Core scripts -->
+    <script src="{{ url_for('static', filename='js/core/bootstrap.js') }}" type="module"></script>
+    {% block additional_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+import uuid
+import random
+from datetime import datetime
+from flask import session
+
+class StateManager:
+    @staticmethod
+    def create_default_state():
+        """Create a default game state for new players"""
+        return {
+            "character": {
+                "name": "Medical Physics Resident",
+                "level": 1,
+                "lives": 3,
+                "max_lives": 3,
+                "insight": 20,
+                "special_ability": None
+            },
+            "current_floor": 1,
+            "inventory": [],
+            "created_at": datetime.now().isoformat(),
+            "last_updated": datetime.now().isoformat()
+        }
+    
+    # Add more methods from original file here

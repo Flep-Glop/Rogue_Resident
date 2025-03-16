@@ -1,0 +1,44 @@
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request
+
+def create_app(config_name='development'):
+    """Application factory function"""
+    app = Flask(__name__, 
+                static_folder='frontend/static',
+                template_folder='frontend/templates')
+    
+    # Load configuration
+    if config_name == 'development':
+        app.config.from_pyfile('config/development.py', silent=True)
+    elif config_name == 'production':
+        app.config.from_pyfile('config/production.py', silent=True)
+    elif config_name == 'test':
+        app.config.from_pyfile('config/test.py', silent=True)
+    else:
+        app.config.from_pyfile('config/development.py', silent=True)
+        
+    # Set default config values
+    app.config.setdefault('SECRET_KEY', 'dev-key-change-this')
+    app.config.setdefault('DATABASE_PATH', 'game_data.db')
+    
+    # Register routes
+    @app.route('/')
+    def index():
+        return render_template('pages/index.html')
+    
+    @app.route('/game')
+    def game():
+        return render_template('pages/game.html')
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+        
+    # Import and register API blueprint
+    # from backend.api.routes import api_bp
+    # app.register_blueprint(api_bp, url_prefix='/api')
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True)
