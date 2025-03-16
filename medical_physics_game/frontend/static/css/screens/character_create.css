@@ -997,3 +997,145 @@
       flex: 1;
     }
   }
+
+  /* Add these styles to character_create.css */
+
+/* Style for starting ability/relic information on class cards */
+.starting-ability, .starting-relic {
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  
+  .ability-label, .relic-label {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 3px;
+  }
+  
+  .ability-value, .relic-value {
+    color: var(--color-secondary);
+    font-weight: bold;
+  }
+  
+  /* Style for starting ability in selected abilities list */
+  .ability-item.starting-ability {
+    border-left: 3px solid var(--color-secondary);
+    background-color: rgba(86, 184, 134, 0.1);
+  }
+  
+  .starting-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: rgba(86, 184, 134, 0.2);
+    color: var(--color-secondary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+  }
+  
+  /* Update attribute points section */
+  .attribute-points {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: var(--color-bg-darker);
+    border-radius: 8px;
+    border-left: 4px solid var(--color-warning);
+  }
+  
+  .points-explanation {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-style: italic;
+  }
+  
+  /* Update tabs styling to indicate which ones are optional */
+  .creation-tab.optional {
+    opacity: 0.7;
+  }
+  
+  .creation-tab.optional::after {
+    content: '(optional)';
+    font-size: 0.7rem;
+    display: block;
+    color: var(--color-text-muted);
+  }
+  
+  /* Update attributes display to show base value vs adjustments */
+  .attribute-base-value {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    margin-left: 5px;
+  }
+  
+  .attribute-adjustment {
+    font-size: 0.8rem;
+    margin-left: 5px;
+  }
+  
+  .attribute-adjustment.positive {
+    color: var(--color-secondary);
+  }
+  
+  .attribute-adjustment.negative {
+    color: var(--color-danger);
+  }
+  
+  /* Add information tooltips */
+  .info-tooltip {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: var(--color-bg-light);
+    color: var(--color-text-muted);
+    border-radius: 50%;
+    text-align: center;
+    font-size: 0.7rem;
+    line-height: 16px;
+    margin-left: 5px;
+    cursor: help;
+    position: relative;
+  }
+  
+  .info-tooltip .tooltip-content {
+    position: absolute;
+    width: 200px;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 100;
+  }
+  
+  .info-tooltip:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Style for the attributes tab to explain 3-point system */
+  .attributes-intro {
+    background-color: rgba(91, 141, 217, 0.1);
+    border-left: 3px solid var(--color-primary);
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border-radius: 4px;
+  }

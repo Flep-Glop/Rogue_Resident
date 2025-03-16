@@ -17,7 +17,7 @@
         <h1 class="game-title">CHARACTER CREATION</h1>
         <p class="subtitle">Customize your medical physics hero</p>
         
-        <!-- Tabbed Interface -->
+        <!-- Update the tabs section in character_create.html -->
         <div class="creation-tabs">
             <div class="creation-tab active" data-tab="avatar">
                 <span class="creation-tab-number">1</span>
@@ -31,7 +31,7 @@
                 <span class="creation-tab-number">3</span>
                 <span>Attributes</span>
             </div>
-            <div class="creation-tab" data-tab="abilities">
+            <div class="creation-tab optional" data-tab="abilities">
                 <span class="creation-tab-number">4</span>
                 <span>Abilities</span>
             </div>
@@ -95,30 +95,44 @@
             </div>
         </div>
         
-        <!-- Attributes Tab -->
-        <div class="tab-content" id="attributes-tab">
-            <div class="attributes-section">
-                <div class="attribute-points">
-                    <div class="points-label">Points Remaining:</div>
-                    <div class="points-value" id="points-remaining">15</div>
-                </div>
-                
-                <div class="attribute-groups">
-                    <div class="attribute-group">
-                        <div class="attribute-header">
-                            <div class="attribute-name">
-                                <i class="fas fa-brain"></i> Intelligence
-                            </div>
-                            <div class="attribute-value-display" id="intelligence-value">5</div>
-                        </div>
-                        <div class="attribute-slider-container">
-                            <input type="range" min="1" max="10" value="5" class="attribute-slider" id="intelligence-slider">
-                            <div class="attribute-progress intelligence" style="width: 50%" id="intelligence-progress"></div>
-                        </div>
-                        <div class="attribute-description">
-                            Affects problem-solving ability and knowledge retention
+        <!-- Update the attributes section in character_create.html -->
+        <div class="attributes-section">
+            <div class="attributes-intro">
+                <p>Your class selection determines your base attributes. You have <strong>3 points</strong> to further customize your character's strengths and weaknesses.</p>
+                <p>You can increase attributes by spending points or decrease them to gain points to use elsewhere.</p>
+            </div>
+
+            <div class="attribute-points">
+                <div class="points-label">
+                    Points Remaining:
+                    <div class="info-tooltip">?
+                        <div class="tooltip-content">
+                            You have 3 points to adjust attributes above or below your class baseline.
                         </div>
                     </div>
+                </div>
+                <div class="points-value" id="points-remaining">3</div>
+            </div>
+            
+            <div class="attribute-groups">
+                <div class="attribute-group">
+                    <div class="attribute-header">
+                        <div class="attribute-name">
+                            <i class="fas fa-brain"></i> Intelligence
+                        </div>
+                        <div class="attribute-value-display">
+                            <span id="intelligence-value">5</span>
+                            <span class="attribute-adjustment" id="intelligence-adjustment"></span>
+                        </div>
+                    </div>
+                    <div class="attribute-slider-container">
+                        <input type="range" min="1" max="10" value="5" class="attribute-slider" id="intelligence-slider">
+                        <div class="attribute-progress intelligence" style="width: 50%" id="intelligence-progress"></div>
+                    </div>
+                    <div class="attribute-description">
+                        Affects problem-solving ability and knowledge retention
+                    </div>
+                </div>
                     
                     <div class="attribute-group">
                         <div class="attribute-header">
@@ -166,56 +180,42 @@
             </div>
         </div>
         
-        <!-- Abilities Tab -->
-        <div class="tab-content" id="abilities-tab">
-            <div class="abilities-section">
-                <div class="abilities-container">
-                    <div class="abilities-column">
-                        <div class="abilities-header">
-                            Available Abilities
-                            <div class="abilities-count">
-                                <span id="available-count">12</span> abilities
-                            </div>
-                        </div>
-                        
-                        <div class="abilities-search">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="search-input" id="ability-search" placeholder="Search abilities...">
-                        </div>
-                        
-                        <div class="abilities-filters">
-                            <button class="filter-button active" data-category="all">All</button>
-                            <button class="filter-button" data-category="Academic">Academic</button>
-                            <button class="filter-button" data-category="Clinical">Clinical</button>
-                            <button class="filter-button" data-category="Professional">Professional</button>
-                            <button class="filter-button" data-category="Technical">Technical</button>
-                        </div>
-                        
-                        <div class="abilities-list" id="available-abilities">
-                            <!-- Available abilities will be populated by JavaScript -->
+        <!-- Update the abilities section in character_create.html -->
+        <div class="abilities-section">
+            <div class="abilities-container">
+                <div class="abilities-column">
+                    <div class="abilities-header">
+                        Available Abilities
+                        <div class="abilities-count">
+                            <span id="available-count">12</span> abilities
                         </div>
                     </div>
                     
-                    <div class="abilities-column">
-                        <div class="abilities-header">
-                            Selected Abilities
-                            <div class="abilities-count">
-                                <span id="selected-count">0</span>/2 slots
-                            </div>
+                    <!-- Search and filters remain the same -->
+                    
+                    <div class="abilities-list" id="available-abilities">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="abilities-column">
+                    <div class="abilities-header">
+                        Selected Abilities
+                        <div class="abilities-count">
+                            <span id="selected-count">0</span><span id="ability-slots">/2</span> slots
                         </div>
-                        
-                        <div class="abilities-list" id="selected-abilities">
-                            <!-- Selected abilities will be populated by JavaScript -->
-                            <div class="no-abilities">
-                                <div class="no-abilities-icon">
-                                    <i class="fas fa-magic"></i>
-                                </div>
-                                <p>Select up to two abilities from the available list</p>
-                            </div>
-                        </div>
+                    </div>
+                    
+                    <div class="abilities-intro">
+                        <p>Your class determines your starting ability. You may select one additional ability.</p>
+                    </div>
+                    
+                    <div class="abilities-list" id="selected-abilities">
+                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
+        </div>
             
             <div class="creation-actions">
                 <div class="nav-buttons">

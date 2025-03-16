@@ -4,11 +4,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Constants
+    // Modify these constants in character_creator.js
     const MAX_ATTRIBUTE_VALUE = 10;
     const MIN_ATTRIBUTE_VALUE = 1;
-    const TOTAL_ATTRIBUTE_POINTS = 15;
-    const MAX_ABILITIES = 2;
+    const ADJUSTABLE_POINTS = 3; // Changed from 15 to 3
+    const BASE_ATTRIBUTE_VALUE = 5; // Default value for attributes
     
     // State
     let state = {
@@ -104,14 +104,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
     
-    // Character class templates with starting attribute bias
+    // Update the character class templates to include a starting ability
     const characterClasses = [
         {
             id: 'physicist',
             name: 'Medical Physicist',
             description: 'Specializes in the technical aspects of medical physics with strong analytical skills.',
             attributeBias: { intelligence: 2, persistence: 1, adaptability: 0 },
-            recommendedAbilities: ['Critical Analysis', 'Research Methodology', 'Equipment Mastery'],
+            startingAbility: 'Critical Analysis', // Added starting ability
+            startingRelic: 'Physics Textbook', // Optional starting relic
+            recommendedAbilities: ['Research Methodology', 'Equipment Mastery'],
             icon: 'atom'
         },
         {
@@ -119,7 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Clinical Specialist',
             description: 'Focuses on patient care and clinical applications of medical physics.',
             attributeBias: { intelligence: 1, persistence: 0, adaptability: 2 },
-            recommendedAbilities: ['Clinical Diagnosis', 'Patient Care', 'Team Communication'],
+            startingAbility: 'Clinical Diagnosis', // Added starting ability
+            startingRelic: 'Medical Chart', // Optional starting relic
+            recommendedAbilities: ['Patient Care', 'Team Communication'],
             icon: 'user-md'
         },
         {
@@ -127,7 +131,9 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Research Scientist',
             description: 'Dedicated to advancing medical physics through experimentation and innovation.',
             attributeBias: { intelligence: 2, persistence: 2, adaptability: -1 },
-            recommendedAbilities: ['Research Methodology', 'Technical Writing', 'Data Analysis'],
+            startingAbility: 'Research Methodology', // Added starting ability
+            startingRelic: 'Lab Journal', // Optional starting relic
+            recommendedAbilities: ['Technical Writing', 'Data Analysis'],
             icon: 'flask'
         },
         {
@@ -135,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Quality Consultant',
             description: 'Ensures safety standards and process quality in medical physics applications.',
             attributeBias: { intelligence: 1, persistence: 2, adaptability: 0 },
-            recommendedAbilities: ['Detail Oriented', 'Process Improvement', 'Radiation Safety'],
+            startingAbility: 'Detail Oriented', // Added starting ability
+            startingRelic: 'Quality Manual', // Optional starting relic
+            recommendedAbilities: ['Process Improvement', 'Radiation Safety'],
             icon: 'clipboard-check'
         }
     ];
@@ -187,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevButtons = document.querySelectorAll('[data-prev-tab]');
     const nextButtons = document.querySelectorAll('[data-next-tab]');
     
-    // Initialize creation UI
+    // Updated initialize function to adjust the tab navigation
     function initialize() {
         // Set default state
         state.selectedAvatar = avatarImages[0];
@@ -198,19 +206,53 @@ document.addEventListener('DOMContentLoaded', function() {
         // Render class cards
         renderClassCards();
         
-        // Render abilities lists
-        renderAbilitiesLists();
-        
-        // Update attribute displays
+        // Initialize attributes
         updateAttributeDisplay();
+        
+        // Initialize abilities list
+        renderAbilitiesLists();
         
         // Update preview
         updatePreview();
         
         // Set up event listeners
         setupEventListeners();
+        
+        // Update navigation to skip abilities if a class is selected
+        updateTabNavigation();
     }
     
+    // Add function to update tab navigation
+    function updateTabNavigation() {
+        // Get next button on attributes tab
+        const attributesNextBtn = document.querySelector('[data-next-tab="abilities"]');
+        
+        // Get previous button on preview tab
+        const previewPrevBtn = document.querySelector('[data-prev-tab="abilities"]');
+        
+        // If we have a class selected, update navigation to skip abilities tab
+        if (state.selectedClass) {
+            // Update attributes tab's next button to go to preview
+            if (attributesNextBtn) {
+                attributesNextBtn.dataset.nextTab = "preview";
+            }
+            
+            // Update preview tab's prev button to go to attributes
+            if (previewPrevBtn) {
+                previewPrevBtn.dataset.prevTab = "attributes";
+            }
+        } else {
+            // Restore default navigation
+            if (attributesNextBtn) {
+                attributesNextBtn.dataset.nextTab = "abilities";
+            }
+            
+            if (previewPrevBtn) {
+                previewPrevBtn.dataset.prevTab = "abilities";
+            }
+        }
+    }
+
     // Switch between tabs
     function switchTab(tabName) {
         // Update state
@@ -300,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Render class cards
+    // Modify the renderClassCards function to reflect the starting ability
     function renderClassCards() {
         if (!classCards) return;
         
@@ -335,6 +377,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         ADP: <span class="attribute-value ${characterClass.attributeBias.adaptability > 0 ? 'positive' : characterClass.attributeBias.adaptability < 0 ? 'negative' : ''}">${characterClass.attributeBias.adaptability > 0 ? '+' : ''}${characterClass.attributeBias.adaptability}</span>
                     </div>
                 </div>
+                <div class="starting-ability">
+                    <span class="ability-label">Starting Ability:</span>
+                    <span class="ability-value">${characterClass.startingAbility}</span>
+                </div>
+                ${characterClass.startingRelic ? `
+                <div class="starting-relic">
+                    <span class="relic-label">Starting Relic:</span>
+                    <span class="relic-value">${characterClass.startingRelic}</span>
+                </div>
+                ` : ''}
             `;
             
             classCard.addEventListener('click', () => {
@@ -344,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset attributes
                 resetAttributes();
                 
-                // Apply class attribute bias
+                // Apply class attribute bias and starting ability
                 applyClassAttributeBias(characterClass);
                 
                 // Update class selection
@@ -355,6 +407,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update preview
                 updatePreview();
+                
+                // Add this line to update tab navigation when class is selected
+                updateTabNavigation();
             });
             
             classCards.appendChild(classCard);
@@ -383,9 +438,16 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAttributeDisplay();
     }
     
-    // Apply class attribute bias
+    // Update the applyClassAttributeBias function to reset points and grant starting ability
     function applyClassAttributeBias(characterClass) {
         if (!characterClass) return;
+        
+        // Reset attributes to base values first
+        state.attributes = {
+            intelligence: BASE_ATTRIBUTE_VALUE,
+            persistence: BASE_ATTRIBUTE_VALUE,
+            adaptability: BASE_ATTRIBUTE_VALUE
+        };
         
         // Apply bias to attributes
         for (const attribute in characterClass.attributeBias) {
@@ -403,22 +465,63 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Recalculate points
-        recalculatePoints();
+        // Reset points to the adjustable amount
+        state.pointsRemaining = ADJUSTABLE_POINTS;
+        
+        // Auto-assign the starting ability
+        state.selectedAbilities = [];
+        const startingAbility = availableAbilities.find(a => a.name === characterClass.startingAbility);
+        if (startingAbility) {
+            state.selectedAbilities.push(startingAbility);
+        }
         
         // Update display
         updateAttributeDisplay();
+        renderAbilitiesLists();
     }
     
-    // Calculate points remaining
+    // Update recalculatePoints function to work with the new system
     function recalculatePoints() {
-        // Calculate points used (minus base values)
-        const pointsUsed = Object.values(state.attributes).reduce((total, value) => {
-            return total + (value - MIN_ATTRIBUTE_VALUE);
-        }, 0);
-        
-        // Calculate points remaining
-        state.pointsRemaining = TOTAL_ATTRIBUTE_POINTS - pointsUsed;
+        // Only count points used for adjustments after class selection
+        if (!state.selectedClass) {
+            // If no class selected, use old system temporarily
+            const pointsUsed = Object.values(state.attributes).reduce((total, value) => {
+                return total + (value - MIN_ATTRIBUTE_VALUE);
+            }, 0);
+            state.pointsRemaining = TOTAL_ATTRIBUTE_POINTS - pointsUsed;
+        } else {
+            // Calculate based on deviations from class base values
+            let pointsUsed = 0;
+            
+            // Get base attributes including class bias
+            const baseAttributes = {
+                intelligence: BASE_ATTRIBUTE_VALUE,
+                persistence: BASE_ATTRIBUTE_VALUE,
+                adaptability: BASE_ATTRIBUTE_VALUE
+            };
+            
+            // Apply class bias
+            for (const attribute in state.selectedClass.attributeBias) {
+                baseAttributes[attribute] += state.selectedClass.attributeBias[attribute];
+            }
+            
+            // Calculate points used by comparing current to base
+            for (const attribute in state.attributes) {
+                const currentValue = state.attributes[attribute];
+                const baseValue = baseAttributes[attribute];
+                const difference = currentValue - baseValue;
+                
+                if (difference > 0) {
+                    // Using points for increase
+                    pointsUsed += difference;
+                } else if (difference < 0) {
+                    // Gaining points from decrease
+                    pointsUsed -= difference / 2; // Make lowering stats less efficient
+                }
+            }
+            
+            state.pointsRemaining = ADJUSTABLE_POINTS - pointsUsed;
+        }
     }
     
     // Update attribute display
@@ -459,13 +562,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Render abilities lists
+    // Update ability selection to show starting ability as locked
     function renderAbilitiesLists() {
         // Update available count
         document.getElementById('available-count').textContent = availableAbilities.length;
         
-        // Update selected count
+        // Update selected count - show 1/2 initially if class is selected
+        const maxSelectableAbilities = 1; // Changed from 2 to 1 (since starting ability is automatic)
         document.getElementById('selected-count').textContent = state.selectedAbilities.length;
+        document.getElementById('ability-slots').textContent = `/${maxSelectableAbilities + 1}`; // +1 for starting ability
         
         // Filter abilities based on search and category
         const filteredAbilities = availableAbilities.filter(ability => {
@@ -478,7 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const categoryMatch = state.abilityCategory === 'all' || 
                 ability.category === state.abilityCategory;
                 
-            return searchMatch && categoryMatch;
+            // Skip starting ability from selected class
+            const notStartingAbility = !state.selectedClass || ability.name !== state.selectedClass.startingAbility;
+            
+            return searchMatch && categoryMatch && notStartingAbility;
         });
         
         // Sort by recommended if class is selected
@@ -521,13 +629,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     '<div class="recommended-badge">Recommended</div>' : ''}
             `;
             
-            // Add click event to select
+            // Add click event to select (only if not at max)
             abilityItem.addEventListener('click', () => {
-                // Can only select if not at max
-                if (state.selectedAbilities.length < MAX_ABILITIES) {
+                // Can only select additional ability if we have less than max
+                if (state.selectedAbilities.length <= maxSelectableAbilities) {
+                    // Filter out non-starting abilities
+                    const nonStartingAbilities = state.selectedAbilities.filter(a => 
+                        !state.selectedClass || a.name !== state.selectedClass.startingAbility
+                    );
+                    
+                    // If we already have a non-starting ability, replace it
+                    if (nonStartingAbilities.length > 0) {
+                        // Remove the non-starting ability
+                        state.selectedAbilities = state.selectedAbilities.filter(a => 
+                            state.selectedClass && a.name === state.selectedClass.startingAbility
+                        );
+                    }
+                    
+                    // Add the new ability
                     state.selectedAbilities.push(ability);
                     renderAbilitiesLists();
                     updatePreview();
+                } else {
+                    // Show message that max abilities are selected
+                    showToast('Maximum abilities selected', 'info');
                 }
             });
             
@@ -556,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="no-abilities-icon">
                         <i class="fas fa-magic"></i>
                     </div>
-                    <p>Select up to two abilities from the available list</p>
+                    <p>Select a class to get your starting ability</p>
                 </div>
             `;
         } else {
@@ -564,19 +689,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 const abilityItem = document.createElement('div');
                 abilityItem.className = 'ability-item selected';
                 
+                // Determine if this is the starting ability
+                const isStartingAbility = state.selectedClass && ability.name === state.selectedClass.startingAbility;
+                
+                if (isStartingAbility) {
+                    abilityItem.classList.add('starting-ability');
+                }
+                
                 abilityItem.innerHTML = `
                     <div class="ability-header">
                         <span class="ability-name">${ability.name}</span>
                         <span class="ability-category">${ability.category}</span>
                     </div>
                     <div class="ability-description">${ability.description}</div>
-                    <div class="remove-ability" data-ability="${ability.name}">×</div>
+                    ${isStartingAbility ? 
+                        '<div class="starting-badge">Starting Ability</div>' : 
+                        '<div class="remove-ability" data-ability="' + ability.name + '">×</div>'}
                 `;
                 
                 selectedAbilitiesList.appendChild(abilityItem);
             });
             
-            // Add remove ability handlers
+            // Add remove ability handlers (only for non-starting abilities)
             document.querySelectorAll('.remove-ability').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const abilityName = btn.dataset.ability;
@@ -647,6 +781,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Save character
     function saveCharacter() {
+        // Get starting relic if class is selected
+        const startingRelic = state.selectedClass ? state.selectedClass.startingRelic : null;
+        
         // Create character object
         const character = {
             id: Date.now(),
@@ -659,6 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
             custom: true,
             image: state.selectedAvatar,
             class: state.selectedClass ? state.selectedClass.id : null,
+            startingRelic: startingRelic, // Add starting relic
             description: state.selectedClass ? 
                 `A custom ${state.selectedClass.name.toLowerCase()} specializing in medical physics.` : 
                 'A custom character specializing in medical physics.'

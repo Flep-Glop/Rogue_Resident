@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Render characters in 3D carousel
+    // Update in renderCharacters() function in character_select.js
     function renderCharacters() {
         if (!characters || characters.length === 0) {
             showCreateCharacterPrompt();
@@ -89,20 +89,32 @@ document.addEventListener('DOMContentLoaded', function() {
         characterCards.innerHTML = '';
         carouselIndicators.innerHTML = '';
         
-        // Create cards with 3D positioning
+        // Create cards with improved 3D positioning
         characters.forEach((character, index) => {
             // Create card
             const card = document.createElement('div');
             card.className = 'character-card';
             card.dataset.index = index;
             
-            // Position card in 3D space
-            const angle = index * (360 / totalCharacters);
-            const radius = 400; // Distance from center
-            const x = Math.sin(angle * Math.PI / 180) * radius;
-            const z = Math.cos(angle * Math.PI / 180) * radius;
+            // Position card in 3D space - FIXED POSITIONING
+            const rotationAngle = index * (360 / totalCharacters);
+            const zOffset = -120; // Push cards back a bit in 3D space
             
-            card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
+            // Calculate position on a circle
+            // For a proper carousel where only one card is prominently displayed at a time
+            const radius = 300; // Distance from center
+            const angleRad = (rotationAngle * Math.PI) / 180;
+            const x = Math.sin(angleRad) * radius;
+            const z = Math.cos(angleRad) * radius + zOffset;
+            
+            // Apply transform 
+            if (index === currentIndex) {
+                // Current card should be front and center
+                card.style.transform = `translateZ(50px) scale(1.1)`;
+                card.classList.add('active');
+            } else {
+                card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
+            }
             
             // Card content
             card.innerHTML = `
@@ -114,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${character.custom ? '<span class="custom-badge">Custom</span>' : ''}
                 </div>
                 <div class="card-content">
-                    <p class="card-desc">${character.description}</p>
+                    <p class="card-desc">${character.description || 'A medical physics adventurer'}</p>
                     <div class="card-stats">
                         ${Object.entries(character.stats).map(([stat, value]) => `
                             <div class="stat-item">
@@ -129,20 +141,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         `).join('')}
                     </div>
                     <div class="card-abilities">
-                        ${character.abilities.map(ability => `
+                        ${character.abilities ? character.abilities.map(ability => `
                             <span class="ability-tag">${ability}</span>
-                        `).join('')}
+                        `).join('') : ''}
                     </div>
                 </div>
                 ${character.custom ? '<button class="delete-character-btn" data-id="' + character.id + '">×</button>' : ''}
             `;
-            
-            // Add click event
-            card.addEventListener('click', () => {
-                if (!isTransitioning) {
-                    selectCharacter(index);
-                }
-            });
             
             // Add card to carousel
             characterCards.appendChild(card);
@@ -150,6 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add indicator dot
             const dot = document.createElement('div');
             dot.className = 'carousel-dot';
+            if (index === currentIndex) {
+                dot.classList.add('active');
+            }
             dot.dataset.index = index;
             dot.addEventListener('click', () => selectCharacter(index));
             carouselIndicators.appendChild(dot);
@@ -189,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
         carouselIndicators.innerHTML = '';
     }
     
-    // Select a character and update UI
+    // Update the selectCharacter function to handle rotation better
     function selectCharacter(index, skipAnimation = false) {
         if (index < 0 || index >= characters.length || isTransitioning) return;
         
@@ -201,25 +209,39 @@ document.addEventListener('DOMContentLoaded', function() {
         window.selectedCharacter = selectedCharacter;
         
         // Calculate new rotation angle for the carousel
-        const newRotation = (index * (360 / totalCharacters)) * -1;
+        cardRotation = (index * (360 / totalCharacters)) * -1;
         
-        // Apply rotation with or without animation
-        if (skipAnimation) {
-            characterCards.style.transition = 'none';
-            characterCards.style.transform = `rotateY(${newRotation}deg)`;
-            setTimeout(() => {
-                characterCards.style.transition = 'transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            }, 50);
-        } else {
-            characterCards.style.transform = `rotateY(${newRotation}deg)`;
-        }
-        
-        // Update card classes
+        // Instead of rotating the entire container, we'll reposition each card
         document.querySelectorAll('.character-card').forEach((card, i) => {
+            const rotationAngle = ((i - index) * (360 / totalCharacters)) % 360;
+            const zOffset = -120; // Push cards back a bit in 3D space
+            
+            // Calculate position on a circle
+            const radius = 300; // Distance from center
+            const angleRad = (rotationAngle * Math.PI) / 180;
+            const x = Math.sin(angleRad) * radius;
+            const z = Math.cos(angleRad) * radius + zOffset;
+            
+            if (skipAnimation) {
+                card.style.transition = 'none';
+            } else {
+                card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }
+            
+            // Apply transform
             if (i === index) {
+                // Current card should be front and center
+                card.style.transform = `translateZ(50px) scale(1.1)`;
                 card.classList.add('active');
             } else {
+                card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
                 card.classList.remove('active');
+            }
+            
+            if (skipAnimation) {
+                setTimeout(() => {
+                    card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                }, 50);
             }
         });
         

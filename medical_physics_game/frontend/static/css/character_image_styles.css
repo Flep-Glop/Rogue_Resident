@@ -411,3 +411,139 @@
       max-width: 300px;
     }
   }
+
+  /* CSS fixes for character_image_styles.css */
+
+/* Fix the character carousel perspective and positioning */
+.character-cards-wrapper {
+    position: relative;
+    height: 450px;
+    margin: 0 auto;
+    max-width: 800px;
+    perspective: 1200px; /* Increased perspective for better 3D effect */
+    overflow: visible; /* Allow cards to be visible outside container */
+  }
+  
+  .character-cards {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .character-card {
+    position: absolute;
+    width: 280px;
+    height: 400px;
+    top: 0;
+    left: 50%;
+    margin-left: -140px;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 0;
+    opacity: 0.7;
+    overflow: hidden;
+    transform-origin: center center;
+    transition: all 0.5s ease;
+    transform-style: preserve-3d;
+    backface-visibility: hidden; /* Prevent cards from showing through */
+  }
+  
+  .character-card.active {
+    opacity: 1;
+    z-index: 10;
+    box-shadow: 0 15px 40px var(--glow-primary),
+                0 0 20px var(--glow-secondary);
+    border-color: var(--card-selected-border);
+  }
+  
+  /* Ensure content is visible */
+  .card-content {
+    padding: 0 15px 15px;
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  
+  /* Fix card avatar visibility */
+  .card-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 10px auto;
+    border-radius: 10px;
+    border: 3px solid rgba(91, 141, 217, 0.5);
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+    position: relative; 
+    z-index: 2;
+  }
+  
+  /* Fix carousel navigation buttons positioning */
+  .carousel-button {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(30, 34, 50, 0.9); /* Increased opacity */
+    border: 2px solid var(--card-border);
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .prev-button {
+    left: 20px;
+  }
+  
+  .next-button {
+    right: 20px;
+  }
+  
+  /* Fix delete confirmation modal */
+  .modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--card-border);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-content.show {
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+  }
