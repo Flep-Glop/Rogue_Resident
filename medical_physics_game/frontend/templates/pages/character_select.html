@@ -4,7 +4,6 @@
 
 {% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/screens/character_select.css') }}">
-<!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
 
@@ -12,25 +11,43 @@
 <div class="pixel-container" data-screen="character-select">
     <!-- Animated background elements -->
     <div class="star-bg" id="star-bg"></div>
+    <div class="lab-environment"></div>
     
     <!-- Main content container -->
     <div class="character-selection-container">
         <h1 class="selection-title">CHARACTER SELECTION</h1>
         <p class="selection-subtitle">Choose your hero to begin your medical physics journey</p>
         
-        <!-- Character grid -->
-        <div class="character-grid" id="character-grid">
-            <!-- Will be populated by JavaScript -->
-            <div class="empty-state loading-state">
-                <div class="loading-spinner"></div>
-                <div class="empty-state-text">Loading characters...</div>
+        <!-- Character party stage -->
+        <div class="character-party-stage">
+            <div class="lab-platform"></div>
+            
+            <!-- Character lineup will be populated by JavaScript -->
+            <div class="character-lineup" id="character-lineup">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading characters...</div>
+                </div>
             </div>
+            
+            <!-- Navigation arrows -->
+            <button class="nav-arrow nav-prev" id="prev-character">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="nav-arrow nav-next" id="next-character">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <!-- Character details panel -->
+        <div class="character-details-panel" id="character-details">
+            <!-- Will be populated by JavaScript -->
         </div>
         
         <!-- Action buttons -->
         <div class="action-buttons">
             <button id="select-button" class="action-button select-button" disabled>
-                Select Character
+                <i class="fas fa-check"></i> Play
             </button>
             <a href="{{ url_for('character_create') }}" id="create-button" class="action-button create-button">
                 <i class="fas fa-plus"></i> Create Character
@@ -41,31 +58,13 @@
         </div>
     </div>
     
-    <!-- CRT scan lines effect -->
+    <!-- Visual effects -->
     <div class="scanlines"></div>
+    <div class="vignette"></div>
 </div>
 {% endblock %}
 
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
-<script>
-    // Generate animated star background
-    document.addEventListener('DOMContentLoaded', function() {
-        const starBg = document.getElementById('star-bg');
-        if (starBg) {
-            // Create stars
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.animationDelay = `${Math.random() * 4}s`;
-                star.style.width = `${1 + Math.random() * 2}px`;
-                star.style.height = star.style.width;
-                starBg.appendChild(star);
-            }
-        }
-    });
-</script>
 {% endblock %}
