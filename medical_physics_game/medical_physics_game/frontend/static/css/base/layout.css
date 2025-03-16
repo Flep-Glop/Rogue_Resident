@@ -1,0 +1,19 @@
+/* Basic layout styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Game layout */
+#game-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}

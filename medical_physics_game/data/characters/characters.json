@@ -1,0 +1,24 @@
+[
+  {
+    "id": "1",
+    "name": "Medical Physicist",
+    "max_hp": 100,
+    "abilities": ["Radiation Therapy", "Dosimetry"],
+    "stats": {
+      "intellect": 8,
+      "precision": 7,
+      "resilience": 5
+    }
+  },
+  {
+    "id": "2",
+    "name": "Radiologist",
+    "max_hp": 85,
+    "abilities": ["Diagnostic Imaging", "Image Analysis"],
+    "stats": {
+      "intellect": 7,
+      "precision": 8,
+      "resilience": 4
+    }
+  }
+]

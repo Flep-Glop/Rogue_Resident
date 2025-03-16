@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from . import api_bp
-from ..data.repositories.character_repo import get_all_characters, get_character_by_id
+from backend.data.repositories.character_repo import get_all_characters, get_character_by_id
 
 @api_bp.route('/characters', methods=['GET'])
 def get_characters():

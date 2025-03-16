@@ -33,7 +33,11 @@ def create_app(config_name='development'):
     
     @app.route('/character-select')
     def character_select():
-        return "Character Selection Page"  # We'll replace this with a template later
+        return render_template('pages/character_select.html')
+    
+    @app.route('/game')
+    def game():
+        return "Game Page"  # We'll implement this later
     
     return app
 
