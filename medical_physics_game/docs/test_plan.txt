@@ -1,0 +1,135 @@
+# Medical Physics Game Reorganization Test Plan
+
+This test plan outlines the steps to verify that the reorganized Medical Physics Game project works correctly.
+
+## 1. Installation Tests
+
+### 1.1. Installation from Scratch
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+3. Verify no errors during installation
+
+### 1.2. Directory Structure
+
+1. Verify all directories exist according to the new structure
+2. Verify all required files are present
+3. Verify all Python packages have `__init__.py` files
+
+## 2. Basic Functionality Tests
+
+### 2.1. Application Startup
+
+1. Run the application:
+   ```
+   python app.py
+   ```
+2. Verify the application starts without errors
+3. Verify the server is accessible at http://localhost:5000
+
+### 2.2. API Tests
+
+1. Test `/api/status` endpoint:
+   ```
+   curl http://localhost:5000/api/status
+   ```
+   Expected: JSON response with `"success": true` and `"status": "online"`
+
+2. Test character listing:
+   ```
+   curl http://localhost:5000/api/characters
+   ```
+   Expected: JSON response with list of characters
+
+## 3. Game Flow Tests
+
+### 3.1. Home Page
+
+1. Navigate to http://localhost:5000
+2. Verify the home page loads correctly
+3. Verify "New Game" and "Continue" buttons are present
+
+### 3.2. Character Selection
+
+1. Click "New Game" on the home page
+2. Verify character selection page loads
+3. Verify characters are displayed correctly
+4. Select a character and verify game starts
+
+### 3.3. Game Interaction
+
+1. Start a new game with a character
+2. Verify the game map is displayed
+3. Move to a node and verify node interaction works
+4. Answer a question and verify score/reputation updates
+5. Check inventory functionality
+6. Verify save/load functionality
+
+## 4. Code Organization Tests
+
+### 4.1. Import Structure
+
+1. Verify imports use the new module structure
+2. Verify no imports reference the old file locations
+3. Run the import fixer script and verify no changes needed:
+   ```
+   python tools/import_fixer.py medical_physics_game
+   ```
+
+### 4.2. API Structure
+
+1. Verify API endpoints are organized by resource
+2. Verify common functionality is reused appropriately
+3. Test each endpoint group (characters, questions, game state)
+
+## 5. Data Management Tests
+
+### 5.1. Data Files
+
+1. Verify data files are correctly located in the new structure
+2. Verify data files can be read by the application
+3. Test adding a new question to the questions JSON file
+4. Test adding a new character to the characters JSON file
+
+### 5.2. Data Models
+
+1. Verify model classes work correctly
+2. Test creating, reading, updating, and deleting objects
+3. Verify serialization/deserialization works correctly
+
+## 6. Regression Tests
+
+### 6.1. Original Functionality
+
+1. Compare features with the original project
+2. Verify all original features still work
+3. Check for any performance differences
+
+### 6.2. Bug Checks
+
+1. Test previously identified bug scenarios
+2. Verify fixes have been maintained
+
+## Test Results Documentation
+
+For each test, document:
+
+1. Test date and time
+2. Test performed
+3. Expected result
+4. Actual result
+5. Pass/Fail status
+6. Any notes or observations
+
+## Issue Tracking
+
+1. Document any issues found during testing
+2. Prioritize issues by severity
+3. Create a remediation plan for any critical issues
+
+## Final Verification
+
+After fixing any issues, perform a final verification of all tests to ensure the reorganized project is fully functional.

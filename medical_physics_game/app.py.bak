@@ -1,0 +1,32 @@
+# medical_physics_game/app.py
+from flask import Flask, render_template
+from backend.api.routes import api_bp
+
+def create_app(config_name='development'):
+    app = Flask(__name__, static_folder='frontend/static', template_folder='frontend/templates')
+    
+    # Load configuration
+    if config_name == 'development':
+        app.config.from_pyfile('config/development.py')
+    
+    # Register blueprints
+    app.register_blueprint(api_bp, url_prefix='/api')
+    
+    # Routes
+    @app.route('/')
+    def index():
+        return render_template('pages/index.html')
+    
+    @app.route('/character-select')
+    def character_select():
+        return render_template('pages/character_select.html')
+    
+    @app.route('/game')
+    def game():
+        return render_template('pages/game.html')
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True)

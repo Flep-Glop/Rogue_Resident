@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=your-secure-secret-key
+      - DATABASE_URI=sqlite:///instance/production.db
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/var/log/medical_physics_game
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

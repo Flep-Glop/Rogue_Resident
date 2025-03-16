@@ -1,0 +1,83 @@
+{
+    "categories": [
+      {
+        "id": "radiation_physics",
+        "name": "Radiation Physics",
+        "questions": [
+          {
+            "id": "rp1",
+            "text": "What is the correction factor for temperature and pressure called in TG-51?",
+            "options": ["PTP", "kTP", "CTP", "PTC"],
+            "correct": 1,
+            "explanation": "kTP is the temperature-pressure correction factor in TG-51.",
+            "difficulty": 1
+          },
+          {
+            "id": "rp2",
+            "text": "Which of the following is NOT a type of radiation interaction with matter?",
+            "options": ["Photoelectric effect", "Compton scattering", "Quantum tunneling", "Pair production"],
+            "correct": 2,
+            "explanation": "Quantum tunneling is a quantum mechanical phenomenon, not a radiation interaction with matter.",
+            "difficulty": 2
+          },
+          {
+            "id": "rp3",
+            "text": "What is the HVL (Half-Value Layer) of a material?",
+            "options": [
+              "The thickness that reduces the beam intensity by half", 
+              "The thickness that allows half the beam to pass through", 
+              "The time it takes for a radioactive material to decay by half", 
+              "The voltage required to produce half the maximum x-ray intensity"
+            ],
+            "correct": 0,
+            "explanation": "The Half-Value Layer (HVL) is the thickness of a material required to reduce the intensity of an x-ray or gamma-ray beam to half its original value.",
+            "difficulty": 1
+          }
+        ]
+      },
+      {
+        "id": "dosimetry",
+        "name": "Dosimetry",
+        "questions": [
+          {
+            "id": "dos1",
+            "text": "Which of the following detectors is based on the ionization of a gas?",
+            "options": ["TLD", "Ion chamber", "MOSFET", "OSL"],
+            "correct": 1,
+            "explanation": "An ion chamber detects radiation by measuring the ionization of a gas.",
+            "difficulty": 1
+          },
+          {
+            "id": "dos2",
+            "text": "In external beam radiation therapy, what does PDD stand for?",
+            "options": ["Percentage Depth Dosage", "Primary Dose Distribution", "Prescribed Dose Delivery", "Photon Dose Deposition"],
+            "correct": 0,
+            "explanation": "PDD stands for Percentage Depth Dose, which is the ratio of the absorbed dose at a given depth to the absorbed dose at a fixed reference depth.",
+            "difficulty": 1
+          }
+        ]
+      },
+      {
+        "id": "imaging",
+        "name": "Medical Imaging",
+        "questions": [
+          {
+            "id": "img1",
+            "text": "In MRI, what does the T1 relaxation time primarily depend on?",
+            "options": ["Spin-lattice interactions", "Spin-spin interactions", "Magnetic field inhomogeneities", "Spin density"],
+            "correct": 0,
+            "explanation": "T1 relaxation time (longitudinal relaxation) primarily depends on spin-lattice interactions, which is the energy transfer between spins and their surrounding molecular environment.",
+            "difficulty": 2
+          },
+          {
+            "id": "img2",
+            "text": "Which of the following modalities does NOT use ionizing radiation?",
+            "options": ["CT", "PET", "MRI", "SPECT"],
+            "correct": 2,
+            "explanation": "MRI (Magnetic Resonance Imaging) uses strong magnetic fields and radio waves, not ionizing radiation.",
+            "difficulty": 1
+          }
+        ]
+      }
+    ]
+  }

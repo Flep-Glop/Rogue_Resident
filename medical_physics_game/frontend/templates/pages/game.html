@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Physics Game{% endblock %}
+
+{% block content %}
+<div class="pixel-container">
+    <h1 class="game-title">Medical Physics Residency</h1>
+    <h2 class="subtitle">The Roguelike Challenge</h2>
+    
+    <div class="game-container">
+        <div class="character-info" id="character-info">
+            <h2>Loading character data...</h2>
+        </div>
+        
+        <div class="game-actions">
+            <a href="{{ url_for('index') }}" class="retro-btn">Return to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const characterInfo = document.getElementById('character-info');
+        
+        // Try to load the selected character
+        const savedCharacter = localStorage.getItem('selectedCharacter');
+        
+        if (savedCharacter) {
+            try {
+                const character = JSON.parse(savedCharacter);
+                
+                characterInfo.innerHTML = `
+                    <div class="character-portrait">
+                        <img src="${character.image}" alt="${character.name}">
+                    </div>
+                    <h2 class="character-name">${character.name}</h2>
+                    <p class="character-description">${character.description}</p>
+                    
+                    <div class="stats-container">
+                        ${Object.entries(character.stats).map(([stat, value]) => `
+                            <div class="stat">
+                                <div class="stat-name">${stat.charAt(0).toUpperCase() + stat.slice(1)}</div>
+                                <div class="stat-value">${value}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="character-abilities">
+                        ${character.abilities.map(ability => `
+                            <span class="ability-tag">${ability}</span>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error parsing character data:', error);
+                characterInfo.innerHTML = '<p>Error loading character data. Please return to the character selection screen.</p>';
+            }
+        } else {
+            characterInfo.innerHTML = '<p>No character selected. Please return to the character selection screen.</p>';
+        }
+    });
+</script>
+{% endblock %}

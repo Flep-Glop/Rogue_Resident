@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "name": "Physicist",
+    "max_hp": 100,
+    "current_hp": 100,
+    "abilities": ["Critical Analysis", "Problem Solving"],
+    "stats": {
+      "intelligence": 10,
+      "dexterity": 5,
+      "strength": 3
+    },
+    "level": 1
+  },
+  {
+    "id": 2,
+    "name": "Resident",
+    "max_hp": 120,
+    "current_hp": 120,
+    "abilities": ["Clinical Diagnosis", "Patient Care"],
+    "stats": {
+      "intelligence": 8,
+      "dexterity": 7,
+      "strength": 6
+    },
+    "level": 1
+  },
+  {
+    "id": 3,
+    "name": "QA Specialist",
+    "max_hp": 90,
+    "current_hp": 90,
+    "abilities": ["Detail Oriented", "Process Improvement"],
+    "stats": {
+      "intelligence": 9,
+      "dexterity": 8,
+      "strength": 4
+    },
+    "level": 1
+  }
+]

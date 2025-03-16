@@ -1,0 +1,322 @@
+/* Medical Physics Game - Nodes Component Styles */
+
+/* Game map container */
+.game-map-container {
+  position: relative;
+  width: 100%;
+  padding: 15px;
+  background-color: var(--color-bg-darker);
+  border: var(--border-thickness) solid var(--color-primary);
+  margin: 20px 0;
+}
+
+/* Map title */
+.map-title {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  margin-bottom: 15px;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-primary-dark);
+  padding-bottom: 10px;
+}
+
+/* Game map canvas */
+.game-map {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  background-color: var(--color-bg-darker);
+  background-image: linear-gradient(rgba(91, 141, 217, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(91, 141, 217, 0.05) 1px, transparent 1px);
+  background-size: var(--grid-cell-size) var(--grid-cell-size);
+  overflow: auto;
+}
+
+/* Node element */
+.map-node {
+  position: absolute;
+  width: var(--node-size);
+  height: var(--node-size);
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.map-node:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.map-node.completed {
+  opacity: 0.7;
+}
+
+.map-node.active {
+  animation: pulse 1.5s infinite alternate ease-in-out;
+}
+
+/* Node connections (paths) */
+.node-connection {
+  position: absolute;
+  height: 3px;
+  background-color: rgba(91, 141, 217, 0.4);
+  transform-origin: left center;
+  z-index: 5;
+}
+
+.node-connection.completed {
+  background-color: rgba(86, 184, 134, 0.6);
+}
+
+.node-connection.active {
+  background-color: rgba(91, 141, 217, 0.8);
+  height: 4px;
+}
+
+/* Hexagon node shape */
+.node-hexagon {
+  width: calc(var(--node-size) - 10px);
+  height: calc(var(--node-size) - 10px);
+  background-color: var(--color-primary);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.node-hexagon:before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: -1;
+}
+
+/* Node type colors */
+.node-type-start .node-hexagon { 
+  background-color: var(--color-secondary); 
+}
+.node-type-boss .node-hexagon, .node-type-special .node-hexagon { 
+  background-color: var(--color-danger); 
+}
+.node-type-elite .node-hexagon { 
+  background-color: var(--color-accent-purple); 
+}
+.node-type-question .node-hexagon { 
+  background-color: var(--color-primary); 
+}
+.node-type-rest .node-hexagon { 
+  background-color: var(--color-warning); 
+}
+.node-type-treasure .node-hexagon { 
+  background-color: var(--color-accent-cyan); 
+}
+.node-type-event .node-hexagon { 
+  background-color: var(--color-warning); 
+}
+.node-type-shop .node-hexagon { 
+  background-color: var(--color-secondary); 
+}
+
+/* Diamond shaped boss node */
+.node-type-boss .node-hexagon,
+.node-type-special .node-hexagon {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.node-type-boss .node-hexagon:before,
+.node-type-special .node-hexagon:before {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* Node icons */
+.node-icon {
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Floor level indicator */
+.floor-indicator {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 5px 10px;
+  font-size: 1rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  z-index: 20;
+}
+
+/* Map debug controls */
+.map-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.debug-btn {
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.debug-btn-copy {
+  background-color: var(--color-bg-light);
+}
+
+.debug-btn-next {
+  background-color: var(--color-warning);
+}
+
+.debug-btn-test {
+  background-color: var(--color-danger);
+}
+
+/* Node tooltip */
+.node-tooltip {
+  position: absolute;
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 10px;
+  max-width: 200px;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.map-node:hover .node-tooltip {
+  opacity: 1;
+}
+
+/* Node interaction panel */
+.node-interaction {
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 20px;
+  margin-top: 20px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.node-interaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-primary-dark);
+}
+
+.node-interaction-title {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+.node-interaction-close {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.node-description {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.node-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Question node specific styles */
+.question-difficulty {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: var(--color-secondary);
+  color: white;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.question-difficulty.easy {
+  background-color: var(--color-secondary);
+}
+
+.question-difficulty.medium {
+  background-color: var(--color-warning);
+}
+
+.question-difficulty.hard {
+  background-color: var(--color-danger);
+}
+
+.question-category {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 0.8rem;
+  margin-left: 5px;
+}
+
+.question-text {
+  font-size: 1.1rem;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.answer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.answer-option {
+  padding: 12px 15px;
+  background-color: var(--color-bg-darker);
+  border: 1px solid var(--color-primary-dark);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.answer-option:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.1); filter: brightness(1.2); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

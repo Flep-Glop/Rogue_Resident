@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Physics Game - Dashboard{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Medical Physics Residency Dashboard</h1>
+    <div class="character-summary">
+      <img src="{{ url_for('static', filename='img/characters/' + character.avatar) }}" alt="{{ character.name }}" class="character-avatar">
+      <div class="character-info">
+        <h2>{{ character.name }}</h2>
+        <div class="character-stats">
+          <div class="stat">
+            <i class="icon icon-health"></i>
+            <span>{{ character.current_hp }}/{{ character.max_hp }}</span>
+          </div>
+          <div class="stat">
+            <i class="icon icon-reputation"></i>
+            <span>{{ character.reputation }}</span>
+          </div>
+          <div class="stat">
+            <i class="icon icon-skill-points"></i>
+            <span>{{ character.skill_points }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="dashboard-content">
+    <div class="dashboard-card game-progress">
+      <h3>Current Progress</h3>
+      <div class="progress-visualization">
+        <div class="floor-indicator">Floor {{ current_floor }}/{{ total_floors }}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ (current_floor - 1 + current_node_progress) / total_floors * 100 }}%"></div>
+        </div>
+      </div>
+      <a href="{{ url_for('game') }}" class="button primary">Continue Game</a>
+    </div>
+    
+    <div class="dashboard-card achievements">
+      <h3>Recent Achievements</h3>
+      <div class="achievement-list">
+        {% for achievement in recent_achievements %}
+        <div class="achievement-item">
+          <img src="{{ url_for('static', filename='img/icons/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+          <div class="achievement-details">
+            <h4>{{ achievement.name }}</h4>
+            <p>{{ achievement.description }}</p>
+            <span class="achievement-date">{{ achievement.unlocked_date }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{{ url_for('achievements') }}" class="button secondary">View All Achievements</a>
+    </div>
+    
+    <div class="dashboard-card statistics">
+      <h3>Performance Statistics</h3>
+      <div class="statistics-grid">
+        <div class="statistic">
+          <span class="statistic-value">{{ statistics.questions_answered }}</span>
+          <span class="statistic-label">Questions Answered</span>
+        </div>
+        <div class="statistic">
+          <span class="statistic-value">{{ statistics.correct_percentage }}%</span>
+          <span class="statistic-label">Correct Answers</span>
+        </div>
+        <div class="statistic">
+          <span class="statistic-value">{{ statistics.patients_treated }}</span>
+          <span class="statistic-label">Patients Treated</span>
+        </div>
+        <div class="statistic">
+          <span class="statistic-value">{{ statistics.nodes_visited }}</span>
+          <span class="statistic-label">Nodes Visited</span>
+        </div>
+      </div>
+      <a href="{{ url_for('statistics') }}" class="button secondary">Detailed Statistics</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

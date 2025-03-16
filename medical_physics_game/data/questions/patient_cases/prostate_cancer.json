@@ -1,0 +1,69 @@
+{
+  "id": "case001",
+  "title": "Prostate Cancer Treatment Planning",
+  "description": "A 67-year-old male with recently diagnosed prostate cancer requires a treatment plan.",
+  "history": "Patient presents with elevated PSA (10.5 ng/mL). Biopsy confirmed adenocarcinoma of the prostate, Gleason score 7 (4+3).",
+  "vitals": {
+    "height": "175 cm",
+    "weight": "82 kg",
+    "blood_pressure": "138/85",
+    "heart_rate": "72 bpm"
+  },
+  "imaging": [
+    {
+      "type": "CT",
+      "description": "CT scan shows a 2.3 cm lesion in the right lobe of the prostate with no evidence of extracapsular extension.",
+      "image_url": "case001_ct.jpg"
+    },
+    {
+      "type": "MRI",
+      "description": "MRI confirms the lesion with no evidence of seminal vesicle invasion or lymph node involvement.",
+      "image_url": "case001_mri.jpg"
+    }
+  ],
+  "labs": {
+    "psa": "10.5 ng/mL",
+    "cbc": "Within normal limits",
+    "liver_function": "Within normal limits",
+    "renal_function": "Within normal limits"
+  },
+  "diagnosis": "Stage IIB (T2b, N0, M0) prostate adenocarcinoma, Gleason 7 (4+3)",
+  "treatment_options": [
+    {
+      "id": "option1",
+      "name": "3D Conformal Radiotherapy",
+      "description": "Standard 3D conformal radiotherapy with a total dose of 74 Gy in 37 fractions."
+    },
+    {
+      "id": "option2",
+      "name": "IMRT",
+      "description": "Intensity-modulated radiation therapy with a total dose of 78 Gy in 39 fractions."
+    },
+    {
+      "id": "option3",
+      "name": "VMAT",
+      "description": "Volumetric modulated arc therapy with a total dose of 78 Gy in 39 fractions."
+    }
+  ],
+  "questions": [
+    {
+      "id": "case001_q1",
+      "text": "Which treatment option would provide the best dose conformity while minimizing dose to the rectum?",
+      "correct_option": "option3",
+      "explanation": "VMAT generally provides better dose conformity than 3D conformal RT and comparable or better organ-at-risk sparing compared to IMRT, with shorter treatment times."
+    },
+    {
+      "id": "case001_q2",
+      "text": "What immobilization technique is most appropriate for this patient?",
+      "options": [
+        "Knee and foot supports only",
+        "Thermoplastic mask of the pelvis",
+        "Full body vacuum bag",
+        "No immobilization necessary"
+      ],
+      "correct_answer": 0,
+      "explanation": "For prostate radiation therapy, knee and foot supports provide adequate immobilization while being comfortable for the patient during daily treatments."
+    }
+  ],
+  "follow_up": "The patient completed the prescribed course of VMAT with good tolerance. PSA at 3 months post-treatment was 1.2 ng/mL, indicating good response to treatment."
+}

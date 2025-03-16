@@ -1,0 +1,261 @@
+/* frontend/static/css/base/accessibility.css */
+
+/* High contrast mode */
+.high-contrast {
+    --color-primary: #0066CC;
+    --color-secondary: #008000;
+    --color-accent: #CC0000;
+    --color-background: #FFFFFF;
+    --color-background-alt: #F2F2F2;
+    --color-text: #000000;
+    --color-text-light: #333333;
+    --color-text-muted: #666666;
+    --color-border: #000000;
+    --color-primary-light: #4D94FF;
+    --color-primary-dark: #003E78;
+  }
+  
+  /* Dark high contrast mode */
+  .high-contrast-dark {
+    --color-primary: #4D94FF;
+    --color-secondary: #4DFF4D;
+    --color-accent: #FF6666;
+    --color-background: #000000;
+    --color-background-alt: #222222;
+    --color-text: #FFFFFF;
+    --color-text-light: #CCCCCC;
+    --color-text-muted: #999999;
+    --color-border: #FFFFFF;
+    --color-primary-light: #80B2FF;
+    --color-primary-dark: #0055B3;
+  }
+  
+  /* Focus indicators */
+  *:focus {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Ensure interactive elements have focus styles */
+  button:focus, a:focus, input:focus, select:focus, textarea:focus {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* Keyboard navigation */
+  [data-focus-visible-added] {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Button and link hover states for motor impairments */
+  a, button, .interactive {
+    transition: transform 0.1s ease;
+  }
+  
+  a:hover, button:hover, .interactive:hover {
+    transform: scale(1.02);
+  }
+  
+  a:active, button:active, .interactive:active {
+    transform: scale(0.98);
+  }
+  
+  /* Improved text readability */
+  .improved-readability {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.5;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    word-spacing: 0.05em;
+  }
+  
+  /* Dyslexia-friendly typography */
+  .dyslexic-font {
+    font-family: "OpenDyslexic", Arial, sans-serif;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+    word-spacing: 0.1em;
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    .animate-when-visible {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+  
+  /* Manual reduced motion class for JS control */
+  .reduced-motion * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Large text mode */
+  .large-text {
+    font-size: 1.25rem;
+  }
+  
+  .large-text h1 {
+    font-size: 2.5rem;
+  }
+  
+  .large-text h2 {
+    font-size: 2rem;
+  }
+  
+  .large-text h3 {
+    font-size: 1.75rem;
+  }
+  
+  .large-text button,
+  .large-text input,
+  .large-text select {
+    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  /* Increased spacing for touch targets */
+  .increased-touch-targets a,
+  .increased-touch-targets button,
+  .increased-touch-targets [role="button"],
+  .increased-touch-targets input,
+  .increased-touch-targets select {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+  }
+  
+  .increased-touch-targets label {
+    margin: 0.75rem 0;
+    display: block;
+  }
+  
+  /* Improved form focus */
+  .accessible-forms input:focus,
+  .accessible-forms textarea:focus,
+  .accessible-forms select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.5);
+  }
+  
+  /* Accessible error states */
+  .accessible-forms .error-field {
+    border-color: var(--color-accent);
+  }
+  
+  .accessible-forms .error-message {
+    color: var(--color-accent);
+    margin-top: 0.25rem;
+    font-weight: bold;
+  }
+  
+  /* Skip navigation for keyboard users */
+  .skip-nav {
+    position: absolute;
+    top: -4.5rem;
+    left: 1rem;
+    z-index: 1000;
+    padding: 1rem;
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: 4px;
+    transition: top 0.2s ease;
+  }
+  
+  .skip-nav:focus {
+    top: 1rem;
+  }
+  
+  /* Accessible tables */
+  .accessible-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .accessible-table caption {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+  
+  .accessible-table th {
+    text-align: left;
+    background-color: var(--color-background-alt);
+    border-bottom: 2px solid var(--color-border);
+    padding: 0.75rem;
+  }
+  
+  .accessible-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .accessible-table tbody tr:hover {
+    background-color: var(--color-background-alt);
+  }
+  
+  /* ARIA-relevant styles */
+  [aria-hidden="true"] {
+    display: none;
+  }
+  
+  [aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  [role="alert"],
+  [role="alertdialog"] {
+    border: 2px solid var(--color-accent);
+    background-color: rgba(var(--color-accent-rgb), 0.1);
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  
+  /* Helper to make non-text content accessible */
+  .accessible-icon {
+    position: relative;
+  }
+  
+  .accessible-icon svg,
+  .accessible-icon img {
+    /* Styles for the icon */
+  }
+  
+  .accessible-icon .accessible-label {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }

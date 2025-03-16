@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>JavaScript Module Test</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        // Import the Game class to test
+        import { Game } from './frontend/src/core/game.js';
+        
+        document.getElementById('output').innerHTML = 
+            'Game module imported successfully! Check console for details.';
+        
+        // Create a game instance and start it
+        const game = new Game();
+        game.start();
+    </script>
+</body>
+</html>

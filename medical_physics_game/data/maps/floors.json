@@ -1,0 +1,66 @@
+{
+  "floors": [
+    {
+      "id": 1,
+      "name": "Hospital Basement",
+      "description": "Your first day as a resident. Learn the basics in the safe environment of the basement.",
+      "node_count": {
+        "min": 20,
+        "max": 30
+      },
+      "node_types": {
+        "question": { "weight": 60, "difficulty_range": [1, 1] },
+        "rest": { "weight": 20 },
+        "treasure": { "weight": 20 },
+        "patient_case": { "weight": 30 }
+      },
+      "boss": {
+        "name": "Basement Supervisor",
+        "description": "The supervisor has some basic questions to test your knowledge.",
+        "difficulty": 1
+      }
+    },
+    {
+      "id": 2,
+      "name": "Radiation Oncology Department",
+      "description": "Time to apply your knowledge in a clinical setting.",
+      "node_count": {
+        "min": 25,
+        "max": 35
+      },
+      "node_types": {
+        "question": { "weight": 55, "difficulty_range": [1, 2] },
+        "elite": { "weight": 15, "difficulty_range": [2, 2] },
+        "rest": { "weight": 15 },
+        "treasure": { "weight": 15 },
+        "patient_case": { "weight": 30 }
+      },
+      "boss": {
+        "name": "Department Chair",
+        "description": "The department chair has challenging clinical scenarios for you.",
+        "difficulty": 2
+      }
+    },
+    {
+      "id": 3,
+      "name": "Linear Accelerator Room",
+      "description": "Advanced challenges with the department's treatment machines.",
+      "node_count": {
+        "min": 30,
+        "max": 40
+      },
+      "node_types": {
+        "question": { "weight": 50, "difficulty_range": [1, 3] },
+        "elite": { "weight": 20, "difficulty_range": [2, 3] },
+        "rest": { "weight": 15 },
+        "treasure": { "weight": 15 },
+        "patient_case": { "weight": 15 }
+      },
+      "boss": {
+        "name": "Chief Medical Physicist",
+        "description": "The department head has challenging questions about QA procedures.",
+        "difficulty": 3
+      }
+    }
+  ]
+}

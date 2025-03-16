@@ -1,0 +1,198 @@
+/* Medical Physics Game - Character Component Styles */
+
+/* Character Card */
+.character-card {
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.character-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-dark);
+}
+
+.character-card::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-dark);
+}
+
+/* Character portrait */
+.character-portrait {
+  width: 100px;
+  height: 100px;
+  background-color: var(--color-bg-darker);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 5px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
+}
+
+.character-portrait img {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+/* Character name */
+.character-name {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+/* Character description */
+.character-description {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Character stats */
+.character-stats {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.character-stat {
+  margin-bottom: 10px;
+}
+
+.stat-name {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.stat-bar {
+  height: 12px;
+  background-color: var(--color-bg-darker);
+  position: relative;
+}
+
+.stat-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Character abilities */
+.character-abilities {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.ability-tag {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background-color: var(--color-bg-darker);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+/* Character selection */
+.character-selection {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.character-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.character-cards {
+  display: flex;
+  overflow: hidden;
+  max-width: 600px;
+  transition: transform 0.3s ease;
+}
+
+.carousel-button {
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.character-card.active {
+  border-color: var(--color-secondary);
+}
+
+.character-details {
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Debug character in header */
+.debug-character {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--color-bg-light);
+  border-bottom: var(--border-thickness) solid var(--color-primary-dark);
+}
+
+.debug-character-portrait {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.debug-character-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.debug-character-name {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.debug-stats {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+}

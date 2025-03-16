@@ -1,0 +1,589 @@
+{
+  "patient_cases": [
+    {
+      "id": "radiation_therapy_plan",
+      "title": "Radiation Therapy Treatment Planning",
+      "description": "A 62-year-old patient with stage II adenocarcinoma of the left lung is scheduled for radiation therapy. The patient previously underwent a lobectomy but has residual disease. The oncologist has requested a treatment plan.",
+      "stages": [
+        {
+          "questions": [
+            {
+              "question": "What imaging modality would you recommend for treatment planning?",
+              "options": [
+                {
+                  "text": "CT with contrast",
+                  "result": "Good choice. CT with contrast provides excellent anatomical detail and tissue density information needed for dose calculations.",
+                  "correct": true
+                },
+                {
+                  "text": "Standard X-ray",
+                  "result": "Standard X-ray does not provide the 3D information required for modern treatment planning.",
+                  "correct": false
+                },
+                {
+                  "text": "Ultrasound",
+                  "result": "Ultrasound cannot provide the tissue density information required for radiation dose calculations.",
+                  "correct": false
+                },
+                {
+                  "text": "MRI only",
+                  "result": "While MRI provides excellent soft tissue contrast, it doesn't provide electron density information needed for dose calculations.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "The patient's CT scan shows the tumor is adjacent to the spinal cord. What is an appropriate dose constraint for the spinal cord?",
+              "options": [
+                {
+                  "text": "Maximum dose of 45 Gy",
+                  "result": "Good decision. The spinal cord typically has a maximum dose constraint of 45-50 Gy to avoid radiation myelopathy.",
+                  "correct": true
+                },
+                {
+                  "text": "Maximum dose of 70 Gy",
+                  "result": "This dose is too high and could lead to radiation myelopathy and permanent neurological damage.",
+                  "correct": false
+                },
+                {
+                  "text": "No dose constraints necessary",
+                  "result": "The spinal cord is a critical structure and always requires dose constraints.",
+                  "correct": false
+                },
+                {
+                  "text": "Maximum dose of 20 Gy",
+                  "result": "This constraint is unnecessarily restrictive and may compromise tumor coverage.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "questions": [
+            {
+              "question": "What treatment technique would you recommend for this patient?",
+              "options": [
+                {
+                  "text": "IMRT (Intensity Modulated Radiation Therapy)",
+                  "result": "Excellent choice. IMRT allows for conformal dose distribution around the tumor while sparing nearby critical structures.",
+                  "correct": true
+                },
+                {
+                  "text": "Single field treatment",
+                  "result": "A single field approach wouldn't provide adequate conformality for a complex tumor location near the spinal cord.",
+                  "correct": false
+                },
+                {
+                  "text": "Whole lung irradiation",
+                  "result": "Whole lung irradiation would expose too much healthy tissue to radiation and isn't necessary for localized disease.",
+                  "correct": false
+                },
+                {
+                  "text": "Electron therapy",
+                  "result": "Electron therapy doesn't have adequate penetration for treating tumors deep in the thorax.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "The physician has prescribed 60 Gy in 30 fractions. What is the typical dose rate used for linear accelerator treatment?",
+              "options": [
+                {
+                  "text": "100-600 MU/min",
+                  "result": "Correct. Modern linacs typically operate in the range of 100-600 MU/min for standard fractionated treatments.",
+                  "correct": true
+                },
+                {
+                  "text": "1-5 MU/min",
+                  "result": "This dose rate is too low for practical treatment delivery.",
+                  "correct": false
+                },
+                {
+                  "text": "1000-2000 MU/min",
+                  "result": "This dose rate is used for specialized treatments like SBRT/SRS but is not typical for standard fractionated treatments.",
+                  "correct": false
+                },
+                {
+                  "text": "5000+ MU/min",
+                  "result": "This dose rate is beyond the capabilities of clinical linear accelerators.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conclusion": "You've successfully created a treatment plan that delivers the prescribed dose to the tumor while respecting dose constraints for organs at risk. The patient begins treatment the following week with daily image guidance.",
+      "reward": 20
+    },
+    {
+      "id": "imaging_qa",
+      "title": "CT Scanner QA Issue",
+      "description": "You are the medical physicist responsible for a radiology department. A radiologist reports that recent chest CT images appear to have artifacts that could affect diagnosis. You need to investigate and resolve the issue.",
+      "stages": [
+        {
+          "questions": [
+            {
+              "question": "What should be your first step in investigating this issue?",
+              "options": [
+                {
+                  "text": "Run a standard QA test with the department's CT phantom",
+                  "result": "Good approach. Starting with a standardized test will help identify if there's an actual performance issue with the scanner.",
+                  "correct": true
+                },
+                {
+                  "text": "Immediately call the manufacturer for service",
+                  "result": "Calling for service before confirming an issue exists could waste time and resources.",
+                  "correct": false
+                },
+                {
+                  "text": "Ask to rescan the patient",
+                  "result": "Rescanning without determining the cause of artifacts would unnecessarily expose the patient to additional radiation.",
+                  "correct": false
+                },
+                {
+                  "text": "Check the technologist's technique",
+                  "result": "While technique issues could cause artifacts, verifying scanner performance with a phantom is more objective and standardized.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your QA test reveals ring artifacts in the phantom images. What is the most likely cause?",
+              "options": [
+                {
+                  "text": "Detector calibration issue",
+                  "result": "Correct. Ring artifacts are typically caused by detector element calibration issues or failures.",
+                  "correct": true
+                },
+                {
+                  "text": "Power supply fluctuation",
+                  "result": "Power supply issues typically cause different types of artifacts, not concentric rings.",
+                  "correct": false
+                },
+                {
+                  "text": "Patient movement",
+                  "result": "Patient movement would not affect phantom images, and typically causes blurring, not ring artifacts.",
+                  "correct": false
+                },
+                {
+                  "text": "Incorrect kVp setting",
+                  "result": "Incorrect kVp would affect overall image quality and contrast but wouldn't create ring artifacts.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "questions": [
+            {
+              "question": "What action should you take to resolve the detector calibration issue?",
+              "options": [
+                {
+                  "text": "Perform detector calibration procedure",
+                  "result": "Correct. Running the manufacturer's calibration procedure can often resolve detector uniformity issues.",
+                  "correct": true
+                },
+                {
+                  "text": "Replace the X-ray tube",
+                  "result": "The X-ray tube is not related to the detection system causing ring artifacts.",
+                  "correct": false
+                },
+                {
+                  "text": "Apply ring artifact correction algorithm only",
+                  "result": "While software corrections can help, addressing the root cause through calibration is the proper first step.",
+                  "correct": false
+                },
+                {
+                  "text": "Reduce the tube current",
+                  "result": "Reducing tube current won't solve detector calibration issues and will likely degrade image quality further.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "After recalibration, what should you do to ensure the issue is resolved?",
+              "options": [
+                {
+                  "text": "Perform a full QA check and document the results",
+                  "result": "Excellent. Comprehensive testing and documentation ensures the scanner is performing correctly and maintains your QA records.",
+                  "correct": true
+                },
+                {
+                  "text": "Immediately resume clinical scanning",
+                  "result": "Resuming clinical scanning without verification could result in continued image quality issues.",
+                  "correct": false
+                },
+                {
+                  "text": "Wait one week and check again",
+                  "result": "Waiting unnecessarily delays confirming the fix and could impact patient care.",
+                  "correct": false
+                },
+                {
+                  "text": "Only check the specific parameter that was calibrated",
+                  "result": "A calibration procedure could affect multiple performance parameters, so a more comprehensive check is appropriate.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conclusion": "Your systematic approach identified and resolved the detector calibration issue. The radiologist confirms that new images are free of artifacts, allowing for accurate diagnosis. Your documentation helps establish a pattern that could predict future calibration needs.",
+      "reward": 15
+    },
+    {
+      "id": "radiation_safety",
+      "title": "Radiation Safety Incident",
+      "description": "A nurse in the nuclear medicine department reports that she may have been contaminated with Tc-99m during a patient procedure. The spill occurred approximately 10 minutes ago on her lab coat and potentially her skin.",
+      "stages": [
+        {
+          "questions": [
+            {
+              "question": "What is your immediate first step?",
+              "options": [
+                {
+                  "text": "Survey the nurse with a radiation detector",
+                  "result": "Correct. You need to quickly assess the extent and location of any contamination.",
+                  "correct": true
+                },
+                {
+                  "text": "Send the nurse home immediately",
+                  "result": "Sending the nurse home without assessment could spread contamination and doesn't address potential radiation exposure.",
+                  "correct": false
+                },
+                {
+                  "text": "Administer a thyroid blocking agent",
+                  "result": "Tc-99m does not present a significant thyroid risk, and this action doesn't address the immediate contamination.",
+                  "correct": false
+                },
+                {
+                  "text": "Fill out an incident report",
+                  "result": "While documentation is important, it's not the immediate first step when responding to potential contamination.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your survey confirms Tc-99m contamination on the lab coat and a small area on the nurse's wrist. What do you do next?",
+              "options": [
+                {
+                  "text": "Remove contaminated clothing and wash affected skin with soap and water",
+                  "result": "Correct. Removing contaminated clothing prevents further exposure, and washing is the appropriate decontamination method for skin.",
+                  "correct": true
+                },
+                {
+                  "text": "Apply a chelating agent to the skin",
+                  "result": "Chelating agents are not appropriate for external contamination and are unnecessary for Tc-99m.",
+                  "correct": false
+                },
+                {
+                  "text": "Place the nurse in isolation",
+                  "result": "Isolation is unnecessary and inappropriate for this level of contamination.",
+                  "correct": false
+                },
+                {
+                  "text": "Take a blood sample to check for internal contamination",
+                  "result": "A blood test is not an immediate response and unnecessary for external contamination with Tc-99m.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "questions": [
+            {
+              "question": "After decontamination, you re-survey and find the skin reads at 0.1 mR/hr. What should you do?",
+              "options": [
+                {
+                  "text": "Document the readings and calculate potential dose",
+                  "result": "Correct. This reading is low but should be documented, and the potential dose should be calculated for records.",
+                  "correct": true
+                },
+                {
+                  "text": "Continue decontamination until background levels are achieved",
+                  "result": "Further decontamination attempts could irritate the skin without significant benefit given the low reading.",
+                  "correct": false
+                },
+                {
+                  "text": "Refer the nurse to the emergency department",
+                  "result": "Emergency treatment is not necessary for this low level of contamination.",
+                  "correct": false
+                },
+                {
+                  "text": "Recommend the nurse take two weeks of radiation leave",
+                  "result": "This level of exposure doesn't warrant any leave of absence.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "What follow-up actions are appropriate for this incident?",
+              "options": [
+                {
+                  "text": "Complete an incident report and review procedures to prevent recurrence",
+                  "result": "Excellent. Documentation and process improvement are key follow-up actions to prevent similar incidents.",
+                  "correct": true
+                },
+                {
+                  "text": "No follow-up needed as the contamination was minimal",
+                  "result": "Even minor incidents should be documented and reviewed to prevent potentially more serious future events.",
+                  "correct": false
+                },
+                {
+                  "text": "Report the incident to the Nuclear Regulatory Commission",
+                  "result": "This minor incident likely doesn't meet reporting requirements, though institutional procedures should be followed.",
+                  "correct": false
+                },
+                {
+                  "text": "Suspend all Tc-99m procedures until further notice",
+                  "result": "This response is disproportionate to the minor nature of the incident.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conclusion": "You handled the radiation safety incident appropriately, minimizing exposure and contamination spread. Your calculated dose estimate shows the nurse received minimal exposure well below regulatory limits. Your incident report leads to improved handling procedures and additional staff training.",
+      "reward": 15
+    },
+    {
+      "id": "radiation_therapy_qa",
+      "title": "Linear Accelerator Output Verification",
+      "description": "As part of your monthly QA procedures, you need to verify the output of a linear accelerator used for radiation therapy treatments.",
+      "stages": [
+        {
+          "questions": [
+            {
+              "question": "What equipment would you use to measure the output of the linear accelerator?",
+              "options": [
+                {
+                  "text": "Calibrated ionization chamber and electrometer",
+                  "result": "Correct. This is the standard equipment for accurate linac output measurements.",
+                  "correct": true
+                },
+                {
+                  "text": "Film dosimetry only",
+                  "result": "Film alone is not appropriate for absolute output measurements due to processing variations and energy dependence.",
+                  "correct": false
+                },
+                {
+                  "text": "TLD dosimeters",
+                  "result": "While TLDs can be used for various measurements, they are not the primary choice for routine linac output verification.",
+                  "correct": false
+                },
+                {
+                  "text": "Survey meter",
+                  "result": "Survey meters lack the precision required for medical linac calibration.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your measurement indicates the output is 1.02 cGy/MU (reference value: 1.00 cGy/MU). What action should you take?",
+              "options": [
+                {
+                  "text": "Document the result as acceptable within tolerance",
+                  "result": "Correct. A 2% deviation is typically within accepted monthly QA tolerances (usually ±3%).",
+                  "correct": true
+                },
+                {
+                  "text": "Recalibrate the machine immediately",
+                  "result": "Immediate recalibration is not necessary for a deviation within typical tolerances.",
+                  "correct": false
+                },
+                {
+                  "text": "Shut down the machine until service",
+                  "result": "This response is disproportionate to a minor deviation within acceptance tolerances.",
+                  "correct": false
+                },
+                {
+                  "text": "Ignore the difference as measurement error",
+                  "result": "While the deviation is within tolerance, it should still be documented, not ignored.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "questions": [
+            {
+              "question": "For a more comprehensive check, what additional parameters should you verify during monthly QA?",
+              "options": [
+                {
+                  "text": "Field flatness, symmetry, and energy constancy",
+                  "result": "Correct. These beam parameters are essential parts of a comprehensive monthly QA program.",
+                  "correct": true
+                },
+                {
+                  "text": "Room ventilation and humidity only",
+                  "result": "While environmental factors can affect machine performance, they don't directly verify beam delivery characteristics.",
+                  "correct": false
+                },
+                {
+                  "text": "Software version only",
+                  "result": "Software verification is important but doesn't directly measure beam delivery characteristics.",
+                  "correct": false
+                },
+                {
+                  "text": "Patient throughput and treatment times",
+                  "result": "These operational metrics are not part of physics QA for beam parameters.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your measurements show field symmetry of 103.5% (tolerance: ≤103%). What should you do?",
+              "options": [
+                {
+                  "text": "Adjust the beam steering or request service",
+                  "result": "Correct. The measurement is outside tolerance and requires adjustment or service to ensure proper dose delivery.",
+                  "correct": true
+                },
+                {
+                  "text": "Document it and continue treatments",
+                  "result": "Continuing treatments with parameters outside tolerance could affect treatment quality and patient safety.",
+                  "correct": false
+                },
+                {
+                  "text": "Increase the tolerance limit to 104%",
+                  "result": "Changing tolerances to accommodate out-of-specification equipment is inappropriate.",
+                  "correct": false
+                },
+                {
+                  "text": "Repeat only this measurement next month",
+                  "result": "Delaying corrective action for a parameter outside tolerance is not appropriate.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conclusion": "You've successfully completed the monthly QA for the linear accelerator. The output is within tolerance, and you identified and addressed a field symmetry issue. Your documentation and adjustments ensure patients receive accurate dose delivery for their treatments.",
+      "reward": 20
+    },
+    {
+      "id": "diagnostic_image_quality",
+      "title": "MRI Image Quality Assessment",
+      "description": "You receive a request to evaluate image quality on a 3T MRI scanner after the technologists report an increase in image artifacts on brain scans.",
+      "stages": [
+        {
+          "questions": [
+            {
+              "question": "What phantom would be most appropriate for evaluating MRI image quality?",
+              "options": [
+                {
+                  "text": "ACR MRI accreditation phantom",
+                  "result": "Correct. The ACR MRI phantom is designed specifically for evaluating key MRI performance parameters.",
+                  "correct": true
+                },
+                {
+                  "text": "CTDI phantom",
+                  "result": "The CTDI phantom is designed for CT dosimetry, not MRI image quality assessment.",
+                  "correct": false
+                },
+                {
+                  "text": "Ultrasound resolution phantom",
+                  "result": "Ultrasound phantoms are designed for a different modality and not applicable to MRI.",
+                  "correct": false
+                },
+                {
+                  "text": "Anthropomorphic head phantom without MR markers",
+                  "result": "While a head phantom might simulate patient anatomy, it lacks the standardized test objects needed for quantitative QA.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your phantom images show ghosting artifacts. What could be causing this?",
+              "options": [
+                {
+                  "text": "Mechanical vibration or motion",
+                  "result": "Correct. Ghosting artifacts are often caused by mechanical vibrations, table motion, or other motion-related issues.",
+                  "correct": true
+                },
+                {
+                  "text": "RF interference",
+                  "result": "RF interference typically causes zipper artifacts or noise, not ghosting.",
+                  "correct": false
+                },
+                {
+                  "text": "Low field strength",
+                  "result": "Field strength affects SNR but doesn't directly cause ghosting artifacts.",
+                  "correct": false
+                },
+                {
+                  "text": "Incorrect slice thickness",
+                  "result": "Incorrect slice thickness would affect resolution and partial volume effects, not create ghosting.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "questions": [
+            {
+              "question": "What parameters should you measure to comprehensively assess the MRI scanner's performance?",
+              "options": [
+                {
+                  "text": "Geometric accuracy, high-contrast resolution, slice thickness, and SNR",
+                  "result": "Correct. These parameters collectively provide a comprehensive assessment of MRI performance.",
+                  "correct": true
+                },
+                {
+                  "text": "Only field homogeneity",
+                  "result": "While important, field homogeneity alone doesn't assess all aspects of image quality.",
+                  "correct": false
+                },
+                {
+                  "text": "Helium level and gradient strength only",
+                  "result": "These are operational parameters but don't directly measure image quality characteristics.",
+                  "correct": false
+                },
+                {
+                  "text": "SAR values only",
+                  "result": "SAR relates to patient safety rather than image quality.",
+                  "correct": false
+                }
+              ]
+            },
+            {
+              "question": "Your investigation reveals that a recently installed HVAC unit is causing vibrations. What should you recommend?",
+              "options": [
+                {
+                  "text": "Install vibration dampening mounts or relocate the HVAC unit",
+                  "result": "Correct. Addressing the source of the vibration is the appropriate solution to eliminate the artifacts.",
+                  "correct": true
+                },
+                {
+                  "text": "Increase the number of signal averages in all protocols",
+                  "result": "While this might reduce the appearance of artifacts, it increases scan time and doesn't address the root cause.",
+                  "correct": false
+                },
+                {
+                  "text": "Apply more aggressive image filters",
+                  "result": "Filtering may mask artifacts but could reduce image quality and doesn't solve the underlying problem.",
+                  "correct": false
+                },
+                {
+                  "text": "Restrict scanning to nights and weekends only",
+                  "result": "This impractical operational change doesn't address the mechanical issue.",
+                  "correct": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conclusion": "Your systematic approach identified mechanical vibration from an HVAC unit as the source of ghosting artifacts. After implementation of your recommended dampening solution, follow-up phantom scans show resolution of the artifacts. The MRI scanner is now producing diagnostic quality images, ensuring accurate diagnosis for patients.",
+      "reward": 15
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Module Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        #results { margin-top: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>JavaScript Module Verification</h1>
+    <p>This page tests if all JavaScript modules load correctly.</p>
+    <p>Check browser console for detailed results.</p>
+    <div id="results">Running tests...</div>
+    
+    <script type="module">
+        import * as ModuleTest from './module_imports_test.js';
+        
+        // Listen for errors
+        let hasErrors = false;
+        window.addEventListener('error', (event) => {
+            document.getElementById('results').innerHTML += `
+                <div class="error">❌ Error: ${event.message}</div>
+            `;
+            hasErrors = true;
+        });
+        
+        // Check results after a delay
+        setTimeout(() => {
+            if (!hasErrors) {
+                document.getElementById('results').innerHTML = `
+                    <div class="success">✅ All modules loaded successfully!</div>
+                    <p>No import errors detected.</p>
+                `;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
