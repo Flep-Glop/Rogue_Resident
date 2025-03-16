@@ -10,14 +10,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base/variables.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base/layout.css') }}">
     
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    
     <!-- Theme CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/retro_theme.css') }}">
+    
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/character.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/nodes.css') }}">
     
     {% block additional_css %}{% endblock %}
 </head>
 <body>
     <div id="app">
-        {% block content %}{% endblock %}
+        <!-- CRT and scanline effects -->
+        <div class="scanlines"></div>
+        <div class="crt-effect"></div>
+        
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
     </div>
     
     <!-- Core scripts -->

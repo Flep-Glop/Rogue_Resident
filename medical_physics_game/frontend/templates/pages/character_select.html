@@ -2,15 +2,10 @@
 
 {% block title %}Character Selection{% endblock %}
 
-{% block additional_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/character_image_styles.css') }}">
-{% endblock %}
-
 {% block content %}
-<div class="character-selection">
-    <h1>Character Selection</h1>
-    <p>Choose your character to begin the game</p>
+<div class="pixel-container">
+    <h1 class="game-title">Character Selection</h1>
+    <p class="subtitle">Choose your character to begin the game</p>
     
     <div class="character-carousel">
         <button class="carousel-button prev-button">&lt;</button>
@@ -24,9 +19,8 @@
         <!-- Selected character details will be shown here -->
     </div>
     
-    <button class="btn select-button" id="select-button">Select Character</button>
+    <button class="retro-btn start" id="select-button">Select Character</button>
 </div>
-
 {% endblock %}
 
 {% block additional_js %}
@@ -103,7 +97,7 @@
                 card.dataset.index = index;
                 
                 card.innerHTML = `
-                    <div class="character-image">
+                    <div class="character-portrait">
                         <img src="${character.image}" alt="${character.name}">
                     </div>
                     <h2 class="character-name">${character.name}</h2>
@@ -139,8 +133,8 @@
                 <h2>${selectedCharacter.name}</h2>
                 <div class="character-stats">
                     ${Object.entries(selectedCharacter.stats).map(([stat, value]) => `
-                        <div>
-                            <strong>${stat.charAt(0).toUpperCase() + stat.slice(1)}:</strong>
+                        <div class="character-stat">
+                            <div class="stat-name">${stat.charAt(0).toUpperCase() + stat.slice(1)}:</div>
                             <div class="stat-bar">
                                 <div class="stat-fill" style="width: ${value * 10}%"></div>
                             </div>

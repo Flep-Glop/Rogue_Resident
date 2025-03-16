@@ -1,25 +1,51 @@
-/* CSS Variables */
+/* Medical Physics Game - CSS Variables */
 :root {
-    /* Colors */
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --background-color: #f8f9fa;
-    --text-color: #333;
-    --error-color: #e74c3c;
-    --success-color: #2ecc71;
+    /* Color palette */
+    --color-bg-dark: #1e2232;
+    --color-bg-darker: #131725;
+    --color-bg-light: #2a3049;
+    --color-primary: #5b8dd9;
+    --color-primary-light: #8aaceb;
+    --color-primary-dark: #3a68b0;
+    --color-secondary: #56b886;
+    --color-secondary-light: #78d3a2;
+    --color-secondary-dark: #399261;
+    --color-warning: #f0c866;
+    --color-danger: #e67e73;
+    --color-accent-purple: #9c77db;
+    --color-accent-cyan: #5bbcd9;
+    --color-text: #f0f0f0;
+    --color-text-muted: #a0a0b0;
     
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
+    /* Spacing variables */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
     
-    /* Font sizes */
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-md: 1rem;
-    --font-size-lg: 1.25rem;
-    --font-size-xl: 1.5rem;
-    --font-size-xxl: 2rem;
-}
+    /* Game element sizes */
+    --pixel-size: 4px;
+    --node-size: 80px;
+    --grid-line-thickness: 1px;
+    --grid-cell-size: 40px;
+    --border-thickness: 2px;
+    
+    /* Container widths */
+    --container-sm: 600px;
+    --container-md: 800px;
+    --container-lg: 1000px;
+    --container-xl: 1200px;
+    
+    /* Font settings */
+    --font-pixel: 'Press Start 2P', 'Courier New', monospace;
+    --font-main: var(--font-pixel);
+    --text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+    
+    /* Z-index layers */
+    --z-background: 1;
+    --z-elements: 10;
+    --z-overlay: 50;
+    --z-modal: 100;
+    --z-effects: 200;
+  }

@@ -1,363 +1,198 @@
-/* character.css - Character panel styling */
+/* Medical Physics Game - Character Component Styles */
 
-/* Character stats panel */
+/* Character Card */
+.character-card {
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.character-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-dark);
+}
+
+.character-card::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-bg-dark);
+}
+
+/* Character portrait */
+.character-portrait {
+  width: 100px;
+  height: 100px;
+  background-color: var(--color-bg-darker);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 5px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
+}
+
+.character-portrait img {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+/* Character name */
+.character-name {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+/* Character description */
+.character-description {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Character stats */
 .character-stats {
-    background-color: var(--background-alt);
-    color: var(--text);
-    border: 2px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    font-family: 'Press Start 2P', cursive;
-    font-size: var(--font-size-sm);
-    line-height: 1.5;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    animation: character-panel-glow 4s ease-in-out infinite;
-  }
-  
-  @keyframes character-panel-glow {
-    0% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(91, 141, 217, 0.7); }
-    100% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
-  }
-  
-  .character-avatar {
-    width: 72px;  /* Should match your image size */
-    height: 72px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .ascii-character {
-    font-family: monospace;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: 0;
-    font-size: 16px; /* Slightly reduced from 18px */
-    color: var(--text);
-  }
-  
-  /* Character animation states */
-  .ascii-character {
-    position: relative;
-    transition: transform 0.2s ease-in-out;
-  }
+  width: 100%;
+  margin-top: 15px;
+}
 
-  .character-panel-img {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges; /* Fallback for some browsers */
-    -webkit-font-smoothing: none;
-  }
+.character-stat {
+  margin-bottom: 10px;
+}
 
-  .ascii-character.walking {
-    animation: 
-      bob 2s ease-in-out infinite,
-      walk-cycle 1.5s steps(4) infinite;
-    position: relative;
-    transform-origin: center bottom; /* Make sure character bobs from the bottom */
-  }
-  
-  @keyframes bob {
-    0% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-2px) rotate(-1deg); }
-    50% { transform: translateY(-3px) rotate(0deg); }
-    75% { transform: translateY(-2px) rotate(1deg); }
-    100% { transform: translateY(0) rotate(0deg); }
-  }
-  
-  /* Modify the character container to be more compact */
-  .character-avatar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto var(--spacing-sm);
-    max-height: 120px; /* Limit maximum height */
-    overflow: hidden;
-  }
-  
-  /* Improved walking animation effect */
-  @keyframes walk-cycle {
-    0% { transform: translateX(-2px); }
-    50% { transform: translateX(2px); }
-    100% { transform: translateX(-2px); }
-  }
+.stat-name {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
 
-  /* Bobbing animation - improved */
-  @keyframes bob {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-    100% { transform: translateY(0); }
-  }
+.stat-bar {
+  height: 12px;
+  background-color: var(--color-bg-darker);
+  position: relative;
+}
 
-  /* Special glow effect for debug character - using class-based approach instead */
-  .debug-physicist .character-avatar {
-    animation: debug-glow 2s infinite alternate;
-  }
+.stat-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  transition: width 0.3s ease;
+}
 
-  @keyframes debug-glow {
-    0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.5) inset; }
-    100% { box-shadow: 0 0 10px rgba(86, 184, 134, 0.8) inset; }
-  }
+.stat-value {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  font-weight: bold;
+  text-align: center;
+}
 
-  /* Special animation when using ability */
-  .using-ability .ascii-character {
-    animation: ability-flash 0.5s 3;
-  }
+/* Character abilities */
+.character-abilities {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
 
-  @keyframes ability-flash {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-  }
-  
-  /* Character details */
-  .character-details {
-    margin-top: var(--spacing-sm);
-  }
-  
-  .character-details p strong {
-    color: var(--primary);
-    font-size: var(--font-size-md);
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
-    font-weight: normal;
-  }
-  
-  /* Lives display */
-  #lives-container {
-    margin: var(--spacing-sm) 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--spacing-sm);
-  }
-  
-  /* Show numeric lives for high values */
-  #lives-container[data-lives-count="high"] {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-  }
-  
-  #lives-container[data-lives-count="high"] .life-display {
-    color: var(--danger);
-    font-weight: bold;
-    font-size: var(--font-size-sm);
-  }
-  
-  #lives-container[data-lives-count="high"] .life-icon {
-    margin: 0 4px;
-    font-size: 14px;
-  }
-  
-  /* Regular heart icons for normal lives count */
-  #lives-container:not([data-lives-count="high"]) .life-display {
-    display: none;
-  }
-  
-  #lives-container:not([data-lives-count="high"]) .life-icon {
-    font-size: 16px;
-    margin: 0 2px;
-  }
-  
-  .life-icon.active {
-    color: var(--danger);
-    filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.5));
-  }
-  
-  .life-icon.inactive {
-    color: var(--dark);
-    opacity: 0.5;
-  }
-  
-  /* Insight bar */
-  .insight-bar-container {
-    margin: var(--spacing-sm) 0;
-  }
-  
-  .insight-bar-label {
-    font-size: var(--font-size-xs);
-    margin-bottom: 3px;
-    text-align: left;
-    color: var(--primary);
-  }
-  
-  .insight-bar {
-    height: 12px;
-    background-color: var(--dark-alt);
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .insight-bar-fill {
-    height: 100%;
-    background-color: var(--primary);
-    transition: width var(--transition-medium) ease-out;
-  }
-  
-  .insight-value {
-    position: absolute;
-    right: 5px;
-    top: 0;
-    font-size: var(--font-size-xs);
-    color: white;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
-    line-height: 12px;
-  }
-  
-  /* Special ability styling */
-  .special-ability-container {
-    margin-top: var(--spacing-md);
-  }
-  
-  .special-ability-btn {
-    width: 100%;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    font-family: 'Press Start 2P', cursive;
-    font-size: var(--font-size-xs);
-    cursor: pointer;
-    box-shadow: 0 3px 0 var(--primary-dark);
-    position: relative;
-  }
-  
-  .special-ability-btn:hover {
-    background-color: var(--primary-dark);
-  }
-  
-  .special-ability-btn:active {
-    transform: translateY(2px);
-    box-shadow: none;
-  }
-  
-  .special-ability-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .use-count {
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 2px 5px;
-    border-radius: 10px;
-    font-size: var(--font-size-xs);
-    margin-left: var(--spacing-sm);
-  }
-  
-  .ability-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    width: 100%;
-    background-color: var(--dark);
-    color: white;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-xs);
-    opacity: 0;
-    transition: opacity var(--transition-fast);
-    pointer-events: none;
-    z-index: 10;
-  }
-  
-  .special-ability-btn:hover .ability-tooltip {
-    opacity: 1;
-  }
-  
-  /* Character frame animations */
-  .ascii-frame {
-    display: none;
-  }
-  
-  .ascii-frame.active {
-    display: block;
-  }
-  
-  /* Ghost animation for special characters */
-  .ghost-animation {
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: var(--spacing-lg) auto;
-    color: #9b59b6;
-    opacity: 0.8;
-    text-shadow: 0 0 5px #9b59b6;
-    animation: float 3s ease-in-out infinite, flicker 5s linear infinite;
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0) translateX(0); }
-    25% { transform: translateY(-5px) translateX(3px); }
-    50% { transform: translateY(0) translateX(0); }
-    75% { transform: translateY(5px) translateX(-3px); }
-    100% { transform: translateY(0) translateX(0); }
-  }
-  
-  @keyframes flicker {
-    0% { opacity: 0.7; }
-    10% { opacity: 0.8; }
-    20% { opacity: 0.7; }
-    30% { opacity: 0.8; }
-    40% { opacity: 0.9; }
-    50% { opacity: 0.7; }
-    60% { opacity: 0.9; }
-    70% { opacity: 0.8; }
-    80% { opacity: 0.7; }
-    90% { opacity: 0.9; }
-    100% { opacity: 0.7; }
-  }
-  
-  /* Character stats animations */
-  .insight-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-  
-  .insight-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-  
-  .life-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-  
-  .life-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-  
-  @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-  }
-  
-  @keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .character-stats {
-      font-size: var(--font-size-xs);
-      padding: var(--spacing-sm);
-    }
-    
-    .ascii-character {
-      font-size: 16px;
-    }
-    
-    .character-details p strong {
-      font-size: var(--font-size-sm);
-    }
-    
-    .special-ability-btn {
-      font-size: calc(var(--font-size-xs) - 1px);
-    }
-  }
+.ability-tag {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background-color: var(--color-bg-darker);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+/* Character selection */
+.character-selection {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.character-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.character-cards {
+  display: flex;
+  overflow: hidden;
+  max-width: 600px;
+  transition: transform 0.3s ease;
+}
+
+.carousel-button {
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.character-card.active {
+  border-color: var(--color-secondary);
+}
+
+.character-details {
+  background-color: var(--color-bg-light);
+  border: var(--border-thickness) solid var(--color-primary);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Debug character in header */
+.debug-character {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--color-bg-light);
+  border-bottom: var(--border-thickness) solid var(--color-primary-dark);
+}
+
+.debug-character-portrait {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.debug-character-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.debug-character-name {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.debug-stats {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+}

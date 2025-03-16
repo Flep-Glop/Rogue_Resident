@@ -1,0 +1,425 @@
+.
+├── backend
+│   ├── api
+│   │   ├── __init__.py
+│   │   ├── character_routes.py
+│   │   ├── feedback_routes.py
+│   │   ├── game_state_routes.py
+│   │   ├── item_routes.py
+│   │   ├── question_routes.py
+│   │   ├── routes.py
+│   │   └── skill_tree_routes.py
+│   ├── core
+│   │   ├── __init__.py
+│   │   ├── achievement_system.py
+│   │   ├── combat_system.py
+│   │   ├── difficulty_manager.py
+│   │   ├── event_system.py
+│   │   ├── map_generator.py
+│   │   ├── skill_tree_manager.py
+│   │   ├── state_manager.py
+│   │   └── state_manager.py.new
+│   ├── data
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── character.py
+│   │   │   ├── item.py
+│   │   │   ├── node.py
+│   │   │   ├── patient_case.py
+│   │   │   ├── question.py
+│   │   │   ├── question.py.bak
+│   │   │   └── skill_tree.py
+│   │   ├── repositories
+│   │   │   ├── __init__.py
+│   │   │   ├── character_repo.py
+│   │   │   ├── item_repo.py
+│   │   │   ├── node_repo.py
+│   │   │   ├── optimized_repo.py
+│   │   │   ├── patient_case_repo.py
+│   │   │   ├── question_repo.py
+│   │   │   └── skill_tree_repo.py
+│   │   ├── schemas
+│   │   │   └── __init__.py
+│   │   └── __init__.py
+│   ├── plugins
+│   │   ├── __init__.py
+│   │   ├── base_plugin.py
+│   │   ├── plugin_manager.py
+│   │   └── question_plugin.py
+│   ├── utils
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── cache.py
+│   │   ├── db_migrations.py
+│   │   ├── db_utils.py
+│   │   ├── logging.py
+│   │   ├── profiler.py
+│   │   └── static_manager.py
+│   └── __init__.py
+├── backup_20250316_163240
+│   └── pre_cleanup_backup.tar.gz
+├── config
+│   ├── __init__.py
+│   ├── development.py
+│   ├── production.py
+│   └── test.py
+├── data
+│   ├── characters
+│   │   ├── __init__.py
+│   │   └── characters.json
+│   ├── items
+│   │   ├── __init__.py
+│   │   └── items.json
+│   ├── maps
+│   │   ├── __init__.py
+│   │   ├── floors.json
+│   │   ├── node_templates.json
+│   │   └── node_types.json
+│   ├── questions
+│   │   ├── categories
+│   │   │   ├── dosimetry.json
+│   │   │   ├── radiation_physics.json
+│   │   │   └── treatment_planning.json
+│   │   ├── patient_cases
+│   │   │   └── prostate_cancer.json
+│   │   ├── __init__.py
+│   │   ├── patient_cases.json
+│   │   └── questions.json
+│   ├── skill_tree
+│   │   ├── __init__.py
+│   │   └── skill_tree.json
+│   ├── __init__.py
+│   ├── events.json
+│   ├── game_config.json
+│   └── relics.json
+├── dev_tools
+│   ├── __init__.py
+│   └── skill-tree-dev-tool.js
+├── docs
+│   ├── __init__.py
+│   ├── installation_guide.md
+│   ├── reorganization_guide.md
+│   └── test_plan.txt
+├── final_backup_20250316_163304
+│   └── final_pre_cleanup.tar.gz
+├── frontend
+│   ├── src
+│   │   ├── core
+│   │   │   ├── frontend
+│   │   │   │   └── src
+│   │   │   │       └── core
+│   │   │   │           ├── event_system.js
+│   │   │   │           ├── game.js
+│   │   │   │           └── state_manager.js
+│   │   │   ├── __init__.py
+│   │   │   ├── bootstrap.js
+│   │   │   ├── bootstrap.js.bak
+│   │   │   ├── component-utils.js
+│   │   │   ├── debug_tools.js
+│   │   │   ├── effect-system-refactor.js
+│   │   │   ├── event_system.js
+│   │   │   ├── event_system.js.bak
+│   │   │   ├── game.js
+│   │   │   ├── item_manager.js
+│   │   │   ├── modular-effects.js
+│   │   │   ├── module-pattern-example.js
+│   │   │   ├── node-creator.js
+│   │   │   ├── node_components.js
+│   │   │   ├── node_registry.js
+│   │   │   ├── node_system_integrator.js
+│   │   │   ├── optimized-renderer.js
+│   │   │   ├── progression.js
+│   │   │   ├── reputation_system.js
+│   │   │   ├── save_manager.js
+│   │   │   ├── skill-tree-data.js
+│   │   │   ├── state_manager.js
+│   │   │   └── state_manager.js.bak
+│   │   ├── entities
+│   │   │   ├── items
+│   │   │   │   └── __init__.py
+│   │   │   ├── nodes
+│   │   │   │   ├── node_types
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── boss_component.js
+│   │   │   │   │   ├── boss_effects.js
+│   │   │   │   │   ├── boss_helpers.js
+│   │   │   │   │   ├── boss_professor.js
+│   │   │   │   │   ├── elite_component.js
+│   │   │   │   │   ├── event_component.js
+│   │   │   │   │   ├── gamble_component.js
+│   │   │   │   │   ├── patient_case_component.js
+│   │   │   │   │   ├── question_component.js
+│   │   │   │   │   ├── rest_component.js
+│   │   │   │   │   ├── shop_component.js
+│   │   │   │   │   └── treasure_component.js
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── node_factory.js
+│   │   │   │   └── node_registry.js
+│   │   │   ├── player
+│   │   │   │   └── __init__.py
+│   │   │   └── __init__.py
+│   │   ├── systems
+│   │   │   ├── combat
+│   │   │   │   └── __init__.py
+│   │   │   ├── effects
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── effect_handler.js
+│   │   │   │   ├── effect_registry.js
+│   │   │   │   └── modular_effects.js
+│   │   │   ├── progression
+│   │   │   │   └── __init__.py
+│   │   │   ├── skill_tree
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── skill_tree_controller.js
+│   │   │   │   └── skill_tree_manager.js
+│   │   │   └── __init__.py
+│   │   ├── ui
+│   │   │   ├── components
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── achievement_display.js
+│   │   │   │   ├── character_panel.js
+│   │   │   │   ├── feedback_panel.js
+│   │   │   │   ├── feedback_system.js
+│   │   │   │   ├── inventory_panel.js
+│   │   │   │   ├── inventory_system.js
+│   │   │   │   ├── map_renderer.js
+│   │   │   │   ├── node_interaction.js
+│   │   │   │   ├── skill-tree-editor.js
+│   │   │   │   ├── skill-tree-styler.js
+│   │   │   │   ├── skill_tree_access.js
+│   │   │   │   ├── skill_tree_ui.js
+│   │   │   │   └── special_interactions.js
+│   │   │   ├── hud
+│   │   │   │   └── __init__.py
+│   │   │   ├── screens
+│   │   │   │   └── __init__.py
+│   │   │   ├── utils
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── animation.js
+│   │   │   │   ├── animation_demo.js
+│   │   │   │   ├── sound_demo.js
+│   │   │   │   └── sound_manager.js
+│   │   │   └── __init__.py
+│   │   ├── utils
+│   │   │   ├── data
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── analytics_client.js
+│   │   │   ├── debug
+│   │   │   │   └── __init__.py
+│   │   │   ├── math
+│   │   │   │   └── __init__.py
+│   │   │   └── __init__.py
+│   │   └── __init__.py
+│   ├── static
+│   │   ├── assets
+│   │   │   ├── audio
+│   │   │   │   ├── music
+│   │   │   │   └── sfx
+│   │   │   └── fonts
+│   │   ├── css
+│   │   │   ├── base
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── accessibility.css
+│   │   │   │   ├── layout.css
+│   │   │   │   ├── reset.css
+│   │   │   │   └── variables.css
+│   │   │   ├── components
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── boss.css
+│   │   │   │   ├── boss_effects.css
+│   │   │   │   ├── character.css
+│   │   │   │   ├── inventory.css
+│   │   │   │   ├── map.css
+│   │   │   │   └── nodes.css
+│   │   │   ├── screens
+│   │   │   │   ├── dashboard.css
+│   │   │   │   └── game.css
+│   │   │   ├── themes
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── retro-theme.css
+│   │   │   │   └── retro_theme.css
+│   │   │   ├── character_image_styles.css
+│   │   │   └── main.css
+│   │   ├── img
+│   │   │   ├── characters
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── bonus.png
+│   │   │   │   ├── debug_mode.png
+│   │   │   │   ├── physicist.png
+│   │   │   │   ├── qa_specialist.png
+│   │   │   │   └── resident.png
+│   │   │   ├── items
+│   │   │   │   ├── Aquarium.png
+│   │   │   │   ├── Bandage.png
+│   │   │   │   ├── Bandaid.png
+│   │   │   │   ├── Billiards Ball 15.png
+│   │   │   │   ├── Billiards Ball 2.png
+│   │   │   │   ├── Billiards Ball 3.png
+│   │   │   │   ├── Billiards Ball 4.png
+│   │   │   │   ├── Binoculars.png
+│   │   │   │   ├── Black Backpack.png
+│   │   │   │   ├── Black Gloves.png
+│   │   │   │   ├── Black Laptop.png
+│   │   │   │   ├── Black Lipstick.png
+│   │   │   │   ├── Black Tshirt.png
+│   │   │   │   ├── Black Umbrella.png
+│   │   │   │   ├── Black Underwear.png
+│   │   │   │   ├── Blue Collar.png
+│   │   │   │   ├── Blue Crayon.png
+│   │   │   │   ├── Blue Filled Erlenmyer.png
+│   │   │   │   ├── Blue Pants.png
+│   │   │   │   ├── Blue Pencil.png
+│   │   │   │   ├── Blue Pill.png
+│   │   │   │   ├── Blue Tshirt.png
+│   │   │   │   ├── Blue Umbrella.png
+│   │   │   │   ├── Blue Vinyl.png
+│   │   │   │   ├── Brown Backpack.png
+│   │   │   │   ├── Brown Belt.png
+│   │   │   │   ├── Brown Book.png
+│   │   │   │   ├── Brown Mitten.png
+│   │   │   │   ├── Brown Paint Brush Small.png
+│   │   │   │   ├── Brown Paint Brush.png
+│   │   │   │   └── __init__.py
+│   │   │   ├── nodes
+│   │   │   └── ui
+│   │   └── js
+│   │       ├── components
+│   │       ├── core
+│   │       │   ├── bootstrap.js -> ../../../src/core/bootstrap.js
+│   │       │   ├── event_system.js -> ../../../src/core/event_system.js
+│   │       │   ├── game.js -> ../../../src/core/game.js
+│   │       │   └── state_manager.js -> ../../../src/core/state_manager.js
+│   │       ├── utils
+│   │       └── character_assets.js
+│   ├── templates
+│   │   ├── components
+│   │   ├── errors
+│   │   │   ├── 404.html
+│   │   │   └── 500.html
+│   │   ├── pages
+│   │   │   ├── character_select.html
+│   │   │   ├── character_select.html.bak
+│   │   │   ├── dashboard.html
+│   │   │   ├── game.html
+│   │   │   ├── index.html
+│   │   │   ├── item_editor.html
+│   │   │   └── landing.html
+│   │   └── base.html
+│   └── __init__.py
+├── plugins
+│   ├── __init__.py
+│   └── question_plugin.py
+├── tests
+│   ├── backend
+│   │   ├── core
+│   │   │   ├── test_difficulty_manager.py
+│   │   │   └── test_skill_tree_manager.py
+│   │   └── __init__.py
+│   ├── frontend
+│   │   ├── ui
+│   │   │   └── test_map_renderer.js
+│   │   └── __init__.py
+│   ├── integration
+│   │   ├── __init__.py
+│   │   └── test_game_flow.py
+│   ├── js
+│   │   ├── core_test.html
+│   │   ├── core_test.js
+│   │   └── module_verification.html
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── module_imports_test.js
+│   ├── module_test.html
+│   ├── test_models.py
+│   └── test_repositories.py
+├── tools
+│   ├── content_creation
+│   │   ├── templates
+│   │   ├── difficulty_validator.py
+│   │   ├── map_node_creator.py
+│   │   ├── question_creator.py
+│   │   ├── question_generator.py
+│   │   └── question_template.json
+│   ├── data_editors
+│   ├── debugging
+│   │   └── __init__.py
+│   ├── __init__.py
+│   ├── import_fixer.py
+│   └── missing_files_script.sh
+├── Dockerfile
+├── README.md
+├── Verification Tools and Tests.md
+├── __init__.py
+├── app.py
+├── app.py.bak
+├── asset_verification.sh
+├── backend_results.txt
+├── backend_test.sh
+├── browser_testing_guide.md
+├── check_files.sh
+├── check_imports.py
+├── clean_structure.txt
+├── cleanup_analysis.sh
+├── copy_character_images.sh
+├── create_backend_inits.py
+├── creative-direction-doc.txt
+├── dev-guide-3.txt
+├── dev-guide-4.md
+├── dev-guide-5.md
+├── dev-guide.txt
+├── dev_guide_5 PRIMARY FIX.md
+├── docker-compose.yml
+├── final_api_verification.sh
+├── final_cleanup_plan.sh
+├── final_verification.py
+├── fix_all_imports.sh
+├── fix_all_templates.sh
+├── fix_api_imports.py
+├── fix_app_routes.sh
+├── fix_character_model.py
+├── fix_character_select.sh
+├── fix_event_system.sh
+├── fix_flask_app.sh
+├── fix_item_model.sh
+├── fix_js_imports.js
+├── fix_js_modules.sh
+├── fix_missing_files.sh
+├── fix_python_imports.py
+├── fix_remaining_issues.sh
+├── fix_state_manager.sh
+├── fix_template_paths.sh
+├── frontend_test.sh
+├── full directory.txt
+├── game_data.db
+├── installation-guide.md
+├── js_module_checker.sh
+├── js_module_test.sh
+├── js_module_verification.sh
+├── js_testing_instructions.txt
+├── master_verification.sh
+├── medical_physics_game_backup_20250316.tar.gz
+├── medical_physics_game_backup_final.tar.gz
+├── migrate_data_files.sh
+├── migrate_missing_files.sh
+├── perform_cleanup.sh
+├── post-cleanup.md
+├── reorganization-guide.md
+├── requirements.txt
+├── run_tests.py
+├── simplify_bootstrap.sh
+├── skill-tree-concept.svg
+├── skill-tree-dev-guide.txt
+├── test_application.sh
+├── test_file.txt
+├── test_frontend.html
+├── test_modules.html
+├── understanding-1.md
+├── update_app_config.py
+├── update_app_routes.sh
+├── updated_cleanup_plan.sh
+├── verification_script.py
+├── verification_status.txt
+├── verify_structure.py
+└── wsgi.py
+
+84 directories, 338 files
