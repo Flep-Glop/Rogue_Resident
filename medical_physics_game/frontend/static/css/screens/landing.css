@@ -29,48 +29,22 @@
 /* Particle system */
 .particle {
     position: absolute;
-    background-color: var(--particle-color, var(--color-primary));
-    width: var(--particle-size, 2px);
-    height: var(--particle-size, 2px);
-    opacity: var(--particle-opacity, 0.7);
-    animation: 
-        float-particle var(--float-duration, 20s) infinite linear,
-        pulse-particle var(--pulse-duration, 3s) infinite alternate ease-in-out;
+    background-color: var(--color-primary);
+    width: 2px;
+    height: 2px;
+    opacity: 0.7;
     z-index: 1;
-}
-
-@keyframes float-particle {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    100% { transform: translate(var(--float-x, 100px), var(--float-y, 100px)) rotate(var(--float-rotate, 360deg)); }
-}
-
-@keyframes pulse-particle {
-    0% { opacity: var(--pulse-min, 0.4); }
-    100% { opacity: var(--pulse-max, 0.8); }
 }
 
 /* Geometric floating elements */
 .geo-element {
     position: absolute;
-    width: var(--geo-size, 40px);
-    height: var(--geo-size, 40px);
+    width: 40px;
+    height: 40px;
     background-color: transparent;
-    border: 1px solid var(--geo-color, var(--color-primary));
-    opacity: var(--geo-opacity, 0.3);
-    animation: 
-        float-geo var(--geo-duration, 30s) infinite linear,
-        pulse-geo var(--geo-pulse, 5s) infinite alternate ease-in-out;
+    border: 1px solid var(--color-primary);
+    opacity: 0.3;
     z-index: 1;
-}
-
-@keyframes float-geo {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    100% { transform: translate(var(--geo-x, 200px), var(--geo-y, 200px)) rotate(var(--geo-rotate, 360deg)); }
-}
-
-@keyframes pulse-geo {
-    0% { opacity: var(--geo-min, 0.1); border-color: var(--geo-color, var(--color-primary)); }
-    100% { opacity: var(--geo-max, 0.3); border-color: var(--geo-color-alt, var(--color-secondary)); }
 }
 
 /* Title section */
@@ -79,11 +53,13 @@
     margin-bottom: 3rem;
     position: relative;
     z-index: 2;
-    padding: var(--grid-size);
+    padding: 20px;
     background-color: rgba(0, 0, 0, 0.4);
     border: 2px solid var(--color-primary);
     transform: rotate(-2deg);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    margin: 0 auto 3rem;
 }
 
 .game-title {
@@ -92,9 +68,9 @@
     color: var(--color-primary);
     text-shadow: 
         4px 4px 0 rgba(0, 0, 0, 0.3),
-        0 0 10px var(--color-primary-glow);
+        0 0 10px rgba(91, 141, 217, 0.5);
     letter-spacing: 2px;
-    margin-bottom: var(--grid-size);
+    margin-bottom: 20px;
 }
 
 .game-subtitle {
@@ -102,6 +78,18 @@
     color: var(--color-secondary);
     text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
     letter-spacing: 1px;
+}
+
+/* Menu container */
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px auto;
+    max-width: 320px;
+    width: 100%;
+    position: relative;
+    z-index: 2;
 }
 
 /* Version and footer */
@@ -130,21 +118,52 @@
     50% { opacity: 1; }
 }
 
-/* CRT effect */
-.crt-effect {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 10;
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0),
-        rgba(0, 0, 0, 0) 2px,
-        rgba(0, 0, 0, 0.03) 3px,
-        rgba(0, 0, 0, 0.03) 3px
-    );
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+/* Floating animations */
+@keyframes float-particle {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(100px, 100px) rotate(360deg); }
+}
+
+@keyframes pulse-particle {
+    0% { opacity: 0.4; }
+    100% { opacity: 0.8; }
+}
+
+@keyframes float-geo {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(200px, 200px) rotate(360deg); }
+}
+
+@keyframes pulse-geo {
+    0% { opacity: 0.1; border-color: var(--color-primary); }
+    100% { opacity: 0.3; border-color: var(--color-secondary); }
+}
+
+/* Apply animations */
+.particle {
+    animation: 
+        float-particle 20s infinite linear,
+        pulse-particle 3s infinite alternate ease-in-out;
+}
+
+.geo-element {
+    animation: 
+        float-geo 30s infinite linear,
+        pulse-geo 5s infinite alternate ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .title-container {
+        max-width: 90%;
+        padding: 15px;
+    }
+    
+    .game-title {
+        font-size: 2rem;
+    }
+    
+    .game-subtitle {
+        font-size: 1rem;
+    }
 }

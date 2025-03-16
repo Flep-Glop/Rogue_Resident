@@ -1,166 +1,190 @@
 /**
- * Landing page script for Rogue Resident
+ * Landing page initialization and effects
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Landing page initialized");
+    // Initialize grid background
+    initGridBackground();
     
-    // Generate grid background
-    createGridBackground();
+    // Initialize particles
+    initParticles();
     
-    // Create colorful pixel particles
-    createPixelParticles();
+    // Initialize geometric elements
+    initGeoElements();
     
-    // Create geometric elements
-    createGeometricElements();
+    // Set up button event listeners
+    document.getElementById('new-game-btn').addEventListener('click', () => {
+        window.location.href = 'character-select';
+    });
     
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            location.href = 'character-select';
+    document.getElementById('continue-btn').addEventListener('click', () => {
+        window.location.href = 'game';
+    });
+    
+    document.getElementById('options-btn').addEventListener('click', openOptions);
+    
+    document.getElementById('help-btn').addEventListener('click', openHelp);
+    
+    // Space key event listener
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+            window.location.href = 'character-select';
         }
     });
+    
+    console.log("Landing page initialized");
 });
 
 /**
- * Creates the grid background
+ * Initialize grid background
  */
-function createGridBackground() {
+function initGridBackground() {
     const container = document.getElementById('grid-background');
-    const gridSize = 32; // Size of grid cells
+    if (!container) return;
+    
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     
     // Create horizontal grid lines
-    for (let y = 0; y < window.innerHeight; y += gridSize) {
+    for (let y = 0; y < viewportHeight; y += 40) {
         const line = document.createElement('div');
-        line.classList.add('grid-line', 'grid-line-horizontal');
+        line.className = 'grid-line grid-line-horizontal';
         line.style.top = `${y}px`;
         container.appendChild(line);
     }
     
     // Create vertical grid lines
-    for (let x = 0; x < window.innerWidth; x += gridSize) {
+    for (let x = 0; x < viewportWidth; x += 40) {
         const line = document.createElement('div');
-        line.classList.add('grid-line', 'grid-line-vertical');
+        line.className = 'grid-line grid-line-vertical';
         line.style.left = `${x}px`;
         container.appendChild(line);
     }
 }
 
 /**
- * Creates floating pixel particles
+ * Initialize particles
  */
-function createPixelParticles() {
+function initParticles() {
     const container = document.getElementById('particles-container');
-    const colors = [
-        'rgba(91, 141, 217, 0.8)',  // Primary
-        'rgba(86, 184, 134, 0.8)',  // Secondary
-        'rgba(240, 200, 102, 0.8)', // Warning
-        'rgba(156, 119, 219, 0.8)', // Purple
-        'rgba(230, 126, 115, 0.8)'  // Danger
-    ];
+    if (!container) return;
     
-    // Create many particles
-    for (let i = 0; i < 300; i++) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Create particles
+    for (let i = 0; i < 50; i++) {
         const particle = document.createElement('div');
-        particle.classList.add('particle');
-        
-        // Random size between 1-4px
-        const size = Math.random() * 3 + 1;
-        particle.style.setProperty('--particle-size', `${size}px`);
+        particle.className = 'particle';
         
         // Random position
-        particle.style.top = `${Math.random() * 100}%`;
-        particle.style.left = `${Math.random() * 100}%`;
+        const x = Math.random() * viewportWidth;
+        const y = Math.random() * viewportHeight;
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
         
-        // Random color
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.setProperty('--particle-color', color);
-        
-        // Random opacity
-        const opacity = Math.random() * 0.5 + 0.3;
-        particle.style.setProperty('--particle-opacity', opacity.toString());
+        // Random size
+        const size = 1 + Math.random() * 3;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
         
         // Random animation properties
-        particle.style.setProperty('--float-duration', `${Math.random() * 40 + 20}s`);
-        particle.style.setProperty('--float-x', `${Math.random() * 400 - 200}px`);
-        particle.style.setProperty('--float-y', `${Math.random() * 400 - 200}px`);
-        particle.style.setProperty('--float-rotate', `${Math.random() * 720 - 360}deg`);
+        const floatX = -200 + Math.random() * 400;
+        const floatY = -200 + Math.random() * 400;
+        const floatDuration = 15 + Math.random() * 30;
+        const pulseDuration = 2 + Math.random() * 4;
         
-        // Pulse animation
-        particle.style.setProperty('--pulse-duration', `${Math.random() * 4 + 2}s`);
-        particle.style.setProperty('--pulse-min', `${Math.random() * 0.3 + 0.1}`);
-        particle.style.setProperty('--pulse-max', `${opacity}`);
+        particle.style.setProperty('--float-x', `${floatX}px`);
+        particle.style.setProperty('--float-y', `${floatY}px`);
+        particle.style.setProperty('--float-duration', `${floatDuration}s`);
+        particle.style.setProperty('--pulse-duration', `${pulseDuration}s`);
+        
+        // Set a delay
+        particle.style.animationDelay = `${Math.random() * 10}s`;
         
         container.appendChild(particle);
     }
 }
 
 /**
- * Creates large geometric elements
+ * Initialize geometric elements
  */
-function createGeometricElements() {
+function initGeoElements() {
     const container = document.getElementById('geo-elements-container');
-    const shapes = [
-        'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', // Diamond
-        'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)', // Hexagon
-        'polygon(50% 0%, 100% 100%, 0% 100%)', // Triangle
-        'polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)' // Octagon
-    ];
+    if (!container) return;
     
-    const colors = [
-        'rgba(91, 141, 217, 0.5)',  // Primary
-        'rgba(86, 184, 134, 0.5)',  // Secondary
-        'rgba(240, 200, 102, 0.5)', // Warning
-        'rgba(156, 119, 219, 0.5)'  // Purple
-    ];
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     
-    // Add geometric elements
-    for (let i = 0; i < 25; i++) { // Reduced count since shapes are much larger
+    const shapes = ['square', 'circle', 'triangle', 'diamond'];
+    
+    // Create geometric elements
+    for (let i = 0; i < 15; i++) {
         const element = document.createElement('div');
-        element.classList.add('geo-element');
+        element.className = 'geo-element';
         
         // Random position
-        element.style.top = `${Math.random() * 100}%`;
-        element.style.left = `${Math.random() * 100}%`;
+        const x = Math.random() * viewportWidth;
+        const y = Math.random() * viewportHeight;
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
         
-        // Much larger random size between 80-300px
-        const size = Math.random() * 220 + 80;
-        element.style.setProperty('--geo-size', `${size}px`);
+        // Random size
+        const size = 20 + Math.random() * 60;
+        element.style.width = `${size}px`;
+        element.style.height = `${size}px`;
         
         // Random shape
         const shape = shapes[Math.floor(Math.random() * shapes.length)];
-        element.style.clipPath = shape;
-        
-        // Random colors
-        const color1 = colors[Math.floor(Math.random() * colors.length)];
-        const color2 = colors[Math.floor(Math.random() * colors.length)];
-        element.style.setProperty('--geo-color', color1);
-        element.style.setProperty('--geo-color-alt', color2);
-        
-        // Random opacity
-        element.style.setProperty('--geo-opacity', `${Math.random() * 0.2 + 0.1}`);
-        element.style.setProperty('--geo-min', `${Math.random() * 0.1 + 0.05}`);
-        element.style.setProperty('--geo-max', `${Math.random() * 0.2 + 0.1}`);
+        if (shape === 'circle') {
+            element.style.borderRadius = '50%';
+        } else if (shape === 'triangle') {
+            element.style.width = '0';
+            element.style.height = '0';
+            element.style.border = `${size/2}px solid transparent`;
+            element.style.borderBottomColor = 'var(--color-primary)';
+            element.style.borderRight = 'none';
+            element.style.borderLeft = 'none';
+            element.style.borderTop = 'none';
+        } else if (shape === 'diamond') {
+            element.style.transform = 'rotate(45deg)';
+        }
         
         // Random animation properties
-        element.style.setProperty('--geo-duration', `${Math.random() * 40 + 20}s`);
-        element.style.setProperty('--geo-x', `${Math.random() * 400 - 200}px`);
-        element.style.setProperty('--geo-y', `${Math.random() * 400 - 200}px`);
-        element.style.setProperty('--geo-rotate', `${Math.random() * 360}deg`);
-        element.style.setProperty('--geo-pulse', `${Math.random() * 6 + 3}s`);
+        const floatX = -300 + Math.random() * 600;
+        const floatY = -300 + Math.random() * 600;
+        const floatDuration = 30 + Math.random() * 60;
+        const geoDuration = 4 + Math.random() * 8;
+        
+        element.style.setProperty('--geo-x', `${floatX}px`);
+        element.style.setProperty('--geo-y', `${floatY}px`);
+        element.style.setProperty('--geo-duration', `${floatDuration}s`);
+        element.style.setProperty('--geo-pulse', `${geoDuration}s`);
+        
+        // Random color variation
+        if (Math.random() > 0.5) {
+            element.style.setProperty('--geo-color', 'var(--color-primary)');
+            element.style.setProperty('--geo-color-alt', 'var(--color-secondary)');
+        } else {
+            element.style.setProperty('--geo-color', 'var(--color-secondary)');
+            element.style.setProperty('--geo-color-alt', 'var(--color-primary)');
+        }
+        
+        // Set a delay
+        element.style.animationDelay = `${Math.random() * 10}s`;
         
         container.appendChild(element);
     }
 }
 
 /**
- * Opens options dialog
+ * Open options modal
  */
 function openOptions() {
     alert('Options will be available in the next update!');
 }
 
 /**
- * Opens help dialog
+ * Open help modal
  */
 function openHelp() {
     alert('Welcome to Rogue Resident! Navigate through each floor, answer questions correctly to gain insight, and avoid losing all your lives. Good luck!');
