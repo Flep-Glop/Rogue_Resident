@@ -1,3 +1,6 @@
+/* Import pixel font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 /* Medical Physics Game - Retro Theme CSS */
 :root {
   /* Main color palette */
@@ -29,9 +32,6 @@
   --font-main: var(--font-pixel);
   --text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
 }
-
-/* Import pixel font */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* Global styles */
 body {
