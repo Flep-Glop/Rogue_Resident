@@ -1,586 +1,165 @@
-/* Modern Character Selection CSS */
-
-:root {
-    /* Enhanced color palette */
-    --glow-primary: rgba(91, 141, 217, 0.6);
-    --glow-secondary: rgba(86, 184, 134, 0.6);
-    --card-bg: rgba(30, 34, 50, 0.85);
-    --card-border: rgba(91, 141, 217, 0.5);
-    --card-selected-border: rgba(86, 184, 134, 0.8);
-    --progress-bg: rgba(255, 255, 255, 0.1);
-  }
-  
-  /* Background animation */
-  .pixel-container {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .star-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 0;
-  }
-  
-  .star {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background-color: white;
-    border-radius: 50%;
-    opacity: 0.6;
-    animation: twinkle 4s infinite alternate;
-  }
-  
-  @keyframes twinkle {
-    0% { opacity: 0.2; }
-    100% { opacity: 0.7; }
-  }
-  
-  /* Main content wrapper */
-  .selection-content {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+/* New simplified character_select.css */
+.character-selection {
     padding: 2rem;
-  }
-  
-  /* Enhanced character carousel */
-  .character-carousel {
-    position: relative;
-    margin: 3rem auto;
-    perspective: 1000px;
-  }
-  
-  .character-cards-wrapper {
-    position: relative;
-    height: 450px;
-    margin: 0 auto;
-    max-width: 1000px;
-  }
-  
-  .character-cards {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  
-  .character-card {
-    position: absolute;
-    width: 280px;
-    height: 400px;
-    top: 0;
-    left: 50%;
-    margin-left: -140px;
-    background: var(--card-bg);
-    border: 2px solid var(--card-border);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    padding: 0;
-    opacity: 0.7;
-    overflow: hidden;
-    transform-origin: center center;
-    transition: all 0.5s ease;
-    transform-style: preserve-3d;
-  }
-  
-  .character-card.active {
-    opacity: 1;
-    z-index: 10;
-    box-shadow: 0 15px 40px var(--glow-primary),
-                0 0 20px var(--glow-secondary);
-    border-color: var(--card-selected-border);
-    transform: scale(1.1) translateZ(50px);
-  }
-  
-  /* Card content layout */
-  .card-header {
-    position: relative;
-    background: linear-gradient(to bottom, rgba(91, 141, 217, 0.3), transparent);
-    padding: 15px;
+}
+
+#character-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.character-card {
+    background-color: rgba(30, 34, 50, 0.9);
+    border: 2px solid rgba(91, 141, 217, 0.5);
+    border-radius: 8px;
+    padding: 1.5rem;
     text-align: center;
-    border-bottom: 1px solid rgba(91, 141, 217, 0.3);
-  }
-  
-  .card-avatar {
-    width: 120px;
-    height: 120px;
-    margin: 10px auto;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-color: rgba(91, 141, 217, 0.8);
+}
+
+.character-card.selected {
+    border-color: rgba(86, 184, 134, 1);
+    box-shadow: 0 0 20px rgba(86, 184, 134, 0.6);
+    transform: translateY(-5px);
+}
+
+.card-avatar {
+    width: 100px;
+    height: 100px;
     border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
     border: 3px solid rgba(91, 141, 217, 0.5);
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    transform: scale(1);
-  }
-  
-  .character-card.active .card-avatar {
-    transform: scale(1.05);
-    border-color: var(--card-selected-border);
-    box-shadow: 0 0 20px var(--glow-secondary);
-  }
-  
-  .card-avatar img {
+    margin: 0 auto 1rem;
+}
+
+.card-avatar img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     image-rendering: pixelated;
-  }
-  
-  .card-name {
-    font-size: 1.8rem;
+}
+
+.card-name {
     color: var(--color-primary);
-    margin: 10px 0;
-    text-shadow: 0 0 10px var(--glow-primary);
-  }
-  
-  .custom-badge {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.card-stats {
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.stat-name {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.stat-bar {
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 3px;
+}
+
+.stat-fill {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: 4px;
+}
+
+.card-abilities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+}
+
+.ability-tag {
+    background-color: rgba(91, 141, 217, 0.3);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.delete-btn {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: var(--color-secondary);
-    color: white;
-    font-size: 0.7rem;
-    padding: 5px 10px;
-    border-radius: 15px;
-    box-shadow: 0 0 10px var(--glow-secondary);
-  }
-  
-  /* Integrated stats directly on card */
-  .card-stats {
-    padding: 15px;
-  }
-  
-  .card-desc {
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-    margin-bottom: 20px;
-    text-align: center;
-    height: 40px;
-  }
-  
-  .stat-item {
-    margin-bottom: 12px;
-  }
-  
-  .stat-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-  }
-  
-  .stat-name {
-    color: var(--color-text);
-  }
-  
-  .stat-value {
-    color: var(--color-primary);
-    font-weight: bold;
-  }
-  
-  .stat-bar {
-    height: 8px;
-    background-color: var(--progress-bg);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .stat-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 1s cubic-bezier(0.19, 1, 0.22, 1);
-    background: linear-gradient(90deg, 
-      var(--color-primary-dark) 0%, 
-      var(--color-primary) 70%, 
-      var(--color-primary-light) 100%);
-    position: relative;
-  }
-  
-  .character-card.active .stat-fill {
-    animation: glow-pulse 2s infinite alternate;
-  }
-  
-  @keyframes glow-pulse {
-    0% { box-shadow: 0 0 5px var(--glow-primary); }
-    100% { box-shadow: 0 0 15px var(--glow-primary); }
-  }
-  
-  /* Card ability tags */
-  .card-abilities {
-    padding: 0 15px 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-  
-  .ability-tag {
-    background-color: rgba(91, 141, 217, 0.3);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-    border: 1px solid var(--card-border);
-  }
-  
-  .character-card.active .ability-tag {
-    background-color: var(--color-primary-dark);
-    box-shadow: 0 0 10px var(--glow-primary);
-  }
-  
-  /* Enhanced navigation buttons */
-  .carousel-button {
-    width: 60px;
-    height: 60px;
-    background-color: rgba(30, 34, 50, 0.7);
-    border: 2px solid var(--card-border);
-    color: var(--color-primary);
-    font-size: 2rem;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-    transition: all 0.3s ease;
+    width: 25px;
+    height: 25px;
+    background-color: rgba(230, 126, 115, 0.3);
+    color: var(--color-danger);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  }
-  
-  .carousel-button:hover {
-    background-color: var(--color-primary);
-    color: white;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 0 20px var(--glow-primary);
-  }
-  
-  .prev-button {
-    left: 50px;
-  }
-  
-  .next-button {
-    right: 50px;
-  }
-  
-  /* Enhanced indicator dots */
-  .carousel-indicators {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-    gap: 10px;
-  }
-  
-  .carousel-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(91, 141, 217, 0.3);
-    border: 2px solid var(--card-border);
-    transition: all 0.3s ease;
+    font-size: 1rem;
     cursor: pointer;
-  }
-  
-  .carousel-dot.active {
-    background-color: var(--color-secondary);
-    transform: scale(1.2);
-    box-shadow: 0 0 10px var(--glow-secondary);
-  }
-  
-  /* Action buttons */
-  .button-container {
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.button-container {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-  }
-  
-  .action-button {
-    padding: 12px 24px;
-    background-color: var(--color-primary-dark);
+    gap: 1rem;
+}
+
+.action-button {
+    padding: 0.8rem 1.5rem;
+    background-color: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 30px;
+    border-radius: 4px;
     font-size: 1rem;
-    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .action-button:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 255, 255, 0.05)
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .action-button:hover:before {
-    opacity: 1;
-  }
-  
-  .action-button:hover {
+    min-width: 150px;
+}
+
+.action-button:hover {
+    background-color: var(--color-primary-light);
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-  }
-  
-  .select-button {
+}
+
+.action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.select-button {
     background-color: var(--color-secondary);
-    min-width: 200px;
-  }
-  
-  .select-button:hover {
-    box-shadow: 0 8px 25px var(--glow-secondary);
-  }
-  
-  .create-button {
-    background-color: var(--color-primary);
-    min-width: 220px;
-  }
-  
-  .create-button:hover {
-    box-shadow: 0 8px 25px var(--glow-primary);
-  }
-  
-  .back-button {
-    background-color: var(--color-warning);
-    min-width: 180px;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 1200px) {
-    .character-cards-wrapper {
-      max-width: 90%;
-    }
-    
-    .prev-button {
-      left: 20px;
-    }
-    
-    .next-button {
-      right: 20px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .character-card {
-      width: 240px;
-      margin-left: -120px;
-      height: 380px;
-    }
-    
-    .carousel-button {
-      width: 45px;
-      height: 45px;
-      font-size: 1.5rem;
-    }
-    
-    .button-container {
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .action-button {
-      width: 100%;
-      max-width: 300px;
-    }
-  }
+}
 
-  /* CSS fixes for character_image_styles.css */
+.select-button:hover {
+    background-color: var(--color-secondary-light);
+}
 
-/* Fix the character carousel perspective and positioning */
-.character-cards-wrapper {
-    position: relative;
-    height: 450px;
-    margin: 0 auto;
-    max-width: 800px;
-    perspective: 1200px; /* Increased perspective for better 3D effect */
-    overflow: visible; /* Allow cards to be visible outside container */
-  }
-  
-  .character-cards {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  
-  .character-card {
-    position: absolute;
-    width: 280px;
-    height: 400px;
-    top: 0;
-    left: 50%;
-    margin-left: -140px;
-    background: var(--card-bg);
-    border: 2px solid var(--card-border);
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    padding: 0;
-    opacity: 0.7;
-    overflow: hidden;
-    transform-origin: center center;
-    transition: all 0.5s ease;
-    transform-style: preserve-3d;
-    backface-visibility: hidden; /* Prevent cards from showing through */
-  }
-  
-  .character-card.active {
-    opacity: 1;
-    z-index: 10;
-    box-shadow: 0 15px 40px var(--glow-primary),
-                0 0 20px var(--glow-secondary);
-    border-color: var(--card-selected-border);
-  }
-  
-  /* Ensure content is visible */
-  .card-content {
-    padding: 0 15px 15px;
-    max-height: 260px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-  }
-  
-  /* Fix card avatar visibility */
-  .card-avatar {
-    width: 100px;
-    height: 100px;
-    margin: 10px auto;
-    border-radius: 10px;
-    border: 3px solid rgba(91, 141, 217, 0.5);
-    padding: 5px;
-    background-color: rgba(0, 0, 0, 0.3);
-    position: relative; 
-    z-index: 2;
-  }
-  
-  /* Fix carousel navigation buttons positioning */
-  .carousel-button {
-    width: 50px;
-    height: 50px;
-    background-color: rgba(30, 34, 50, 0.9); /* Increased opacity */
-    border: 2px solid var(--card-border);
-    color: var(--color-primary);
-    font-size: 1.5rem;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  }
-  
-  .prev-button {
-    left: 20px;
-  }
-  
-  .next-button {
-    right: 20px;
-  }
-  
-  /* Fix delete confirmation modal */
-  .modal-overlay {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-  }
-  
-  .modal-content {
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 10px;
-    border: 2px solid var(--card-border);
-    width: 100%;
-    max-width: 400px;
+.empty-message {
+    grid-column: 1 / -1;
     text-align: center;
-    transform: scale(0.9);
-    opacity: 0;
-    transition: all 0.3s ease;
-  }
-  
-  .modal-content.show {
-    transform: scale(1);
-    opacity: 1;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-  }
-
-  /* Add this to character_image_styles.css */
-.character-cards-wrapper {
-    perspective: 1200px; /* Add proper perspective */
-    overflow: visible; /* Allow elements to be visible outside container */
-  }
-  
-  .character-card {
-    opacity: 0.9; /* Increase from 0.7 to make cards more visible */
-    z-index: 5; /* Ensure base z-index is set */
-  }
-
-  /* Add these to character_image_styles.css */
-.character-cards-wrapper {
-    perspective: 1200px; /* Ensure proper 3D perspective */
-    overflow: visible;   /* Allow cards to be visible outside container */
-  }
-  
-  .character-card {
-    opacity: 0.8;        /* Increase base opacity from 0.7 */
-    z-index: 1;          /* Ensure z-index is applied */
-    transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); /* Smoother transition */
-    backface-visibility: hidden; /* Prevent backface issues */
-    transform-style: preserve-3d; /* Maintain 3D for children */
-  }
-  
-  .character-card.active {
-    opacity: 1;
-    z-index: 10; 
-    box-shadow: 0 15px 40px rgba(91, 141, 217, 0.6),
-                0 0 20px rgba(86, 184, 134, 0.6);
-  }
-  
-  .card-content {
-    overflow-y: auto;    /* Allow scrolling for content that doesn't fit */
-    max-height: 240px;   /* Set a maximum height */
-  }
+    padding: 3rem;
+    background-color: rgba(30, 34, 50, 0.7);
+    border-radius: 8px;
+}
