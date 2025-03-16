@@ -1,134 +1,39 @@
-// skill_tree_manager.js - Manages skill tree functionality and state
+// skill_tree_manager.js - Core manager for skill tree functionality and state
+// Refactored version with improved modularity and separation of concerns
 
-// Define the new core cluster nodes
-const CORE_CLUSTER_NODES = {
-  "radiation_physics": {
-    "id": "radiation_physics",
-    "name": "Radiation Physics",
-    "specialization": "core",
-    "tier": 0,
-    "description": "Understanding of radiation behavior and interactions with matter.",
-    "effects": [
-      {
-        "type": "insight_gain_flat",
-        "value": 2,
-        "condition": null
-      }
-    ],
-    "position": {"x": 370, "y": 280},
-    "connections": ["quantum_comprehension", "radiation_detection"],
-    "cost": {
-      "reputation": 0,
-      "skill_points": 0
-    },
-    "visual": {
-      "size": "minor",
-      "icon": "zap"
-    }
-  },
-  "medical_instrumentation": {
-    "id": "medical_instrumentation",
-    "name": "Medical Instrumentation",
-    "specialization": "core",
-    "tier": 0,
-    "description": "Knowledge of medical imaging and therapy devices.",
-    "effects": [
-      {
-        "type": "equipment_cost_reduction",
-        "value": 0.1,
-        "condition": null
-      }
-    ],
-    "position": {"x": 430, "y": 280},
-    "connections": ["calibration_expert", "machine_whisperer"],
-    "cost": {
-      "reputation": 0,
-      "skill_points": 0
-    },
-    "visual": {
-      "size": "minor",
-      "icon": "tool"
-    }
-  },
-  "patient_care": {
-    "id": "patient_care",
-    "name": "Patient Care",
-    "specialization": "core",
-    "tier": 0,
-    "description": "Fundamentals of patient care and safety protocols.",
-    "effects": [
-      {
-        "type": "patient_outcome_multiplier",
-        "value": 1.1,
-        "condition": null
-      }
-    ],
-    "position": {"x": 370, "y": 320},
-    "connections": ["bedside_manner", "diagnostic_intuition"],
-    "cost": {
-      "reputation": 0,
-      "skill_points": 0
-    },
-    "visual": {
-      "size": "minor",
-      "icon": "heart"
-    }
-  },
-  "medical_science": {
-    "id": "medical_science",
-    "name": "Medical Science",
-    "specialization": "core",
-    "tier": 0,
-    "description": "Scientific principles underlying medical physics.",
-    "effects": [
-      {
-        "type": "insight_gain_multiplier",
-        "value": 1.05,
-        "condition": null
-      }
-    ],
-    "position": {"x": 430, "y": 320},
-    "connections": ["literature_review", "scholarly_memory"],
-    "cost": {
-      "reputation": 0,
-      "skill_points": 0
-    },
-    "visual": {
-      "size": "minor",
-      "icon": "book"
-    }
-  }
-};
+// Import core modules (these would be separate files in the actual implementation)
+import { SKILL_STATES, NODE_SIZES } from './skill_tree_constants.js';
+import { CoreClusterNodes } from './skill_tree_data.js';
+import { ApiClient } from '../api/api_client.js';
+import { ErrorHandler } from '../utils/error_handler.js';
 
-// Get a list of all core node IDs for easier reference
-const CORE_NODE_IDS = Object.keys(CORE_CLUSTER_NODES);
-
-// Define skill states as constants
-const SKILL_STATE = {
-  LOCKED: 'locked',       // Cannot be unlocked yet (prerequisites not met)
-  UNLOCKABLE: 'unlockable', // Can be unlocked (prerequisites met, reputation cost affordable)
-  UNLOCKED: 'unlocked',   // Unlocked but not active in current run
-  ACTIVE: 'active'        // Unlocked and active in current run
-};
-
-// SkillTreeManager singleton - manages all skill tree functionality
-const SkillTreeManager = {
-  // Core skill tree data
-  skills: {},                  // All skills from skill_tree.json
-  specializations: {},         // All specializations from skill_tree.json
-  connections: [],             // All skill connections
-  unlockedSkills: [],          // Skill IDs that are permanently unlocked
-  activeSkills: [],            // Skill IDs that are active in current run
-  specialization_progress: {}, // Current progress in each specialization
-  skillPointsAvailable: 0,     // Skill points available for current run
-  reputation: 0,               // Meta-currency for unlocking skills
-  initialized: false,          // Flag to track initialization state
+/**
+ * SkillTreeManager - Core module that manages skill tree functionality and state
+ * This implementation uses a revealing module pattern for better encapsulation
+ */
+const SkillTreeManager = (function() {
+  // Private state
+  const _state = {
+    initialized: false,
+    dataLoaded: false,
+    errorState: false
+  };
   
-  // Event observers with typed subscriptions
-  observers: {
-    // Global observers receive all events
+  // Core data structures with defaults
+  let _data = {
+    skills: {},                  // All skills
+    specializations: {},         // All specializations
+    connections: [],             // All skill connections
+    unlockedSkills: [],          // Permanently unlocked skills
+    activeSkills: [],            // Active skills in current run
+    specialization_progress: {}, // Progress in each specialization
+    skillPointsAvailable: 0,     // Skill points for current run
+    reputation: 0                // Meta-currency for unlocking
+  };
+  
+  // Observer registry with typed subscriptions
+  const _observers = {
     global: [],
-    // Event-specific observers
     skillTreeInitialized: [],
     skillUnlocked: [],
     skillActivated: [],
@@ -136,52 +41,44 @@ const SkillTreeManager = {
     specializationUpdated: [],
     reputationChanged: [],
     skillPointsChanged: []
-  },
+  };
   
-  initialize: function() {
+  /**
+   * Initialize the manager
+   * @returns {Promise} Promise that resolves when initialized
+   */
+  function initialize() {
     console.log("Initializing skill tree manager...");
     
-    if (this.initialized) {
-      console.log("SkillTreeManager already initialized - skipping initialization");
-      return Promise.resolve(this);
+    if (_state.initialized) {
+      console.log("SkillTreeManager already initialized");
+      return Promise.resolve();
     }
     
     // Load skill tree data with improved error handling
-    return fetch('/api/skill-tree')
-      .then(response => {
-        if (!response.ok) {
-          console.error(`API error: ${response.status} when loading skill tree data`);
-          throw new Error(`Failed to load skill tree data: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Skill tree data loaded successfully");
-        
-        // Process skill tree data
-        this._processSkillTreeData(data);
-        
+    return _loadSkillTreeData()
+      .then(() => {
         // Connect to game state
-        this._connectToGameState();
+        _connectToGameState();
         
         // Load player progress
-        return this._loadPlayerProgress();
+        return _loadPlayerProgress();
       })
       .then(() => {
         // Set initialized flag
-        this.initialized = true;
+        _state.initialized = true;
         
         // Notify observers
-        this.notifyObservers('skillTreeInitialized', {
-          skills: this.skills,
-          specializations: this.specializations,
-          unlockedSkills: this.unlockedSkills,
-          activeSkills: this.activeSkills,
-          specialization_progress: this.specialization_progress
+        _notifyObservers('skillTreeInitialized', {
+          skills: _data.skills,
+          specializations: _data.specializations,
+          unlockedSkills: _data.unlockedSkills,
+          activeSkills: _data.activeSkills,
+          specialization_progress: _data.specialization_progress
         });
         
         console.log("Skill tree manager initialized successfully");
-        return this;
+        return Promise.resolve();
       })
       .catch(error => {
         // Handle error and create fallback data
@@ -193,27 +90,51 @@ const SkillTreeManager = {
           ErrorHandler.SEVERITY.ERROR
         );
         
-        this._createFallbackData();
-        this.initialized = true;
+        _createFallbackData();
+        _state.initialized = true;
         
         console.log("Skill tree manager initialized with fallback data");
-        return this;
+        return Promise.resolve();
       });
-  },
+  }
   
-  // Process skill tree data from JSON
-  _processSkillTreeData: function(data) {
+  /**
+   * Load skill tree data from the server
+   * @private
+   * @returns {Promise} Promise that resolves with skill tree data
+   */
+  function _loadSkillTreeData() {
+    return ApiClient.get('/api/skill-tree')
+      .then(data => {
+        if (!data) {
+          throw new Error("Failed to load skill tree data: empty response");
+        }
+        
+        // Process skill tree data
+        _processSkillTreeData(data);
+        _state.dataLoaded = true;
+        
+        return data;
+      });
+  }
+  
+  /**
+   * Process skill tree data from JSON
+   * @private
+   * @param {Object} data - Skill tree data from server
+   */
+  function _processSkillTreeData(data) {
     console.log("Processing skill tree data...");
     
     // Process specializations
     data.specializations.forEach(spec => {
-      this.specializations[spec.id] = spec;
-      this.specialization_progress[spec.id] = 0;
+      _data.specializations[spec.id] = spec;
+      _data.specialization_progress[spec.id] = 0;
     });
     
     // Ensure core specialization exists
-    if (!this.specializations["core"]) {
-      this.specializations["core"] = {
+    if (!_data.specializations["core"]) {
+      _data.specializations["core"] = {
         "id": "core",
         "name": "Core Competencies",
         "description": "Fundamental medical physics knowledge",
@@ -221,7 +142,7 @@ const SkillTreeManager = {
         "threshold": 4,
         "mastery_threshold": 4
       };
-      this.specialization_progress["core"] = 0;
+      _data.specialization_progress["core"] = 0;
     }
     
     // Replace core_physics node with core cluster if it exists
@@ -238,30 +159,37 @@ const SkillTreeManager = {
     // If core_physics was found, add the cluster nodes instead
     if (hasCorePhysics) {
       // Add all nodes from the cluster
-      Object.values(CORE_CLUSTER_NODES).forEach(node => {
+      Object.values(CoreClusterNodes).forEach(node => {
         data.nodes.push(node);
       });
       
-      // Update connections
-      this._updateConnectionsForCoreCluster(data.connections);
+      // Update connections for core cluster
+      _updateConnectionsForCoreCluster(data.connections);
     }
     
     // Process skills
     data.nodes.forEach(node => {
-      this.skills[node.id] = node;
+      _data.skills[node.id] = node;
       
       // Initialize skill state
-      node.state = SKILL_STATE.LOCKED;
+      node.state = SKILL_STATES.LOCKED;
     });
     
     // Process connections
-    this.connections = data.connections;
+    _data.connections = data.connections;
     
-    console.log(`Processed ${Object.keys(this.skills).length} skills and ${Object.keys(this.specializations).length} specializations`);
-  },
+    console.log(`Processed ${Object.keys(_data.skills).length} skills and ${Object.keys(_data.specializations).length} specializations`);
+  }
   
-  // Helper to update connections when replacing core_physics with the cluster
-  _updateConnectionsForCoreCluster: function(connections) {
+  /**
+   * Helper to update connections when replacing core_physics with the cluster
+   * @private
+   * @param {Array} connections - Array of connections to update
+   */
+  function _updateConnectionsForCoreCluster(connections) {
+    // Get core node IDs
+    const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
+    
     // Remove connections to/from core_physics
     for (let i = connections.length - 1; i >= 0; i--) {
       if (connections[i].source === "core_physics" || connections[i].target === "core_physics") {
@@ -284,38 +212,43 @@ const SkillTreeManager = {
     connections.push({"source": "patient_care", "target": "diagnostic_intuition"});
     connections.push({"source": "medical_science", "target": "literature_review"});
     connections.push({"source": "medical_science", "target": "scholarly_memory"});
-  },
+  }
   
-  // Connect to game state
-  _connectToGameState: function() {
-    // Register for game state changes
-    GameState.addObserver((eventType, data) => {
-      // Handle character updates (reputation changes)
-      if (eventType === 'characterUpdated' && data.reputation !== this.reputation) {
-        this.setReputation(data.reputation || 0);
-      }
+  /**
+   * Connect to game state for events
+   * @private
+   */
+  function _connectToGameState() {
+    // Register for game state changes if GameState exists
+    if (window.GameState && window.GameState.addObserver) {
+      window.GameState.addObserver((eventType, data) => {
+        // Handle character updates (reputation changes)
+        if (eventType === 'characterUpdated' && data.reputation !== _data.reputation) {
+          setReputation(data.reputation || 0);
+        }
+      });
+    }
+    
+    // Register event listeners if EventSystem exists
+    if (window.EventSystem && window.EventSystem.on) {
+      window.EventSystem.on('RUN_STARTED', () => {
+        resetActiveSkills();
+        updateAllSkillStates();
+      });
       
-      // Handle floor changes (reset active skills)
-      if (eventType === 'floorChanging') {
-        // Reset active skills for next floor/run if needed
-        // This would be where we'd implement any per-floor skill reset logic
-      }
-    });
-    
-    // Register event listeners
-    EventSystem.on(GAME_EVENTS.RUN_STARTED, () => {
-      this.resetActiveSkills();
-      this.updateAllSkillStates();
-    });
-    
-    EventSystem.on(GAME_EVENTS.RUN_COMPLETED, () => {
-      // Save the skill tree progress when a run completes
-      this.saveProgress();
-    });
-  },
+      window.EventSystem.on('RUN_COMPLETED', () => {
+        // Save the skill tree progress when a run completes
+        saveProgress();
+      });
+    }
+  }
   
-  // Load player progress from server
-  _loadPlayerProgress: function() {
+  /**
+   * Load player progress from server
+   * @private
+   * @returns {Promise} Promise that resolves when player progress is loaded
+   */
+  function _loadPlayerProgress() {
     console.log("Loading player skill tree progress...");
     
     // Use our ApiClient to load progress
@@ -326,92 +259,90 @@ const SkillTreeManager = {
         }
         
         // Set reputation
-        this.reputation = data.reputation || 0;
+        _data.reputation = data.reputation || 0;
         
         // Set unlocked skills (ensure core nodes are always included)
-        this.unlockedSkills = data.unlocked_skills || [];
+        _data.unlockedSkills = data.unlocked_skills || [];
+        
+        // Get core node IDs
+        const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
         
         // Check if we need to migrate from core_physics to core cluster
-        if (this.unlockedSkills.includes('core_physics')) {
+        if (_data.unlockedSkills.includes('core_physics')) {
           // Remove core_physics
-          const index = this.unlockedSkills.indexOf('core_physics');
+          const index = _data.unlockedSkills.indexOf('core_physics');
           if (index !== -1) {
-            this.unlockedSkills.splice(index, 1);
+            _data.unlockedSkills.splice(index, 1);
           }
           
           // Add all core cluster nodes
           CORE_NODE_IDS.forEach(nodeId => {
-            if (!this.unlockedSkills.includes(nodeId)) {
-              this.unlockedSkills.push(nodeId);
+            if (!_data.unlockedSkills.includes(nodeId)) {
+              _data.unlockedSkills.push(nodeId);
             }
           });
         } else {
           // Just ensure all core nodes are included
           CORE_NODE_IDS.forEach(nodeId => {
-            if (!this.unlockedSkills.includes(nodeId)) {
-              this.unlockedSkills.push(nodeId);
+            if (!_data.unlockedSkills.includes(nodeId)) {
+              _data.unlockedSkills.push(nodeId);
             }
           });
         }
         
         // Set active skills (ensure core nodes are always included)
-        this.activeSkills = data.active_skills || [];
+        _data.activeSkills = data.active_skills || [];
         
         // Migrate active skills from core_physics if needed
-        if (this.activeSkills.includes('core_physics')) {
+        if (_data.activeSkills.includes('core_physics')) {
           // Remove core_physics
-          const index = this.activeSkills.indexOf('core_physics');
+          const index = _data.activeSkills.indexOf('core_physics');
           if (index !== -1) {
-            this.activeSkills.splice(index, 1);
+            _data.activeSkills.splice(index, 1);
           }
           
           // Add all core cluster nodes
           CORE_NODE_IDS.forEach(nodeId => {
-            if (!this.activeSkills.includes(nodeId)) {
-              this.activeSkills.push(nodeId);
+            if (!_data.activeSkills.includes(nodeId)) {
+              _data.activeSkills.push(nodeId);
             }
           });
         } else {
           // Just ensure all core nodes are included
           CORE_NODE_IDS.forEach(nodeId => {
-            if (!this.activeSkills.includes(nodeId)) {
-              this.activeSkills.push(nodeId);
+            if (!_data.activeSkills.includes(nodeId)) {
+              _data.activeSkills.push(nodeId);
             }
           });
         }
         
         // Set skill points available
-        this.skillPointsAvailable = data.skill_points_available || 3;
+        _data.skillPointsAvailable = data.skill_points_available || 3;
         
         // Load specialization progress
         if (data.specialization_progress) {
           // Initialize all specializations to 0 first
-          Object.keys(this.specializations).forEach(specId => {
-            this.specialization_progress[specId] = 0;
+          Object.keys(_data.specializations).forEach(specId => {
+            _data.specialization_progress[specId] = 0;
           });
           
           // Then update with actual progress
           Object.keys(data.specialization_progress).forEach(specId => {
-            if (this.specialization_progress[specId] !== undefined) {
-              this.specialization_progress[specId] = data.specialization_progress[specId];
+            if (_data.specialization_progress[specId] !== undefined) {
+              _data.specialization_progress[specId] = data.specialization_progress[specId];
             }
           });
         } else {
           // Initialize all to 0
-          Object.keys(this.specializations).forEach(specId => {
-            this.specialization_progress[specId] = 0;
+          Object.keys(_data.specializations).forEach(specId => {
+            _data.specialization_progress[specId] = 0;
           });
         }
         
         // Update all skill states
-        this.updateAllSkillStates();
+        updateAllSkillStates();
         
-        console.log(`Loaded player progress: ${this.unlockedSkills.length} unlocked skills, ${this.reputation} reputation`);
-        
-        // If no skills are loaded (new player), add a debug message
-        if (this.unlockedSkills.length <= CORE_NODE_IDS.length) {
-          console.log("New player detected, only core skills are unlocked");
-        }
+        console.log(`Loaded player progress: ${_data.unlockedSkills.length} unlocked skills, ${_data.reputation} reputation`);
         
         return true;
       })
@@ -425,29 +356,42 @@ const SkillTreeManager = {
         console.warn("Using default progress data due to load failure:", error);
         
         // Create empty progress data on error
-        this.reputation = 10; // Start with 10 reputation to unlock something
-        this.unlockedSkills = [...CORE_NODE_IDS]; // All core cluster nodes
-        this.activeSkills = [...CORE_NODE_IDS];   // All core cluster nodes active
-        this.skillPointsAvailable = 3;            // Start with some skill points
-        
-        // Initialize specialization progress to zero
-        Object.keys(this.specializations).forEach(specId => {
-          this.specialization_progress[specId] = 0;
-        });
-        
-        // Update all skill states
-        this.updateAllSkillStates();
+        _createDefaultProgressData();
         
         return false;
       });
-  },
+  }
   
-  // Create fallback data in case of error
-  _createFallbackData: function() {
+  /**
+   * Create default player progress data
+   * @private
+   */
+  function _createDefaultProgressData() {
+    const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
+    
+    _data.reputation = 10; // Start with 10 reputation to unlock something
+    _data.unlockedSkills = [...CORE_NODE_IDS]; // All core cluster nodes
+    _data.activeSkills = [...CORE_NODE_IDS];   // All core cluster nodes active
+    _data.skillPointsAvailable = 3;            // Start with some skill points
+    
+    // Initialize specialization progress to zero
+    Object.keys(_data.specializations).forEach(specId => {
+      _data.specialization_progress[specId] = 0;
+    });
+    
+    // Update all skill states
+    updateAllSkillStates();
+  }
+  
+  /**
+   * Create fallback data in case of error
+   * @private
+   */
+  function _createFallbackData() {
     console.log("Creating fallback skill tree data with core cluster");
     
     // Create basic specializations
-    this.specializations = {
+    _data.specializations = {
       "core": {
         "id": "core",
         "name": "Core Competencies",
@@ -474,12 +418,12 @@ const SkillTreeManager = {
       }
     };
     
-    // Create basic skills with the core cluster nodes
-    this.skills = {
+    // Create basic skills
+    _data.skills = {
       // Add the core cluster nodes
-      ...CORE_CLUSTER_NODES,
+      ...CoreClusterNodes,
       
-      // Add a few basic skill nodes
+      // Add a few basic skill nodes (simplified from original)
       "quantum_comprehension": {
         "id": "quantum_comprehension",
         "name": "Quantum Comprehension",
@@ -499,188 +443,17 @@ const SkillTreeManager = {
           "reputation": 10,
           "skill_points": 2
         },
-        "state": SKILL_STATE.LOCKED,
+        "state": SKILL_STATES.LOCKED,
         "visual": {
-          "size": "minor",
+          "size": NODE_SIZES.MINOR,
           "icon": "brain"
         }
-      },
-      "bedside_manner": {
-        "id": "bedside_manner",
-        "name": "Bedside Manner",
-        "specialization": "clinical",
-        "tier": 1,
-        "description": "+30% to patient outcome ratings",
-        "effects": [
-          {
-            "type": "patient_outcome_multiplier",
-            "condition": null,
-            "value": 1.3
-          }
-        ],
-        "position": {"x": 500, "y": 150},
-        "connections": [],
-        "cost": {
-          "reputation": 10,
-          "skill_points": 2
-        },
-        "state": SKILL_STATE.LOCKED,
-        "visual": {
-          "size": "minor",
-          "icon": "heart"
-        }
-      },
-      "radiation_detection": {
-        "id": "radiation_detection",
-        "name": "Radiation Detection",
-        "specialization": "technical",
-        "tier": 3,
-        "description": "Identify radiation anomalies automatically",
-        "effects": [
-          {
-            "type": "auto_detect_radiation_anomalies",
-            "condition": null,
-            "value": true
-          }
-        ],
-        "position": {"x": 220, "y": 620},
-        "connections": [],
-        "cost": {
-          "reputation": 20,
-          "skill_points": 3
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "zap"
-        }
-      },
-      "machine_whisperer": {
-        "id": "machine_whisperer",
-        "name": "Machine Whisperer",
-        "specialization": "technical",
-        "tier": 2,
-        "description": "40% reduced penalty from malfunctions",
-        "effects": [
-          {
-            "type": "malfunction_penalty_reduction",
-            "condition": null,
-            "value": 0.4
-          }
-        ],
-        "position": {"x": 250, "y": 550},
-        "connections": [],
-        "cost": {
-          "reputation": 15,
-          "skill_points": 3
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "cpu"
-        }
-      },
-      "calibration_expert": {
-        "id": "calibration_expert",
-        "name": "Calibration Expert",
-        "specialization": "technical",
-        "tier": 1,
-        "description": "Equipment calibrations always succeed",
-        "effects": [
-          {
-            "type": "calibration_success",
-            "condition": null,
-            "value": 1.0
-          }
-        ],
-        "position": {"x": 300, "y": 450},
-        "connections": [],
-        "cost": {
-          "reputation": 10,
-          "skill_points": 2
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "tool"
-        }
-      },
-      "diagnostic_intuition": {
-        "id": "diagnostic_intuition",
-        "name": "Diagnostic Intuition",
-        "specialization": "clinical",
-        "tier": 2,
-        "description": "Reveal one hidden patient parameter at case start",
-        "effects": [
-          {
-            "type": "reveal_patient_parameter",
-            "condition": null,
-            "value": 1
-          }
-        ],
-        "position": {"x": 450, "y": 50},
-        "connections": [],
-        "cost": {
-          "reputation": 15,
-          "skill_points": 3
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "stethoscope"
-        }
-      },
-      "literature_review": {
-        "id": "literature_review",
-        "name": "Literature Review",
-        "specialization": "research",
-        "tier": 1,
-        "description": "Start runs with 3 research papers",
-        "effects": [
-          {
-            "type": "start_with_items",
-            "condition": null,
-            "value": {
-              "item_type": "research_paper",
-              "count": 3
-            }
-          }
-        ],
-        "position": {"x": 500, "y": 450},
-        "connections": [],
-        "cost": {
-          "reputation": 10,
-          "skill_points": 2
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "book-open"
-        }
-      },
-      "scholarly_memory": {
-        "id": "scholarly_memory",
-        "name": "Scholarly Memory",
-        "specialization": "theory",
-        "tier": 3,
-        "description": "Remember similar questions from past runs",
-        "effects": [
-          {
-            "type": "recall_similar_questions",
-            "condition": null,
-            "value": true
-          }
-        ],
-        "position": {"x": 300, "y": 0},
-        "connections": [],
-        "cost": {
-          "reputation": 20,
-          "skill_points": 3
-        },
-        "visual": {
-          "size": "minor",
-          "icon": "book"
-        }
       }
+      // Other basic nodes would be added here
     };
     
-    // Create connections for the cluster 
-    this.connections = [
+    // Create connections
+    _data.connections = [
       // Connections between core nodes
       {"source": "radiation_physics", "target": "medical_instrumentation"},
       {"source": "radiation_physics", "target": "patient_care"},
@@ -688,115 +461,107 @@ const SkillTreeManager = {
       {"source": "patient_care", "target": "medical_science"},
       
       // Connections to specialization nodes
-      {"source": "radiation_physics", "target": "quantum_comprehension"},
-      {"source": "radiation_physics", "target": "radiation_detection"},
-      {"source": "medical_instrumentation", "target": "calibration_expert"},
-      {"source": "medical_instrumentation", "target": "machine_whisperer"},
-      {"source": "patient_care", "target": "bedside_manner"},
-      {"source": "patient_care", "target": "diagnostic_intuition"},
-      {"source": "medical_science", "target": "literature_review"},
-      {"source": "medical_science", "target": "scholarly_memory"}
+      {"source": "radiation_physics", "target": "quantum_comprehension"}
     ];
     
     // Initialize specialization progress
-    this.specialization_progress = {
+    _data.specialization_progress = {
       "core": 0,
       "theory": 0,
       "clinical": 0
     };
     
     // Set all core cluster nodes as unlocked and active
-    this.unlockedSkills = [...CORE_NODE_IDS];
-    this.activeSkills = [...CORE_NODE_IDS];
-    this.skillPointsAvailable = 3;
-    this.reputation = 10;
+    const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
+    _data.unlockedSkills = [...CORE_NODE_IDS];
+    _data.activeSkills = [...CORE_NODE_IDS];
+    _data.skillPointsAvailable = 3;
+    _data.reputation = 10;
     
     // Update all skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
-    console.log("Fallback skill tree data created with:", {
-      skills: Object.keys(this.skills).length,
-      specializations: Object.keys(this.specializations).length,
-      connections: this.connections.length
-    });
-  },
+    console.log("Fallback skill tree data created");
+  }
   
-  // Save progress to server
-  saveProgress: function() {
+  /**
+   * Save progress to server
+   * @returns {Promise} Promise that resolves to success status
+   */
+  function saveProgress() {
     console.log("Saving skill tree progress...");
     
     // Prepare data to save
     const progressData = {
-      reputation: this.reputation,
-      unlocked_skills: this.unlockedSkills,
-      active_skills: this.activeSkills,
-      skill_points_available: this.skillPointsAvailable,
-      specialization_progress: this.specialization_progress
+      reputation: _data.reputation,
+      unlocked_skills: _data.unlockedSkills,
+      active_skills: _data.activeSkills,
+      skill_points_available: _data.skillPointsAvailable,
+      specialization_progress: _data.specialization_progress
     };
     
-    return fetch('/api/skill-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(progressData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to save skill progress: ${response.status}`);
-      }
-      console.log("Skill tree progress saved successfully");
-      return true;
-    })
-    .catch(error => {
-      ErrorHandler.handleError(
-        error,
-        "Saving Skill Progress",
-        ErrorHandler.SEVERITY.WARNING
-      );
-      
-      console.log("Failed to save skill progress, will try again later");
-      // Schedule a retry
-      setTimeout(() => this.saveProgress(), 30000);
-      
-      return false;
-    });
-  },
+    return ApiClient.saveSkillProgress(progressData)
+      .then(() => {
+        console.log("Skill tree progress saved successfully");
+        return true;
+      })
+      .catch(error => {
+        ErrorHandler.handleError(
+          error,
+          "Saving Skill Progress",
+          ErrorHandler.SEVERITY.WARNING
+        );
+        
+        console.log("Failed to save skill progress, will try again later");
+        // Schedule a retry
+        setTimeout(() => saveProgress(), 30000);
+        
+        return false;
+      });
+  }
   
-  // Update all skill states
-  updateAllSkillStates: function() {
+  /**
+   * Update all skill states
+   */
+  function updateAllSkillStates() {
     console.log("Updating all skill states...");
     
     // Update each skill
-    Object.values(this.skills).forEach(skill => {
+    Object.values(_data.skills).forEach(skill => {
       // Check if skill is unlocked
-      if (this.unlockedSkills.includes(skill.id)) {
+      if (_data.unlockedSkills.includes(skill.id)) {
         // Check if skill is active
-        if (this.activeSkills.includes(skill.id)) {
-          skill.state = SKILL_STATE.ACTIVE;
+        if (_data.activeSkills.includes(skill.id)) {
+          skill.state = SKILL_STATES.ACTIVE;
         } else {
-          skill.state = SKILL_STATE.UNLOCKED;
+          skill.state = SKILL_STATES.UNLOCKED;
         }
       } else {
         // Check if skill is unlockable
-        if (this.canUnlockSkill(skill.id)) {
-          skill.state = SKILL_STATE.UNLOCKABLE;
+        if (canUnlockSkill(skill.id)) {
+          skill.state = SKILL_STATES.UNLOCKABLE;
         } else {
-          skill.state = SKILL_STATE.LOCKED;
+          skill.state = SKILL_STATES.LOCKED;
         }
       }
     });
     
     // Notify observers
-    this.notifyObservers('skillStatesUpdated', {
-      skills: this.skills
+    _notifyObservers('skillStatesUpdated', {
+      skills: _data.skills
     });
-  },
+  }
   
-  // Unlock a skill
-  unlockSkill: function(skillId) {
+  /**
+   * Unlock a skill
+   * @param {String} skillId - ID of the skill to unlock
+   * @returns {Boolean} Success status
+   */
+  function unlockSkill(skillId) {
     console.log(`Attempting to unlock skill: ${skillId}`);
     
     // Get the skill
-    const skill = this.getSkillById(skillId);
+    const skill = getSkillById(skillId);
     
     // Validate skill exists
     if (!skill) {
@@ -805,59 +570,63 @@ const SkillTreeManager = {
     }
     
     // Check if already unlocked
-    if (this.unlockedSkills.includes(skillId)) {
+    if (_data.unlockedSkills.includes(skillId)) {
       console.log(`Skill ${skillId} is already unlocked`);
       return true;
     }
     
     // Check if can unlock
-    if (!this.canUnlockSkill(skillId)) {
+    if (!canUnlockSkill(skillId)) {
       console.error(`Cannot unlock skill ${skillId}: prerequisites not met or insufficient reputation`);
       return false;
     }
     
     // Deduct reputation cost
     const reputationCost = skill.cost.reputation || 0;
-    this.reputation -= reputationCost;
+    _data.reputation -= reputationCost;
     
     // Add to unlocked skills
-    this.unlockedSkills.push(skillId);
+    _data.unlockedSkills.push(skillId);
     
     // Update specialization progress
     if (skill.specialization) {
-      this.updateSpecializationProgress(skill.specialization);
+      updateSpecializationProgress(skill.specialization);
     }
     
     // Update skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
     // Notify observers
-    this.notifyObservers('skillUnlocked', {
+    _notifyObservers('skillUnlocked', {
       skillId: skillId,
       skill: skill,
-      remainingReputation: this.reputation
+      remainingReputation: _data.reputation
     });
     
     // Notify reputation change
-    this.notifyObservers('reputationChanged', {
-      oldValue: this.reputation + reputationCost,
-      newValue: this.reputation,
+    _notifyObservers('reputationChanged', {
+      oldValue: _data.reputation + reputationCost,
+      newValue: _data.reputation,
       change: -reputationCost
     });
     
     // Save progress
-    this.saveProgress();
+    saveProgress();
     
     console.log(`Skill ${skillId} unlocked successfully`);
     return true;
-  },
+  }
   
-  // Activate a skill for the current run
-  activateSkill: function(skillId) {
+  /**
+   * Activate a skill for the current run
+   * @param {String} skillId - ID of the skill to activate
+   * @returns {Boolean} Success status
+   */
+  function activateSkill(skillId) {
     console.log(`Attempting to activate skill: ${skillId}`);
     
     // Get the skill
-    const skill = this.getSkillById(skillId);
+    const skill = getSkillById(skillId);
     
     // Validate skill exists
     if (!skill) {
@@ -866,54 +635,60 @@ const SkillTreeManager = {
     }
     
     // Check if already active
-    if (this.activeSkills.includes(skillId)) {
+    if (_data.activeSkills.includes(skillId)) {
       console.log(`Skill ${skillId} is already active`);
       return true;
     }
     
     // Check if can activate
-    if (!this.canActivateSkill(skillId)) {
+    if (!canActivateSkill(skillId)) {
       console.error(`Cannot activate skill ${skillId}: not unlocked or insufficient skill points`);
       return false;
     }
     
     // Deduct skill points
     const skillPointCost = skill.cost.skill_points || 0;
-    this.skillPointsAvailable -= skillPointCost;
+    _data.skillPointsAvailable -= skillPointCost;
     
     // Add to active skills
-    this.activeSkills.push(skillId);
+    _data.activeSkills.push(skillId);
     
     // Update skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
     // Notify observers
-    this.notifyObservers('skillActivated', {
+    _notifyObservers('skillActivated', {
       skillId: skillId,
       skill: skill,
-      remainingSkillPoints: this.skillPointsAvailable
+      remainingSkillPoints: _data.skillPointsAvailable
     });
     
     // Notify skill points change
-    this.notifyObservers('skillPointsChanged', {
-      oldValue: this.skillPointsAvailable + skillPointCost,
-      newValue: this.skillPointsAvailable,
+    _notifyObservers('skillPointsChanged', {
+      oldValue: _data.skillPointsAvailable + skillPointCost,
+      newValue: _data.skillPointsAvailable,
       change: -skillPointCost
     });
     
     // Apply skill effects
-    SkillEffectSystem.applySkillEffects(skill);
+    if (window.SkillEffectSystem && window.SkillEffectSystem.applySkillEffects) {
+      window.SkillEffectSystem.applySkillEffects(skill);
+    }
     
     console.log(`Skill ${skillId} activated successfully`);
     return true;
-  },
+  }
   
-  // Deactivate a skill
-  deactivateSkill: function(skillId) {
+  /**
+   * Deactivate a skill
+   * @param {String} skillId - ID of the skill to deactivate
+   * @returns {Boolean} Success status
+   */
+  function deactivateSkill(skillId) {
     console.log(`Attempting to deactivate skill: ${skillId}`);
     
     // Get the skill
-    const skill = this.getSkillById(skillId);
+    const skill = getSkillById(skillId);
     
     // Validate skill exists
     if (!skill) {
@@ -922,19 +697,20 @@ const SkillTreeManager = {
     }
     
     // Check if already inactive
-    if (!this.activeSkills.includes(skillId)) {
+    if (!_data.activeSkills.includes(skillId)) {
       console.log(`Skill ${skillId} is not active`);
       return true;
     }
     
     // Special case: can't deactivate core skills
+    const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
     if (CORE_NODE_IDS.includes(skillId)) {
       console.error(`Cannot deactivate core skill: ${skillId}`);
       return false;
     }
     
     // Check if other skills depend on this one being active
-    const dependentSkills = this.getActiveDependentSkills(skillId);
+    const dependentSkills = getActiveDependentSkills(skillId);
     if (dependentSkills.length > 0) {
       console.error(`Cannot deactivate skill ${skillId}: other active skills depend on it: ${dependentSkills.join(', ')}`);
       return false;
@@ -942,101 +718,119 @@ const SkillTreeManager = {
     
     // Refund skill points
     const skillPointCost = skill.cost.skill_points || 0;
-    this.skillPointsAvailable += skillPointCost;
+    _data.skillPointsAvailable += skillPointCost;
     
     // Remove from active skills
-    const index = this.activeSkills.indexOf(skillId);
+    const index = _data.activeSkills.indexOf(skillId);
     if (index !== -1) {
-      this.activeSkills.splice(index, 1);
+      _data.activeSkills.splice(index, 1);
     }
     
     // Update skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
     // Notify observers
-    this.notifyObservers('skillDeactivated', {
+    _notifyObservers('skillDeactivated', {
       skillId: skillId,
       skill: skill,
-      remainingSkillPoints: this.skillPointsAvailable
+      remainingSkillPoints: _data.skillPointsAvailable
     });
     
     // Notify skill points change
-    this.notifyObservers('skillPointsChanged', {
-      oldValue: this.skillPointsAvailable - skillPointCost,
-      newValue: this.skillPointsAvailable,
+    _notifyObservers('skillPointsChanged', {
+      oldValue: _data.skillPointsAvailable - skillPointCost,
+      newValue: _data.skillPointsAvailable,
       change: skillPointCost
     });
     
     // Remove skill effects
-    SkillEffectSystem.removeSkillEffects(skill);
+    if (window.SkillEffectSystem && window.SkillEffectSystem.removeSkillEffects) {
+      window.SkillEffectSystem.removeSkillEffects(skill);
+    }
     
     console.log(`Skill ${skillId} deactivated successfully`);
     return true;
-  },
+  }
   
-  // Reset active skills (for new run)
-  resetActiveSkills: function() {
+  /**
+   * Reset active skills (for new run)
+   */
+  function resetActiveSkills() {
     console.log("Resetting active skills for new run...");
     
+    // Get core node IDs
+    const CORE_NODE_IDS = Object.keys(CoreClusterNodes);
+    
     // Remove all effects first
-    this.activeSkills.forEach(skillId => {
-      const skill = this.getSkillById(skillId);
-      if (skill) {
-        SkillEffectSystem.removeSkillEffects(skill);
+    _data.activeSkills.forEach(skillId => {
+      const skill = getSkillById(skillId);
+      if (skill && window.SkillEffectSystem && window.SkillEffectSystem.removeSkillEffects) {
+        window.SkillEffectSystem.removeSkillEffects(skill);
       }
     });
     
     // Keep only core skills
-    this.activeSkills = this.activeSkills.filter(skillId => 
+    _data.activeSkills = _data.activeSkills.filter(skillId => 
       CORE_NODE_IDS.includes(skillId)
     );
     
     // Reset skill points
-    this.skillPointsAvailable = this._calculateStartingSkillPoints();
+    _data.skillPointsAvailable = _calculateStartingSkillPoints();
     
     // Update skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
     // Re-apply core skill effects
-    this.activeSkills.forEach(skillId => {
-      const skill = this.getSkillById(skillId);
-      if (skill) {
-        SkillEffectSystem.applySkillEffects(skill);
+    _data.activeSkills.forEach(skillId => {
+      const skill = getSkillById(skillId);
+      if (skill && window.SkillEffectSystem && window.SkillEffectSystem.applySkillEffects) {
+        window.SkillEffectSystem.applySkillEffects(skill);
       }
     });
     
     // Notify observers
-    this.notifyObservers('skillsReset', {
-      activeSkills: this.activeSkills,
-      skillPointsAvailable: this.skillPointsAvailable
+    _notifyObservers('skillsReset', {
+      activeSkills: _data.activeSkills,
+      skillPointsAvailable: _data.skillPointsAvailable
     });
     
-    console.log(`Active skills reset. Available skill points: ${this.skillPointsAvailable}`);
-  },
+    console.log(`Active skills reset. Available skill points: ${_data.skillPointsAvailable}`);
+  }
   
-  // Calculate starting skill points for a run
-  _calculateStartingSkillPoints: function() {
+  /**
+   * Calculate starting skill points for a run
+   * @private
+   * @returns {Number} Number of skill points
+   */
+  function _calculateStartingSkillPoints() {
     // Base skill points
     let points = 3;
     
     // Bonus from character level
-    if (GameState.data.character && GameState.data.character.level) {
-      points += Math.floor(GameState.data.character.level / 2);
+    if (window.GameState && 
+        window.GameState.data && 
+        window.GameState.data.character && 
+        window.GameState.data.character.level) {
+      points += Math.floor(window.GameState.data.character.level / 2);
     }
     
     // Bonus from specializations
-    const specializations = this.getActiveSpecializations();
+    const specializations = getActiveSpecializations();
     if (specializations.length > 0) {
       points += specializations.length;
     }
     
     return points;
-  },
+  }
   
-  // Check if a skill can be unlocked
-  canUnlockSkill: function(skillId) {
+  /**
+   * Check if a skill can be unlocked
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Boolean} True if skill can be unlocked
+   */
+  function canUnlockSkill(skillId) {
     // Get the skill
-    const skill = this.getSkillById(skillId);
+    const skill = getSkillById(skillId);
     
     // Validate skill exists
     if (!skill) {
@@ -1044,24 +838,28 @@ const SkillTreeManager = {
     }
     
     // Check if already unlocked
-    if (this.unlockedSkills.includes(skillId)) {
+    if (_data.unlockedSkills.includes(skillId)) {
       return false;
     }
     
     // Check reputation cost
     const reputationCost = skill.cost.reputation || 0;
-    if (this.reputation < reputationCost) {
+    if (_data.reputation < reputationCost) {
       return false;
     }
     
     // Check prerequisites
-    return this.arePrerequisitesMet(skillId);
-  },
+    return arePrerequisitesMet(skillId);
+  }
   
-  // Check if a skill can be activated
-  canActivateSkill: function(skillId) {
+  /**
+   * Check if a skill can be activated
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Boolean} True if skill can be activated
+   */
+  function canActivateSkill(skillId) {
     // Get the skill
-    const skill = this.getSkillById(skillId);
+    const skill = getSkillById(skillId);
     
     // Validate skill exists
     if (!skill) {
@@ -1069,28 +867,32 @@ const SkillTreeManager = {
     }
     
     // Check if already active
-    if (this.activeSkills.includes(skillId)) {
+    if (_data.activeSkills.includes(skillId)) {
       return false;
     }
     
     // Check if unlocked
-    if (!this.unlockedSkills.includes(skillId)) {
+    if (!_data.unlockedSkills.includes(skillId)) {
       return false;
     }
     
     // Check skill point cost
     const skillPointCost = skill.cost.skill_points || 0;
-    if (this.skillPointsAvailable < skillPointCost) {
+    if (_data.skillPointsAvailable < skillPointCost) {
       return false;
     }
     
     // Check if prerequisites are active
-    return this.arePrerequisitesActive(skillId);
-  },
+    return arePrerequisitesActive(skillId);
+  }
   
-  // Check if all prerequisites for a skill are met
-  arePrerequisitesMet: function(skillId) {
-    const prerequisites = this.getPrerequisites(skillId);
+  /**
+   * Check if all prerequisites for a skill are met
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Boolean} True if prerequisites are met
+   */
+  function arePrerequisitesMet(skillId) {
+    const prerequisites = getPrerequisites(skillId);
     
     // If no prerequisites, always met
     if (prerequisites.length === 0) {
@@ -1098,12 +900,16 @@ const SkillTreeManager = {
     }
     
     // Check if at least one prerequisite is unlocked
-    return prerequisites.some(prereqId => this.unlockedSkills.includes(prereqId));
-  },
+    return prerequisites.some(prereqId => _data.unlockedSkills.includes(prereqId));
+  }
   
-  // Check if all prerequisites for a skill are active
-  arePrerequisitesActive: function(skillId) {
-    const prerequisites = this.getPrerequisites(skillId);
+  /**
+   * Check if all prerequisites for a skill are active
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Boolean} True if prerequisites are active
+   */
+  function arePrerequisitesActive(skillId) {
+    const prerequisites = getPrerequisites(skillId);
     
     // If no prerequisites, always met
     if (prerequisites.length === 0) {
@@ -1111,38 +917,46 @@ const SkillTreeManager = {
     }
     
     // Check if at least one prerequisite is active
-    return prerequisites.some(prereqId => this.activeSkills.includes(prereqId));
-  },
+    return prerequisites.some(prereqId => _data.activeSkills.includes(prereqId));
+  }
   
-  // Get prerequisites for a skill
-  getPrerequisites: function(skillId) {
+  /**
+   * Get prerequisites for a skill
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Array} Array of prerequisite skill IDs
+   */
+  function getPrerequisites(skillId) {
     const prerequisites = [];
     
     // Find connections where this skill is the target
-    this.connections.forEach(connection => {
+    _data.connections.forEach(connection => {
       if (connection.target === skillId) {
         prerequisites.push(connection.source);
       }
     });
     
     return prerequisites;
-  },
+  }
   
-  // Get active skills that depend on a skill
-  getActiveDependentSkills: function(skillId) {
+  /**
+   * Get active skills that depend on a skill
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Array} Array of dependent skill IDs
+   */
+  function getActiveDependentSkills(skillId) {
     const dependents = [];
     
     // Find active skills that have this skill as a prerequisite
-    this.activeSkills.forEach(activeSkillId => {
+    _data.activeSkills.forEach(activeSkillId => {
       // Skip self
       if (activeSkillId === skillId) return;
       
       // Check if this skill depends on the target skill
-      const prerequisites = this.getPrerequisites(activeSkillId);
+      const prerequisites = getPrerequisites(activeSkillId);
       if (prerequisites.includes(skillId)) {
         // Only add if this is the only active prerequisite
         const activePrereqs = prerequisites.filter(prereqId => 
-          this.activeSkills.includes(prereqId) && prereqId !== skillId
+          _data.activeSkills.includes(prereqId) && prereqId !== skillId
         );
         
         if (activePrereqs.length === 0) {
@@ -1152,81 +966,101 @@ const SkillTreeManager = {
     });
     
     return dependents;
-  },
+  }
   
-  // Update specialization progress
-  updateSpecializationProgress: function(specializationId) {
-    if (!this.specializations[specializationId]) return;
+  /**
+   * Update specialization progress
+   * @param {String} specializationId - ID of the specialization to update
+   */
+  function updateSpecializationProgress(specializationId) {
+    if (!_data.specializations[specializationId]) return;
     
     // Count unlocked skills in this specialization
     let count = 0;
-    this.unlockedSkills.forEach(skillId => {
-      const skill = this.getSkillById(skillId);
+    _data.unlockedSkills.forEach(skillId => {
+      const skill = getSkillById(skillId);
       if (skill && skill.specialization === specializationId) {
         count++;
       }
     });
     
     // Update progress
-    const oldValue = this.specialization_progress[specializationId];
-    this.specialization_progress[specializationId] = count;
+    const oldValue = _data.specialization_progress[specializationId];
+    _data.specialization_progress[specializationId] = count;
     
     // Notify observers if changed
     if (oldValue !== count) {
-      this.notifyObservers('specializationUpdated', {
+      _notifyObservers('specializationUpdated', {
         specializationId: specializationId,
         oldValue: oldValue,
         newValue: count
       });
       
       // Check for threshold achievements
-      this._checkSpecializationThresholds(specializationId, oldValue, count);
+      _checkSpecializationThresholds(specializationId, oldValue, count);
     }
-  },
+  }
   
-  // Check for specialization threshold achievements
-  _checkSpecializationThresholds: function(specializationId, oldValue, newValue) {
-    const spec = this.specializations[specializationId];
+  /**
+   * Check for specialization threshold achievements
+   * @private
+   * @param {String} specializationId - ID of the specialization
+   * @param {Number} oldValue - Old progress value
+   * @param {Number} newValue - New progress value
+   */
+  function _checkSpecializationThresholds(specializationId, oldValue, newValue) {
+    const spec = _data.specializations[specializationId];
     if (!spec) return;
     
     // Check regular threshold
     if (oldValue < spec.threshold && newValue >= spec.threshold) {
       console.log(`Specialization threshold achieved: ${specializationId}`);
       
-      // Show notification
-      UIUtils.showToast(`Specialization achieved: ${spec.name}`, 'success');
+      // Show notification if UIUtils exists
+      if (window.UIUtils && window.UIUtils.showToast) {
+        window.UIUtils.showToast(`Specialization achieved: ${spec.name}`, 'success');
+      }
       
-      // Emit event
-      EventSystem.emit(GAME_EVENTS.SPECIALIZATION_ACHIEVED, {
-        specializationId: specializationId,
-        name: spec.name,
-        level: 1
-      });
+      // Emit event if EventSystem exists
+      if (window.EventSystem && window.EventSystem.emit) {
+        window.EventSystem.emit('SPECIALIZATION_ACHIEVED', {
+          specializationId: specializationId,
+          name: spec.name,
+          level: 1
+        });
+      }
     }
     
     // Check mastery threshold
     if (oldValue < spec.mastery_threshold && newValue >= spec.mastery_threshold) {
       console.log(`Specialization mastery achieved: ${specializationId}`);
       
-      // Show notification
-      UIUtils.showToast(`Mastery achieved: ${spec.name}`, 'success');
+      // Show notification if UIUtils exists
+      if (window.UIUtils && window.UIUtils.showToast) {
+        window.UIUtils.showToast(`Mastery achieved: ${spec.name}`, 'success');
+      }
       
-      // Emit event
-      EventSystem.emit(GAME_EVENTS.SPECIALIZATION_MASTERY_ACHIEVED, {
-        specializationId: specializationId,
-        name: spec.name,
-        level: 2
-      });
+      // Emit event if EventSystem exists
+      if (window.EventSystem && window.EventSystem.emit) {
+        window.EventSystem.emit('SPECIALIZATION_MASTERY_ACHIEVED', {
+          specializationId: specializationId,
+          name: spec.name,
+          level: 2
+        });
+      }
     }
-  },
+  }
   
-  // Get active specializations
-  getActiveSpecializations: function() {
+  /**
+   * Get active specializations
+   * @returns {Array} Array of active specialization IDs
+   */
+  function getActiveSpecializations() {
     const active = [];
     
-    Object.keys(this.specialization_progress).forEach(specId => {
-      const spec = this.specializations[specId];
-      const progress = this.specialization_progress[specId];
+    Object.keys(_data.specialization_progress).forEach(specId => {
+      const spec = _data.specializations[specId];
+      const progress = _data.specialization_progress[specId];
       
       // Add if threshold is met
       if (spec && progress >= spec.threshold) {
@@ -1235,138 +1069,168 @@ const SkillTreeManager = {
     });
     
     return active;
-  },
+  }
   
-  // Get specialization level (0=none, 1=specialist, 2=master)
-  getSpecializationLevel: function(specializationId) {
-    const spec = this.specializations[specializationId];
-    const progress = this.specialization_progress[specializationId];
+  /**
+   * Get specialization level (0=none, 1=specialist, 2=master)
+   * @param {String} specializationId - ID of the specialization
+   * @returns {Number} Specialization level
+   */
+  function getSpecializationLevel(specializationId) {
+    const spec = _data.specializations[specializationId];
+    const progress = _data.specialization_progress[specializationId];
     
     if (!spec || progress === undefined) return 0;
     
     if (progress >= spec.mastery_threshold) return 2;
     if (progress >= spec.threshold) return 1;
     return 0;
-  },
+  }
   
-  // Add reputation (from achievements, etc.)
-  addReputation: function(amount) {
+  /**
+   * Add reputation (from achievements, etc.)
+   * @param {Number} amount - Amount of reputation to add
+   * @returns {Boolean} Success status
+   */
+  function addReputation(amount) {
     if (amount <= 0) return false;
     
-    const oldValue = this.reputation;
-    this.reputation += amount;
+    const oldValue = _data.reputation;
+    _data.reputation += amount;
     
     // Notify observers
-    this.notifyObservers('reputationChanged', {
+    _notifyObservers('reputationChanged', {
       oldValue: oldValue,
-      newValue: this.reputation,
+      newValue: _data.reputation,
       change: amount
     });
     
     // Update skill states
-    this.updateAllSkillStates();
+    updateAllSkillStates();
     
     // Save progress
-    this.saveProgress();
+    saveProgress();
     
     return true;
-  },
+  }
   
-  // Set reputation directly (from save/load)
-  setReputation: function(amount) {
+  /**
+   * Set reputation directly (from save/load)
+   * @param {Number} amount - Amount of reputation to set
+   */
+  function setReputation(amount) {
     if (amount < 0) amount = 0;
     
-    const oldValue = this.reputation;
-    this.reputation = amount;
+    const oldValue = _data.reputation;
+    _data.reputation = amount;
     
     // Notify observers if different
     if (oldValue !== amount) {
-      this.notifyObservers('reputationChanged', {
+      _notifyObservers('reputationChanged', {
         oldValue: oldValue,
-        newValue: this.reputation,
+        newValue: _data.reputation,
         change: amount - oldValue
       });
       
       // Update skill states
-      this.updateAllSkillStates();
+      updateAllSkillStates();
     }
-  },
+  }
   
-  // Add skill points
-  addSkillPoints: function(amount) {
+  /**
+   * Add skill points
+   * @param {Number} amount - Amount of skill points to add
+   * @returns {Boolean} Success status
+   */
+  function addSkillPoints(amount) {
     if (amount <= 0) return false;
     
-    const oldValue = this.skillPointsAvailable;
-    this.skillPointsAvailable += amount;
+    const oldValue = _data.skillPointsAvailable;
+    _data.skillPointsAvailable += amount;
     
     // Notify observers
-    this.notifyObservers('skillPointsChanged', {
+    _notifyObservers('skillPointsChanged', {
       oldValue: oldValue,
-      newValue: this.skillPointsAvailable,
+      newValue: _data.skillPointsAvailable,
       change: amount
     });
     
     return true;
-  },
+  }
   
-  // Helper functions
+  /**
+   * Get a skill by ID
+   * @param {String} skillId - ID of the skill to get
+   * @returns {Object|null} Skill object or null if not found
+   */
+  function getSkillById(skillId) {
+    return _data.skills[skillId] || null;
+  }
   
-  // Get a skill by ID
-  getSkillById: function(skillId) {
-    return this.skills[skillId];
-  },
-  
-  // Get all skills connected to a skill
-  getConnectedSkills: function(skillId) {
+  /**
+   * Get all skills connected to a skill
+   * @param {String} skillId - ID of the skill to check
+   * @returns {Array} Array of connected skill IDs
+   */
+  function getConnectedSkills(skillId) {
     const connected = [];
     
     // Find connections where this skill is the source
-    this.connections.forEach(connection => {
+    _data.connections.forEach(connection => {
       if (connection.source === skillId) {
         connected.push(connection.target);
       }
     });
     
     // Find connections where this skill is the target
-    this.connections.forEach(connection => {
+    _data.connections.forEach(connection => {
       if (connection.target === skillId) {
         connected.push(connection.source);
       }
     });
     
     return connected;
-  },
+  }
   
-  // Get skills in a specialization
-  getSkillsInSpecialization: function(specializationId) {
-    return Object.values(this.skills).filter(skill => 
+  /**
+   * Get skills in a specialization
+   * @param {String} specializationId - ID of the specialization
+   * @returns {Array} Array of skill objects
+   */
+  function getSkillsInSpecialization(specializationId) {
+    return Object.values(_data.skills).filter(skill => 
       skill.specialization === specializationId
     );
-  },
+  }
   
-  // Debug helper to log current state
-  debugState: function() {
+  /**
+   * Debug helper to log current state
+   */
+  function debugState() {
     console.group("Skill Tree Manager Debug");
-    console.log("Reputation:", this.reputation);
-    console.log("Skill Points Available:", this.skillPointsAvailable);
-    console.log("Unlocked Skills:", this.unlockedSkills);
-    console.log("Active Skills:", this.activeSkills);
+    console.log("Reputation:", _data.reputation);
+    console.log("Skill Points Available:", _data.skillPointsAvailable);
+    console.log("Unlocked Skills:", _data.unlockedSkills);
+    console.log("Active Skills:", _data.activeSkills);
     
     console.group("Specialization Progress");
-    Object.keys(this.specialization_progress).forEach(specId => {
-      const spec = this.specializations[specId];
-      const progress = this.specialization_progress[specId];
-      console.log(`${spec.name}: ${progress}/${spec.threshold} (${this.getSpecializationLevel(specId)})`);
+    Object.keys(_data.specialization_progress).forEach(specId => {
+      const spec = _data.specializations[specId];
+      const progress = _data.specialization_progress[specId];
+      console.log(`${spec.name}: ${progress}/${spec.threshold} (${getSpecializationLevel(specId)})`);
     });
     console.groupEnd();
     
     console.groupEnd();
-  },
+  }
   
-  // Observer pattern functions - similar to GameState
-  
-  // Add observer
-  addObserver: function(observer, eventType = 'global') {
+  /**
+   * Add observer for skill tree events
+   * @param {Function|Object} observer - Observer function or object
+   * @param {String} eventType - Type of event to observe, or 'global' for all
+   * @returns {Boolean} Success status
+   */
+  function addObserver(observer, eventType = 'global') {
     if (typeof observer !== 'function' && 
         typeof observer.onSkillTreeChanged !== 'function') {
       console.error("Invalid observer:", observer);
@@ -1374,42 +1238,52 @@ const SkillTreeManager = {
     }
     
     // Check if event type exists
-    if (!this.observers[eventType]) {
+    if (!_observers[eventType]) {
       console.warn(`Unknown event type: ${eventType}, defaulting to global`);
       eventType = 'global';
     }
     
     // Add observer
-    this.observers[eventType].push(observer);
+    _observers[eventType].push(observer);
     return true;
-  },
+  }
   
-  // Remove observer
-  removeObserver: function(observer, eventType = 'global') {
+  /**
+   * Remove observer
+   * @param {Function|Object} observer - Observer to remove
+   * @param {String} eventType - Type of event, or 'global' for all
+   * @returns {Boolean} Success status
+   */
+  function removeObserver(observer, eventType = 'global') {
     // Check if event type exists
-    if (!this.observers[eventType]) {
+    if (!_observers[eventType]) {
       console.warn(`Unknown event type: ${eventType}, defaulting to global`);
       eventType = 'global';
     }
     
     // Find and remove observer
-    const index = this.observers[eventType].indexOf(observer);
+    const index = _observers[eventType].indexOf(observer);
     if (index !== -1) {
-      this.observers[eventType].splice(index, 1);
+      _observers[eventType].splice(index, 1);
       return true;
     }
     
     return false;
-  },
+  }
   
-  // Notify observers
-  notifyObservers: function(eventType, data) {
-    console.log(`Skill tree update: ${eventType}`, data);
+  /**
+   * Notify observers of an event
+   * @private
+   * @param {String} eventType - Type of event
+   * @param {Object} data - Event data
+   */
+  function _notifyObservers(eventType, data) {
+    console.log(`Skill tree update: ${eventType}`);
     
     try {
       // First notify event-specific observers
-      if (this.observers[eventType]) {
-        this.observers[eventType].forEach(observer => {
+      if (_observers[eventType]) {
+        _observers[eventType].forEach(observer => {
           try {
             if (typeof observer === 'function') {
               observer(eventType, data);
@@ -1417,17 +1291,21 @@ const SkillTreeManager = {
               observer.onSkillTreeChanged(eventType, data);
             }
           } catch (error) {
-            ErrorHandler.handleError(
-              error,
-              `Observer Notification (${eventType})`, 
-              ErrorHandler.SEVERITY.WARNING
-            );
+            if (window.ErrorHandler) {
+              window.ErrorHandler.handleError(
+                error,
+                `Observer Notification (${eventType})`, 
+                window.ErrorHandler.SEVERITY.WARNING
+              );
+            } else {
+              console.error(`Error in observer for ${eventType}:`, error);
+            }
           }
         });
       }
       
       // Then notify global observers
-      this.observers.global.forEach(observer => {
+      _observers.global.forEach(observer => {
         try {
           if (typeof observer === 'function') {
             observer(eventType, data);
@@ -1435,24 +1313,84 @@ const SkillTreeManager = {
             observer.onSkillTreeChanged(eventType, data);
           }
         } catch (error) {
-          ErrorHandler.handleError(
-            error,
-            `Global Observer Notification (${eventType})`, 
-            ErrorHandler.SEVERITY.WARNING
-          );
+          if (window.ErrorHandler) {
+            window.ErrorHandler.handleError(
+              error,
+              `Global Observer Notification (${eventType})`, 
+              window.ErrorHandler.SEVERITY.WARNING
+            );
+          } else {
+            console.error(`Error in global observer for ${eventType}:`, error);
+          }
         }
       });
     } catch (error) {
-      ErrorHandler.handleError(
-        error,
-        `Observer Notification System (${eventType})`, 
-        ErrorHandler.SEVERITY.ERROR
-      );
+      if (window.ErrorHandler) {
+        window.ErrorHandler.handleError(
+          error,
+          `Observer Notification System (${eventType})`, 
+          window.ErrorHandler.SEVERITY.ERROR
+        );
+      } else {
+        console.error(`Error in observer notification system:`, error);
+      }
     }
   }
-};
+  
+  // Public API
+  return {
+    // Properties to expose
+    get skills() { return _data.skills; },
+    get specializations() { return _data.specializations; },
+    get connections() { return _data.connections; },
+    get unlockedSkills() { return _data.unlockedSkills; },
+    get activeSkills() { return _data.activeSkills; },
+    get specialization_progress() { return _data.specialization_progress; },
+    get skillPointsAvailable() { return _data.skillPointsAvailable; },
+    get reputation() { return _data.reputation; },
+    get initialized() { return _state.initialized; },
+    
+    // Core methods
+    initialize,
+    saveProgress,
+    updateAllSkillStates,
+    resetActiveSkills,
+    
+    // Skill operations
+    unlockSkill,
+    activateSkill,
+    deactivateSkill,
+    canUnlockSkill,
+    canActivateSkill,
+    arePrerequisitesMet,
+    arePrerequisitesActive,
+    getPrerequisites,
+    getActiveDependentSkills,
+    
+    // Specialization methods
+    updateSpecializationProgress,
+    getActiveSpecializations,
+    getSpecializationLevel,
+    
+    // Resource management
+    addReputation,
+    setReputation,
+    addSkillPoints,
+    
+    // Helper methods
+    getSkillById,
+    getConnectedSkills,
+    getSkillsInSpecialization,
+    debugState,
+    
+    // Observer methods
+    addObserver,
+    removeObserver
+  };
+})();
 
-// Export the SkillTreeManager object and constants
+// Export for module use
+export default SkillTreeManager;
+
+// For backward compatibility with existing code
 window.SkillTreeManager = SkillTreeManager;
-window.SKILL_STATE = SKILL_STATE;
-console.log("Loaded: skill_tree_manager.js");
