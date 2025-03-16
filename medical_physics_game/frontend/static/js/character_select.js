@@ -3,20 +3,9 @@
  * Integrates 3D card rotation, smooth transitions, and improved UI
  */
 
-// Add at the top of character_select.js
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded for character selection');
-    console.log('Characters available:', window.gameCharacters);
-    
-    // Check if key elements exist
-    const elementsToCheck = ['character-cards', 'prev-button', 'next-button', 'select-button'];
-    elementsToCheck.forEach(id => {
-      const element = document.getElementById(id);
-      console.log(`Element #${id} exists:`, !!element);
-    });
-  });
-
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded for character selection');
+    
     // DOM elements
     const characterCards = document.getElementById('character-cards');
     const carouselIndicators = document.getElementById('carousel-indicators');
@@ -36,7 +25,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let isTransitioning = false;
     let cardRotation = 0;
     
-    // Initialize
+    // Log availability of key elements
+    const elementsToCheck = ['character-cards', 'prev-button', 'next-button', 'select-button'];
+    elementsToCheck.forEach(id => {
+        const element = document.getElementById(id);
+        console.log(`Element #${id} exists:`, !!element);
+    });
+    
+    /**
+     * Initialize the character selection screen
+     */
     function initialize() {
         // Load characters
         loadCharacters();
@@ -48,11 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeParticles();
     }
     
-    // Load characters from templates and localStorage
+    /**
+     * Load characters from templates and localStorage
+     */
     function loadCharacters() {
         try {
             // Load template characters
             const templateCharacters = window.gameCharacters || [];
+            console.log('Characters available:', templateCharacters);
             
             // Load custom characters
             const customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
@@ -63,9 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: char.name,
                 description: char.description || 'Custom character with unique abilities.',
                 stats: {
-                    intelligence: char.stats.intelligence || 5,
-                    persistence: char.stats.persistence || 5,
-                    adaptability: char.stats.adaptability || 5
+                    intelligence: char.stats?.intelligence || 5,
+                    persistence: char.stats?.persistence || 5,
+                    adaptability: char.stats?.adaptability || 5
                 },
                 abilities: Array.isArray(char.abilities) ? char.abilities : [],
                 image: char.image || '/static/img/characters/debug_mode.png',
@@ -76,6 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Combine all characters
             characters = [...formattedCustomChars, ...templateCharacters];
             totalCharacters = characters.length;
+            
+            console.log('Total characters loaded:', totalCharacters);
             
             // Render the characters
             renderCharacters();
@@ -91,7 +94,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Update in renderCharacters() function in character_select.js
+    /**
+     * Render character cards in the carousel
+     */
     function renderCharacters() {
         if (!characters || characters.length === 0) {
             showCreateCharacterPrompt();
@@ -102,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
         characterCards.innerHTML = '';
         carouselIndicators.innerHTML = '';
         
+        console.log('Rendering', characters.length, 'characters');
+        
         // Create cards with improved 3D positioning
         characters.forEach((character, index) => {
             // Create card
@@ -111,22 +118,26 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Position card in 3D space - FIXED POSITIONING
             const rotationAngle = index * (360 / totalCharacters);
-            const zOffset = -120; // Push cards back a bit in 3D space
+            const zOffset = -100; // Reduced from -120 to -100
             
             // Calculate position on a circle
             // For a proper carousel where only one card is prominently displayed at a time
-            const radius = 300; // Distance from center
+            const radius = 250; // Reduced from 300 to 250
             const angleRad = (rotationAngle * Math.PI) / 180;
             const x = Math.sin(angleRad) * radius;
             const z = Math.cos(angleRad) * radius + zOffset;
             
             // Apply transform 
             if (index === currentIndex) {
-                // Current card should be front and center
+                // Current card should be front and center with increased z-index
                 card.style.transform = `translateZ(50px) scale(1.1)`;
+                card.style.zIndex = '10';
+                card.style.opacity = '1';
                 card.classList.add('active');
             } else {
                 card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
+                card.style.zIndex = '1';
+                card.style.opacity = '0.8'; // Increased from 0.7 to 0.8
             }
             
             // Card content
@@ -162,6 +173,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${character.custom ? '<button class="delete-character-btn" data-id="' + character.id + '">×</button>' : ''}
             `;
             
+            // Add click event to select character
+            card.addEventListener('click', () => {
+                console.log('Card clicked:', index);
+                selectCharacter(index);
+            });
+            
             // Add card to carousel
             characterCards.appendChild(card);
             
@@ -172,7 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 dot.classList.add('active');
             }
             dot.dataset.index = index;
-            dot.addEventListener('click', () => selectCharacter(index));
+            dot.addEventListener('click', () => {
+                console.log('Dot clicked:', index);
+                selectCharacter(index);
+            });
             carouselIndicators.appendChild(dot);
         });
         
@@ -190,7 +210,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updateButtonState();
     }
     
-    // Show card for creating a character when none exist
+    /**
+     * Show card for creating a character when none exist
+     */
     function showCreateCharacterPrompt() {
         characterCards.innerHTML = `
             <div class="create-character-card">
@@ -210,10 +232,13 @@ document.addEventListener('DOMContentLoaded', function() {
         carouselIndicators.innerHTML = '';
     }
     
-    // Update the selectCharacter function to handle rotation better
+    /**
+     * Select a character and update the UI
+     */
     function selectCharacter(index, skipAnimation = false) {
         if (index < 0 || index >= characters.length || isTransitioning) return;
         
+        console.log('Selecting character:', index);
         isTransitioning = true;
         currentIndex = index;
         selectedCharacter = characters[index];
@@ -227,10 +252,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Instead of rotating the entire container, we'll reposition each card
         document.querySelectorAll('.character-card').forEach((card, i) => {
             const rotationAngle = ((i - index) * (360 / totalCharacters)) % 360;
-            const zOffset = -120; // Push cards back a bit in 3D space
+            const zOffset = -100; // Reduced from -120 to -100
             
             // Calculate position on a circle
-            const radius = 300; // Distance from center
+            const radius = 250; // Reduced from 300 to 250
             const angleRad = (rotationAngle * Math.PI) / 180;
             const x = Math.sin(angleRad) * radius;
             const z = Math.cos(angleRad) * radius + zOffset;
@@ -241,22 +266,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
             }
             
-            // Modify in character_select.js
+            // Apply transform
             if (i === index) {
                 // Current card should be front and center
-                card.style.transform = `translateZ(100px) scale(1.1)`;
-                card.style.opacity = "1";
-                card.style.zIndex = "10";
+                card.style.transform = `translateZ(50px) scale(1.1)`;
+                card.style.zIndex = '10';
+                card.style.opacity = '1';
                 card.classList.add('active');
             } else {
-                // Use a simpler transform for inactive cards
-                const angle = ((i - index) * (360 / Math.max(totalCharacters, 1))) % 360;
-                const radian = (angle * Math.PI) / 180;
-                const x = Math.sin(radian) * 250; // Reduced radius
-                const z = Math.cos(radian) * 150 - 50; // Less extreme z-offset
                 card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
-                card.style.opacity = "0.8";
-                card.style.zIndex = "1";
+                card.style.zIndex = '1';
+                card.style.opacity = '0.8';
                 card.classList.remove('active');
             }
             
@@ -288,7 +308,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updateButtonState();
     }
     
-    // Update navigation button state
+    /**
+     * Update navigation button state
+     */
     function updateButtonState() {
         prevButton.disabled = characters.length <= 1;
         nextButton.disabled = characters.length <= 1;
@@ -299,9 +321,13 @@ document.addEventListener('DOMContentLoaded', function() {
         selectButton.disabled = characters.length === 0;
     }
     
-    // Navigate between characters
-    function navigateCharousel(direction) {
+    /**
+     * Navigate between characters
+     */
+    function navigateCarousel(direction) {
         if (isTransitioning || characters.length <= 1) return;
+        
+        console.log('Navigating carousel:', direction);
         
         let newIndex;
         if (direction === 'prev') {
@@ -313,7 +339,9 @@ document.addEventListener('DOMContentLoaded', function() {
         selectCharacter(newIndex);
     }
     
-    // Show delete confirmation
+    /**
+     * Show delete confirmation
+     */
     function showDeleteConfirmation(character) {
         if (!deleteModal) return;
         
@@ -329,7 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 10);
     }
     
-    // Hide delete confirmation
+    /**
+     * Hide delete confirmation
+     */
     function hideDeleteConfirmation() {
         if (!deleteModal) return;
         
@@ -340,7 +370,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
     
-    // Delete character
+    /**
+     * Delete a character
+     */
     function deleteCharacter(characterId) {
         try {
             // Get custom characters
@@ -379,7 +411,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Show toast notification
+    /**
+     * Show toast notification
+     */
     function showToast(message, type = 'info') {
         // Create toast container if needed
         let toastContainer = document.querySelector('.toast-container');
@@ -411,33 +445,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
     
-    // Initialize background particles
+    /**
+     * Initialize background particles
+     */
     function initializeParticles() {
-        // Implemented in HTML for simplicity
+        // Already implemented in HTML
+        console.log('Particles initialized');
     }
     
-    // Setup event listeners
+    /**
+     * Setup all event listeners
+     */
     function setupEventListeners() {
+        console.log('Setting up event listeners');
+        
         // Navigation buttons
-        prevButton.addEventListener('click', () => navigateCharousel('prev'));
-        nextButton.addEventListener('click', () => navigateCarousel('next'));
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                console.log('Previous button clicked');
+                navigateCarousel('prev');
+            });
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                console.log('Next button clicked');
+                navigateCarousel('next');
+            });
+        }
         
         // Select button
-        selectButton.addEventListener('click', () => {
-            if (!selectedCharacter) return;
-            
-            // Add loading state
-            selectButton.disabled = true;
-            selectButton.innerHTML = '<span class="spinner"></span> Loading...';
-            
-            // Save selection to localStorage
-            localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
-            
-            // Navigate with delay to show loading state
-            setTimeout(() => {
-                window.location.href = '/game';
-            }, 800);
-        });
+        if (selectButton) {
+            selectButton.addEventListener('click', () => {
+                if (!selectedCharacter) return;
+                
+                // Add loading state
+                selectButton.disabled = true;
+                selectButton.innerHTML = '<span class="spinner"></span> Loading...';
+                
+                // Save selection to localStorage
+                localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+                
+                // Navigate with delay to show loading state
+                setTimeout(() => {
+                    window.location.href = '/game';
+                }, 800);
+            });
+        }
         
         // Delete confirmation
         if (confirmDeleteBtn) {
@@ -470,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             // Skip if any modal is open
-            if (!deleteModal.classList.contains('hidden')) return;
+            if (deleteModal && !deleteModal.classList.contains('hidden')) return;
             
             if (e.key === 'ArrowLeft') {
                 navigateCarousel('prev');
@@ -481,10 +535,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Mouse wheel navigation
+        // Mouse wheel navigation - FIXED VERSION MOVED INSIDE INITIALIZATION
         document.addEventListener('wheel', (e) => {
             // Skip if transitioning or modal open
-            if (isTransitioning || !deleteModal.classList.contains('hidden')) return;
+            if (isTransitioning || (deleteModal && !deleteModal.classList.contains('hidden'))) return;
             
             // Detect direction
             if (e.deltaY > 0) {
@@ -497,4 +551,5 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize the selection screen
     initialize();
+    console.log('Character selection initialized');
 });
