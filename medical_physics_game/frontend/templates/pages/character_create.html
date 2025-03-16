@@ -4,7 +4,6 @@
 
 {% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/screens/character_create.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced_character_create.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -141,5 +140,5 @@
 
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
-<script src="{{ url_for('static', filename='js/enhanced_character_creator.js') }}"></script>
+<script src="{{ url_for('static', filename='js/character_creator.js') }}"></script>
 {% endblock %}
