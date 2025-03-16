@@ -1,0 +1,18 @@
+{
+  "id": 1742156656417,
+  "name": "bing bong",
+  "max_hp": 100,
+  "current_hp": 100,
+  "abilities": [
+    "Problem Solving",
+    "Patient Care"
+  ],
+  "stats": {
+    "intelligence": 8,
+    "persistence": 5,
+    "adaptability": 5
+  },
+  "level": 1,
+  "custom": true,
+  "image": "/static/img/characters/debug_mode.png"
+}

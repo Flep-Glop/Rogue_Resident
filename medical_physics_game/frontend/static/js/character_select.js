@@ -27,49 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load template characters and custom characters
     function loadTemplateCharacters() {
-        // Define fallback characters in case the game assets aren't loaded
-        const fallbackCharacters = [
-            {
-                id: 'physicist',
-                name: 'Physicist',
-                description: 'Strong analytical skills and problem-solving abilities.',
-                stats: {
-                    intelligence: 9,
-                    persistence: 7,
-                    adaptability: 6
-                },
-                abilities: ['Critical Analysis', 'Problem Solving'],
-                image: '/static/img/characters/physicist.png'
-            },
-            {
-                id: 'resident',
-                name: 'Resident',
-                description: 'Well-rounded with clinical knowledge and patient care experience.',
-                stats: {
-                    intelligence: 7,
-                    persistence: 8,
-                    adaptability: 8
-                },
-                abilities: ['Clinical Diagnosis', 'Patient Care'],
-                image: '/static/img/characters/resident.png'
-            },
-            {
-                id: 'qa_specialist',
-                name: 'QA Specialist',
-                description: 'Detail-oriented with exceptional testing and validation skills.',
-                stats: {
-                    intelligence: 8,
-                    persistence: 9,
-                    adaptability: 6
-                },
-                abilities: ['Detail Oriented', 'Process Improvement'],
-                image: '/static/img/characters/qa_specialist.png'
-            }
-        ];
-        
-        // Try to load character data from window.gameCharacters (set by character_assets.js)
-        // If not available, use the fallback characters
-        let templateCharacters = window.gameCharacters || fallbackCharacters;
+        // Define default template characters
+        const templateCharacters = window.gameCharacters || [];
         
         // Load custom characters from localStorage
         try {
@@ -79,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const formattedCustomChars = customCharacters.map(char => ({
                     id: char.id,
                     name: char.name,
-                    description: 'Custom character with unique abilities.',
+                    description: char.description || 'Custom character with unique abilities.',
                     stats: {
                         intelligence: char.stats.intelligence,
                         persistence: char.stats.persistence,
@@ -90,21 +49,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     custom: true
                 }));
                 
-                // Add custom characters to the beginning of the array
-                characters = [...formattedCustomChars, ...templateCharacters];
+                // Use only custom characters - templates are now optional
+                characters = [...formattedCustomChars];
             } else {
-                characters = templateCharacters;
+                // No custom characters found - will show create prompt
+                characters = [];
             }
         } catch (error) {
             console.error('Error loading custom characters:', error);
-            characters = templateCharacters;
+            characters = [];
         }
         
-        // Render characters
+        // Render characters or create prompt
         renderCharacters();
     }
     
-    // Render all character cards
+    // Render all character cards or prompt to create
     function renderCharacters() {
         if (!characters || !Array.isArray(characters)) {
             console.error('Error loading characters:', characters);
@@ -113,6 +73,48 @@ document.addEventListener('DOMContentLoaded', function() {
         
         characterCards.innerHTML = '';
         
+        // If no characters exist, show a create character prompt
+        if (characters.length === 0) {
+            // Hide carousel buttons when no characters
+            if (prevButton) prevButton.style.display = 'none';
+            if (nextButton) nextButton.style.display = 'none';
+            
+            // Hide character details section
+            characterDetails.innerHTML = '';
+            
+            // Disable select button
+            if (selectButton) {
+                selectButton.disabled = true;
+                selectButton.classList.add('disabled');
+            }
+            
+            // Show create character prompt
+            const createPrompt = document.createElement('div');
+            createPrompt.className = 'create-character-prompt';
+            createPrompt.innerHTML = `
+                <div class="prompt-icon">
+                    <img src="/static/img/characters/debug_mode.png" alt="Create Character">
+                </div>
+                <h2>No Characters Found</h2>
+                <p>You don't have any characters yet. Create your first character to begin your medical physics journey!</p>
+                <a href="/character-create" class="retro-btn start prompt-create-btn">Create Your Character</a>
+            `;
+            
+            characterCards.appendChild(createPrompt);
+            return;
+        }
+        
+        // Show carousel buttons when characters exist
+        if (prevButton) prevButton.style.display = 'block';
+        if (nextButton) nextButton.style.display = 'block';
+        
+        // Enable select button
+        if (selectButton) {
+            selectButton.disabled = false;
+            selectButton.classList.remove('disabled');
+        }
+        
+        // Render existing characters
         characters.forEach((character, index) => {
             const card = document.createElement('div');
             card.className = 'character-card';
@@ -135,12 +137,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Select the first character by default
-        selectCharacter(0);
-        updateCarousel();
+        if (characters.length > 0) {
+            selectCharacter(0);
+            updateCarousel();
+        }
     }
     
     // Select a character and show details
     function selectCharacter(index) {
+        // Check if we have any characters
+        if (characters.length === 0 || index < 0 || index >= characters.length) {
+            // Clear selection when no characters
+            selectedCharacter = null;
+            window.selectedCharacter = null;
+            characterDetails.innerHTML = '';
+            return;
+        }
+        
         // Update current index
         currentIndex = index;
         selectedCharacter = characters[index];
@@ -203,30 +216,81 @@ document.addEventListener('DOMContentLoaded', function() {
         characterCards.style.transform = `translateX(${offset}px)`;
     }
     
+    // Delete a character (for future implementation)
+    function deleteCharacter(characterId) {
+        // Confirm deletion
+        if (!confirm('Are you sure you want to delete this character? This cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            // Get existing custom characters
+            let customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
+            
+            // Filter out the character to delete
+            customCharacters = customCharacters.filter(char => char.id !== characterId);
+            
+            // Save back to localStorage
+            localStorage.setItem('customCharacters', JSON.stringify(customCharacters));
+            
+            // Reload characters
+            loadTemplateCharacters();
+            
+            // If the selected character was deleted, select the first available character
+            if (selectedCharacter && selectedCharacter.id === characterId) {
+                if (characters.length > 0) {
+                    selectCharacter(0);
+                } else {
+                    selectedCharacter = null;
+                    window.selectedCharacter = null;
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting character:', error);
+            alert('Failed to delete character. Please try again.');
+        }
+    }
+    
     // Set up event listeners
     function setupEventListeners() {
         // Navigation buttons
-        prevButton.addEventListener('click', () => navigateCarousel('prev'));
-        nextButton.addEventListener('click', () => navigateCarousel('next'));
+        if (prevButton) {
+            prevButton.addEventListener('click', () => navigateCarousel('prev'));
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', () => navigateCarousel('next'));
+        }
         
         // Select button
-        selectButton.addEventListener('click', () => {
-            if (selectedCharacter) {
-                // Store selected character in localStorage
-                localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
-                // Navigate to game
-                window.location.href = '/game';
-            }
-        });
+        if (selectButton) {
+            selectButton.addEventListener('click', () => {
+                if (selectedCharacter) {
+                    // Store selected character in localStorage
+                    localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+                    // Navigate to game
+                    window.location.href = '/game';
+                }
+            });
+        }
         
-        // Handle keyboard navigation
+        // Handle keyboard navigation - only when characters exist
         document.addEventListener('keydown', (e) => {
+            if (characters.length === 0) return;
+            
             if (e.key === 'ArrowLeft') {
                 navigateCarousel('prev');
             } else if (e.key === 'ArrowRight') {
                 navigateCarousel('next');
-            } else if (e.key === 'Enter') {
+            } else if (e.key === 'Enter' && selectButton && !selectButton.disabled) {
                 selectButton.click();
+            }
+        });
+        
+        // When in "no characters" state, 'Enter' key should trigger character creation
+        document.addEventListener('keydown', (e) => {
+            if (characters.length === 0 && e.key === 'Enter') {
+                window.location.href = '/character-create';
             }
         });
     }

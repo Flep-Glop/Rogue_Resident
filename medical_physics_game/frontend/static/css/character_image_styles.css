@@ -149,3 +149,59 @@
     justify-content: center;
     margin-top: 20px;
 }
+
+/* Create character prompt styles */
+.create-character-prompt {
+    min-width: 300px;
+    max-width: 500px;
+    margin: 0 auto;
+    background-color: var(--color-bg-light, #2a3049);
+    border: 3px solid var(--color-secondary, #56b886);
+    border-radius: 5px;
+    padding: 30px;
+    text-align: center;
+    animation: pulse-light 2s infinite alternate;
+}
+
+.prompt-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background-color: var(--color-bg-darker, #131725);
+    border: 2px solid var(--color-secondary, #56b886);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.prompt-icon img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+.create-character-prompt h2 {
+    color: var(--color-secondary, #56b886);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.create-character-prompt p {
+    color: var(--color-text, #f0f0f0);
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.prompt-create-btn {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 1.1rem;
+    padding: 12px 25px;
+}
+
+@keyframes pulse-light {
+    0% { box-shadow: 0 0 10px rgba(86, 184, 134, 0.1); }
+    100% { box-shadow: 0 0 20px rgba(86, 184, 134, 0.3); }
+}
