@@ -2,8 +2,12 @@
 
 {% block title %}Character Selection{% endblock %}
 
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/character_image_styles.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="pixel-container">
+<div class="pixel-container" data-screen="character-select">
     <h1 class="game-title">Character Selection</h1>
     <p class="subtitle">Choose your character to begin the game</p>
     
@@ -20,15 +24,15 @@
     </div>
     
     <button class="retro-btn start" id="select-button">Select Character</button>
+    <a href="{{ url_for('index') }}" class="retro-btn options">Back to Menu</a>
 </div>
 {% endblock %}
 
 {% block additional_js %}
-<script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script>
     // Character selection logic
     document.addEventListener('DOMContentLoaded', function() {
-        // Define characters here as a fallback in case character_assets.js fails to load
+        // Define fallback characters in case the game assets aren't loaded
         const fallbackCharacters = [
             {
                 id: 'physicist',
@@ -68,7 +72,8 @@
             }
         ];
         
-        // Use window.gameCharacters if available, otherwise use fallback
+        // Try to load character data from window.gameCharacters (set by character_assets.js)
+        // If not available, use the fallback characters
         const characters = window.gameCharacters || fallbackCharacters;
         
         // DOM elements
@@ -98,7 +103,7 @@
                 
                 card.innerHTML = `
                     <div class="character-portrait">
-                        <img src="${character.image}" alt="${character.name}">
+                        <img src="${character.image}" alt="${character.name}" onerror="this.src='{{ url_for('static', filename='img/characters/debug_mode.png') }}'">
                     </div>
                     <h2 class="character-name">${character.name}</h2>
                     <p class="character-description">${character.description}</p>
@@ -118,6 +123,9 @@
             // Update current index
             currentIndex = index;
             selectedCharacter = characters[index];
+            
+            // Make the selected character available globally
+            window.selectedCharacter = selectedCharacter;
             
             // Update active card
             document.querySelectorAll('.character-card').forEach((card, i) => {
@@ -178,20 +186,35 @@
         prevButton.addEventListener('click', () => navigateCarousel('prev'));
         nextButton.addEventListener('click', () => navigateCarousel('next'));
         
-        selectButton.addEventListener('click', () => {
-            if (selectedCharacter) {
-                // Store selected character
-                localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
-                // Navigate to game
-                window.location.href = "{{ url_for('game') }}";
+        // Handle keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                navigateCarousel('prev');
+            } else if (e.key === 'ArrowRight') {
+                navigateCarousel('next');
+            } else if (e.key === 'Enter') {
+                selectButton.click();
             }
         });
         
         // Initialize
         try {
-            renderCharacters();
+            // Load character assets script if it's not already loaded
+            if (!window.gameCharacters) {
+                const script = document.createElement('script');
+                script.src = "{{ url_for('static', filename='js/character_assets.js') }}";
+                script.onload = renderCharacters;
+                script.onerror = () => {
+                    console.warn('Could not load character assets, using fallbacks');
+                    renderCharacters();
+                };
+                document.head.appendChild(script);
+            } else {
+                renderCharacters();
+            }
         } catch (error) {
-            console.error('Error loading characters:', error);
+            console.error('Error initializing character selection:', error);
+            renderCharacters(); // Fall back to default rendering
         }
     });
 </script>

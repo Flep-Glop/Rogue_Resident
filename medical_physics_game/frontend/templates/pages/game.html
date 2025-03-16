@@ -2,8 +2,12 @@
 
 {% block title %}Medical Physics Game{% endblock %}
 
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/game.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="pixel-container">
+<div class="pixel-container" data-screen="game">
     <h1 class="game-title">Medical Physics Residency</h1>
     <h2 class="subtitle">The Roguelike Challenge</h2>
     
@@ -12,8 +16,17 @@
             <h2>Loading character data...</h2>
         </div>
         
-        <div class="game-actions">
-            <a href="{{ url_for('index') }}" class="retro-btn">Return to Home</a>
+        <div class="map-container" id="map-container">
+            <h3 class="map-title">Floor Map</h3>
+            <div class="map-wrapper">
+                <canvas id="floor-map" width="800" height="600"></canvas>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <button id="inventory-btn" class="retro-btn">Inventory</button>
+            <button id="skill-tree-btn" class="retro-btn">Skill Tree</button>
+            <a href="{{ url_for('index') }}" class="retro-btn options">Return to Home</a>
         </div>
     </div>
 </div>
@@ -24,7 +37,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const characterInfo = document.getElementById('character-info');
         
-        // Try to load the selected character
+        // Try to load the selected character from localStorage
         const savedCharacter = localStorage.getItem('selectedCharacter');
         
         if (savedCharacter) {
@@ -33,7 +46,7 @@
                 
                 characterInfo.innerHTML = `
                     <div class="character-portrait">
-                        <img src="${character.image}" alt="${character.name}">
+                        <img src="${character.image}" alt="${character.name}" onerror="this.src='{{ url_for('static', filename='img/characters/debug_mode.png') }}'">
                     </div>
                     <h2 class="character-name">${character.name}</h2>
                     <p class="character-description">${character.description}</p>
@@ -53,13 +66,145 @@
                         `).join('')}
                     </div>
                 `;
+                
+                // Initialize game map (placeholder)
+                initializeGameMap();
+                
             } catch (error) {
                 console.error('Error parsing character data:', error);
-                characterInfo.innerHTML = '<p>Error loading character data. Please return to the character selection screen.</p>';
+                characterInfo.innerHTML = `
+                    <div class="error-message">
+                        <h3>Error Loading Character</h3>
+                        <p>There was a problem loading your character data. Please return to the character selection screen.</p>
+                        <a href="{{ url_for('character_select') }}" class="retro-btn">Select Character</a>
+                    </div>
+                `;
             }
         } else {
-            characterInfo.innerHTML = '<p>No character selected. Please return to the character selection screen.</p>';
+            characterInfo.innerHTML = `
+                <div class="error-message">
+                    <h3>No Character Selected</h3>
+                    <p>You haven't selected a character yet. Please go to the character selection screen.</p>
+                    <a href="{{ url_for('character_select') }}" class="retro-btn">Select Character</a>
+                </div>
+            `;
+        }
+        
+        // Button event listeners
+        const inventoryBtn = document.getElementById('inventory-btn');
+        if (inventoryBtn) {
+            inventoryBtn.addEventListener('click', function() {
+                alert('Inventory will be implemented in the next update!');
+            });
+        }
+        
+        const skillTreeBtn = document.getElementById('skill-tree-btn');
+        if (skillTreeBtn) {
+            skillTreeBtn.addEventListener('click', function() {
+                alert('Skill Tree will be implemented in the next update!');
+            });
         }
     });
+    
+    // Placeholder for game map initialization
+    function initializeGameMap() {
+        const canvas = document.getElementById('floor-map');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.fillStyle = '#1e2232';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid
+        ctx.strokeStyle = 'rgba(91, 141, 217, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // Vertical lines
+        for (let x = 0; x < canvas.width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        
+        // Horizontal lines
+        for (let y = 0; y < canvas.height; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // Draw placeholder nodes (will be replaced with actual game nodes)
+        drawNode(ctx, 400, 100, '#56b886', 'S'); // Start node
+        drawNode(ctx, 300, 200, '#5b8dd9', 'Q'); // Question node
+        drawNode(ctx, 500, 200, '#f0c866', 'R'); // Rest node
+        drawNode(ctx, 200, 300, '#9c77db', 'E'); // Elite node
+        drawNode(ctx, 400, 300, '#5b8dd9', 'Q'); // Question node
+        drawNode(ctx, 600, 300, '#5bbcd9', 'T'); // Treasure node
+        drawNode(ctx, 400, 400, '#e67e73', 'B'); // Boss node
+        
+        // Draw paths between nodes
+        drawPath(ctx, 400, 100, 300, 200);
+        drawPath(ctx, 400, 100, 500, 200);
+        drawPath(ctx, 300, 200, 200, 300);
+        drawPath(ctx, 300, 200, 400, 300);
+        drawPath(ctx, 500, 200, 400, 300);
+        drawPath(ctx, 500, 200, 600, 300);
+        drawPath(ctx, 200, 300, 400, 400);
+        drawPath(ctx, 400, 300, 400, 400);
+        drawPath(ctx, 600, 300, 400, 400);
+    }
+    
+    // Helper function to draw a hexagonal node
+    function drawNode(ctx, x, y, color, text) {
+        const size = 30;
+        
+        // Draw hexagon
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x + size * 0.866, y - size * 0.5);
+        ctx.lineTo(x + size * 0.866, y + size * 0.5);
+        ctx.lineTo(x, y + size);
+        ctx.lineTo(x - size * 0.866, y + size * 0.5);
+        ctx.lineTo(x - size * 0.866, y - size * 0.5);
+        ctx.closePath();
+        
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        // Draw darker inner hexagon
+        ctx.beginPath();
+        const innerSize = size * 0.8;
+        ctx.moveTo(x, y - innerSize);
+        ctx.lineTo(x + innerSize * 0.866, y - innerSize * 0.5);
+        ctx.lineTo(x + innerSize * 0.866, y + innerSize * 0.5);
+        ctx.lineTo(x, y + innerSize);
+        ctx.lineTo(x - innerSize * 0.866, y + innerSize * 0.5);
+        ctx.lineTo(x - innerSize * 0.866, y - innerSize * 0.5);
+        ctx.closePath();
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fill();
+        
+        // Draw text
+        ctx.fillStyle = 'white';
+        ctx.font = '20px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, y);
+    }
+    
+    // Helper function to draw a path between nodes
+    function drawPath(ctx, x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = 'rgba(91, 141, 217, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
 </script>
 {% endblock %}
