@@ -56,6 +56,18 @@
     background-color: transparent;
     opacity: 0.4;
     z-index: 1;
+    transition: transform 0.1s ease-out;
+}
+
+/* Pixel elements (smaller filled shapes) */
+.pixel-element {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-primary);
+    opacity: 0.8;
+    z-index: 1;
+    transition: transform 0.05s ease-out;
 }
 
 /* Title section */
@@ -209,10 +221,16 @@
         pulse-particle var(--pulse-duration, 3s) infinite alternate ease-in-out;
 }
 
-.geo-element {
+.geo-element:not(.mouse-interactive),
+.pixel-element:not(.mouse-interactive) {
     animation: 
         float-geo var(--geo-duration, 30s) infinite linear,
         pulse-geo var(--geo-pulse, 5s) infinite alternate ease-in-out;
+}
+
+/* When mouse interaction is active, pause default animations */
+.mouse-interactive {
+    animation: none !important;
 }
 
 /* Space prompt blinking */
