@@ -3,6 +3,19 @@
  * Integrates 3D card rotation, smooth transitions, and improved UI
  */
 
+// Add at the top of character_select.js
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded for character selection');
+    console.log('Characters available:', window.gameCharacters);
+    
+    // Check if key elements exist
+    const elementsToCheck = ['character-cards', 'prev-button', 'next-button', 'select-button'];
+    elementsToCheck.forEach(id => {
+      const element = document.getElementById(id);
+      console.log(`Element #${id} exists:`, !!element);
+    });
+  });
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM elements
     const characterCards = document.getElementById('character-cards');
@@ -228,13 +241,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
             }
             
-            // Apply transform
+            // Modify in character_select.js
             if (i === index) {
                 // Current card should be front and center
-                card.style.transform = `translateZ(50px) scale(1.1)`;
+                card.style.transform = `translateZ(100px) scale(1.1)`;
+                card.style.opacity = "1";
+                card.style.zIndex = "10";
                 card.classList.add('active');
             } else {
+                // Use a simpler transform for inactive cards
+                const angle = ((i - index) * (360 / Math.max(totalCharacters, 1))) % 360;
+                const radian = (angle * Math.PI) / 180;
+                const x = Math.sin(radian) * 250; // Reduced radius
+                const z = Math.cos(radian) * 150 - 50; // Less extreme z-offset
                 card.style.transform = `translateX(${x}px) translateZ(${z}px)`;
+                card.style.opacity = "0.8";
+                card.style.zIndex = "1";
                 card.classList.remove('active');
             }
             

@@ -547,3 +547,14 @@
     gap: 15px;
     margin-top: 20px;
   }
+
+  /* Add this to character_image_styles.css */
+.character-cards-wrapper {
+    perspective: 1200px; /* Add proper perspective */
+    overflow: visible; /* Allow elements to be visible outside container */
+  }
+  
+  .character-card {
+    opacity: 0.9; /* Increase from 0.7 to make cards more visible */
+    z-index: 5; /* Ensure base z-index is set */
+  }
