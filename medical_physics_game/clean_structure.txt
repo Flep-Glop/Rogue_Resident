@@ -236,7 +236,6 @@
 │   │   │   │   └── game.css
 │   │   │   ├── themes
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── retro-theme.css
 │   │   │   │   └── retro_theme.css
 │   │   │   ├── character_image_styles.css
 │   │   │   └── main.css
@@ -422,4 +421,4 @@
 ├── verify_structure.py
 └── wsgi.py
 
-84 directories, 338 files
+84 directories, 337 files
