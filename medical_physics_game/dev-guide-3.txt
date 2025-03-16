@@ -1,0 +1,1712 @@
+# Medical Physics Game Developer Guide 3
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Content Development](#content-development)
+3. [Game Balance and Progression](#game-balance-and-progression)
+4. [UI/UX Refinement](#uiux-refinement)
+5. [Testing Strategy](#testing-strategy)
+6. [Deployment and Distribution](#deployment-and-distribution)
+7. [Future Enhancement Roadmap](#future-enhancement-roadmap)
+8. [Community and Feedback](#community-and-feedback)
+
+## Introduction
+
+This Developer Guide 3 builds upon the previous guides, focusing on finalizing and refining the Medical Physics Game. With the core systems implemented and the application structure in place, this guide provides a roadmap for content creation, polishing, testing, and deploying the game to users.
+
+### Current State
+
+At this point, the project has:
+- A well-organized directory structure
+- Core game mechanics (skill tree, map generation, combat system)
+- State management and event systems
+- Educational content framework
+- Performance optimizations
+- Plugin architecture
+
+The next phase is to enhance the player experience through content creation, game balancing, UI polish, thorough testing, and deployment.
+
+## Content Development
+
+### Educational Content Creation Strategy
+
+Educational content is the heart of the Medical Physics Game. Follow these strategies to develop engaging and educational content:
+
+#### Question Development Guidelines
+
+1. **Define Learning Objectives**:
+   For each question, clearly define what the player should learn.
+
+2. **Difficulty Progression**:
+   Create questions with varied difficulty levels:
+   - **Beginner**: Basic recall and understanding
+   - **Intermediate**: Application of concepts
+   - **Advanced**: Analysis and synthesis of complex topics
+
+3. **Categorization**:
+   Categorize questions by topic areas:
+   - Radiation Physics
+   - Dosimetry
+   - Radiation Protection
+   - Radiation Biology
+   - Imaging Technologies
+   - Treatment Planning
+   - Quality Assurance
+
+4. **Contextual Relevance**:
+   Make questions relevant to clinical scenarios.
+
+#### Example Question Structure:
+
+```json
+{
+  "id": "q123",
+  "text": "A patient is receiving photon treatment with a 6 MV linear accelerator. If the treatment plan calls for a 2 Gy dose to the target volume, approximately how many monitor units would be needed for a typical setup with 1 MU ≈ 1 cGy at reference conditions?",
+  "options": [
+    "100 MU",
+    "200 MU",
+    "20 MU",
+    "2000 MU"
+  ],
+  "correct_answer": 1,
+  "difficulty": "intermediate",
+  "category": "treatment_planning",
+  "explanation": "Since 1 MU ≈ 1 cGy at reference conditions, and 2 Gy = 200 cGy, approximately 200 MU would be needed. This would need to be adjusted based on actual patient setup, depth, and other factors in a real clinical scenario.",
+  "learning_objectives": ["Understand the relationship between monitor units and dose", "Apply conversion between Gy and cGy"],
+  "references": ["Khan's The Physics of Radiation Therapy, Chapter 11"]
+}
+```
+
+#### Patient Case Development
+
+Patient cases should follow a clinical workflow:
+
+1. **Patient History**: Provide relevant background information
+2. **Examination Findings**: Present vital signs, physical examination results
+3. **Diagnostic Test Results**: Include imaging and lab results
+4. **Decision Points**: Create branching points for diagnosis and treatment decisions
+5. **Outcomes and Feedback**: Show consequences of decisions
+
+#### Sample Patient Case Structure:
+
+```json
+{
+  "id": "case001",
+  "title": "Prostate Cancer Treatment Planning",
+  "description": "A 67-year-old male with recently diagnosed prostate cancer requires a treatment plan.",
+  "history": "Patient presents with elevated PSA (10.5 ng/mL). Biopsy confirmed adenocarcinoma of the prostate, Gleason score 7 (4+3).",
+  "vitals": {
+    "height": "175 cm",
+    "weight": "82 kg",
+    "blood_pressure": "138/85",
+    "heart_rate": "72 bpm"
+  },
+  "imaging": [
+    {
+      "type": "CT",
+      "description": "CT scan shows a 2.3 cm lesion in the right lobe of the prostate with no evidence of extracapsular extension.",
+      "image_url": "case001_ct.jpg"
+    },
+    {
+      "type": "MRI",
+      "description": "MRI confirms the lesion with no evidence of seminal vesicle invasion or lymph node involvement.",
+      "image_url": "case001_mri.jpg"
+    }
+  ],
+  "labs": {
+    "psa": "10.5 ng/mL",
+    "cbc": "Within normal limits",
+    "liver_function": "Within normal limits",
+    "renal_function": "Within normal limits"
+  },
+  "diagnosis": "Stage IIB (T2b, N0, M0) prostate adenocarcinoma, Gleason 7 (4+3)",
+  "treatment_options": [
+    {
+      "id": "option1",
+      "name": "3D Conformal Radiotherapy",
+      "description": "Standard 3D conformal radiotherapy with a total dose of 74 Gy in 37 fractions."
+    },
+    {
+      "id": "option2",
+      "name": "IMRT",
+      "description": "Intensity-modulated radiation therapy with a total dose of 78 Gy in 39 fractions."
+    },
+    {
+      "id": "option3",
+      "name": "VMAT",
+      "description": "Volumetric modulated arc therapy with a total dose of 78 Gy in 39 fractions."
+    }
+  ],
+  "questions": [
+    {
+      "id": "case001_q1",
+      "text": "Which treatment option would provide the best dose conformity while minimizing dose to the rectum?",
+      "correct_option": "option3",
+      "explanation": "VMAT generally provides better dose conformity than 3D conformal RT and comparable or better organ-at-risk sparing compared to IMRT, with shorter treatment times."
+    },
+    {
+      "id": "case001_q2",
+      "text": "What immobilization technique is most appropriate for this patient?",
+      "options": [
+        "Knee and foot supports only",
+        "Thermoplastic mask of the pelvis",
+        "Full body vacuum bag",
+        "No immobilization necessary"
+      ],
+      "correct_answer": 0,
+      "explanation": "For prostate radiation therapy, knee and foot supports provide adequate immobilization while being comfortable for the patient during daily treatments."
+    }
+  ],
+  "follow_up": "The patient completed the prescribed course of VMAT with good tolerance. PSA at 3 months post-treatment was 1.2 ng/mL, indicating good response to treatment."
+}
+```
+
+### Skill Tree Design
+
+Design a comprehensive skill tree that gives players meaningful choices and a sense of progression:
+
+1. **Thematic Branches**:
+   - Divide the skill tree into thematic branches (e.g., Diagnostics, Treatment, Research)
+   - Each branch should have unique gameplay effects
+
+2. **Progression Depth**:
+   - Early nodes: Small, incremental bonuses
+   - Mid-tier nodes: New abilities or mechanics
+   - End-tier nodes: Game-changing abilities or significant bonuses
+
+3. **Balanced Choices**:
+   - Ensure no single path is objectively better
+   - Create trade-offs between different paths
+
+#### Skill Tree Node Examples:
+
+```json
+[
+  {
+    "id": "diagnostic_1",
+    "name": "Diagnostic Fundamentals",
+    "description": "Basic training in diagnostic procedures. Increases accuracy of diagnosis by 5%.",
+    "cost": 1,
+    "prerequisites": [],
+    "effects": [
+      {
+        "type": "diagnosis_accuracy",
+        "value": 5
+      }
+    ],
+    "category": "diagnostics",
+    "position": {"x": 0, "y": 0},
+    "icon": "stethoscope"
+  },
+  {
+    "id": "diagnostic_2",
+    "name": "Advanced Imaging",
+    "description": "Training in advanced imaging techniques. Reveals hidden information in patient cases.",
+    "cost": 2,
+    "prerequisites": ["diagnostic_1"],
+    "effects": [
+      {
+        "type": "reveal_hidden_info",
+        "value": true
+      }
+    ],
+    "category": "diagnostics",
+    "position": {"x": 1, "y": 1},
+    "icon": "mri"
+  },
+  {
+    "id": "treatment_1",
+    "name": "Treatment Planning",
+    "description": "Basic training in treatment planning. Increases treatment effectiveness by 5%.",
+    "cost": 1,
+    "prerequisites": [],
+    "effects": [
+      {
+        "type": "treatment_effectiveness",
+        "value": 5
+      }
+    ],
+    "category": "treatment",
+    "position": {"x": -1, "y": 0},
+    "icon": "chart"
+  }
+]
+```
+
+### Map and Node Design
+
+Create varied and interesting maps that keep the gameplay fresh:
+
+1. **Floor Themes**:
+   - Design distinct themes for each floor (e.g., Hospital Floor, Research Lab, Conference)
+   - Each theme should have unique visuals and node types
+
+2. **Node Distribution**:
+   - Balance node types to create interesting decisions
+   - Example distribution:
+     - Questions: 40%
+     - Patient Cases: 20%
+     - Elite Challenges: 10%
+     - Rest Sites: 10%
+     - Events: 15%
+     - Treasure: 5%
+
+3. **Special Nodes**:
+   - Create unique nodes that appear rarely
+   - Example: "Conference" node where player can choose between multiple skill points or other rewards
+
+4. **Event Pool**:
+   - Develop a large pool of random events
+   - Events should present interesting choices with meaningful consequences
+
+#### Example Event:
+
+```json
+{
+  "id": "event_journal_review",
+  "title": "Journal Club",
+  "description": "You're invited to a journal club where a new research paper is being discussed. The findings could influence your practice.",
+  "options": [
+    {
+      "text": "Participate actively",
+      "effects": [
+        {"type": "reputation", "value": 3},
+        {"type": "energy", "value": -10}
+      ],
+      "result": "Your insightful comments impress your colleagues. You gain reputation, but it's been a long day and you're more tired now."
+    },
+    {
+      "text": "Listen quietly",
+      "effects": [
+        {"type": "skill_points", "value": 1},
+        {"type": "energy", "value": -5}
+      ],
+      "result": "You absorb the information without contributing much. You gain a skill point from the knowledge, and conserve some energy."
+    },
+    {
+      "text": "Skip to prepare for tomorrow",
+      "effects": [
+        {"type": "reputation", "value": -2},
+        {"type": "energy", "value": 10}
+      ],
+      "result": "You choose to rest instead. Your absence is noted, affecting your reputation slightly, but you feel refreshed."
+    }
+  ]
+}
+```
+
+## Game Balance and Progression
+
+### Difficulty Curve
+
+Design a balanced difficulty progression:
+
+1. **Starting Easy**:
+   - First floor: Simple questions, forgiving encounters
+   - Basic node types and straightforward choices
+
+2. **Gradual Ramp**:
+   - Gradually introduce complexity in questions and patient cases
+   - Add more difficult elite encounters and events with higher stakes
+
+3. **Challenging End Game**:
+   - Final floor: Challenging questions that test comprehensive knowledge
+   - Boss encounter requires strategic thinking and application of learned concepts
+
+4. **Difficulty Settings**:
+   ```python
+   # backend/core/difficulty_manager.py
+   class DifficultyManager:
+       DIFFICULTY_SETTINGS = {
+           'easy': {
+               'question_difficulty_weights': {'beginner': 0.7, 'intermediate': 0.3, 'advanced': 0.0},
+               'health_modifier': 1.2,
+               'enemy_strength': 0.8,
+               'reward_modifier': 0.9
+           },
+           'normal': {
+               'question_difficulty_weights': {'beginner': 0.4, 'intermediate': 0.5, 'advanced': 0.1},
+               'health_modifier': 1.0,
+               'enemy_strength': 1.0,
+               'reward_modifier': 1.0
+           },
+           'hard': {
+               'question_difficulty_weights': {'beginner': 0.1, 'intermediate': 0.5, 'advanced': 0.4},
+               'health_modifier': 0.8,
+               'enemy_strength': 1.2,
+               'reward_modifier': 1.1
+           }
+       }
+       
+       def __init__(self, difficulty='normal'):
+           self.set_difficulty(difficulty)
+           
+       def set_difficulty(self, difficulty):
+           if difficulty not in self.DIFFICULTY_SETTINGS:
+               difficulty = 'normal'
+           self.current_difficulty = difficulty
+           self.settings = self.DIFFICULTY_SETTINGS[difficulty]
+           
+       def get_question_difficulty(self):
+           """Return a weighted random question difficulty based on current settings"""
+           import random
+           weights = self.settings['question_difficulty_weights']
+           difficulties = list(weights.keys())
+           probabilities = list(weights.values())
+           return random.choices(difficulties, probabilities)[0]
+           
+       def modify_health(self, base_health):
+           return base_health * self.settings['health_modifier']
+           
+       def modify_enemy_strength(self, base_strength):
+           return base_strength * self.settings['enemy_strength']
+           
+       def modify_reward(self, base_reward):
+           return base_reward * self.settings['reward_modifier']
+   ```
+
+### Progression System
+
+Implement a satisfying progression system:
+
+1. **Character Growth**:
+   - Clear visual indicators of progress (stats, abilities, reputation)
+   - Meaningful milestones (new character title/rank at certain points)
+
+2. **Unlock System**:
+   - New character types or starting conditions
+   - Alternate game modes
+
+3. **Achievements**:
+   ```python
+   # backend/core/achievement_system.py
+   class AchievementSystem:
+       def __init__(self, user_id):
+           self.user_id = user_id
+           self.achievements = self._load_achievements()
+           self.user_achievements = self._load_user_achievements()
+           
+       def _load_achievements(self):
+           """Load achievement definitions"""
+           # Implementation to load from file or database
+           return [
+               {
+                   'id': 'perfect_floor',
+                   'name': 'Perfect Knowledge',
+                   'description': 'Complete a floor with 100% correct answers',
+                   'icon': 'trophy',
+                   'hidden': False
+               },
+               {
+                   'id': 'skill_master',
+                   'name': 'Skill Master',
+                   'description': 'Unlock 20 skill nodes',
+                   'icon': 'skill',
+                   'hidden': False
+               },
+               {
+                   'id': 'save_lives',
+                   'name': 'Lifesaver',
+                   'description': 'Successfully treat 50 patients',
+                   'icon': 'heart',
+                   'hidden': False
+               },
+               # More achievements...
+           ]
+           
+       def _load_user_achievements(self):
+           """Load user's unlocked achievements"""
+           from backend.data.repositories.user_repo import UserRepository
+           user = UserRepository.get_user_by_id(self.user_id)
+           return user.achievements if hasattr(user, 'achievements') else []
+           
+       def unlock_achievement(self, achievement_id):
+           """Unlock an achievement for the user"""
+           if achievement_id in self.user_achievements:
+               return False
+               
+           # Check if achievement exists
+           achievement = next((a for a in self.achievements if a['id'] == achievement_id), None)
+           if not achievement:
+               return False
+               
+           # Add achievement to user's unlocked achievements
+           self.user_achievements.append(achievement_id)
+           
+           # Save to repository
+           from backend.data.repositories.user_repo import UserRepository
+           UserRepository.update_user_achievements(self.user_id, self.user_achievements)
+           
+           # Trigger achievement notification
+           return {
+               'achievement': achievement,
+               'is_new': True
+           }
+           
+       def check_achievement_progress(self, event_type, event_data):
+           """Check if an event triggers any achievements"""
+           results = []
+           
+           if event_type == 'floor_completed':
+               correct_answers = event_data.get('correct_answers', 0)
+               total_questions = event_data.get('total_questions', 0)
+               
+               if total_questions > 0 and correct_answers == total_questions:
+                   result = self.unlock_achievement('perfect_floor')
+                   if result:
+                       results.append(result)
+           
+           # Add more checks for other event types
+           
+           return results
+   ```
+
+## UI/UX Refinement
+
+### Visual Style Guide
+
+Create a consistent visual style:
+
+1. **Color Palette**:
+   - Primary: #3498db (Blue) - Main UI elements, headers
+   - Secondary: #2ecc71 (Green) - Success, positive outcomes
+   - Accent: #e74c3c (Red) - Errors, warnings
+   - Background: #f5f7fa (Light Gray) - Main background
+   - Text: #2c3e50 (Dark Gray) - Main text color
+
+2. **Typography**:
+   - Headings: 'Montserrat', sans-serif
+   - Body text: 'Open Sans', sans-serif
+   - Monospace elements: 'Roboto Mono', monospace
+
+3. **Component Design**:
+   - Rounded corners (8px border radius)
+   - Subtle shadows for elevation
+   - Consistent spacing (8px, 16px, 24px, 32px increments)
+
+### Interface Improvements
+
+Enhance the user interface:
+
+1. **Dashboard Redesign**:
+   ```html
+   <!-- frontend/templates/pages/dashboard.html -->
+   {% extends "base.html" %}
+   
+   {% block title %}Medical Physics Game - Dashboard{% endblock %}
+   
+   {% block content %}
+   <div class="dashboard-container">
+     <div class="dashboard-header">
+       <h1>Medical Physics Residency Dashboard</h1>
+       <div class="character-summary">
+         <img src="{{ url_for('static', filename='img/characters/' + character.avatar) }}" alt="{{ character.name }}" class="character-avatar">
+         <div class="character-info">
+           <h2>{{ character.name }}</h2>
+           <div class="character-stats">
+             <div class="stat">
+               <i class="icon icon-health"></i>
+               <span>{{ character.current_hp }}/{{ character.max_hp }}</span>
+             </div>
+             <div class="stat">
+               <i class="icon icon-reputation"></i>
+               <span>{{ character.reputation }}</span>
+             </div>
+             <div class="stat">
+               <i class="icon icon-skill-points"></i>
+               <span>{{ character.skill_points }}</span>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+     
+     <div class="dashboard-content">
+       <div class="dashboard-card game-progress">
+         <h3>Current Progress</h3>
+         <div class="progress-visualization">
+           <div class="floor-indicator">Floor {{ current_floor }}/{{ total_floors }}</div>
+           <div class="progress-bar">
+             <div class="progress-fill" style="width: {{ (current_floor - 1 + current_node_progress) / total_floors * 100 }}%"></div>
+           </div>
+         </div>
+         <a href="{{ url_for('game') }}" class="button primary">Continue Game</a>
+       </div>
+       
+       <div class="dashboard-card achievements">
+         <h3>Recent Achievements</h3>
+         <div class="achievement-list">
+           {% for achievement in recent_achievements %}
+           <div class="achievement-item">
+             <img src="{{ url_for('static', filename='img/icons/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+             <div class="achievement-details">
+               <h4>{{ achievement.name }}</h4>
+               <p>{{ achievement.description }}</p>
+               <span class="achievement-date">{{ achievement.unlocked_date }}</span>
+             </div>
+           </div>
+           {% endfor %}
+         </div>
+         <a href="{{ url_for('achievements') }}" class="button secondary">View All Achievements</a>
+       </div>
+       
+       <div class="dashboard-card statistics">
+         <h3>Performance Statistics</h3>
+         <div class="statistics-grid">
+           <div class="statistic">
+             <span class="statistic-value">{{ statistics.questions_answered }}</span>
+             <span class="statistic-label">Questions Answered</span>
+           </div>
+           <div class="statistic">
+             <span class="statistic-value">{{ statistics.correct_percentage }}%</span>
+             <span class="statistic-label">Correct Answers</span>
+           </div>
+           <div class="statistic">
+             <span class="statistic-value">{{ statistics.patients_treated }}</span>
+             <span class="statistic-label">Patients Treated</span>
+           </div>
+           <div class="statistic">
+             <span class="statistic-value">{{ statistics.nodes_visited }}</span>
+             <span class="statistic-label">Nodes Visited</span>
+           </div>
+         </div>
+         <a href="{{ url_for('statistics') }}" class="button secondary">Detailed Statistics</a>
+       </div>
+     </div>
+   </div>
+   {% endblock %}
+   ```
+
+2. **Interactive Tutorials**:
+   - First-time user experience with guided tutorials
+   - Contextual help for new features
+   - Interactive tooltips for complex concepts
+
+3. **Accessibility Improvements**:
+   ```css
+   /* frontend/static/css/base/accessibility.css */
+   /* High contrast mode */
+   .high-contrast {
+     --color-primary: #0066CC;
+     --color-secondary: #008000;
+     --color-accent: #CC0000;
+     --color-background: #FFFFFF;
+     --color-text: #000000;
+     --color-border: #000000;
+   }
+   
+   /* Focus indicators */
+   *:focus {
+     outline: 3px solid var(--color-primary);
+     outline-offset: 2px;
+   }
+   
+   /* Screen reader only content */
+   .sr-only {
+     position: absolute;
+     width: 1px;
+     height: 1px;
+     padding: 0;
+     margin: -1px;
+     overflow: hidden;
+     clip: rect(0, 0, 0, 0);
+     white-space: nowrap;
+     border-width: 0;
+   }
+   
+   /* Keyboard navigation */
+   [data-focus-visible-added] {
+     outline: 3px solid var(--color-primary);
+     outline-offset: 2px;
+   }
+   
+   /* Reduced motion */
+   @media (prefers-reduced-motion: reduce) {
+     * {
+       animation-duration: 0.01ms !important;
+       animation-iteration-count: 1 !important;
+       transition-duration: 0.01ms !important;
+       scroll-behavior: auto !important;
+     }
+   }
+   ```
+
+### Feedback and Polish
+
+Add subtle details that improve the feel of the game:
+
+1. **Animation System**:
+   ```javascript
+   // frontend/src/ui/utils/animation.js
+   class AnimationManager {
+     constructor() {
+       this.animations = {};
+     }
+     
+     registerAnimation(name, duration, timingFunction = 'ease', delay = 0) {
+       this.animations[name] = {
+         duration,
+         timingFunction,
+         delay
+       };
+     }
+     
+     animate(element, animationName, onComplete = null) {
+       if (!this.animations[animationName]) {
+         console.error(`Animation "${animationName}" not registered`);
+         return;
+       }
+       
+       const animation = this.animations[animationName];
+       
+       element.style.transition = `all ${animation.duration}ms ${animation.timingFunction} ${animation.delay}ms`;
+       
+       // Add animation class
+       element.classList.add(`animation-${animationName}`);
+       
+       // Remove class after animation completes
+       setTimeout(() => {
+         element.classList.remove(`animation-${animationName}`);
+         element.style.transition = '';
+         
+         if (onComplete && typeof onComplete === 'function') {
+           onComplete();
+         }
+       }, animation.duration + animation.delay);
+     }
+     
+     shake(element, intensity = 5, duration = 500) {
+       const originalPosition = element.style.transform;
+       const steps = 10;
+       const stepDuration = duration / steps;
+       
+       let currentStep = 0;
+       
+       const interval = setInterval(() => {
+         if (currentStep >= steps) {
+           clearInterval(interval);
+           element.style.transform = originalPosition;
+           return;
+         }
+         
+         const xOffset = Math.random() * intensity * 2 - intensity;
+         const yOffset = Math.random() * intensity * 2 - intensity;
+         
+         element.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+         
+         currentStep++;
+       }, stepDuration);
+     }
+     
+     fadeIn(element, duration = 300) {
+       element.style.opacity = '0';
+       element.style.display = 'block';
+       
+       setTimeout(() => {
+         element.style.transition = `opacity ${duration}ms ease`;
+         element.style.opacity = '1';
+       }, 10);
+       
+       setTimeout(() => {
+         element.style.transition = '';
+       }, duration + 10);
+     }
+     
+     fadeOut(element, duration = 300, remove = false) {
+       element.style.transition = `opacity ${duration}ms ease`;
+       element.style.opacity = '0';
+       
+       setTimeout(() => {
+         if (remove) {
+           element.remove();
+         } else {
+           element.style.display = 'none';
+         }
+         element.style.transition = '';
+       }, duration);
+     }
+   }
+   
+   export default new AnimationManager();
+   ```
+
+2. **Sound System**:
+   ```javascript
+   // frontend/src/ui/utils/sound_manager.js
+   class SoundManager {
+     constructor() {
+       this.sounds = {};
+       this.music = null;
+       this.musicVolume = 0.5;
+       this.soundVolume = 0.7;
+       this.muted = false;
+       
+       // Load user preferences from localStorage
+       this.loadPreferences();
+     }
+     
+     loadPreferences() {
+       try {
+         const preferences = JSON.parse(localStorage.getItem('soundPreferences')) || {};
+         this.musicVolume = preferences.musicVolume !== undefined ? preferences.musicVolume : this.musicVolume;
+         this.soundVolume = preferences.soundVolume !== undefined ? preferences.soundVolume : this.soundVolume;
+         this.muted = preferences.muted !== undefined ? preferences.muted : this.muted;
+       } catch (e) {
+         console.error('Error loading sound preferences:', e);
+       }
+     }
+     
+     savePreferences() {
+       const preferences = {
+         musicVolume: this.musicVolume,
+         soundVolume: this.soundVolume,
+         muted: this.muted
+       };
+       
+       localStorage.setItem('soundPreferences', JSON.stringify(preferences));
+     }
+     
+     loadSound(id, url) {
+       const audio = new Audio(url);
+       audio.preload = 'auto';
+       this.sounds[id] = audio;
+     }
+     
+     playSound(id) {
+       if (this.muted || !this.sounds[id]) return;
+       
+       // Create a copy of the sound to allow overlapping
+       const sound = this.sounds[id].cloneNode();
+       sound.volume = this.soundVolume;
+       sound.play();
+     }
+     
+     playMusic(id) {
+       if (!this.sounds[id]) return;
+       
+       // Stop current music if playing
+       if (this.music) {
+         this.music.pause();
+         this.music.currentTime = 0;
+       }
+       
+       this.music = this.sounds[id];
+       this.music.loop = true;
+       this.music.volume = this.muted ? 0 : this.musicVolume;
+       this.music.play();
+     }
+     
+     stopMusic() {
+       if (this.music) {
+         this.music.pause();
+         this.music.currentTime = 0;
+         this.music = null;
+       }
+     }
+     
+     setMusicVolume(volume) {
+       this.musicVolume = Math.max(0, Math.min(1, volume));
+       if (this.music) {
+         this.music.volume = this.muted ? 0 : this.musicVolume;
+       }
+       this.savePreferences();
+     }
+     
+     setSoundVolume(volume) {
+       this.soundVolume = Math.max(0, Math.min(1, volume));
+       this.savePreferences();
+     }
+     
+     toggleMute() {
+       this.muted = !this.muted;
+       
+       if (this.music) {
+         this.music.volume = this.muted ? 0 : this.musicVolume;
+       }
+       
+       this.savePreferences();
+       return this.muted;
+     }
+   }
+   
+   export default new SoundManager();
+   ```
+
+## Testing Strategy
+
+### Testing Framework
+
+Implement a comprehensive testing strategy:
+
+1. **Unit Testing**:
+   ```python
+   # tests/backend/core/test_skill_tree_manager.py
+   import unittest
+   from unittest.mock import patch, MagicMock
+   from backend.core.skill_tree_manager import SkillTreeManager
+   
+   class TestSkillTreeManager(unittest.TestCase):
+       def setUp(self):
+           # Create a mock character for testing
+           self.character_id = 'test_character'
+           self.mock_character = MagicMock()
+           self.mock_character.id = self.character_id
+           self.mock_character.skill_points = 5
+           self.mock_character.unlocked_skills = []
+           
+           # Create mock skill tree nodes
+           self.mock_nodes = [
+               MagicMock(id='skill1', prerequisites=[], cost=1),
+               MagicMock(id='skill2', prerequisites=['skill1'], cost=2),
+               MagicMock(id='skill3', prerequisites=['skill1', 'skill2'], cost=3)
+           ]
+           
+           # Set up patches
+           self.character_repo_patch = patch('backend.data.repositories.character_repo.CharacterRepository')
+           self.skill_tree_repo_patch = patch('backend.data.repositories.skill_tree_repo.SkillTreeRepository')
+           
+           # Start patches
+           self.mock_character_repo = self.character_repo_patch.start()
+           self.mock_skill_tree_repo = self.skill_tree_repo_patch.start()
+           
+           # Set return values
+           self.mock_character_repo.get_character_by_id.return_value = self.mock_character
+           self.mock_skill_tree_repo.get_skill_tree.return_value = self.mock_nodes
+           
+           # Create skill tree manager
+           self.skill_tree_manager = SkillTreeManager(self.character_id)
+       
+       def tearDown(self):
+           # Stop patches
+           self.character_repo_patch.stop()
+           self.skill_tree_repo_patch.stop()
+       
+       def test_initialization(self):
+           """Test that SkillTreeManager initializes correctly"""
+           self.assertEqual(self.skill_tree_manager.character_id, self.character_id)
+           self.assertEqual(self.skill_tree_manager.nodes, self.mock_nodes)
+           self.assertEqual(self.skill_tree_manager.unlocked_nodes, [])
+           
+       def test_can_unlock_node_with_available_node(self):
+           """Test that available nodes can be unlocked"""
+           # First node has no prerequisites and character has enough points
+           result = self.skill_tree_manager.can_unlock_node('skill1')
+           self.assertTrue(result)
+           
+       def test_can_unlock_node_with_unavailable_node(self):
+           """Test that unavailable nodes cannot be unlocked"""
+           # Second node has prerequisite that's not unlocked
+           result = self.skill_tree_manager.can_unlock_node('skill2')
+           self.assertFalse(result)
+           
+       def test_unlock_node_success(self):
+           """Test successful node unlocking"""
+           # Unlock first node
+           result = self.skill_tree_manager.unlock_node('skill1')
+           
+           # Check result
+           self.assertTrue(result)
+           
+           # Check character updates
+           self.assertEqual(self.mock_character.skill_points, 4)  # 5 - 1
+           self.assertEqual(self.mock_character.unlocked_skills, ['skill1'])
+           
+           # Check manager state
+           self.assertEqual(self.skill_tree_manager.unlocked_nodes, ['skill1'])
+           
+           # Check character save was called
+           self.mock_character_repo.update_character.assert_called_once_with(self.mock_character)
+           
+       def test_unlock_node_with_insufficient_points(self):
+           """Test node unlocking with insufficient points"""
+           # Set character's skill points to 0
+           self.mock_character.skill_points = 0
+           
+           # Try to unlock node
+           result = self.skill_tree_manager.unlock_node('skill1')
+           
+           # Check failure
+           self.assertFalse(result)
+           
+           # Check no changes were made
+           self.assertEqual(self.mock_character.skill_points, 0)
+           self.assertEqual(self.mock_character.unlocked_skills, [])
+           self.assertEqual(self.skill_tree_manager.unlocked_nodes, [])
+           
+           # Check character save was not called
+           self.mock_character_repo.update_character.assert_not_called()
+   
+   if __name__ == '__main__':
+       unittest.main()
+   ```
+
+2. **Integration Testing**:
+   ```python
+   # tests/integration/test_game_flow.py
+   import unittest
+   from unittest.mock import patch
+   from app import create_app
+   import json
+   
+   class TestGameFlow(unittest.TestCase):
+       def setUp(self):
+           self.app = create_app('test')
+           self.client = self.app.test_client()
+           self.app_context = self.app.app_context()
+           self.app_context.push()
+           
+           # Mock login
+           with patch('backend.data.repositories.user_repo.UserRepository.authenticate_user') as mock_auth:
+               mock_auth.return_value = {'id': 'test_user', 'username': 'testuser'}
+               response = self.client.post('/api/login', json={
+                   'username': 'testuser',
+                   'password': 'password'
+               })
+               self.token = json.loads(response.data)['token']
+               
+           # Create a test character
+           response = self.client.post(
+               '/api/characters',
+               json={'name': 'Test Character', 'archetype': 'researcher'},
+               headers={'Authorization': f'Bearer {self.token}'}
+           )
+           self.character = json.loads(response.data)
+           
+       def tearDown(self):
+           self.app_context.pop()
+       
+       def test_complete_game_flow(self):
+           """Test a complete game flow from start to finish"""
+           # Start a new game
+           response = self.client.post(
+               '/api/games',
+               json={'character_id': self.character['id']},
+               headers={'Authorization': f'Bearer {self.token}'}
+           )
+           self.assertEqual(response.status_code, 200)
+           game_state = json.loads(response.data)
+           
+           # Move to all nodes on the first floor
+           while not game_state.get('game_over', False):
+               # Get available nodes
+               available_nodes = game_state['available_nodes']
+               
+               if not available_nodes:
+                   # No available nodes, must be end of floor or game over
+                   break
+                   
+               # Move to the first available node
+               response = self.client.post(
+                   '/api/games/move',
+                   json={'node_id': available_nodes[0]},
+                   headers={'Authorization': f'Bearer {self.token}'}
+               )
+               self.assertEqual(response.status_code, 200)
+               game_state = json.loads(response.data)
+               
+               # Handle node based on type
+               if game_state.get('current_question'):
+                   # Answer question (always choose first option for testing)
+                   response = self.client.post(
+                       '/api/games/answer',
+                       json={'answer': 0},
+                       headers={'Authorization': f'Bearer {self.token}'}
+                   )
+                   self.assertEqual(response.status_code, 200)
+                   game_state = json.loads(response.data)
+               
+               elif game_state.get('combat'):
+                   # Handle combat (always use first ability)
+                   while game_state.get('combat') and not game_state['combat'].get('is_over', False):
+                       response = self.client.post(
+                           '/api/games/combat',
+                           json={'action': 'ability', 'target_id': game_state['character']['abilities'][0]['id']},
+                           headers={'Authorization': f'Bearer {self.token}'}
+                       )
+                       self.assertEqual(response.status_code, 200)
+                       game_state = json.loads(response.data)
+           
+           # Check that the game was completed successfully
+           self.assertTrue(game_state.get('game_over', False))
+           self.assertTrue(game_state.get('victory', False))
+   ```
+
+3. **UI Testing**:
+   ```javascript
+   // tests/frontend/ui/test_map_renderer.js
+   import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
+   import MapRenderer from '../../../frontend/src/ui/components/map_renderer';
+   
+   describe('MapRenderer', () => {
+     let container;
+     let mapRenderer;
+     let mockGameState;
+     
+     beforeEach(() => {
+       // Create DOM container
+       container = document.createElement('div');
+       container.id = 'map-container';
+       document.body.appendChild(container);
+       
+       // Create mock game state
+       mockGameState = {
+         map: {
+           width: 3,
+           height: 3,
+           grid: [
+             [
+               { id: 'node-0-0', type: 'start', x: 0 },
+               { id: 'node-0-1', type: 'question', x: 1 },
+               { id: 'node-0-2', type: 'event', x: 2 }
+             ],
+             [
+               { id: 'node-1-0', type: 'rest', x: 0 },
+               { id: 'node-1-1', type: 'elite', x: 1 },
+               { id: 'node-1-2', type: 'treasure', x: 2 }
+             ],
+             [
+               { id: 'node-2-0', type: 'patient', x: 0 },
+               { id: 'node-2-1', type: 'event', x: 1 },
+               { id: 'node-2-2', type: 'boss', x: 2 }
+             ]
+           ],
+           paths: [
+             { from: 'node-0-0', to: 'node-1-0' },
+             { from: 'node-0-0', to: 'node-1-1' },
+             { from: 'node-0-1', to: 'node-1-1' },
+             { from: 'node-0-1', to: 'node-1-2' },
+             { from: 'node-0-2', to: 'node-1-2' },
+             { from: 'node-1-0', to: 'node-2-0' },
+             { from: 'node-1-1', to: 'node-2-0' },
+             { from: 'node-1-1', to: 'node-2-1' },
+             { from: 'node-1-2', to: 'node-2-1' },
+             { from: 'node-1-2', to: 'node-2-2' }
+           ]
+         },
+         current_node: 'node-0-0',
+         visited_nodes: ['node-0-0'],
+         available_nodes: ['node-1-0', 'node-1-1']
+       };
+       
+       // Create map renderer
+       mapRenderer = new MapRenderer('map-container', mockGameState);
+     });
+     
+     afterEach(() => {
+       document.body.removeChild(container);
+     });
+     
+     it('initializes correctly', () => {
+       mapRenderer.initialize();
+       
+       const svg = container.querySelector('svg');
+       expect(svg).not.toBeNull();
+       expect(svg.classList.contains('game-map')).toBe(true);
+     });
+     
+     it('renders correct number of nodes', () => {
+       mapRenderer.render(mockGameState);
+       
+       const nodes = container.querySelectorAll('[data-node-id]');
+       expect(nodes.length).toBe(9); // 3x3 grid
+     });
+     
+     it('renders correct number of paths', () => {
+       mapRenderer.render(mockGameState);
+       
+       const paths = container.querySelectorAll('line');
+       expect(paths.length).toBe(10); // As defined in mockGameState.map.paths
+     });
+     
+     it('marks current node correctly', () => {
+       mapRenderer.render(mockGameState);
+       
+       const currentNode = container.querySelector('[data-node-id="node-0-0"]');
+       expect(currentNode.querySelector('circle').classList.contains('map-node-current')).toBe(true);
+     });
+     
+     it('marks available nodes correctly', () => {
+       mapRenderer.render(mockGameState);
+       
+       const availableNodes = [
+         container.querySelector('[data-node-id="node-1-0"]'),
+         container.querySelector('[data-node-id="node-1-1"]')
+       ];
+       
+       availableNodes.forEach(node => {
+         expect(node.querySelector('circle').classList.contains('map-node-available')).toBe(true);
+       });
+     });
+     
+     it('handles node click events', () => {
+       const mockClickHandler = vi.fn();
+       mapRenderer.setNodeClickHandler(mockClickHandler);
+       mapRenderer.render(mockGameState);
+       
+       // Click an available node
+       const availableNode = container.querySelector('[data-node-id="node-1-0"]');
+       availableNode.dispatchEvent(new Event('click'));
+       
+       expect(mockClickHandler).toHaveBeenCalledWith('node-1-0');
+     });
+     
+     it('does not trigger click events on unavailable nodes', () => {
+       const mockClickHandler = vi.fn();
+       mapRenderer.setNodeClickHandler(mockClickHandler);
+       mapRenderer.render(mockGameState);
+       
+       // Click an unavailable node
+       const unavailableNode = container.querySelector('[data-node-id="node-2-0"]');
+       unavailableNode.dispatchEvent(new Event('click'));
+       
+       expect(mockClickHandler).not.toHaveBeenCalled();
+     });
+   });
+   ```
+
+4. **Automated Test Runner**:
+   ```python
+   # run_tests.py
+   import unittest
+   import coverage
+   import os
+   import sys
+   
+   def run_tests(coverage_enabled=True):
+       if coverage_enabled:
+           # Start code coverage
+           cov = coverage.Coverage(
+               branch=True,
+               source=['backend', 'app.py'],
+               omit=[
+                   '*/tests/*',
+                   '*/migrations/*',
+                   '*/venv/*',
+                   '*/backend/plugins/*'  # Optional: exclude plugins
+               ]
+           )
+           cov.start()
+           
+       # Discover and run tests
+       loader = unittest.TestLoader()
+       tests = loader.discover('tests')
+       
+       # Run tests
+       runner = unittest.TextTestRunner(verbosity=2)
+       result = runner.run(tests)
+       
+       if coverage_enabled:
+           # Stop coverage and generate report
+           cov.stop()
+           cov.save()
+           
+           print("\nCoverage Report:")
+           cov.report()
+           
+           # Generate HTML report
+           cov.html_report(directory='coverage_html')
+           print(f"HTML report generated in 'coverage_html' directory")
+           
+       return result.wasSuccessful()
+       
+   if __name__ == '__main__':
+       # Check if coverage should be enabled
+       coverage_enabled = '--no-coverage' not in sys.argv
+       
+       success = run_tests(coverage_enabled)
+       sys.exit(0 if success else 1)
+   ```
+
+## Deployment and Distribution
+
+### Production Configuration
+
+Prepare the application for production deployment:
+
+1. **Environment-Specific Configuration**:
+   ```python
+   # config/production.py
+   import os
+   
+   # Basic configuration
+   DEBUG = False
+   TESTING = False
+   SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-secret-key-change-in-production')
+   
+   # Database configuration
+   DATABASE_URI = os.environ.get('DATABASE_URI', 'sqlite:///production.db')
+   
+   # Cache configuration
+   CACHE_TYPE = 'redis'
+   CACHE_REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+   
+   # Session configuration
+   SESSION_TYPE = 'redis'
+   SESSION_REDIS = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+   SESSION_PERMANENT = True
+   SESSION_USE_SIGNER = True
+   PERMANENT_SESSION_LIFETIME = 86400  # 24 hours
+   
+   # Security settings
+   SECURE_HEADERS = {
+       'X-Frame-Options': 'SAMEORIGIN',
+       'X-XSS-Protection': '1; mode=block',
+       'X-Content-Type-Options': 'nosniff',
+       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+       'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+   }
+   
+   # Logging configuration
+   LOGGING = {
+       'version': 1,
+       'disable_existing_loggers': False,
+       'formatters': {
+           'standard': {
+               'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+           },
+           'json': {
+               'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
+           }
+       },
+       'handlers': {
+           'file': {
+               'class': 'logging.handlers.RotatingFileHandler',
+               'filename': '/var/log/medical_physics_game/application.log',
+               'maxBytes': 10485760,  # 10 MB
+               'backupCount': 10,
+               'formatter': 'standard'
+           },
+           'console': {
+               'class': 'logging.StreamHandler',
+               'formatter': 'standard'
+           }
+       },
+       'loggers': {
+           '': {
+               'handlers': ['file', 'console'],
+               'level': 'INFO'
+           },
+           'backend': {
+               'handlers': ['file', 'console'],
+               'level': 'INFO',
+               'propagate': False
+           }
+       }
+   }
+   ```
+
+2. **Dockerization**:
+   ```dockerfile
+   # Dockerfile
+   FROM python:3.9-slim
+   
+   WORKDIR /app
+   
+   # Install dependencies
+   COPY requirements.txt .
+   RUN pip install --no-cache-dir -r requirements.txt
+   
+   # Copy application code
+   COPY . .
+   
+   # Set environment variables
+   ENV PYTHONPATH=/app
+   ENV FLASK_APP=app.py
+   ENV FLASK_ENV=production
+   
+   # Run database migrations
+   RUN python -c "from backend.utils.db_migrations import DatabaseMigrationManager; DatabaseMigrationManager('/app/instance/production.db').run_migrations()"
+   
+   # Expose port
+   EXPOSE 8000
+   
+   # Run gunicorn
+   CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "wsgi:app"]
+   ```
+
+3. **Docker Compose**:
+   ```yaml
+   # docker-compose.yml
+   version: '3'
+   
+   services:
+     app:
+       build: .
+       ports:
+         - "8000:8000"
+       environment:
+         - SECRET_KEY=your-secure-secret-key
+         - DATABASE_URI=sqlite:///instance/production.db
+         - REDIS_URL=redis://redis:6379/0
+       volumes:
+         - ./instance:/app/instance
+         - ./logs:/var/log/medical_physics_game
+       depends_on:
+         - redis
+     
+     redis:
+       image: redis:alpine
+       volumes:
+         - redis-data:/data
+   
+   volumes:
+     redis-data:
+   ```
+
+### Asset Optimization
+
+Optimize assets for production:
+
+1. **Static File Management**:
+   ```python
+   # backend/utils/static_manager.py
+   import os
+   import hashlib
+   import json
+   
+   class StaticManager:
+       def __init__(self, static_dir, manifest_path):
+           self.static_dir = static_dir
+           self.manifest_path = manifest_path
+           self.manifest = self._load_manifest()
+           
+       def _load_manifest(self):
+           """Load the asset manifest file"""
+           try:
+               with open(self.manifest_path, 'r') as f:
+                   return json.load(f)
+           except (FileNotFoundError, json.JSONDecodeError):
+               return {}
+               
+       def _save_manifest(self):
+           """Save the asset manifest file"""
+           os.makedirs(os.path.dirname(self.manifest_path), exist_ok=True)
+           with open(self.manifest_path, 'w') as f:
+               json.dump(self.manifest, f, indent=2)
+               
+       def get_versioned_path(self, file_path):
+           """Get a versioned path for a static file"""
+           if file_path in self.manifest:
+               return self.manifest[file_path]
+               
+           # Generate a versioned path
+           full_path = os.path.join(self.static_dir, file_path)
+           if not os.path.exists(full_path):
+               return file_path
+               
+           # Calculate hash of file contents
+           file_hash = self._calculate_file_hash(full_path)
+           
+           # Create versioned path
+           filename, ext = os.path.splitext(file_path)
+           versioned_path = f"{filename}.{file_hash[:8]}{ext}"
+           
+           # Update manifest
+           self.manifest[file_path] = versioned_path
+           self._save_manifest()
+           
+           return versioned_path
+           
+       def _calculate_file_hash(self, file_path):
+           """Calculate a hash of the file contents"""
+           hash_md5 = hashlib.md5()
+           with open(file_path, 'rb') as f:
+               for chunk in iter(lambda: f.read(4096), b''):
+                   hash_md5.update(chunk)
+           return hash_md5.hexdigest()
+   ```
+
+2. **CSS and JavaScript Bundling**:
+   - Use Webpack, Rollup, or Parcel to bundle assets
+   - Configure with minification, tree-shaking, and code splitting
+
+### Documentation
+
+Create comprehensive documentation:
+
+1. **Installation Guide**:
+   ```markdown
+   # Medical Physics Game - Installation Guide
+   
+   ## Requirements
+   
+   - Python 3.9 or higher
+   - Node.js 14 or higher (for development)
+   - SQLite or another compatible database
+   - Redis (optional, for production caching)
+   
+   ## Installation Steps
+   
+   ### Option 1: Docker Installation (Recommended for Production)
+   
+   1. Clone the repository:
+      ```
+      git clone https://github.com/your-organization/medical-physics-game.git
+      cd medical-physics-game
+      ```
+   
+   2. Configure environment variables:
+      ```
+      cp .env.example .env
+      # Edit .env file with your settings
+      ```
+   
+   3. Build and start the Docker containers:
+      ```
+      docker-compose up -d
+      ```
+   
+   4. Access the application:
+      ```
+      Open http://localhost:8000 in your web browser
+      ```
+   
+   ### Option 2: Manual Installation (Development)
+   
+   1. Clone the repository:
+      ```
+      git clone https://github.com/your-organization/medical-physics-game.git
+      cd medical-physics-game
+      ```
+   
+   2. Create and activate a virtual environment:
+      ```
+      python -m venv venv
+      source venv/bin/activate  # On Windows: venv\Scripts\activate
+      ```
+   
+   3. Install Python dependencies:
+      ```
+      pip install -r requirements.txt
+      ```
+   
+   4. Initialize the database:
+      ```
+      flask db-init
+      ```
+   
+   5. Run the application:
+      ```
+      flask run
+      ```
+   
+   6. Access the application:
+      ```
+      Open http://localhost:5000 in your web browser
+      ```
+   
+   ## Configuration
+   
+   The application can be configured through environment variables or by editing the configuration files in the `config` directory.
+   
+   ### Key Configuration Options
+   
+   - `SECRET_KEY`: Secret key for session security
+   - `DATABASE_URI`: URI for the database connection
+   - `REDIS_URL`: URL for Redis connection (if used)
+   - `DEBUG`: Enable debug mode (development only)
+   
+   ## Troubleshooting
+   
+   If you encounter issues during installation:
+   
+   1. Check the logs:
+      ```
+      docker-compose logs app  # For Docker
+      # OR
+      cat logs/app.log         # For manual installation
+      ```
+   
+   2. Verify database connectivity:
+      ```
+      flask db-test
+      ```
+   
+   3. Check environment variables:
+      ```
+      flask config
+      ```
+   
+   For additional help, please consult the full documentation or open an issue on GitHub.
+   ```
+
+## Future Enhancement Roadmap
+
+Plan for future enhancements and features:
+
+1. **Multiplayer Mode**:
+   - Collaborative learning with real-time interaction
+   - Competitive modes with leaderboards
+
+2. **Mobile App Version**:
+   - Native mobile app for iOS and Android
+   - Offline gameplay capabilities
+
+3. **Content Expansion**:
+   - Additional specialties and subspecialties
+   - Advanced simulation scenarios
+
+4. **Analytics and Learning Dashboard**:
+   - Detailed performance analytics for educators
+   - Personalized learning recommendations
+
+5. **Integration with LMS Platforms**:
+   - Integrations with popular Learning Management Systems
+   - SCORM-compliant packaging
+
+## Community and Feedback
+
+Establish systems for community engagement and feedback:
+
+1. **Feedback Collection**:
+   ```python
+   # backend/api/feedback_routes.py
+   from flask import Blueprint, request, jsonify
+   from backend.data.repositories.feedback_repo import FeedbackRepository
+   from backend.utils.logging import GameLogger
+   
+   feedback_bp = Blueprint('feedback', __name__)
+   logger = GameLogger()
+   
+   @feedback_bp.route('/feedback', methods=['POST'])
+   def submit_feedback():
+       data = request.json
+       
+       if not data or not data.get('content'):
+           return jsonify({'error': 'Feedback content is required'}), 400
+           
+       feedback = {
+           'user_id': data.get('user_id'),
+           'content': data.get('content'),
+           'category': data.get('category', 'general'),
+           'rating': data.get('rating'),
+           'page': data.get('page'),
+           'timestamp': datetime.now().isoformat()
+       }
+       
+       # Log the feedback
+       logger.info(f"Feedback received: {feedback['category']} - Rating: {feedback['rating']}", 
+                  logger_name='feedback')
+       
+       # Store the feedback
+       FeedbackRepository.add_feedback(feedback)
+       
+       return jsonify({'message': 'Feedback submitted successfully'}), 200
+       
+   @feedback_bp.route('/bug-report', methods=['POST'])
+   def submit_bug_report():
+       data = request.json
+       
+       if not data or not data.get('description'):
+           return jsonify({'error': 'Bug description is required'}), 400
+           
+       bug_report = {
+           'user_id': data.get('user_id'),
+           'description': data.get('description'),
+           'steps_to_reproduce': data.get('steps_to_reproduce'),
+           'expected_behavior': data.get('expected_behavior'),
+           'actual_behavior': data.get('actual_behavior'),
+           'browser': data.get('browser'),
+           'os': data.get('os'),
+           'screenshot_url': data.get('screenshot_url'),
+           'timestamp': datetime.now().isoformat()
+       }
+       
+       # Log the bug report
+       logger.error(f"Bug report: {bug_report['description']}", logger_name='bugs')
+       
+       # Store the bug report
+       FeedbackRepository.add_bug_report(bug_report)
+       
+       return jsonify({'message': 'Bug report submitted successfully'}), 200
+   ```
+
+2. **User Analytics**:
+   ```python
+   # backend/utils/analytics.py
+   import time
+   import json
+   from datetime import datetime
+   
+   class Analytics:
+       def __init__(self, user_id=None):
+           self.user_id = user_id
+           self.events = []
+           
+       def track_event(self, event_type, event_data=None):
+           """Track a user event"""
+           event = {
+               'type': event_type,
+               'data': event_data or {},
+               'timestamp': datetime.now().isoformat(),
+               'user_id': self.user_id
+           }
+           
+           self.events.append(event)
+           self._store_event(event)
+           
+       def _store_event(self, event):
+           """Store event in database or log file"""
+           from backend.data.repositories.analytics_repo import AnalyticsRepository
+           AnalyticsRepository.add_event(event)
+           
+       def track_page_view(self, page, referrer=None, time_on_page=None):
+           """Track a page view"""
+           self.track_event('page_view', {
+               'page': page,
+               'referrer': referrer,
+               'time_on_page': time_on_page
+           })
+           
+       def track_feature_usage(self, feature, action=None):
+           """Track feature usage"""
+           self.track_event('feature_usage', {
+               'feature': feature,
+               'action': action
+           })
+           
+       def track_error(self, error_type, error_message, stack_trace=None):
+           """Track an error"""
+           self.track_event('error', {
+               'type': error_type,
+               'message': error_message,
+               'stack_trace': stack_trace
+           })
+           
+       def track_performance(self, operation, duration_ms):
+           """Track operation performance"""
+           self.track_event('performance', {
+               'operation': operation,
+               'duration_ms': duration_ms
+           })
+   
+   class SessionTimer:
+       def __init__(self, analytics, page=None):
+           self.analytics = analytics
+           self.page = page
+           self.start_time = None
+           
+       def start(self, page=None):
+           """Start timing a page view"""
+           if page:
+               self.page = page
+           self.start_time = time.time()
+           
+       def stop(self):
+           """Stop timing and track the page view"""
+           if not self.start_time or not self.page:
+               return
+               
+           duration = int((time.time() - self.start_time) * 1000)  # Convert to ms
+           self.analytics.track_page_view(self.page, time_on_page=duration)
+           self.start_time = None
+   ```
+
+3. **Community Forum Integration**:
+   - Integrate with Discourse or other forum software
+   - In-app feedback and discussion
+
+4. **Regular Content Updates**:
+   - Scheduled content addition process
+   - User-contributed content workflow

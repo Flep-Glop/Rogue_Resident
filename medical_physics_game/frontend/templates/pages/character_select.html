@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Character Selection{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/character_image_styles.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="character-selection">
+    <h1>Character Selection</h1>
+    <p>Choose your character to begin the game</p>
+    
+    <div class="character-carousel">
+        <button class="carousel-button prev-button">&lt;</button>
+        <div class="character-cards" id="character-cards">
+            <!-- Character cards will be inserted here by JavaScript -->
+        </div>
+        <button class="carousel-button next-button">&gt;</button>
+    </div>
+    
+    <div class="character-details" id="character-details">
+        <!-- Selected character details will be shown here -->
+    </div>
+    
+    <button class="btn select-button" id="select-button">Select Character</button>
+</div>
+
+{% endblock %}
+
+{% block additional_js %}
+<script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
+<script>
+    // Character selection logic
+    document.addEventListener('DOMContentLoaded', function() {
+        // Define characters here as a fallback in case character_assets.js fails to load
+        const fallbackCharacters = [
+            {
+                id: 'physicist',
+                name: 'Physicist',
+                description: 'Strong analytical skills and problem-solving abilities.',
+                stats: {
+                    intelligence: 9,
+                    persistence: 7,
+                    adaptability: 6
+                },
+                abilities: ['Critical Analysis', 'Problem Solving'],
+                image: "{{ url_for('static', filename='img/characters/physicist.png') }}"
+            },
+            {
+                id: 'resident',
+                name: 'Resident',
+                description: 'Well-rounded with clinical knowledge and patient care experience.',
+                stats: {
+                    intelligence: 7,
+                    persistence: 8,
+                    adaptability: 8
+                },
+                abilities: ['Clinical Diagnosis', 'Patient Care'],
+                image: "{{ url_for('static', filename='img/characters/resident.png') }}"
+            },
+            {
+                id: 'qa_specialist',
+                name: 'QA Specialist',
+                description: 'Detail-oriented with exceptional testing and validation skills.',
+                stats: {
+                    intelligence: 8,
+                    persistence: 9,
+                    adaptability: 6
+                },
+                abilities: ['Detail Oriented', 'Process Improvement'],
+                image: "{{ url_for('static', filename='img/characters/qa_specialist.png') }}"
+            }
+        ];
+        
+        // Use window.gameCharacters if available, otherwise use fallback
+        const characters = window.gameCharacters || fallbackCharacters;
+        
+        // DOM elements
+        const characterCards = document.getElementById('character-cards');
+        const characterDetails = document.getElementById('character-details');
+        const selectButton = document.getElementById('select-button');
+        const prevButton = document.querySelector('.prev-button');
+        const nextButton = document.querySelector('.next-button');
+        
+        // State
+        let currentIndex = 0;
+        let selectedCharacter = null;
+        
+        // Render all character cards
+        function renderCharacters() {
+            if (!characters || !Array.isArray(characters)) {
+                console.error('Error loading characters:', characters);
+                return;
+            }
+            
+            characterCards.innerHTML = '';
+            
+            characters.forEach((character, index) => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+                card.dataset.index = index;
+                
+                card.innerHTML = `
+                    <div class="character-image">
+                        <img src="${character.image}" alt="${character.name}">
+                    </div>
+                    <h2 class="character-name">${character.name}</h2>
+                    <p class="character-description">${character.description}</p>
+                `;
+                
+                card.addEventListener('click', () => selectCharacter(index));
+                characterCards.appendChild(card);
+            });
+            
+            // Select the first character by default
+            selectCharacter(0);
+            updateCarousel();
+        }
+        
+        // Select a character and show details
+        function selectCharacter(index) {
+            // Update current index
+            currentIndex = index;
+            selectedCharacter = characters[index];
+            
+            // Update active card
+            document.querySelectorAll('.character-card').forEach((card, i) => {
+                if (i === index) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            
+            // Show character details
+            characterDetails.innerHTML = `
+                <h2>${selectedCharacter.name}</h2>
+                <div class="character-stats">
+                    ${Object.entries(selectedCharacter.stats).map(([stat, value]) => `
+                        <div>
+                            <strong>${stat.charAt(0).toUpperCase() + stat.slice(1)}:</strong>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: ${value * 10}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="character-abilities">
+                    ${selectedCharacter.abilities.map(ability => `
+                        <span class="ability-tag">${ability}</span>
+                    `).join('')}
+                </div>
+            `;
+            
+            updateCarousel();
+        }
+        
+        // Navigate carousel
+        function navigateCarousel(direction) {
+            const totalCharacters = characters ? characters.length : 0;
+            if (totalCharacters === 0) return;
+            
+            if (direction === 'prev') {
+                currentIndex = (currentIndex - 1 + totalCharacters) % totalCharacters;
+            } else {
+                currentIndex = (currentIndex + 1) % totalCharacters;
+            }
+            
+            selectCharacter(currentIndex);
+        }
+        
+        // Update carousel position
+        function updateCarousel() {
+            if (!characters || characters.length === 0) return;
+            
+            const cardWidth = 270; // Width + margins
+            const offset = -currentIndex * cardWidth;
+            characterCards.style.transform = `translateX(${offset}px)`;
+        }
+        
+        // Initialize event listeners
+        prevButton.addEventListener('click', () => navigateCarousel('prev'));
+        nextButton.addEventListener('click', () => navigateCarousel('next'));
+        
+        selectButton.addEventListener('click', () => {
+            if (selectedCharacter) {
+                // Store selected character
+                localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+                // Navigate to game
+                window.location.href = "{{ url_for('game') }}";
+            }
+        });
+        
+        // Initialize
+        try {
+            renderCharacters();
+        } catch (error) {
+            console.error('Error loading characters:', error);
+        }
+    });
+</script>
+{% endblock %}

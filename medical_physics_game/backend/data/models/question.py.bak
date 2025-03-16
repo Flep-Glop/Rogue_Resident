@@ -1,0 +1,43 @@
+# Question model
+
+class Question:
+    def __init__(self, id=None, text=None, options=None, correct_answer=None, difficulty=None, category=None, explanation=None):
+        self.id = id
+        self.text = text
+        self.options = options or []
+        self.correct_answer = correct_answer
+        self.difficulty = difficulty
+        self.category = category
+        self.explanation = explanation
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'text': self.text,
+            'options': self.options,
+            'correct_answer': self.correct_answer,
+            'difficulty': self.difficulty,
+            'category': self.category,
+            'explanation': self.explanation
+        }
+    
+    @classmethod
+    def from_dict(cls, data):
+        # Handle both string and dictionary input
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                # If it's not valid JSON, use it as the ID
+                return cls(id=data)
+        
+        # Now data should be a dictionary
+        return cls(
+            id=data.get('id'),
+            text=data.get('text'),
+            options=data.get('options', []),
+            correct_answer=data.get('correct_answer'),
+            difficulty=data.get('difficulty'),
+            category=data.get('category'),
+            explanation=data.get('explanation')
+        )
