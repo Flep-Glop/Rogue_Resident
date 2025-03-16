@@ -1,31 +1,71 @@
 {% extends "base.html" %}
 
-{% block title %}Character Selection{% endblock %}
+{% block title %}Character Selection - Medical Physics Game{% endblock %}
 
 {% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/screens/character_select.css') }}">
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="pixel-container">
-    <div class="container character-selection">
-        <h1 class="game-title">CHARACTER SELECTION</h1>
-        <p class="subtitle">Choose your character to begin the game</p>
+<div class="pixel-container" data-screen="character-select">
+    <!-- Animated background elements -->
+    <div class="star-bg" id="star-bg"></div>
+    
+    <!-- Main content container -->
+    <div class="character-selection-container">
+        <h1 class="selection-title">CHARACTER SELECTION</h1>
+        <p class="selection-subtitle">Choose your hero to begin your medical physics journey</p>
         
-        <div id="character-container">
-            <!-- Characters will be rendered here -->
+        <!-- Character grid -->
+        <div class="character-grid" id="character-grid">
+            <!-- Will be populated by JavaScript -->
+            <div class="empty-state loading-state">
+                <div class="loading-spinner"></div>
+                <div class="empty-state-text">Loading characters...</div>
+            </div>
         </div>
         
-        <div class="button-container">
-            <button id="select-button" class="action-button select-button" disabled>Select Character</button>
-            <a href="{{ url_for('character_create') }}" class="action-button">Create Character</a>
-            <a href="{{ url_for('index') }}" class="action-button">Back to Menu</a>
+        <!-- Action buttons -->
+        <div class="action-buttons">
+            <button id="select-button" class="action-button select-button" disabled>
+                Select Character
+            </button>
+            <a href="{{ url_for('character_create') }}" id="create-button" class="action-button create-button">
+                <i class="fas fa-plus"></i> Create Character
+            </a>
+            <a href="{{ url_for('index') }}" id="back-button" class="action-button back-button">
+                <i class="fas fa-arrow-left"></i> Back to Menu
+            </a>
         </div>
     </div>
+    
+    <!-- CRT scan lines effect -->
+    <div class="scanlines"></div>
 </div>
 {% endblock %}
 
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
+<script>
+    // Generate animated star background
+    document.addEventListener('DOMContentLoaded', function() {
+        const starBg = document.getElementById('star-bg');
+        if (starBg) {
+            // Create stars
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                star.style.width = `${1 + Math.random() * 2}px`;
+                star.style.height = star.style.width;
+                starBg.appendChild(star);
+            }
+        }
+    });
+</script>
 {% endblock %}
