@@ -4,6 +4,7 @@
 
 {% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/character_image_styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced_character_select.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -19,6 +20,11 @@
         <button class="carousel-button next-button">&gt;</button>
     </div>
     
+    <!-- Carousel indicators -->
+    <div class="carousel-indicators" id="carousel-indicators">
+        <!-- Indicator dots will be added by JavaScript -->
+    </div>
+    
     <div class="character-details" id="character-details">
         <!-- Selected character details will be shown here -->
     </div>
@@ -28,10 +34,22 @@
         <a href="{{ url_for('character_create') }}" class="retro-btn" id="create-character-btn">Create Custom Character</a>
         <a href="{{ url_for('index') }}" class="retro-btn options">Back to Menu</a>
     </div>
+    
+    <!-- Delete confirmation modal -->
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Delete Character</h3>
+            <p>Are you sure you want to delete this character? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirm-delete" class="retro-btn danger">Delete</button>
+                <button id="cancel-delete" class="retro-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
-<script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
+<script src="{{ url_for('static', filename='js/enhanced_character_select.js') }}"></script>
 {% endblock %}
