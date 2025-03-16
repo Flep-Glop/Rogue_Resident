@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 
 def create_app(config_name='development'):
     app = Flask(__name__, 
@@ -28,6 +28,11 @@ def create_app(config_name='development'):
     @app.route('/character-select')
     def character_select():
         return render_template('pages/character_select.html')
+    
+    @app.route('/character-create')
+    def character_create():
+        """Render the character creation page."""
+        return render_template('pages/character_create.html')
     
     @app.route('/game')
     def game():

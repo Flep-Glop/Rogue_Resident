@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Create Character{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/character_create.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container" data-screen="character-create">
+    <h1 class="game-title">Character Creation</h1>
+    <p class="subtitle">Customize your medical physics hero</p>
+    
+    <div class="character-creation-container">
+        <!-- Left column: Avatar selection -->
+        <div class="avatar-selection">
+            <h2 class="section-title">Choose Avatar</h2>
+            <div class="avatar-grid" id="avatar-grid">
+                <!-- Avatars will be populated by JavaScript -->
+            </div>
+            <div class="avatar-navigation">
+                <button class="retro-btn small" id="prev-avatar">&lt;</button>
+                <div class="avatar-page">Page <span id="avatar-page-num">1</span>/<span id="avatar-total-pages">1</span></div>
+                <button class="retro-btn small" id="next-avatar">&gt;</button>
+            </div>
+        </div>
+        
+        <!-- Right column: Character details -->
+        <div class="character-details-form">
+            <h2 class="section-title">Character Details</h2>
+            <div class="form-group">
+                <label for="character-name">Name</label>
+                <input type="text" id="character-name" class="pixelated-input" maxlength="20" placeholder="Enter name">
+            </div>
+            
+            <h3 class="sub-section-title">Attribute Points</h3>
+            <div class="points-remaining">
+                Points remaining: <span id="points-remaining">15</span>
+            </div>
+            
+            <div class="attribute-container">
+                <div class="attribute-group">
+                    <label for="intelligence">Intelligence</label>
+                    <div class="attribute-control">
+                        <button class="attribute-btn" id="intelligence-minus">-</button>
+                        <div class="attribute-value" id="intelligence-value">5</div>
+                        <button class="attribute-btn" id="intelligence-plus">+</button>
+                    </div>
+                    <div class="attribute-bar">
+                        <div class="attribute-fill" id="intelligence-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                
+                <div class="attribute-group">
+                    <label for="persistence">Persistence</label>
+                    <div class="attribute-control">
+                        <button class="attribute-btn" id="persistence-minus">-</button>
+                        <div class="attribute-value" id="persistence-value">5</div>
+                        <button class="attribute-btn" id="persistence-plus">+</button>
+                    </div>
+                    <div class="attribute-bar">
+                        <div class="attribute-fill" id="persistence-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                
+                <div class="attribute-group">
+                    <label for="adaptability">Adaptability</label>
+                    <div class="attribute-control">
+                        <button class="attribute-btn" id="adaptability-minus">-</button>
+                        <div class="attribute-value" id="adaptability-value">5</div>
+                        <button class="attribute-btn" id="adaptability-plus">+</button>
+                    </div>
+                    <div class="attribute-bar">
+                        <div class="attribute-fill" id="adaptability-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="sub-section-title">Abilities</h3>
+            <div class="abilities-selection">
+                <div class="abilities-available">
+                    <h4>Available Abilities</h4>
+                    <div class="abilities-list" id="abilities-available">
+                        <!-- Available abilities populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="abilities-selected">
+                    <h4>Selected Abilities (2 max)</h4>
+                    <div class="abilities-list" id="abilities-selected">
+                        <!-- Selected abilities populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="character-preview">
+                <h3 class="sub-section-title">Preview</h3>
+                <div class="preview-card">
+                    <div class="preview-avatar" id="preview-avatar">
+                        <img src="{{ url_for('static', filename='img/characters/physicist.png') }}" alt="Avatar">
+                    </div>
+                    <div class="preview-details">
+                        <div class="preview-name" id="preview-name">New Character</div>
+                        <div class="preview-attributes">
+                            <div>INT: <span id="preview-intelligence">5</span></div>
+                            <div>PER: <span id="preview-persistence">5</span></div>
+                            <div>ADP: <span id="preview-adaptability">5</span></div>
+                        </div>
+                        <div class="preview-abilities" id="preview-abilities">
+                            <!-- Abilities preview -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="button-container">
+        <button class="retro-btn start" id="create-character-btn">Create Character</button>
+        <a href="{{ url_for('character_select') }}" class="retro-btn options">Back to Selection</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
+<script src="{{ url_for('static', filename='js/character_creator.js') }}"></script>
+{% endblock %}

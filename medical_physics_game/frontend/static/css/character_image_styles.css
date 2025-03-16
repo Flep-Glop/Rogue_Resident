@@ -45,6 +45,7 @@
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 0.3s;
+    position: relative;
 }
 
 .character-card:hover {
@@ -53,6 +54,24 @@
 
 .character-card.active {
     border: 3px solid #4a90e2;
+}
+
+/* Custom character styling */
+.character-card.custom-character {
+    background: linear-gradient(to bottom, rgba(90, 200, 255, 0.1), rgba(86, 184, 134, 0.1));
+    border: 2px solid var(--color-secondary, #56b886);
+}
+
+.custom-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--color-secondary, #56b886);
+    color: white;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-weight: bold;
 }
 
 .character-image {
@@ -121,4 +140,12 @@
 
 .select-button {
     width: 100%;
+}
+
+/* Button container for multiple buttons */
+.button-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
 }

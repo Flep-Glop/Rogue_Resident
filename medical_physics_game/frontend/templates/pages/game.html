@@ -48,27 +48,35 @@
                     <div class="character-portrait">
                         <img src="${character.image}" alt="${character.name}" onerror="this.src='{{ url_for('static', filename='img/characters/debug_mode.png') }}'">
                     </div>
-                    <h2 class="character-name">${character.name}</h2>
-                    <p class="character-description">${character.description}</p>
-                    
-                    <div class="stats-container">
-                        ${Object.entries(character.stats).map(([stat, value]) => `
-                            <div class="stat">
-                                <div class="stat-name">${stat.charAt(0).toUpperCase() + stat.slice(1)}</div>
-                                <div class="stat-value">${value}</div>
-                            </div>
-                        `).join('')}
+                    <div class="character-details">
+                        <h2 class="character-name">${character.name}</h2>
+                        <p class="character-description">${character.description || 'A medical physics adventurer'}</p>
+                        
+                        <div class="stats-container">
+                            ${Object.entries(character.stats).map(([stat, value]) => `
+                                <div class="stat">
+                                    <div class="stat-name">${stat.charAt(0).toUpperCase() + stat.slice(1)}</div>
+                                    <div class="stat-value">${value}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="character-abilities">
+                            ${character.abilities.map(ability => `
+                                <span class="ability-tag">${ability}</span>
+                            `).join('')}
+                        </div>
                     </div>
-                    
-                    <div class="character-abilities">
-                        ${character.abilities.map(ability => `
-                            <span class="ability-tag">${ability}</span>
-                        `).join('')}
-                    </div>
+                    ${character.custom ? '<div class="custom-badge">Custom</div>' : ''}
                 `;
                 
                 // Initialize game map (placeholder)
                 initializeGameMap();
+                
+                // Make character data available globally for game systems
+                window.gameCharacter = character;
+                
+                console.log('Character loaded:', character);
                 
             } catch (error) {
                 console.error('Error parsing character data:', error);
