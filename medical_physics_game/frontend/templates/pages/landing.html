@@ -1,118 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}Medical Physics Residency{% endblock %}
+{% block title %}Rogue Resident{% endblock %}
 
-{% block content %}
-<div class="pixel-container">
-    <!-- Game title -->
-    <h1 class="game-title">Medical Physics<br>Residency</h1>
-    <h2 class="subtitle">The Roguelike Challenge</h2>
-    
-    <!-- Main menu -->
-    <div class="menu-container">
-        <a href="{{ url_for('character_select') }}" class="retro-btn start">New Game</a>
-        <a href="{{ url_for('game') }}" class="retro-btn">Continue</a>
-        <button class="retro-btn options" id="options">Options</button>
-        <button class="retro-btn help" id="help">Help</button>
-    </div>
-    
-    <!-- Decorative pixel elements -->
-    <div id="pixel-decorations"></div>
-    
-    <!-- Footer -->
-    <div class="footer">
-        <p>v0.1.0 | Press SPACE to start</p>
-    </div>
-</div>
+{% block styles %}
+<!-- Include the landing page specific CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/landing.css') }}">
 {% endblock %}
 
-{% block additional_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Create pixel decorations
-        const decorationContainer = document.getElementById('pixel-decorations');
-        if (!decorationContainer) return;
-        
-        // Clear existing decorations
-        decorationContainer.innerHTML = '';
-        
-        // Create a color palette that matches our theme
-        const colors = [
-            '#5b8dd9', // primary
-            '#56b886', // secondary
-            '#e67e73', // danger
-            '#f0c866', // warning
-            '#9c77db', // purple
-            '#5bbcd9'  // cyan
-        ];
-        
-        // Create a more organized, coherent pattern
-        // We'll create a cascade effect of pixels
-        const columnCount = 20;
-        
-        // Calculate optimal pixel size based on screen width
-        const pixelSize = Math.max(3, Math.floor(window.innerWidth / 100));
-        
-        // Create the animation delay pattern - this creates a "falling" effect
-        for (let col = 0; col < columnCount; col++) {
-            // Each column will have a different number of pixels
-            const pixelsInColumn = 5 + Math.floor(Math.random() * 10);
-            
-            for (let i = 0; i < pixelsInColumn; i++) {
-                const decoration = document.createElement('div');
-                decoration.classList.add('pixel-decoration');
-                
-                // Position - distribute across screen width with some randomness
-                const x = (col / columnCount) * 100 + (Math.random() * 3 - 1.5);
-                // Randomize initial position vertically
-                const y = Math.random() * 100;
-                
-                // Random color from our palette
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                // Apply styles
-                decoration.style.left = `${x}vw`;
-                decoration.style.top = `${y}vh`;
-                decoration.style.width = `${pixelSize}px`;
-                decoration.style.height = `${pixelSize}px`;
-                decoration.style.backgroundColor = color;
-                
-                // Create falling animation with varied speeds
-                const duration = 10 + Math.random() * 20; // 10-30 seconds
-                const delay = Math.random() * 15; // 0-15 seconds delay
-                
-                decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
-                
-                decorationContainer.appendChild(decoration);
-            }
-        }
-        
-        // Button sound effect
-        function playButtonSound() {
-            // When we add audio files, we'll uncomment this
-            // const sound = new Audio('/static/audio/click.mp3');
-            // sound.volume = 0.3;
-            // sound.play();
-        }
-        
-        // IMPORTANT: Make sure these event listeners are preserved!
-        document.getElementById('options').addEventListener('click', function() {
-            playButtonSound();
-            alert('Options will be available in the next update!');
-        });
-        
-        document.getElementById('help').addEventListener('click', function() {
-            playButtonSound();
-            alert('Welcome to Medical Physics Residency! Navigate through each floor, answer questions correctly to gain insight, and avoid losing all your lives. Good luck!');
-        });
-        
-        // Keyboard controls
-        document.addEventListener('keydown', function(event) {
-            if (event.code === 'Space') {
-                playButtonSound();
-                window.location.href = '{{ url_for("character_select") }}';
-            }
-        });
-    });
-</script>
+{% block content %}
+<!-- Grid background -->
+<div class="grid-background" id="grid-background"></div>
+
+<!-- Particles container -->
+<div id="particles-container"></div>
+
+<!-- Geometric elements container -->
+<div id="geo-elements-container"></div>
+
+<!-- Main content -->
+<div class="title-container">
+    <h1 class="game-title">ROGUE RESIDENT</h1>
+    <div class="game-subtitle">THE GEOMETRIC CHALLENGE</div>
+</div>
+
+<div class="menu-container">
+    <button class="menu-button new-game" onclick="location.href='character-select'">
+        NEW GAME
+        <span class="pixel-corner pixel-top-left"></span>
+        <span class="pixel-corner pixel-top-right"></span>
+        <span class="pixel-corner pixel-bottom-left"></span>
+        <span class="pixel-corner pixel-bottom-right"></span>
+    </button>
+    <button class="menu-button continue" onclick="location.href='game'">
+        CONTINUE
+        <span class="pixel-corner pixel-top-left"></span>
+        <span class="pixel-corner pixel-top-right"></span>
+        <span class="pixel-corner pixel-bottom-left"></span>
+        <span class="pixel-corner pixel-bottom-right"></span>
+    </button>
+    <button class="menu-button options" onclick="openOptions()">
+        OPTIONS
+        <span class="pixel-corner pixel-top-left"></span>
+        <span class="pixel-corner pixel-top-right"></span>
+        <span class="pixel-corner pixel-bottom-left"></span>
+        <span class="pixel-corner pixel-bottom-right"></span>
+    </button>
+    <button class="menu-button help" onclick="openHelp()">
+        HELP
+        <span class="pixel-corner pixel-top-left"></span>
+        <span class="pixel-corner pixel-top-right"></span>
+        <span class="pixel-corner pixel-bottom-left"></span>
+        <span class="pixel-corner pixel-bottom-right"></span>
+    </button>
+</div>
+
+<div class="start-prompt">PRESS SPACE TO START</div>
+<div class="game-version">v0.1.0</div>
+
+<!-- CRT effect overlay -->
+<div class="crt-effect"></div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include the landing page specific JavaScript -->
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}

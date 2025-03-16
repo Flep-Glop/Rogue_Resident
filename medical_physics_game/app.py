@@ -13,17 +13,18 @@ def create_app(config_name='development'):
     # Register blueprints - MUST import here to avoid circular imports
     from backend.api.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
-    
+
     # Test route to verify the app is working
     @app.route('/test')
     def test():
         return jsonify({"status": "ok", "message": "Flask app is working!"})
-    
+
     # Routes
     @app.route('/')
     def index():
-        return render_template('pages/index.html')
-    
+        """Render the landing page."""
+        return render_template('pages/landing.html')
+
     @app.route('/character-select')
     def character_select():
         return render_template('pages/character_select.html')
