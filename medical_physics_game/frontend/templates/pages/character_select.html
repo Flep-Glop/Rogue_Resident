@@ -9,12 +9,17 @@
 
 {% block content %}
 <div class="pixel-container" data-screen="character-select">
-    <!-- UI Frame elements -->
-    <div class="ui-frame">
-        <!-- Side panels -->
-        <div class="ui-side-panel left"></div>
-        <div class="ui-side-panel right">
-            <!-- Character side info -->
+    <!-- UI Frame with panels and bars that match the screenshot -->
+    <div class="ui-frame-container">
+        <!-- Left panel with multiple sections -->
+        <div class="ui-left-frame">
+            <div class="ui-left-section top"></div>
+            <div class="ui-left-section middle"></div>
+            <div class="ui-left-section bottom"></div>
+        </div>
+        
+        <!-- Right panel with stats -->
+        <div class="ui-right-frame">
             <div class="character-side-info">
                 <div class="side-stat">
                     <div class="side-stat-label">HP</div>
@@ -28,24 +33,20 @@
             </div>
         </div>
         
-        <!-- Corner boxes -->
-        <div class="ui-corner-box top-left"></div>
-        <div class="ui-corner-box top-right"></div>
-        <div class="ui-corner-box bottom-right"></div>
+        <!-- Top horizontal bar -->
+        <div class="ui-top-bar"></div>
         
-        <!-- Skill tree button in bottom left -->
+        <!-- Bottom horizontal bar -->
+        <div class="ui-bottom-bar"></div>
+        
+        <!-- Skill tree button -->
         <a href="#" class="skill-tree-button">
-            <div class="skill-tree-label">SKILLS</div>
+            <i class="fas fa-project-diagram skill-tree-icon"></i>
+            <span>Skills</span>
         </a>
         
-        <!-- Frame corners -->
-        <div class="pixel-corner top-left"></div>
-        <div class="pixel-corner top-right"></div>
-        <div class="pixel-corner bottom-left"></div>
-        <div class="pixel-corner bottom-right"></div>
-        
         <!-- Version info -->
-        <div class="version-box">v0.1.0</div>
+        <div class="version-info">v0.1.0</div>
     </div>
     
     <!-- Animated background elements -->
@@ -125,25 +126,27 @@
         }
         
         // Update side info when character is selected
-        EventSystem.subscribe('characterSelected', (character) => {
-            if (character) {
-                // Update side panel info with character data
-                const sideStats = document.querySelector('.character-side-info');
-                if (sideStats) {
-                    // Update with basic character info
-                    const hpValue = sideStats.querySelector('.side-stat:nth-child(1) .side-stat-value');
-                    if (hpValue) hpValue.textContent = character.max_hp || 100;
+        if (typeof EventSystem !== 'undefined') {
+            EventSystem.subscribe('characterSelected', (character) => {
+                if (character) {
+                    // Update side panel info with character data
+                    const sideStats = document.querySelector('.character-side-info');
+                    if (sideStats) {
+                        // Update with basic character info
+                        const hpValue = sideStats.querySelector('.side-stat:nth-child(1) .side-stat-value');
+                        if (hpValue) hpValue.textContent = character.max_hp || 100;
+                        
+                        // Could add more stats here as needed
+                    }
                     
-                    // Could add more stats here as needed
+                    // Update play button text
+                    const selectedCharNameElement = document.getElementById('selected-character-name');
+                    if (selectedCharNameElement) {
+                        selectedCharNameElement.textContent = character.name;
+                    }
                 }
-                
-                // Update play button text
-                const selectedCharNameElement = document.getElementById('selected-character-name');
-                if (selectedCharNameElement) {
-                    selectedCharNameElement.textContent = character.name;
-                }
-            }
-        });
+            });
+        }
     });
 </script>
 {% endblock %}

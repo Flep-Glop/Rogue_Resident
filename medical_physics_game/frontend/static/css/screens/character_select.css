@@ -723,3 +723,160 @@
   border-bottom: 1px solid;
   border-right: 1px solid;
 }
+
+/* UI Frame - complete redesign to match the screenshot */
+.ui-frame-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Left panel with multiple sections */
+.ui-left-frame {
+  position: absolute;
+  top: 50%;
+  left: 30px;
+  transform: translateY(-50%);
+  width: 80px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ui-left-section {
+  flex: 1;
+  background-color: rgba(12, 14, 24, 0.9);
+  border: 1px solid rgba(91, 141, 217, 0.15);
+}
+
+.ui-left-section.top {
+  height: 30%;
+}
+
+.ui-left-section.middle {
+  height: 40%;
+}
+
+.ui-left-section.bottom {
+  height: 30%;
+}
+
+/* Right panel with stats */
+.ui-right-frame {
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+  width: 80px;
+  height: 350px;
+  background-color: rgba(12, 14, 24, 0.9);
+  border: 1px solid rgba(91, 141, 217, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+/* Top horizontal bar */
+.ui-top-bar {
+  position: absolute;
+  top: 30px;
+  left: 130px;
+  right: 130px;
+  height: 15px;
+  background-color: rgba(12, 14, 24, 0.9);
+  border: 1px solid rgba(91, 141, 217, 0.15);
+}
+
+/* Bottom horizontal bar */
+.ui-bottom-bar {
+  position: absolute;
+  bottom: 30px;
+  left: 130px;
+  right: 130px;
+  height: 15px;
+  background-color: rgba(12, 14, 24, 0.9);
+  border: 1px solid rgba(91, 141, 217, 0.15);
+}
+
+/* Character stats in right panel */
+.character-side-info {
+  width: 100%;
+  height: 100%;
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.side-stat {
+  margin-bottom: 10px;
+}
+
+.side-stat-label {
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.side-stat-value {
+  font-size: 1rem;
+  color: var(--color-primary);
+}
+
+.level-indicator {
+  font-size: 0.7rem;
+  color: var(--color-secondary);
+  letter-spacing: 1px;
+}
+
+/* Skill tree button - positioned in the left panel */
+.skill-tree-button {
+  position: absolute;
+  bottom: 60px;
+  left: 30px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: rgba(12, 14, 24, 0.9);
+  border: 1px solid rgba(91, 141, 217, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  z-index: 30;
+}
+
+.skill-tree-button:hover {
+  background-color: rgba(91, 141, 217, 0.3);
+}
+
+.skill-tree-icon {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+/* Version info */
+.version-info {
+  position: absolute;
+  bottom: 10px;
+  right: 40px;
+  font-size: 0.6rem;
+  color: rgba(91, 141, 217, 0.4);
+}
