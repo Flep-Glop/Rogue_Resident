@@ -8,30 +8,44 @@
 
 {% block content %}
 <div class="pixel-container" data-screen="character-select">
-    <h1 class="game-title">Character Selection</h1>
-    <p class="subtitle">Choose your character to begin the game</p>
+    <!-- Animated star background -->
+    <div class="star-bg" id="star-bg"></div>
     
-    <div class="character-carousel">
-        <button class="carousel-button prev-button">&lt;</button>
-        <div class="character-cards" id="character-cards">
-            <!-- Character cards will be inserted here by JavaScript -->
+    <div class="selection-content">
+        <h1 class="game-title">CHARACTER SELECTION</h1>
+        <p class="subtitle">Choose your character to begin the game</p>
+        
+        <div class="character-carousel">
+            <div class="character-cards-wrapper">
+                <div class="character-cards" id="character-cards">
+                    <!-- Characters will be dynamically inserted here -->
+                </div>
+            </div>
+            
+            <button class="carousel-button prev-button" id="prev-button">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-button next-button" id="next-button">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
-        <button class="carousel-button next-button">&gt;</button>
-    </div>
-    
-    <!-- Carousel indicators -->
-    <div class="carousel-indicators" id="carousel-indicators">
-        <!-- Indicator dots will be added by JavaScript -->
-    </div>
-    
-    <div class="character-details" id="character-details">
-        <!-- Selected character details will be shown here -->
-    </div>
-    
-    <div class="button-container">
-        <button class="retro-btn start" id="select-button">Select Character</button>
-        <a href="{{ url_for('character_create') }}" class="retro-btn" id="create-character-btn">Create Custom Character</a>
-        <a href="{{ url_for('index') }}" class="retro-btn options">Back to Menu</a>
+        
+        <!-- Carousel indicators -->
+        <div class="carousel-indicators" id="carousel-indicators">
+            <!-- Dots will be dynamically inserted here -->
+        </div>
+        
+        <div class="button-container">
+            <button class="action-button select-button" id="select-button">
+                <span class="button-text">Select Character</span>
+            </button>
+            <a href="{{ url_for('character_create') }}" class="action-button create-button">
+                <span class="button-text">Create New Character</span>
+            </a>
+            <a href="{{ url_for('index') }}" class="action-button back-button">
+                <span class="button-text">Back to Menu</span>
+            </a>
+        </div>
     </div>
     
     <!-- Delete confirmation modal -->
@@ -40,8 +54,8 @@
             <h3>Delete Character</h3>
             <p>Are you sure you want to delete this character? This action cannot be undone.</p>
             <div class="modal-buttons">
-                <button id="confirm-delete" class="retro-btn danger">Delete</button>
-                <button id="cancel-delete" class="retro-btn">Cancel</button>
+                <button id="confirm-delete" class="action-button">Delete</button>
+                <button id="cancel-delete" class="action-button">Cancel</button>
             </div>
         </div>
     </div>
@@ -51,4 +65,20 @@
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
+<script>
+    // Generate star background
+    document.addEventListener('DOMContentLoaded', function() {
+        const starBg = document.getElementById('star-bg');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 4}s`;
+            star.style.width = `${1 + Math.random() * 2}px`;
+            star.style.height = star.style.width;
+            starBg.appendChild(star);
+        }
+    });
+</script>
 {% endblock %}

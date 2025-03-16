@@ -1,0 +1,17 @@
+{
+  "id": 1742158753566,
+  "name": "bing bong2",
+  "max_hp": 100,
+  "current_hp": 100,
+  "abilities": [
+    "Data Analysis"
+  ],
+  "stats": {
+    "intelligence": 7,
+    "persistence": 7,
+    "adaptability": 4
+  },
+  "level": 1,
+  "custom": true,
+  "image": "/static/img/characters/debug_mode.png"
+}

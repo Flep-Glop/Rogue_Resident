@@ -1,6 +1,6 @@
 /**
- * Enhanced Character Creator for Medical Physics Game
- * Improved UI interactions and feedback
+ * Modern Character Creator
+ * Featuring animated tabs, 3D avatar rotation, and interactive attribute sliders
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -10,11 +10,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const TOTAL_ATTRIBUTE_POINTS = 15;
     const MAX_ABILITIES = 2;
     
-    // Get character templates data
+    // State
+    let state = {
+        currentTab: 'avatar',
+        avatarRotation: 0,
+        selectedAvatar: null,
+        characterName: '',
+        selectedClass: null,
+        attributes: {
+            intelligence: 5,
+            persistence: 5,
+            adaptability: 5
+        },
+        pointsRemaining: TOTAL_ATTRIBUTE_POINTS,
+        selectedAbilities: [],
+        abilitySearchFilter: '',
+        abilityCategory: 'all'
+    };
+    
+    // Character data (from assets)
     const characterTemplates = window.gameCharacters || [];
     
     // Avatar data
-    // In a real implementation, this would be loaded from a server
     const avatarImages = [
         '/static/img/characters/physicist.png',
         '/static/img/characters/resident.png',
@@ -94,191 +111,144 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Medical Physicist',
             description: 'Specializes in the technical aspects of medical physics with strong analytical skills.',
             attributeBias: { intelligence: 2, persistence: 1, adaptability: 0 },
-            recommendedAbilities: ['Critical Analysis', 'Research Methodology', 'Equipment Mastery']
+            recommendedAbilities: ['Critical Analysis', 'Research Methodology', 'Equipment Mastery'],
+            icon: 'atom'
         },
         {
             id: 'clinician',
             name: 'Clinical Specialist',
             description: 'Focuses on patient care and clinical applications of medical physics.',
             attributeBias: { intelligence: 1, persistence: 0, adaptability: 2 },
-            recommendedAbilities: ['Clinical Diagnosis', 'Patient Care', 'Team Communication']
+            recommendedAbilities: ['Clinical Diagnosis', 'Patient Care', 'Team Communication'],
+            icon: 'user-md'
         },
         {
             id: 'researcher',
             name: 'Research Scientist',
             description: 'Dedicated to advancing medical physics through experimentation and innovation.',
             attributeBias: { intelligence: 2, persistence: 2, adaptability: -1 },
-            recommendedAbilities: ['Research Methodology', 'Technical Writing', 'Data Analysis']
+            recommendedAbilities: ['Research Methodology', 'Technical Writing', 'Data Analysis'],
+            icon: 'flask'
         },
         {
             id: 'consultant',
             name: 'Quality Consultant',
             description: 'Ensures safety standards and process quality in medical physics applications.',
             attributeBias: { intelligence: 1, persistence: 2, adaptability: 0 },
-            recommendedAbilities: ['Detail Oriented', 'Process Improvement', 'Radiation Safety']
+            recommendedAbilities: ['Detail Oriented', 'Process Improvement', 'Radiation Safety'],
+            icon: 'clipboard-check'
         }
     ];
     
-    // DOM Elements
+    // DOM elements
+    const creationTabs = document.querySelectorAll('.creation-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
     const avatarGrid = document.getElementById('avatar-grid');
-    const prevAvatarBtn = document.getElementById('prev-avatar');
-    const nextAvatarBtn = document.getElementById('next-avatar');
-    const avatarPageNum = document.getElementById('avatar-page-num');
-    const avatarTotalPages = document.getElementById('avatar-total-pages');
-    
-    const characterNameInput = document.getElementById('character-name');
+    const selectedAvatarPreview = document.getElementById('selected-avatar-preview');
+    const classCards = document.getElementById('class-cards');
     const pointsRemainingElement = document.getElementById('points-remaining');
+    const availableAbilitiesList = document.getElementById('available-abilities');
+    const selectedAbilitiesList = document.getElementById('selected-abilities');
+    const createCharacterBtn = document.getElementById('create-character-btn');
     
-    const attributeElements = {
-        intelligence: {
-            minus: document.getElementById('intelligence-minus'),
-            value: document.getElementById('intelligence-value'),
-            plus: document.getElementById('intelligence-plus'),
-            fill: document.getElementById('intelligence-fill')
-        },
-        persistence: {
-            minus: document.getElementById('persistence-minus'),
-            value: document.getElementById('persistence-value'),
-            plus: document.getElementById('persistence-plus'),
-            fill: document.getElementById('persistence-fill')
-        },
-        adaptability: {
-            minus: document.getElementById('adaptability-minus'),
-            value: document.getElementById('adaptability-value'),
-            plus: document.getElementById('adaptability-plus'),
-            fill: document.getElementById('adaptability-fill')
-        }
+    // Attribute slider elements
+    const attributeSliders = {
+        intelligence: document.getElementById('intelligence-slider'),
+        persistence: document.getElementById('persistence-slider'),
+        adaptability: document.getElementById('adaptability-slider')
     };
     
-    const abilitiesAvailableElement = document.getElementById('abilities-available');
-    const abilitiesSelectedElement = document.getElementById('abilities-selected');
+    const attributeValues = {
+        intelligence: document.getElementById('intelligence-value'),
+        persistence: document.getElementById('persistence-value'),
+        adaptability: document.getElementById('adaptability-value')
+    };
     
-    const previewAvatar = document.getElementById('preview-avatar').querySelector('img');
+    const attributeProgresses = {
+        intelligence: document.getElementById('intelligence-progress'),
+        persistence: document.getElementById('persistence-progress'),
+        adaptability: document.getElementById('adaptability-progress')
+    };
+    
+    // Preview elements
+    const previewAvatarImg = document.getElementById('preview-avatar-img');
     const previewName = document.getElementById('preview-name');
+    const previewClass = document.getElementById('preview-class');
     const previewIntelligence = document.getElementById('preview-intelligence');
     const previewPersistence = document.getElementById('preview-persistence');
     const previewAdaptability = document.getElementById('preview-adaptability');
     const previewAbilities = document.getElementById('preview-abilities');
     
-    const createCharacterBtn = document.getElementById('create-character-btn');
+    // Get elements for avatar rotation
+    const rotateLeftBtn = document.getElementById('rotate-left');
+    const rotateRightBtn = document.getElementById('rotate-right');
     
-    // Add class selection if it exists in the DOM
-    const classSelectionElement = document.getElementById('class-selection');
+    // Get navigation buttons
+    const prevButtons = document.querySelectorAll('[data-prev-tab]');
+    const nextButtons = document.querySelectorAll('[data-next-tab]');
     
-    // State
-    let state = {
-        currentAvatarPage: 1,
-        avatarsPerPage: 6,
-        selectedAvatar: avatarImages[0],
-        characterName: '',
-        selectedClass: null,
-        attributes: {
-            intelligence: 5,
-            persistence: 5,
-            adaptability: 5
-        },
-        pointsRemaining: TOTAL_ATTRIBUTE_POINTS,
-        selectedAbilities: [],
-        abilitySearchFilter: '',
-        abilityCategory: 'all'
-    };
-    
-    // Calculate total attribute points used
-    function calculatePointsUsed() {
-        return state.attributes.intelligence + 
-               state.attributes.persistence + 
-               state.attributes.adaptability - 
-               (3 * MIN_ATTRIBUTE_VALUE); // Subtract minimum values since we start at MIN_ATTRIBUTE_VALUE
-    }
-    
-    // Calculate points remaining
-    function calculatePointsRemaining() {
-        return TOTAL_ATTRIBUTE_POINTS - calculatePointsUsed();
-    }
-    
-    // Update UI based on state
-    function updateUI() {
-        // Update points remaining
-        state.pointsRemaining = calculatePointsRemaining();
-        pointsRemainingElement.textContent = state.pointsRemaining;
+    // Initialize creation UI
+    function initialize() {
+        // Set default state
+        state.selectedAvatar = avatarImages[0];
         
-        // Update points remaining style based on remaining points
-        if (state.pointsRemaining <= 0) {
-            pointsRemainingElement.classList.add('empty');
-        } else {
-            pointsRemainingElement.classList.remove('empty');
-        }
+        // Render avatars
+        renderAvatarGrid();
+        
+        // Render class cards
+        renderClassCards();
+        
+        // Render abilities lists
+        renderAbilitiesLists();
         
         // Update attribute displays
-        for (const attribute in state.attributes) {
-            const value = state.attributes[attribute];
-            const elements = attributeElements[attribute];
-            
-            // Update value
-            elements.value.textContent = value;
-            
-            // Update fill bar (scale to percentage)
-            const percentage = (value / MAX_ATTRIBUTE_VALUE) * 100;
-            elements.fill.style.width = `${percentage}%`;
-            
-            // Handle button states
-            elements.minus.disabled = value <= MIN_ATTRIBUTE_VALUE;
-            elements.plus.disabled = value >= MAX_ATTRIBUTE_VALUE || state.pointsRemaining <= 0;
-            
-            // Update button appearance based on state
-            if (elements.minus.disabled) {
-                elements.minus.classList.add('disabled');
-            } else {
-                elements.minus.classList.remove('disabled');
-            }
-            
-            if (elements.plus.disabled) {
-                elements.plus.classList.add('disabled');
-            } else {
-                elements.plus.classList.remove('disabled');
-            }
-        }
+        updateAttributeDisplay();
         
         // Update preview
-        previewName.textContent = state.characterName || 'New Character';
-        previewIntelligence.textContent = state.attributes.intelligence;
-        previewPersistence.textContent = state.attributes.persistence;
-        previewAdaptability.textContent = state.attributes.adaptability;
+        updatePreview();
         
-        // Update preview avatar
-        previewAvatar.src = state.selectedAvatar;
-        
-        // Update create button state
-        const isNameValid = state.characterName.trim().length > 0;
-        const hasAbilities = state.selectedAbilities.length > 0;
-        
-        createCharacterBtn.disabled = !isNameValid || !hasAbilities;
-        
-        if (!isNameValid || !hasAbilities) {
-            createCharacterBtn.classList.add('disabled');
-        } else {
-            createCharacterBtn.classList.remove('disabled');
-        }
-        
-        // Update character creation button text
-        if (!isNameValid) {
-            createCharacterBtn.setAttribute('data-tooltip', 'Please enter a character name');
-        } else if (!hasAbilities) {
-            createCharacterBtn.setAttribute('data-tooltip', 'Please select at least one ability');
-        } else {
-            createCharacterBtn.setAttribute('data-tooltip', 'Create your character and start the adventure!');
-        }
+        // Set up event listeners
+        setupEventListeners();
     }
     
-    // Render avatars grid
+    // Switch between tabs
+    function switchTab(tabName) {
+        // Update state
+        state.currentTab = tabName;
+        
+        // Update tab buttons
+        creationTabs.forEach(tab => {
+            if (tab.dataset.tab === tabName) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+        
+        // Update tab content visibility
+        tabContents.forEach(content => {
+            if (content.id === `${tabName}-tab`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+        
+        // Scroll to top of container
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+    
+    // Render avatar grid
     function renderAvatarGrid() {
+        if (!avatarGrid) return;
+        
         avatarGrid.innerHTML = '';
         
-        const startIndex = (state.currentAvatarPage - 1) * state.avatarsPerPage;
-        const endIndex = Math.min(startIndex + state.avatarsPerPage, avatarImages.length);
-        
-        for (let i = startIndex; i < endIndex; i++) {
-            const avatarPath = avatarImages[i];
+        // Create avatar items
+        avatarImages.forEach((avatarPath, index) => {
             const avatarItem = document.createElement('div');
             avatarItem.className = 'avatar-item';
             
@@ -288,136 +258,230 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const img = document.createElement('img');
             img.src = avatarPath;
-            img.alt = `Avatar ${i+1}`;
+            img.alt = `Avatar ${index + 1}`;
             img.onerror = function() {
                 this.src = '/static/img/characters/debug_mode.png';
             };
             
             avatarItem.appendChild(img);
+            
+            // Add click event
             avatarItem.addEventListener('click', () => {
-                // Add a selection animation
-                avatarItem.classList.add('selecting');
-                setTimeout(() => {
-                    avatarItem.classList.remove('selecting');
-                    state.selectedAvatar = avatarPath;
-                    renderAvatarGrid();
-                    updateUI();
-                }, 200);
+                state.selectedAvatar = avatarPath;
+                
+                // Update preview
+                selectedAvatarPreview.src = avatarPath;
+                
+                // Reset rotation
+                state.avatarRotation = 0;
+                updateAvatarRotation();
+                
+                // Update avatar selection
+                document.querySelectorAll('.avatar-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                avatarItem.classList.add('selected');
+                
+                // Update preview
+                updatePreview();
             });
             
             avatarGrid.appendChild(avatarItem);
-        }
+        });
         
-        // Update pagination
-        const totalPages = Math.ceil(avatarImages.length / state.avatarsPerPage);
-        avatarPageNum.textContent = state.currentAvatarPage;
-        avatarTotalPages.textContent = totalPages;
-        
-        // Update navigation buttons
-        prevAvatarBtn.disabled = state.currentAvatarPage <= 1;
-        nextAvatarBtn.disabled = state.currentAvatarPage >= totalPages;
+        // Update selected avatar preview
+        selectedAvatarPreview.src = state.selectedAvatar;
     }
     
-    // Render class selection if the element exists
-    function renderClassSelection() {
-        if (!classSelectionElement) return;
+    // Update avatar rotation
+    function updateAvatarRotation() {
+        if (selectedAvatarPreview) {
+            selectedAvatarPreview.style.transform = `rotateY(${state.avatarRotation}deg)`;
+        }
+    }
+    
+    // Render class cards
+    function renderClassCards() {
+        if (!classCards) return;
         
-        classSelectionElement.innerHTML = '';
+        classCards.innerHTML = '';
         
-        // Create class cards
-        characterClasses.forEach(charClass => {
+        characterClasses.forEach(characterClass => {
             const classCard = document.createElement('div');
             classCard.className = 'class-card';
             
-            if (state.selectedClass && state.selectedClass.id === charClass.id) {
+            if (state.selectedClass && state.selectedClass.id === characterClass.id) {
                 classCard.classList.add('selected');
             }
             
             classCard.innerHTML = `
-                <h3>${charClass.name}</h3>
-                <p>${charClass.description}</p>
+                <div class="class-header">
+                    <div class="class-name">${characterClass.name}</div>
+                    <div class="class-icon">
+                        <i class="fas fa-${characterClass.icon || 'star'}"></i>
+                    </div>
+                </div>
+                <div class="class-description">
+                    ${characterClass.description}
+                </div>
                 <div class="class-attributes">
-                    <div class="class-attribute">INT: ${charClass.attributeBias.intelligence > 0 ? '+' : ''}${charClass.attributeBias.intelligence}</div>
-                    <div class="class-attribute">PER: ${charClass.attributeBias.persistence > 0 ? '+' : ''}${charClass.attributeBias.persistence}</div>
-                    <div class="class-attribute">ADP: ${charClass.attributeBias.adaptability > 0 ? '+' : ''}${charClass.attributeBias.adaptability}</div>
+                    <div class="class-attribute">
+                        INT: <span class="attribute-value ${characterClass.attributeBias.intelligence > 0 ? 'positive' : characterClass.attributeBias.intelligence < 0 ? 'negative' : ''}">${characterClass.attributeBias.intelligence > 0 ? '+' : ''}${characterClass.attributeBias.intelligence}</span>
+                    </div>
+                    <div class="class-attribute">
+                        PER: <span class="attribute-value ${characterClass.attributeBias.persistence > 0 ? 'positive' : characterClass.attributeBias.persistence < 0 ? 'negative' : ''}">${characterClass.attributeBias.persistence > 0 ? '+' : ''}${characterClass.attributeBias.persistence}</span>
+                    </div>
+                    <div class="class-attribute">
+                        ADP: <span class="attribute-value ${characterClass.attributeBias.adaptability > 0 ? 'positive' : characterClass.attributeBias.adaptability < 0 ? 'negative' : ''}">${characterClass.attributeBias.adaptability > 0 ? '+' : ''}${characterClass.attributeBias.adaptability}</span>
+                    </div>
                 </div>
             `;
             
             classCard.addEventListener('click', () => {
                 // Update selected class
-                state.selectedClass = charClass;
+                state.selectedClass = characterClass;
+                
+                // Reset attributes
+                resetAttributes();
                 
                 // Apply class attribute bias
-                applyClassAttributeBias(charClass);
+                applyClassAttributeBias(characterClass);
                 
-                // Render class selection again
-                renderClassSelection();
+                // Update class selection
+                document.querySelectorAll('.class-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                classCard.classList.add('selected');
                 
-                // Update abilities - show recommended
-                renderAbilitiesLists();
-                
-                // Update UI
-                updateUI();
+                // Update preview
+                updatePreview();
             });
             
-            classSelectionElement.appendChild(classCard);
+            classCards.appendChild(classCard);
         });
     }
     
+    // Reset attributes to default
+    function resetAttributes() {
+        state.attributes = {
+            intelligence: 5,
+            persistence: 5,
+            adaptability: 5
+        };
+        
+        // Update sliders
+        for (const attribute in attributeSliders) {
+            if (attributeSliders[attribute]) {
+                attributeSliders[attribute].value = 5;
+            }
+        }
+        
+        // Recalculate points
+        recalculatePoints();
+        
+        // Update display
+        updateAttributeDisplay();
+    }
+    
     // Apply class attribute bias
-    function applyClassAttributeBias(charClass) {
-        // Reset attributes to base 5
-        state.attributes.intelligence = 5;
-        state.attributes.persistence = 5;
-        state.attributes.adaptability = 5;
+    function applyClassAttributeBias(characterClass) {
+        if (!characterClass) return;
         
-        // Apply bias
-        state.attributes.intelligence += charClass.attributeBias.intelligence;
-        state.attributes.persistence += charClass.attributeBias.persistence;
-        state.attributes.adaptability += charClass.attributeBias.adaptability;
+        // Apply bias to attributes
+        for (const attribute in characterClass.attributeBias) {
+            const newValue = state.attributes[attribute] + characterClass.attributeBias[attribute];
+            
+            // Ensure value is within bounds
+            state.attributes[attribute] = Math.max(
+                MIN_ATTRIBUTE_VALUE,
+                Math.min(MAX_ATTRIBUTE_VALUE, newValue)
+            );
+            
+            // Update slider
+            if (attributeSliders[attribute]) {
+                attributeSliders[attribute].value = state.attributes[attribute];
+            }
+        }
         
-        // Ensure values are within bounds
+        // Recalculate points
+        recalculatePoints();
+        
+        // Update display
+        updateAttributeDisplay();
+    }
+    
+    // Calculate points remaining
+    function recalculatePoints() {
+        // Calculate points used (minus base values)
+        const pointsUsed = Object.values(state.attributes).reduce((total, value) => {
+            return total + (value - MIN_ATTRIBUTE_VALUE);
+        }, 0);
+        
+        // Calculate points remaining
+        state.pointsRemaining = TOTAL_ATTRIBUTE_POINTS - pointsUsed;
+    }
+    
+    // Update attribute display
+    function updateAttributeDisplay() {
+        // Update points remaining
+        pointsRemainingElement.textContent = state.pointsRemaining;
+        
+        if (state.pointsRemaining <= 0) {
+            pointsRemainingElement.classList.add('empty');
+        } else {
+            pointsRemainingElement.classList.remove('empty');
+        }
+        
+        // Update attribute values and progress bars
         for (const attribute in state.attributes) {
-            if (state.attributes[attribute] < MIN_ATTRIBUTE_VALUE) {
-                state.attributes[attribute] = MIN_ATTRIBUTE_VALUE;
-            } else if (state.attributes[attribute] > MAX_ATTRIBUTE_VALUE) {
-                state.attributes[attribute] = MAX_ATTRIBUTE_VALUE;
+            const value = state.attributes[attribute];
+            
+            // Update value display
+            if (attributeValues[attribute]) {
+                attributeValues[attribute].textContent = value;
+            }
+            
+            // Update progress bar
+            if (attributeProgresses[attribute]) {
+                const percentage = (value / MAX_ATTRIBUTE_VALUE) * 100;
+                attributeProgresses[attribute].style.width = `${percentage}%`;
+            }
+            
+            // Update slider
+            if (attributeSliders[attribute]) {
+                attributeSliders[attribute].value = value;
+                
+                // Disable if at max or no points
+                attributeSliders[attribute].disabled = 
+                    (value >= MAX_ATTRIBUTE_VALUE) || 
+                    (state.pointsRemaining <= 0 && value < MAX_ATTRIBUTE_VALUE);
             }
         }
     }
     
-    // Filter abilities
-    function filterAbilities() {
-        let filtered = [...availableAbilities];
-        
-        // Apply search filter
-        if (state.abilitySearchFilter) {
-            const search = state.abilitySearchFilter.toLowerCase();
-            filtered = filtered.filter(ability => 
-                ability.name.toLowerCase().includes(search) || 
-                ability.description.toLowerCase().includes(search)
-            );
-        }
-        
-        // Apply category filter
-        if (state.abilityCategory !== 'all') {
-            filtered = filtered.filter(ability => 
-                ability.category === state.abilityCategory
-            );
-        }
-        
-        return filtered;
-    }
-    
     // Render abilities lists
     function renderAbilitiesLists() {
-        // Render available abilities
-        abilitiesAvailableElement.innerHTML = '';
+        // Update available count
+        document.getElementById('available-count').textContent = availableAbilities.length;
         
-        // Filter abilities
-        const filteredAbilities = filterAbilities();
+        // Update selected count
+        document.getElementById('selected-count').textContent = state.selectedAbilities.length;
         
-        // Sort abilities by recommended status if a class is selected
+        // Filter abilities based on search and category
+        const filteredAbilities = availableAbilities.filter(ability => {
+            // Apply search filter
+            const searchMatch = !state.abilitySearchFilter || 
+                ability.name.toLowerCase().includes(state.abilitySearchFilter.toLowerCase()) ||
+                ability.description.toLowerCase().includes(state.abilitySearchFilter.toLowerCase());
+                
+            // Apply category filter
+            const categoryMatch = state.abilityCategory === 'all' || 
+                ability.category === state.abilityCategory;
+                
+            return searchMatch && categoryMatch;
+        });
+        
+        // Sort by recommended if class is selected
         if (state.selectedClass) {
             filteredAbilities.sort((a, b) => {
                 const aRecommended = state.selectedClass.recommendedAbilities.includes(a.name);
@@ -429,65 +493,20 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Get available abilities (not already selected)
-        const availableForSelection = filteredAbilities.filter(
-            ability => !state.selectedAbilities.some(selected => selected.name === ability.name)
-        );
+        // Clear available abilities list
+        availableAbilitiesList.innerHTML = '';
         
-        // Add ability search and filter if more than 5 abilities
-        if (availableAbilities.length > 5 && !document.getElementById('ability-search')) {
-            const searchContainer = document.createElement('div');
-            searchContainer.className = 'ability-search-container';
-            searchContainer.innerHTML = `
-                <input type="text" id="ability-search" placeholder="Search abilities..." class="ability-search">
-                <div class="ability-categories">
-                    <button class="ability-category-btn ${state.abilityCategory === 'all' ? 'active' : ''}" data-category="all">All</button>
-                    <button class="ability-category-btn ${state.abilityCategory === 'Academic' ? 'active' : ''}" data-category="Academic">Academic</button>
-                    <button class="ability-category-btn ${state.abilityCategory === 'Clinical' ? 'active' : ''}" data-category="Clinical">Clinical</button>
-                    <button class="ability-category-btn ${state.abilityCategory === 'Professional' ? 'active' : ''}" data-category="Professional">Professional</button>
-                    <button class="ability-category-btn ${state.abilityCategory === 'Technical' ? 'active' : ''}" data-category="Technical">Technical</button>
-                </div>
-            `;
+        // Add available abilities (not already selected)
+        filteredAbilities.forEach(ability => {
+            // Skip if already selected
+            if (state.selectedAbilities.some(a => a.name === ability.name)) {
+                return;
+            }
             
-            // Add search and category filter event listeners
-            setTimeout(() => {
-                const searchInput = document.getElementById('ability-search');
-                if (searchInput) {
-                    searchInput.addEventListener('input', (e) => {
-                        state.abilitySearchFilter = e.target.value;
-                        renderAbilitiesLists();
-                    });
-                    
-                    // Set initial value from state
-                    searchInput.value = state.abilitySearchFilter;
-                }
-                
-                // Category buttons
-                document.querySelectorAll('.ability-category-btn').forEach(button => {
-                    button.addEventListener('click', () => {
-                        state.abilityCategory = button.dataset.category;
-                        renderAbilitiesLists();
-                    });
-                });
-            }, 0);
-            
-            abilitiesAvailableElement.appendChild(searchContainer);
-        }
-        
-        // Display no results message if nothing found
-        if (availableForSelection.length === 0) {
-            const noResults = document.createElement('div');
-            noResults.className = 'no-abilities-message';
-            noResults.textContent = 'No abilities match your filter';
-            abilitiesAvailableElement.appendChild(noResults);
-        }
-        
-        // Render each available ability
-        availableForSelection.forEach(ability => {
             const abilityItem = document.createElement('div');
             abilityItem.className = 'ability-item';
             
-            // Highlight recommended abilities
+            // Check if recommended by selected class
             if (state.selectedClass && state.selectedClass.recommendedAbilities.includes(ability.name)) {
                 abilityItem.classList.add('recommended');
             }
@@ -502,245 +521,101 @@ document.addEventListener('DOMContentLoaded', function() {
                     '<div class="recommended-badge">Recommended</div>' : ''}
             `;
             
+            // Add click event to select
             abilityItem.addEventListener('click', () => {
+                // Can only select if not at max
                 if (state.selectedAbilities.length < MAX_ABILITIES) {
                     state.selectedAbilities.push(ability);
                     renderAbilitiesLists();
-                    updatePreviewAbilities();
-                    updateUI();
-                    
-                    // Add selection animation
-                    abilityItem.classList.add('selecting');
+                    updatePreview();
                 }
             });
             
-            abilitiesAvailableElement.appendChild(abilityItem);
+            availableAbilitiesList.appendChild(abilityItem);
         });
         
-        // Render selected abilities
-        abilitiesSelectedElement.innerHTML = '';
-        
-        // Show message if no abilities selected
-        if (state.selectedAbilities.length === 0) {
-            const noSelected = document.createElement('div');
-            noSelected.className = 'no-abilities-message';
-            noSelected.textContent = 'Select up to two abilities';
-            abilitiesSelectedElement.appendChild(noSelected);
-        }
-        
-        // Render selected abilities
-        state.selectedAbilities.forEach(ability => {
-            const abilityItem = document.createElement('div');
-            abilityItem.className = 'ability-item selected';
-            
-            abilityItem.innerHTML = `
-                <div class="ability-header">
-                    <span class="ability-name">${ability.name}</span>
-                    <span class="ability-category">${ability.category}</span>
+        // Add no results message if needed
+        if (filteredAbilities.length === 0 || availableAbilitiesList.children.length === 0) {
+            availableAbilitiesList.innerHTML = `
+                <div class="no-abilities">
+                    <div class="no-abilities-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <p>No abilities match your filter</p>
                 </div>
-                <div class="ability-description">${ability.description}</div>
-                <button class="remove-ability-btn">✕</button>
             `;
-            
-            // Find and attach event listener to the remove button
-            setTimeout(() => {
-                const removeBtn = abilityItem.querySelector('.remove-ability-btn');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation(); // Prevent triggering abilityItem click
-                        
-                        // Remove from selected abilities
-                        state.selectedAbilities = state.selectedAbilities.filter(a => a.name !== ability.name);
-                        
-                        // Update UI
-                        renderAbilitiesLists();
-                        updatePreviewAbilities();
-                        updateUI();
-                    });
-                }
-            }, 0);
-            
-            abilitiesSelectedElement.appendChild(abilityItem);
-        });
-        
-        // Show remaining slots indicator
-        const slotsIndicator = document.createElement('div');
-        slotsIndicator.className = 'slots-indicator';
-        slotsIndicator.textContent = `${state.selectedAbilities.length}/${MAX_ABILITIES} slots used`;
-        abilitiesSelectedElement.appendChild(slotsIndicator);
-    }
-    
-    // Update preview abilities
-    function updatePreviewAbilities() {
-        previewAbilities.innerHTML = '';
-        
-        state.selectedAbilities.forEach(ability => {
-            const abilityElement = document.createElement('div');
-            abilityElement.className = 'preview-ability';
-            abilityElement.textContent = ability.name;
-            
-            // Add a tooltip with the ability description
-            abilityElement.setAttribute('data-tooltip', ability.description);
-            
-            previewAbilities.appendChild(abilityElement);
-        });
-    }
-    
-    // Show toast notification
-    function showToast(message, type = 'info') {
-        // Create toast container if it doesn't exist
-        let toastContainer = document.querySelector('.toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container';
-            document.body.appendChild(toastContainer);
         }
         
-        // Create toast
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
+        // Clear selected abilities list
+        selectedAbilitiesList.innerHTML = '';
         
-        // Add to container
-        toastContainer.appendChild(toast);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.classList.add('toast-fadeout');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
-    
-    // Initialize the UI
-    function initialize() {
-        // Render avatar grid
-        renderAvatarGrid();
-        
-        // Render class selection if it exists
-        renderClassSelection();
-        
-        // Create objects for abilities
-        state.selectedAbilities = [];
-        
-        // Render abilities lists
-        renderAbilitiesLists();
-        
-        // Update all UI elements
-        updateUI();
-        
-        // Set up event listeners
-        setupEventListeners();
-        
-        // Add UI enhancement - floating pixels
-        addFloatingPixels();
-    }
-    
-    // Add floating pixel decorations
-    function addFloatingPixels() {
-        const container = document.querySelector('.pixel-container');
-        if (!container) return;
-        
-        for (let i = 0; i < 20; i++) {
-            const pixel = document.createElement('div');
-            pixel.className = 'floating-pixel';
-            
-            // Random position
-            pixel.style.left = `${Math.random() * 100}%`;
-            pixel.style.top = `${Math.random() * 100}%`;
-            
-            // Random size
-            const size = 2 + Math.random() * 4;
-            pixel.style.width = `${size}px`;
-            pixel.style.height = `${size}px`;
-            
-            // Random color
-            const colors = ['var(--color-primary)', 'var(--color-secondary)', 'var(--color-warning)'];
-            pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Random animation
-            pixel.style.animationDuration = `${10 + Math.random() * 20}s`;
-            pixel.style.animationDelay = `${Math.random() * 5}s`;
-            
-            container.appendChild(pixel);
-        }
-    }
-    
-    // Set up event listeners
-    function setupEventListeners() {
-        // Avatar navigation
-        prevAvatarBtn.addEventListener('click', () => {
-            if (state.currentAvatarPage > 1) {
-                state.currentAvatarPage--;
-                renderAvatarGrid();
-            }
-        });
-        
-        nextAvatarBtn.addEventListener('click', () => {
-            const totalPages = Math.ceil(avatarImages.length / state.avatarsPerPage);
-            if (state.currentAvatarPage < totalPages) {
-                state.currentAvatarPage++;
-                renderAvatarGrid();
-            }
-        });
-        
-        // Character name input
-        characterNameInput.addEventListener('input', (e) => {
-            state.characterName = e.target.value;
-            updateUI();
-        });
-        
-        // Attribute buttons
-        for (const attribute in attributeElements) {
-            const elements = attributeElements[attribute];
-            
-            elements.minus.addEventListener('click', () => {
-                if (state.attributes[attribute] > MIN_ATTRIBUTE_VALUE) {
-                    // Add animation
-                    elements.value.classList.add('value-change');
-                    setTimeout(() => elements.value.classList.remove('value-change'), 300);
-                    
-                    state.attributes[attribute]--;
-                    updateUI();
-                }
-            });
-            
-            elements.plus.addEventListener('click', () => {
-                if (state.attributes[attribute] < MAX_ATTRIBUTE_VALUE && state.pointsRemaining > 0) {
-                    // Add animation
-                    elements.value.classList.add('value-change');
-                    setTimeout(() => elements.value.classList.remove('value-change'), 300);
-                    
-                    state.attributes[attribute]++;
-                    updateUI();
-                }
-            });
-        }
-        
-        // Create character button
-        createCharacterBtn.addEventListener('click', () => {
-            if (validateCharacter()) {
-                // Add loading animation
-                createCharacterBtn.classList.add('loading');
-                createCharacterBtn.innerHTML = '<span class="spinner"></span> Creating...';
+        // Add selected abilities
+        if (state.selectedAbilities.length === 0) {
+            selectedAbilitiesList.innerHTML = `
+                <div class="no-abilities">
+                    <div class="no-abilities-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <p>Select up to two abilities from the available list</p>
+                </div>
+            `;
+        } else {
+            state.selectedAbilities.forEach(ability => {
+                const abilityItem = document.createElement('div');
+                abilityItem.className = 'ability-item selected';
                 
-                // Save with delay to show loading state
-                setTimeout(() => {
-                    saveCharacter();
-                }, 800);
-            }
-        });
+                abilityItem.innerHTML = `
+                    <div class="ability-header">
+                        <span class="ability-name">${ability.name}</span>
+                        <span class="ability-category">${ability.category}</span>
+                    </div>
+                    <div class="ability-description">${ability.description}</div>
+                    <div class="remove-ability" data-ability="${ability.name}">×</div>
+                `;
+                
+                selectedAbilitiesList.appendChild(abilityItem);
+            });
+            
+            // Add remove ability handlers
+            document.querySelectorAll('.remove-ability').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const abilityName = btn.dataset.ability;
+                    state.selectedAbilities = state.selectedAbilities.filter(a => a.name !== abilityName);
+                    renderAbilitiesLists();
+                    updatePreview();
+                });
+            });
+        }
+    }
+    
+    // Update character preview
+    function updatePreview() {
+        // Update avatar
+        previewAvatarImg.src = state.selectedAvatar;
         
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            // Enter key to submit when form is valid
-            if (e.key === 'Enter' && document.activeElement === characterNameInput) {
-                if (validateCharacter()) {
-                    saveCharacter();
-                }
-            }
-        });
+        // Update name
+        previewName.textContent = state.characterName || 'New Character';
+        
+        // Update class
+        previewClass.textContent = state.selectedClass ? state.selectedClass.name : 'No Class Selected';
+        
+        // Update attributes
+        previewIntelligence.textContent = state.attributes.intelligence;
+        previewPersistence.textContent = state.attributes.persistence;
+        previewAdaptability.textContent = state.attributes.adaptability;
+        
+        // Update abilities
+        if (state.selectedAbilities.length === 0) {
+            previewAbilities.innerHTML = '<span class="no-abilities">No abilities selected</span>';
+        } else {
+            previewAbilities.innerHTML = '';
+            state.selectedAbilities.forEach(ability => {
+                const abilityTag = document.createElement('div');
+                abilityTag.className = 'preview-ability-tag';
+                abilityTag.textContent = ability.name;
+                previewAbilities.appendChild(abilityTag);
+            });
+        }
     }
     
     // Validate character before saving
@@ -748,43 +623,19 @@ document.addEventListener('DOMContentLoaded', function() {
         let isValid = true;
         let errors = [];
         
-        // Clear previous errors
-        document.querySelectorAll('.error-text').forEach(el => el.remove());
-        document.querySelectorAll('.error-border').forEach(el => el.classList.remove('error-border'));
-        
-        // Validate name
-        if (!state.characterName.trim()) {
+        // Check name
+        if (!state.characterName || state.characterName.trim() === '') {
             errors.push('Character name is required');
-            characterNameInput.classList.add('error-border');
-            
-            // Add error message
-            const nameError = document.createElement('div');
-            nameError.className = 'error-text';
-            nameError.textContent = 'Character name is required';
-            characterNameInput.parentNode.appendChild(nameError);
-            
             isValid = false;
-        } else {
-            characterNameInput.classList.remove('error-border');
         }
         
-        // Validate abilities
+        // Check abilities
         if (state.selectedAbilities.length === 0) {
             errors.push('At least one ability must be selected');
-            abilitiesSelectedElement.classList.add('error-border');
-            
-            // Add error message
-            const abilitiesError = document.createElement('div');
-            abilitiesError.className = 'error-text';
-            abilitiesError.textContent = 'Select at least one ability';
-            abilitiesSelectedElement.parentNode.appendChild(abilitiesError);
-            
             isValid = false;
-        } else {
-            abilitiesSelectedElement.classList.remove('error-border');
         }
         
-        // Display errors if any (using toast notifications)
+        // Display errors
         if (!isValid) {
             errors.forEach(error => {
                 showToast(error, 'error');
@@ -796,32 +647,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Save character
     function saveCharacter() {
-        // Map selected abilities to just the objects with name and description
-        const abilitiesForStorage = state.selectedAbilities.map(ability => ability.name);
-        
         // Create character object
         const character = {
-            id: Date.now(), // Generate a unique ID
+            id: Date.now(),
             name: state.characterName,
-            max_hp: 100, // Default value
-            current_hp: 100, // Default value
-            abilities: abilitiesForStorage,
-            stats: {
-                intelligence: state.attributes.intelligence,
-                persistence: state.attributes.persistence,
-                adaptability: state.attributes.adaptability
-            },
+            max_hp: 100,
+            current_hp: 100,
+            abilities: state.selectedAbilities.map(a => a.name),
+            stats: { ...state.attributes },
             level: 1,
+            custom: true,
             image: state.selectedAvatar,
-            custom: true, // Flag to indicate this is a custom character
             class: state.selectedClass ? state.selectedClass.id : null,
             description: state.selectedClass ? 
                 `A custom ${state.selectedClass.name.toLowerCase()} specializing in medical physics.` : 
                 'A custom character specializing in medical physics.'
         };
         
-        // Try to save to the server first if API is available
+        // Try to save to server
         createCharacterBtn.disabled = true;
+        createCharacterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        createCharacterBtn.classList.add('button-loading');
         
         fetch('/api/characters/custom', {
             method: 'POST',
@@ -839,19 +685,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(savedCharacter => {
             console.log('Character saved to server:', savedCharacter);
             
-            // Still save to localStorage as fallback/cache
+            // Also save to localStorage
             saveToLocalStorage(savedCharacter);
             
             // Show success message
             showToast('Character created successfully!', 'success');
             
-            // Show success animation
-            const container = document.querySelector('.pixel-container');
-            if (container) {
-                container.classList.add('success-animation');
-            }
-            
-            // Navigate to the game with a slight delay
+            // Redirect after delay
             setTimeout(() => {
                 window.location.href = '/game';
             }, 1500);
@@ -859,39 +699,190 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error saving character to server:', error);
             
-            // Show warning that we're falling back to local storage
+            // Fallback to localStorage only
             showToast('Saving to server failed, using local storage instead', 'warning');
-            
-            // Fallback to localStorage only approach
             saveToLocalStorage(character);
             
-            // Navigate to the game with a delay
+            // Redirect after delay
             setTimeout(() => {
                 window.location.href = '/game';
             }, 1500);
         })
         .finally(() => {
             createCharacterBtn.disabled = false;
-            createCharacterBtn.innerHTML = 'Create Character';
-            createCharacterBtn.classList.remove('loading');
+            createCharacterBtn.innerHTML = '<i class="fas fa-save"></i> Create Character';
+            createCharacterBtn.classList.remove('button-loading');
         });
     }
     
-    // Helper to save to localStorage
+    // Save to localStorage
     function saveToLocalStorage(character) {
-        // Get existing custom characters or initialize empty array
+        // Get existing characters or initialize empty array
         let customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
         
-        // Add the new character
+        // Add new character
         customCharacters.push(character);
         
-        // Save to localStorage
+        // Save updated list
         localStorage.setItem('customCharacters', JSON.stringify(customCharacters));
         
-        // Save as selected character
+        // Also save as selected character
         localStorage.setItem('selectedCharacter', JSON.stringify(character));
     }
     
-    // Starting point - initialize the UI
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Create container if needed
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        
+        // Add to container
+        toastContainer.appendChild(toast);
+        
+        // Show with animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Tab switching
+        creationTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchTab(tab.dataset.tab);
+            });
+        });
+        
+        // Avatar rotation
+        if (rotateLeftBtn) {
+            rotateLeftBtn.addEventListener('click', () => {
+                state.avatarRotation -= 30;
+                updateAvatarRotation();
+            });
+        }
+        
+        if (rotateRightBtn) {
+            rotateRightBtn.addEventListener('click', () => {
+                state.avatarRotation += 30;
+                updateAvatarRotation();
+            });
+        }
+        
+        // Character name input
+        const nameInput = document.querySelector('input[name="character-name"]');
+        if (nameInput) {
+            nameInput.addEventListener('input', (e) => {
+                state.characterName = e.target.value;
+                updatePreview();
+            });
+        }
+        
+        // Attribute sliders
+        for (const attribute in attributeSliders) {
+            if (attributeSliders[attribute]) {
+                attributeSliders[attribute].addEventListener('input', (e) => {
+                    const newValue = parseInt(e.target.value);
+                    const oldValue = state.attributes[attribute];
+                    
+                    // Calculate point change
+                    const pointChange = newValue - oldValue;
+                    
+                    // Check if we have enough points
+                    if (pointChange > 0 && state.pointsRemaining < pointChange) {
+                        // Reset to previous value
+                        e.target.value = oldValue;
+                        return;
+                    }
+                    
+                    // Update attribute value
+                    state.attributes[attribute] = newValue;
+                    
+                    // Recalculate points
+                    recalculatePoints();
+                    
+                    // Update display
+                    updateAttributeDisplay();
+                    
+                    // Update preview
+                    updatePreview();
+                });
+            }
+        }
+        
+        // Ability search
+        const abilitySearch = document.getElementById('ability-search');
+        if (abilitySearch) {
+            abilitySearch.addEventListener('input', (e) => {
+                state.abilitySearchFilter = e.target.value;
+                renderAbilitiesLists();
+            });
+        }
+        
+        // Ability category filters
+        const filterButtons = document.querySelectorAll('.filter-button');
+        if (filterButtons) {
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active filter
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update state
+                    state.abilityCategory = button.dataset.category;
+                    
+                    // Update list
+                    renderAbilitiesLists();
+                });
+            });
+        }
+        
+        // Tab navigation
+        prevButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const prevTab = button.dataset.prevTab;
+                if (prevTab) {
+                    switchTab(prevTab);
+                }
+            });
+        });
+        
+        nextButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const nextTab = button.dataset.nextTab;
+                if (nextTab) {
+                    switchTab(nextTab);
+                }
+            });
+        });
+        
+        // Create character button
+        if (createCharacterBtn) {
+            createCharacterBtn.addEventListener('click', () => {
+                if (validateCharacter()) {
+                    saveCharacter();
+                }
+            });
+        }
+    }
+    
+    // Initialize the UI
     initialize();
 });
