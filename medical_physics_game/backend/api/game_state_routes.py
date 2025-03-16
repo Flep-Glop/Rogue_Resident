@@ -1,8 +1,12 @@
-"""
-game state routes API routes for the Medical Physics Game.
-"""
-
 from flask import jsonify, request
-from . import api_bp
+from backend.api.routes import api_bp
 
-# Add route implementations here
+@api_bp.route('/game_state', methods=['GET'])
+def get_game_state():
+    # Placeholder implementation
+    return jsonify({
+        "status": "active",
+        "current_floor": 1,
+        "player_position": {"x": 0, "y": 0},
+        "visited_nodes": []
+    })

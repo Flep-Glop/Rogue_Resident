@@ -1,36 +1,36 @@
-# Item repository
 import os
 import json
 from backend.data.models.item import Item
 
 class ItemRepository:
     @staticmethod
-    def get_items_file_path():
-        return os.path.join('data', 'items', 'items.json')
-    
-    @staticmethod
     def load_items_data():
+        """Load item data from JSON file."""
         try:
-            with open(ItemRepository.get_items_file_path(), 'r') as f:
+            items_path = os.path.join('data', 'items', 'items.json')
+            print(f"Loading items from: {items_path}")
+            with open(items_path, 'r') as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            # Return empty list if file doesn't exist or is invalid
+        except Exception as e:
+            print(f"Error loading items: {e}")
             return []
-    
+
     @staticmethod
     def get_all_items():
+        """Get all items from the data file."""
         items_data = ItemRepository.load_items_data()
         return [Item.from_dict(i) for i in items_data]
-    
+
     @staticmethod
     def get_item_by_id(item_id):
+        """Get a specific item by ID."""
         items_data = ItemRepository.load_items_data()
         for item_data in items_data:
-            if str(item_data.get('id')) == str(item_id):
+            if item_data.get('id') == item_id:
                 return Item.from_dict(item_data)
         return None
 
-# For backwards compatibility
+# Functions for API use
 def get_all_items():
     return ItemRepository.get_all_items()
 

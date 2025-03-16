@@ -1,16 +1,23 @@
-# medical_physics_game/app.py
-from flask import Flask, render_template
-from backend.api.routes import api_bp
+from flask import Flask, render_template, jsonify
 
 def create_app(config_name='development'):
-    app = Flask(__name__, static_folder='frontend/static', template_folder='frontend/templates')
+    app = Flask(__name__, 
+               static_folder='frontend/static',
+               template_folder='frontend/templates')
     
     # Load configuration
     if config_name == 'development':
-        app.config.from_pyfile('config/development.py')
+        app.config['DEBUG'] = True
+        app.config['SECRET_KEY'] = 'dev-secret-key'
     
-    # Register blueprints
+    # Register blueprints - MUST import here to avoid circular imports
+    from backend.api.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
+    
+    # Test route to verify the app is working
+    @app.route('/test')
+    def test():
+        return jsonify({"status": "ok", "message": "Flask app is working!"})
     
     # Routes
     @app.route('/')

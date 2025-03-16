@@ -1,3 +1,8 @@
+#!/bin/bash
+echo "Fixing Character model class method..."
+
+# Update character.py to include from_dict class method
+cat > backend/data/models/character.py << 'PY_EOF'
 import json
 
 class Character:
@@ -45,3 +50,6 @@ class Character:
             'abilities': self.abilities,
             'stats': self.stats
         }
+PY_EOF
+
+echo "✅ Fixed Character model"

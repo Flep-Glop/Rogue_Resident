@@ -1,0 +1,21 @@
+JavaScript Module Testing Instructions
+=====================================
+
+1. Open a web browser (Chrome, Firefox, etc.)
+
+2. Navigate to:
+   file:///workspaces/Rogue_Resident/medical_physics_game/tests/js/core_test.html
+
+3. Open the browser's developer console:
+   - Chrome/Edge: Press F12 or right-click and select "Inspect" → "Console" tab
+   - Firefox: Press F12 or right-click and select "Inspect Element" → "Console" tab
+
+4. Look for any errors in the console output:
+   - If you see green checkmarks (✅), the modules loaded successfully
+   - If you see red X marks (❌), there are issues that need to be fixed
+
+5. Common issues and fixes:
+   - "Module not found": Check the file path in the import statement
+   - "Unexpected token 'export'": Make sure the module uses proper ES6 export syntax
+   - "Class not exported correctly": Ensure the class is properly exported
+
