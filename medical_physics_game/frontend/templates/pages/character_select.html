@@ -9,6 +9,45 @@
 
 {% block content %}
 <div class="pixel-container" data-screen="character-select">
+    <!-- UI Frame elements -->
+    <div class="ui-frame">
+        <!-- Side panels -->
+        <div class="ui-side-panel left"></div>
+        <div class="ui-side-panel right">
+            <!-- Character side info -->
+            <div class="character-side-info">
+                <div class="side-stat">
+                    <div class="side-stat-label">HP</div>
+                    <div class="side-stat-value">100</div>
+                </div>
+                <div class="side-stat">
+                    <div class="side-stat-label">XP</div>
+                    <div class="side-stat-value">0</div>
+                </div>
+                <div class="level-indicator">LVL 1</div>
+            </div>
+        </div>
+        
+        <!-- Corner boxes -->
+        <div class="ui-corner-box top-left"></div>
+        <div class="ui-corner-box top-right"></div>
+        <div class="ui-corner-box bottom-right"></div>
+        
+        <!-- Skill tree button in bottom left -->
+        <a href="#" class="skill-tree-button">
+            <div class="skill-tree-label">SKILLS</div>
+        </a>
+        
+        <!-- Frame corners -->
+        <div class="pixel-corner top-left"></div>
+        <div class="pixel-corner top-right"></div>
+        <div class="pixel-corner bottom-left"></div>
+        <div class="pixel-corner bottom-right"></div>
+        
+        <!-- Version info -->
+        <div class="version-box">v0.1.0</div>
+    </div>
+    
     <!-- Animated background elements -->
     <div class="star-bg" id="star-bg"></div>
     <div class="lab-environment"></div>
@@ -47,7 +86,7 @@
         <!-- Action buttons -->
         <div class="action-buttons">
             <button id="select-button" class="action-button select-button" disabled>
-                <i class="fas fa-check"></i> Play
+                <i class="fas fa-check"></i> Play as <span id="selected-character-name">Character</span>
             </button>
             <a href="{{ url_for('character_create') }}" id="create-button" class="action-button create-button">
                 <i class="fas fa-plus"></i> Create Character
@@ -67,4 +106,44 @@
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
+<script>
+    // Generate star background
+    document.addEventListener('DOMContentLoaded', function() {
+        const starBg = document.getElementById('star-bg');
+        if (starBg) {
+            // Create stars
+            for (let i = 0; i < 70; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                star.style.width = `${1 + Math.random() * 2}px`;
+                star.style.height = star.style.width;
+                starBg.appendChild(star);
+            }
+        }
+        
+        // Update side info when character is selected
+        EventSystem.subscribe('characterSelected', (character) => {
+            if (character) {
+                // Update side panel info with character data
+                const sideStats = document.querySelector('.character-side-info');
+                if (sideStats) {
+                    // Update with basic character info
+                    const hpValue = sideStats.querySelector('.side-stat:nth-child(1) .side-stat-value');
+                    if (hpValue) hpValue.textContent = character.max_hp || 100;
+                    
+                    // Could add more stats here as needed
+                }
+                
+                // Update play button text
+                const selectedCharNameElement = document.getElementById('selected-character-name');
+                if (selectedCharNameElement) {
+                    selectedCharNameElement.textContent = character.name;
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
