@@ -71,8 +71,18 @@ function initParticles() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
+    // Array of colors
+    const colors = [
+        'var(--color-primary)',
+        'var(--color-secondary)',
+        'var(--color-warning)',
+        'var(--color-danger)',
+        'var(--color-accent-purple)',
+        'var(--color-accent-cyan)'
+    ];
+    
     // Create particles
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 80; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         
@@ -83,18 +93,24 @@ function initParticles() {
         particle.style.top = `${y}px`;
         
         // Random size
-        const size = 1 + Math.random() * 3;
+        const size = 2 + Math.random() * 4;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
+        
+        // Random color
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.backgroundColor = color;
         
         // Random animation properties
         const floatX = -200 + Math.random() * 400;
         const floatY = -200 + Math.random() * 400;
         const floatDuration = 15 + Math.random() * 30;
         const pulseDuration = 2 + Math.random() * 4;
+        const rotate = Math.random() * 360;
         
         particle.style.setProperty('--float-x', `${floatX}px`);
         particle.style.setProperty('--float-y', `${floatY}px`);
+        particle.style.setProperty('--float-rotate', `${rotate}deg`);
         particle.style.setProperty('--float-duration', `${floatDuration}s`);
         particle.style.setProperty('--pulse-duration', `${pulseDuration}s`);
         
@@ -115,10 +131,20 @@ function initGeoElements() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    const shapes = ['square', 'circle', 'triangle', 'diamond'];
+    const shapes = ['square', 'circle', 'diamond'];
+    
+    // Array of colors
+    const colors = [
+        'var(--color-primary)',
+        'var(--color-secondary)',
+        'var(--color-warning)',
+        'var(--color-danger)',
+        'var(--color-accent-purple)',
+        'var(--color-accent-cyan)'
+    ];
     
     // Create geometric elements
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 25; i++) {
         const element = document.createElement('div');
         element.className = 'geo-element';
         
@@ -133,18 +159,16 @@ function initGeoElements() {
         element.style.width = `${size}px`;
         element.style.height = `${size}px`;
         
+        // Random color
+        const borderColor = colors[Math.floor(Math.random() * colors.length)];
+        element.style.borderColor = borderColor;
+        element.style.borderWidth = '2px';
+        element.style.borderStyle = 'solid';
+        
         // Random shape
         const shape = shapes[Math.floor(Math.random() * shapes.length)];
         if (shape === 'circle') {
             element.style.borderRadius = '50%';
-        } else if (shape === 'triangle') {
-            element.style.width = '0';
-            element.style.height = '0';
-            element.style.border = `${size/2}px solid transparent`;
-            element.style.borderBottomColor = 'var(--color-primary)';
-            element.style.borderRight = 'none';
-            element.style.borderLeft = 'none';
-            element.style.borderTop = 'none';
         } else if (shape === 'diamond') {
             element.style.transform = 'rotate(45deg)';
         }
@@ -154,20 +178,18 @@ function initGeoElements() {
         const floatY = -300 + Math.random() * 600;
         const floatDuration = 30 + Math.random() * 60;
         const geoDuration = 4 + Math.random() * 8;
+        const rotate = Math.random() * 360;
         
         element.style.setProperty('--geo-x', `${floatX}px`);
         element.style.setProperty('--geo-y', `${floatY}px`);
+        element.style.setProperty('--geo-rotate', `${rotate}deg`);
         element.style.setProperty('--geo-duration', `${floatDuration}s`);
         element.style.setProperty('--geo-pulse', `${geoDuration}s`);
         
-        // Random color variation
-        if (Math.random() > 0.5) {
-            element.style.setProperty('--geo-color', 'var(--color-primary)');
-            element.style.setProperty('--geo-color-alt', 'var(--color-secondary)');
-        } else {
-            element.style.setProperty('--geo-color', 'var(--color-secondary)');
-            element.style.setProperty('--geo-color-alt', 'var(--color-primary)');
-        }
+        // Random color alternation
+        const altColor = colors[Math.floor(Math.random() * colors.length)];
+        element.style.setProperty('--geo-color', borderColor);
+        element.style.setProperty('--geo-color-alt', altColor);
         
         // Set a delay
         element.style.animationDelay = `${Math.random() * 10}s`;
