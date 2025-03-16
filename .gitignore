@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+.pytest_cache/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# JavaScript
+node_modules/
+npm-debug.log
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+
+# Your backup
+medical_physics_game_backup/

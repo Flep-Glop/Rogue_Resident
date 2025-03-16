@@ -1,73 +1,103 @@
-// skill_tree_renderer.js - Renders the skill tree visualization
+// skill_tree_renderer.js - Enhanced version combining features and optimization
 
-const SkillTreeRenderer = {
-  // Configuration
-  config: {
-    width: 800,
-    height: 800,
-    nodeRadius: {
-      core: 30,
-      major: 18,
-      minor: 15,
-      connector: 12
-    },
-    nodeSpacing: 120,
-    orbitRadius: [75, 175, 275, 350],
-    zoomLimits: {
-      min: 0.5,
-      max: 2.0
-    },
-    colors: {
-      background: '#0A0E1A',
-      orbits: '#2A3A5C',
-      text: '#FFFFFF',
-      textShadow: '#000000',
-      tooltip: 'rgba(0, 0, 0, 0.8)',
-      tooltipText: '#FFFFFF',
-      connectionDefault: '#333333',
-      nodeStroke: '#FFFFFF'
-    },
-    theme: 'dark'
-  },
-  
-  // SVG elements
-  svg: null,
-  svgContainer: null,
-  nodesGroup: null,
-  connectionsGroup: null,
-  labelsGroup: null,
-  tooltipGroup: null,
-  orbitsGroup: null,
-  zoom: null,
-  
-  // State
-  initialized: false,
-  currentTransform: { k: 1, x: 0, y: 0 },
-  selectedNode: null,
-  hoveredNode: null,
-  specializations: {},
-  nodes: {},
-  connections: [],
-  nodeElements: {},
-  
-  // Initialize the renderer
-  initialize: function(containerId, options = {}) {
-    console.log(`Initializing skill tree renderer in container: ${containerId}`);
+/**
+ * SkillTreeRenderer - Class for rendering interactive skill trees
+ * Combines the feature-rich original implementation with performance optimizations
+ */
+export class SkillTreeRenderer {
+  /**
+   * Create a new SkillTreeRenderer
+   * @param {string} containerId - ID of the container element
+   * @param {Object} options - Configuration options
+   */
+  constructor(containerId, options = {}) {
+    // Store container ID
+    this.containerId = containerId;
     
-    // Apply options
-    Object.assign(this.config, options);
+    // Default configuration with merged options
+    this.config = Object.assign({
+      width: 800,
+      height: 800,
+      nodeRadius: {
+        core: 30,
+        major: 18,
+        minor: 15,
+        connector: 12
+      },
+      nodeSpacing: 120,
+      orbitRadius: [75, 175, 275, 350],
+      zoomLimits: {
+        min: 0.5,
+        max: 2.0
+      },
+      colors: {
+        background: '#0A0E1A',
+        orbits: '#2A3A5C',
+        text: '#FFFFFF',
+        textShadow: '#000000',
+        tooltip: 'rgba(0, 0, 0, 0.8)',
+        tooltipText: '#FFFFFF',
+        connectionDefault: '#333333',
+        nodeStroke: '#FFFFFF'
+      },
+      theme: 'dark'
+    }, options);
+    
+    // SVG elements - will be initialized later
+    this.svg = null;
+    this.svgContainer = null;
+    this.nodesGroup = null;
+    this.connectionsGroup = null;
+    this.labelsGroup = null;
+    this.tooltipGroup = null;
+    this.orbitsGroup = null;
+    this.zoom = null;
+    
+    // State management
+    this.initialized = false;
+    this.currentTransform = { k: 1, x: 0, y: 0 };
+    this.selectedNode = null;
+    this.hoveredNode = null;
+    
+    // Virtual DOM elements for performance optimization
+    this.virtualNodes = new Map();
+    this.virtualConnections = new Map();
+    this.virtualLabels = new Map();
+    
+    // Data storage
+    this.specializations = {};
+    this.nodes = {};
+    this.connections = [];
+    this.nodeElements = {};
+    
+    // Rendering state
+    this.renderState = {
+      isDirty: false,
+      filter: null
+    };
+    
+    // Request animation frame ID
+    this.rafId = null;
+  }
+  
+  /**
+   * Initialize the renderer
+   * @return {SkillTreeRenderer} This instance for chaining
+   */
+  initialize() {
+    console.log(`Initializing skill tree renderer in container: ${this.containerId}`);
     
     // Get container element
-    this.svgContainer = document.getElementById(containerId);
+    this.svgContainer = document.getElementById(this.containerId);
     if (!this.svgContainer) {
-      console.error(`Container element not found: ${containerId}`);
-      return false;
+      console.error(`Container element not found: ${this.containerId}`);
+      return this;
     }
     
-    // Create SVG element
+    // Create SVG element and structure
     this.createSvgCanvas();
     
-    // Set up zoom and pan behavior if d3 is available
+    // Set up zoom and pan behavior
     this.setupZoomAndPan();
     
     // Add event listeners
@@ -75,11 +105,13 @@ const SkillTreeRenderer = {
     
     this.initialized = true;
     
-    return true;
-  },
+    return this;
+  }
   
-  // Create SVG canvas - improved
-  createSvgCanvas: function() {
+  /**
+   * Create SVG canvas and structure
+   */
+  createSvgCanvas() {
     // Clear existing content
     if (this.svg) {
       this.svgContainer.innerHTML = '';
@@ -142,10 +174,12 @@ const SkillTreeRenderer = {
     }, 1000);
 
     console.log('SVG canvas created');
-  },
+  }
   
-  // Set up zoom and pan behavior
-  setupZoomAndPan: function() {
+  /**
+   * Set up zoom and pan behavior
+   */
+  setupZoomAndPan() {
     // Check if d3 is available
     if (typeof d3 !== 'undefined') {
       // Create zoom behavior
@@ -155,10 +189,7 @@ const SkillTreeRenderer = {
           this.currentTransform = event.transform;
           
           // Apply transform to all groups
-          this.orbitsGroup.setAttribute('transform', event.transform);
-          this.connectionsGroup.setAttribute('transform', event.transform);
-          this.nodesGroup.setAttribute('transform', event.transform);
-          this.labelsGroup.setAttribute('transform', event.transform);
+          this.applyTransform();
           
           // Update labels visibility based on zoom level
           this.updateLabelsVisibility(event.transform.k);
@@ -170,10 +201,12 @@ const SkillTreeRenderer = {
       // Fallback to manual pan/zoom implementation if d3 is not available
       this.setupManualZoomAndPan();
     }
-  },
+  }
   
-  // Manual zoom and pan implementation without d3
-  setupManualZoomAndPan: function() {
+  /**
+   * Manual zoom and pan implementation without d3
+   */
+  setupManualZoomAndPan() {
     let isDragging = false;
     let startX, startY;
     let lastX = 0, lastY = 0;
@@ -232,20 +265,25 @@ const SkillTreeRenderer = {
     
     // Set initial cursor
     this.svg.style.cursor = 'grab';
-  },
+  }
   
-  // Apply transform to all groups
-  applyTransform: function() {
+  /**
+   * Apply transform to all groups
+   */
+  applyTransform() {
     const transform = `translate(${this.currentTransform.x}, ${this.currentTransform.y}) scale(${this.currentTransform.k})`;
     
     this.orbitsGroup.setAttribute('transform', transform);
     this.connectionsGroup.setAttribute('transform', transform);
     this.nodesGroup.setAttribute('transform', transform);
     this.labelsGroup.setAttribute('transform', transform);
-  },
+  }
   
-  // Update labels visibility based on zoom level
-  updateLabelsVisibility: function(zoomLevel) {
+  /**
+   * Update labels visibility based on zoom level
+   * @param {number} zoomLevel - Current zoom level
+   */
+  updateLabelsVisibility(zoomLevel) {
     const labels = this.labelsGroup.querySelectorAll('text');
     
     if (zoomLevel < 0.7) {
@@ -261,10 +299,12 @@ const SkillTreeRenderer = {
         label.style.opacity = `${opacity}`;
       });
     }
-  },
+  }
   
-  // Set up event listeners
-  setupEventListeners: function() {
+  /**
+   * Set up event listeners
+   */
+  setupEventListeners() {
     // Double-click to reset zoom
     this.svg.addEventListener('dblclick', (e) => {
       e.preventDefault();
@@ -278,10 +318,21 @@ const SkillTreeRenderer = {
     
     // Window resize event
     window.addEventListener('resize', this.handleResize.bind(this));
-  },
+  }
   
-  // Reset zoom to default
-  resetZoom: function() {
+  /**
+   * Setup touch events for mobile devices
+   * Placeholder - would need implementation for mobile touch handling
+   */
+  setupTouchEvents() {
+    // Implement touch gesture handling here if needed
+    console.log("Touch events would be set up here");
+  }
+  
+  /**
+   * Reset zoom to default
+   */
+  resetZoom() {
     if (typeof d3 !== 'undefined' && this.zoom) {
       d3.select(this.svg).transition().duration(750).call(
         this.zoom.transform,
@@ -292,16 +343,22 @@ const SkillTreeRenderer = {
       this.applyTransform();
       this.updateLabelsVisibility(1);
     }
-  },
+  }
   
-  // Handle window resize
-  handleResize: function() {
+  /**
+   * Handle window resize
+   */
+  handleResize() {
     // Adjust viewBox if needed
     // Note: SVG with preserveAspectRatio should handle this automatically
-  },
+  }
   
-  // Improved load skill tree function with proper position calculations
-  loadSkillTree: function(data) {
+  /**
+   * Load skill tree data
+   * @param {Object} data - Skill tree data with nodes, connections and specializations
+   * @return {SkillTreeRenderer} This instance for chaining
+   */
+  loadSkillTree(data) {
     console.log('Loading skill tree data');
     
     // Store data
@@ -309,24 +366,61 @@ const SkillTreeRenderer = {
     this.nodes = data.nodes || {};
     this.connections = data.connections || [];
     
+    // Reset virtual DOM elements
+    this.virtualNodes.clear();
+    this.virtualConnections.clear();
+    this.virtualLabels.clear();
+    
     // Calculate proper positions if needed
     this._ensureNodePositions();
     
-    // Render the tree
-    this.renderSkillTree();
+    // Create virtual nodes and connections
+    this._createVirtualElements();
+    
+    // Mark as dirty and schedule render
+    this.renderState.isDirty = true;
+    this._scheduleRender();
     
     // Center the view
     setTimeout(() => {
       this.centerView();
     }, 100);
     
-    return true;
-  },
+    return this;
+  }
 
-  // Add this to skill_tree_renderer.js to handle the core cluster
-
-  // Modify the _ensureNodePositions function to properly position the core cluster
-  _ensureNodePositions: function() {
+  /**
+   * Create virtual DOM elements from data
+   * For performance optimization by batching DOM updates
+   */
+  _createVirtualElements() {
+    // Create virtual nodes
+    Object.entries(this.nodes).forEach(([id, node]) => {
+      this.virtualNodes.set(id, {
+        data: node,
+        element: null,
+        visible: true,
+        selected: id === this.selectedNode,
+        hovered: id === this.hoveredNode
+      });
+    });
+    
+    // Create virtual connections
+    this.connections.forEach(conn => {
+      const id = `conn-${conn.source}-${conn.target}`;
+      this.virtualConnections.set(id, {
+        data: conn,
+        element: null,
+        visible: true
+      });
+    });
+  }
+  
+  /**
+   * Ensure all nodes have proper positions
+   * Implements orbital layout and core cluster positioning
+   */
+  _ensureNodePositions() {
     const centerX = this.config.width / 2;
     const centerY = this.config.height / 2;
     
@@ -408,7 +502,7 @@ const SkillTreeRenderer = {
         return;
       }
       
-      // Other tiers follow orbital layout as before
+      // Other tiers follow orbital layout
       const orbitRadius = this.config.orbitRadius[tierInt - 1];
       const count = nodes.length;
       const angleStep = (Math.PI * 2) / count;
@@ -423,87 +517,83 @@ const SkillTreeRenderer = {
         }
       });
     });
-  },
+  }
 
-  // Add a special highlighting function for the core cluster
-  highlightCoreCluster: function() {
-    // Find core nodes
-    const coreNodeIds = Object.values(this.nodes)
-      .filter(node => node.specialization === 'core')
-      .map(node => node.id);
-    
-    // Get connections between core nodes
-    const coreConnections = this.connectionsGroup.querySelectorAll('.connection')
-    Array.from(coreConnections).forEach(connection => {
-      const sourceId = connection.dataset.source;
-      const targetId = connection.dataset.target;
-      
-      if (coreNodeIds.includes(sourceId) && coreNodeIds.includes(targetId)) {
-        // Highlight core connections
-        connection.setAttribute('stroke-width', '3');
-        connection.style.strokeOpacity = '0.8';
-        connection.style.stroke = '#777777'; // Grey color for core
-      }
-    });
-    
-    // Highlight core nodes
-    coreNodeIds.forEach(nodeId => {
-      const nodeElement = this.nodeElements[nodeId];
-      if (nodeElement) {
-        nodeElement.style.filter = 'brightness(110%)';
-      }
-    });
-  },
-  // Add new method to center the view
-  centerView: function() {
-    const centerX = this.config.width / 2;
-    const centerY = this.config.height / 2;
-    
-    // If d3 is available
-    if (typeof d3 !== 'undefined' && this.zoom) {
-      d3.select(this.svg).call(
-        this.zoom.transform,
-        d3.zoomIdentity.translate(0, 0).scale(0.8)
-      );
-    } else {
-      this.currentTransform = { k: 0.8, x: 0, y: 0 };
-      this.applyTransform();
+  /**
+   * Schedule a render using requestAnimationFrame
+   * For performance optimization
+   */
+  _scheduleRender() {
+    // Cancel any pending render
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
     }
-  },
-
-  // Render the entire skill tree
-  renderSkillTree: function() {
-    console.log('Rendering skill tree...');
     
-    // Clear existing content
-    this.orbitsGroup.innerHTML = '';
-    this.connectionsGroup.innerHTML = '';
+    // Schedule new render
+    this.rafId = requestAnimationFrame(() => {
+      this._render();
+    });
+  }
+  
+  /**
+   * Render the skill tree with virtual DOM approach
+   * Batch DOM updates for better performance
+   */
+  _render() {
+    if (!this.renderState.isDirty) return;
+    
+    console.time('render');
+    
+    // Create document fragments for batch DOM updates
+    const nodesFragment = document.createDocumentFragment();
+    const connectionsFragment = document.createDocumentFragment();
+    const labelsFragment = document.createDocumentFragment();
+    const orbitsFragment = document.createDocumentFragment();
+    
+    // Clear existing elements
     this.nodesGroup.innerHTML = '';
+    this.connectionsGroup.innerHTML = '';
     this.labelsGroup.innerHTML = '';
+    this.orbitsGroup.innerHTML = '';
     this.tooltipGroup.innerHTML = '';
     
-    // Reset collections
+    // Reset node elements collection
     this.nodeElements = {};
     
-    // Draw orbits
-    this.drawOrbitalRings();
+    // Draw orbital rings
+    this._renderOrbitalRings(orbitsFragment);
     
     // Draw connections between nodes
-    this.drawConnections();
+    this._renderConnections(connectionsFragment);
     
     // Draw nodes
-    this.drawNodes();
+    this._renderNodes(nodesFragment);
     
     // Draw labels
-    this.drawNodeLabels();
+    this._renderLabels(labelsFragment);
+    
+    // Append fragments to DOM in a single batch
+    this.orbitsGroup.appendChild(orbitsFragment);
+    this.connectionsGroup.appendChild(connectionsFragment);
+    this.nodesGroup.appendChild(nodesFragment);
+    this.labelsGroup.appendChild(labelsFragment);
+    
+    // Apply transform
+    this.applyTransform();
+    
+    // Reset dirty flag
+    this.renderState.isDirty = false;
+    
+    console.timeEnd('render');
     
     console.log('Skill tree rendered');
-  },
+  }
   
-  // Draw orbital rings
-  drawOrbitalRings: function() {
-    console.log('Drawing orbital rings');
-    
+  /**
+   * Render the orbital rings
+   * @param {DocumentFragment} fragment - Document fragment to append to
+   */
+  _renderOrbitalRings(fragment) {
     const centerX = this.config.width / 2;
     const centerY = this.config.height / 2;
     
@@ -518,22 +608,26 @@ const SkillTreeRenderer = {
       orbit.setAttribute('stroke-width', '1');
       orbit.setAttribute('stroke-opacity', '0.5');
       
-      this.orbitsGroup.appendChild(orbit);
+      fragment.appendChild(orbit);
     });
-  },
+  }
   
-  // Draw connections between nodes
-  drawConnections: function() {
-    console.log('Drawing connections between nodes');
-    
+  /**
+   * Render connections between nodes
+   * @param {DocumentFragment} fragment - Document fragment to append to
+   */
+  _renderConnections(fragment) {
     // Create a map for quick node lookups
     const nodeMap = {};
     Object.values(this.nodes).forEach(node => {
       nodeMap[node.id] = node;
     });
     
-    // Draw each connection
-    this.connections.forEach(connection => {
+    // Render each connection
+    this.virtualConnections.forEach((vConn, id) => {
+      if (!vConn.visible) return;
+      
+      const connection = vConn.data;
       const sourceNode = nodeMap[connection.source];
       const targetNode = nodeMap[connection.target];
       
@@ -570,16 +664,24 @@ const SkillTreeRenderer = {
       line.dataset.source = connection.source;
       line.dataset.target = connection.target;
       
-      this.connectionsGroup.appendChild(line);
+      // Store element reference
+      vConn.element = line;
+      
+      fragment.appendChild(line);
     });
-  },
+  }
   
-  // Improved drawing of nodes with better visibility
-  drawNodes: function() {
-    console.log('Drawing skill nodes');
-    
-    // Draw each node
-    Object.values(this.nodes).forEach(node => {
+  /**
+   * Render nodes
+   * @param {DocumentFragment} fragment - Document fragment to append to
+   */
+  _renderNodes(fragment) {
+    // Render each node
+    this.virtualNodes.forEach((vNode, id) => {
+      if (!vNode.visible) return;
+      
+      const node = vNode.data;
+      
       // Get node properties
       const nodeSize = node.visual?.size || 'minor';
       const x = node.position?.x || 0;
@@ -616,7 +718,13 @@ const SkillTreeRenderer = {
       circle.setAttribute('fill-opacity', fillOpacity);
       circle.setAttribute('stroke', this.config.colors.nodeStroke);
       circle.setAttribute('stroke-width', '2');
-      circle.setAttribute('class', `node node-${node.id} node-${node.state} node-size-${nodeSize}`);
+      
+      // Set classes based on state
+      const classes = [`node node-${node.id}`, `node-${node.state}`, `node-size-${nodeSize}`];
+      if (vNode.selected) classes.push('selected');
+      if (vNode.hovered) classes.push('hovered');
+      
+      circle.setAttribute('class', classes.join(' '));
       
       // Add data attributes
       circle.dataset.nodeId = node.id;
@@ -628,21 +736,28 @@ const SkillTreeRenderer = {
       circle.addEventListener('mouseleave', this.handleNodeMouseLeave.bind(this, node));
       circle.addEventListener('click', this.handleNodeClick.bind(this, node));
       
-      // Add node to group
-      this.nodesGroup.appendChild(circle);
-      
-      // Store node element for later reference
+      // Store element reference
+      vNode.element = circle;
       this.nodeElements[node.id] = circle;
+      
+      fragment.appendChild(circle);
       
       // Create node icon if available
       if (node.visual?.icon) {
-        this.createNodeIcon(node, x, y, radius);
+        this._createNodeIcon(node, x, y, radius, fragment);
       }
     });
-  },
+  }
   
-  // Create node icon
-  createNodeIcon: function(node, x, y, radius) {
+  /**
+   * Create node icon
+   * @param {Object} node - Node data
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   * @param {number} radius - Node radius
+   * @param {DocumentFragment} fragment - Document fragment to append to
+   */
+  _createNodeIcon(node, x, y, radius, fragment) {
     const iconSize = radius * 0.7;
     
     // Create icon text
@@ -700,22 +815,21 @@ const SkillTreeRenderer = {
     
     text.textContent = iconChar;
     
-    // Add icon to nodes group
-    this.nodesGroup.appendChild(text);
-  },
+    fragment.appendChild(text);
+  }
   
-  // Modified drawNodeLabels function for skill_tree_renderer.js
-  drawNodeLabels: function() {
-    console.log('Drawing node labels with hover visibility');
-    
-    // Clear existing labels
-    this.labelsGroup.innerHTML = '';
-    
-    // Draw label for each node
-    Object.values(this.nodes).forEach(node => {
+  /**
+   * Render node labels
+   * @param {DocumentFragment} fragment - Document fragment to append to
+   */
+  _renderLabels(fragment) {
+    // Render label for each node
+    this.virtualNodes.forEach((vNode, id) => {
+      if (!vNode.visible) return;
+      
+      const node = vNode.data;
       const x = node.position?.x || 0;
       const y = node.position?.y || 0;
-      const nodeId = node.id;
       
       // Create label text
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -724,9 +838,16 @@ const SkillTreeRenderer = {
       text.setAttribute('text-anchor', 'middle');
       text.setAttribute('font-size', '12');
       text.setAttribute('fill', this.config.colors.text);
-      text.setAttribute('class', `node-label node-label-${nodeId}`);
+      text.setAttribute('class', `node-label node-label-${node.id}`);
       text.style.pointerEvents = 'none';
-      text.style.opacity = '0'; // Hidden by default
+      
+      // Set opacity based on state
+      let opacity = '0'; // Hidden by default
+      if (vNode.selected || vNode.hovered || node.state === 'active') {
+        opacity = '1'; // Show if selected, hovered, or active
+      }
+      
+      text.style.opacity = opacity;
       text.style.transition = 'opacity 0.2s ease';
       
       // Add text shadow for better readability
@@ -735,58 +856,55 @@ const SkillTreeRenderer = {
       // Set text content
       text.textContent = node.name;
       
-      // Add label to group
-      this.labelsGroup.appendChild(text);
+      fragment.appendChild(text);
     });
-    
-    // Add event listeners to show/hide labels on hover
-    Object.values(this.nodeElements).forEach(nodeElement => {
-      const nodeId = nodeElement.dataset.nodeId;
-      const labelElement = this.labelsGroup.querySelector(`.node-label-${nodeId}`);
-      
-      if (labelElement) {
-        // Show label on mouseenter
-        nodeElement.addEventListener('mouseenter', () => {
-          labelElement.style.opacity = '1';
-        });
-        
-        // Hide label on mouseleave
-        nodeElement.addEventListener('mouseleave', () => {
-          // Don't hide if it's the active node
-          const node = this.nodes[nodeId];
-          if (node && node.state !== 'active') {
-            labelElement.style.opacity = '0';
-          }
-        });
-        
-        // Active nodes should always show their label
-        const node = this.nodes[nodeId];
-        if (node && node.state === 'active') {
-          labelElement.style.opacity = '1';
-        }
-      }
-    });
-  },
+  }
   
   // Event Handlers
   
-  // Handle node mouse enter
-  handleNodeMouseEnter: function(node, event) {
+  /**
+   * Handle node mouse enter
+   * @param {Object} node - Node data
+   * @param {Event} event - Mouse event
+   */
+  handleNodeMouseEnter(node, event) {
     // Skip if tooltip is already visible for this node
     if (this.hoveredNode === node.id) return;
     
     this.hoveredNode = node.id;
+    
+    // Update virtual node state
+    const vNode = this.virtualNodes.get(node.id);
+    if (vNode) {
+      vNode.hovered = true;
+    }
     
     // Show tooltip
     this.showNodeTooltip(node);
     
     // Highlight node and connections
     this.highlightNodeAndConnections(node.id);
-  },
+    
+    // Show label
+    const label = this.labelsGroup.querySelector(`.node-label-${node.id}`);
+    if (label) {
+      label.style.opacity = '1';
+    }
+  }
   
-  // Handle node mouse leave
-  handleNodeMouseLeave: function(node, event) {
+  /**
+   * Handle node mouse leave
+   * @param {Object} node - Node data
+   * @param {Event} event - Mouse event
+   */
+  handleNodeMouseLeave(node, event) {
     this.hoveredNode = null;
+    
+    // Update virtual node state
+    const vNode = this.virtualNodes.get(node.id);
+    if (vNode) {
+      vNode.hovered = false;
+    }
     
     // Hide tooltip
     this.hideNodeTooltip();
@@ -794,15 +912,32 @@ const SkillTreeRenderer = {
     // Remove highlights, unless this node is selected
     if (this.selectedNode !== node.id) {
       this.unhighlightAll();
+      
+      // Hide label if not active or selected
+      if (node.state !== 'active') {
+        const label = this.labelsGroup.querySelector(`.node-label-${node.id}`);
+        if (label) {
+          label.style.opacity = '0';
+        }
+      }
     }
-  },
+  }
   
-  // Handle node click
-  handleNodeClick: function(node, event) {
+  /**
+   * Handle node click
+   * @param {Object} node - Node data
+   * @param {Event} event - Mouse event
+   */
+  handleNodeClick(node, event) {
     event.stopPropagation();
     
     // Set as selected node
     this.selectedNode = node.id;
+    
+    // Update virtual node states
+    this.virtualNodes.forEach((vNode, id) => {
+      vNode.selected = (id === node.id);
+    });
     
     // Highlight node and connections
     this.highlightNodeAndConnections(node.id);
@@ -816,10 +951,13 @@ const SkillTreeRenderer = {
     });
     
     document.dispatchEvent(customEvent);
-  },
+  }
   
-  // Show node tooltip
-  showNodeTooltip: function(node) {
+  /**
+   * Show node tooltip
+   * @param {Object} node - Node data
+   */
+  showNodeTooltip(node) {
     // Clear existing tooltip
     this.tooltipGroup.innerHTML = '';
     
@@ -889,15 +1027,20 @@ const SkillTreeRenderer = {
     this.tooltipGroup.appendChild(stateText);
     this.tooltipGroup.appendChild(titleText);
     this.tooltipGroup.appendChild(descText);
-  },
+  }
   
-  // Hide node tooltip
-  hideNodeTooltip: function() {
+  /**
+   * Hide node tooltip
+   */
+  hideNodeTooltip() {
     this.tooltipGroup.innerHTML = '';
-  },
+  }
   
-  // Highlight node and its connections
-  highlightNodeAndConnections: function(nodeId) {
+  /**
+   * Highlight node and its connections
+   * @param {string} nodeId - Node ID to highlight
+   */
+  highlightNodeAndConnections(nodeId) {
     // Reset all nodes and connections to normal state
     this.unhighlightAll();
     
@@ -929,10 +1072,12 @@ const SkillTreeRenderer = {
         connectedElement.style.filter = 'brightness(110%)';
       }
     });
-  },
+  }
   
-  // Remove all highlights
-  unhighlightAll: function() {
+  /**
+   * Remove all highlights
+   */
+  unhighlightAll() {
     // Reset nodes
     Object.values(this.nodeElements).forEach(nodeElement => {
       nodeElement.setAttribute('stroke-width', '2');
@@ -945,166 +1090,163 @@ const SkillTreeRenderer = {
       connection.setAttribute('stroke-width', '2');
       connection.style.strokeOpacity = '0.6';
     });
-  },
+  }
   
-  // Update node states
-  updateNodeStates: function(nodeStates) {
-    console.log('Updating node states');
+  /**
+   * Highlight the core cluster of nodes
+   */
+  highlightCoreCluster() {
+    // Find core nodes
+    const coreNodeIds = Object.values(this.nodes)
+      .filter(node => node.specialization === 'core')
+      .map(node => node.id);
     
-    // Update each node state
-    Object.entries(nodeStates).forEach(([nodeId, state]) => {
-      const nodeElement = this.nodeElements[nodeId];
-      if (!nodeElement) return;
-      
-      // Update data attribute
-      nodeElement.dataset.nodeState = state;
-      
-      // Remove old state classes
-      nodeElement.classList.remove('node-locked', 'node-unlockable', 'node-unlocked', 'node-active');
-      
-      // Add new state class
-      nodeElement.classList.add(`node-${state}`);
-      
-      // Update visual appearance based on state
-      switch (state) {
-        case 'locked':
-          nodeElement.setAttribute('fill-opacity', '0.3');
-          break;
-        case 'unlockable':
-          nodeElement.setAttribute('fill-opacity', '0.6');
-          nodeElement.style.filter = 'brightness(110%)';
-          break;
-        case 'unlocked':
-          nodeElement.setAttribute('fill-opacity', '0.8');
-          break;
-        case 'active':
-          nodeElement.setAttribute('fill-opacity', '1');
-          nodeElement.style.filter = 'brightness(120%)';
-          break;
-      }
-    });
-  },
-  
-  // Filter the tree by specialization
-  filterBySpecialization: function(specializationId) {
-    // If no specialization selected, show all nodes
-    if (!specializationId) {
-      Object.values(this.nodeElements).forEach(nodeElement => {
-        nodeElement.style.opacity = '1';
-      });
-      
-      // Show all connections
-      const connections = this.connectionsGroup.querySelectorAll('.connection');
-      connections.forEach(connection => {
-        connection.style.opacity = '1';
-      });
-      
-      // Show all labels
-      const labels = this.labelsGroup.querySelectorAll('.node-label');
-      labels.forEach(label => {
-        label.style.opacity = '1';
-      });
-      
-      return;
-    }
-    
-    // Create a set to track nodes in this specialization and connected nodes
-    const visibleNodes = new Set();
-    
-    // Add nodes of the selected specialization
-    Object.values(this.nodes).forEach(node => {
-      if (node.specialization === specializationId || node.id === 'core_physics') {
-        visibleNodes.add(node.id);
-      }
-    });
-    
-    // Update visibility of nodes
-    Object.entries(this.nodeElements).forEach(([nodeId, element]) => {
-      if (visibleNodes.has(nodeId)) {
-        element.style.opacity = '1';
-      } else {
-        element.style.opacity = '0.2';
-      }
-    });
-    
-    // Update visibility of connections
-    const connections = this.connectionsGroup.querySelectorAll('.connection');
-    connections.forEach(connection => {
+    // Get connections between core nodes
+    const coreConnections = this.connectionsGroup.querySelectorAll('.connection');
+    Array.from(coreConnections).forEach(connection => {
       const sourceId = connection.dataset.source;
       const targetId = connection.dataset.target;
       
-      if (visibleNodes.has(sourceId) && visibleNodes.has(targetId)) {
-        connection.style.opacity = '1';
-      } else {
-        connection.style.opacity = '0.2';
+      if (coreNodeIds.includes(sourceId) && coreNodeIds.includes(targetId)) {
+        // Highlight core connections
+        connection.setAttribute('stroke-width', '3');
+        connection.style.strokeOpacity = '0.8';
+        connection.style.stroke = '#777777'; // Grey color for core
       }
     });
     
-    // Update visibility of labels
-    const labels = this.labelsGroup.querySelectorAll('.node-label');
-    labels.forEach(label => {
-      const nodeId = label.classList[1].replace('node-label-', '');
-      
-      if (visibleNodes.has(nodeId)) {
-        label.style.opacity = '1';
-      } else {
-        label.style.opacity = '0.2';
+    // Highlight core nodes
+    coreNodeIds.forEach(nodeId => {
+      const nodeElement = this.nodeElements[nodeId];
+      if (nodeElement) {
+        nodeElement.style.filter = 'brightness(110%)';
       }
     });
-  },
+  }
   
-  // Calculate node positions in orbital layout
-  calculateOrbitalPositions: function() {
-    // Center point
+  /**
+   * Center the view on the skill tree
+   */
+  centerView() {
     const centerX = this.config.width / 2;
     const centerY = this.config.height / 2;
     
-    // Group nodes by tier
-    const nodesByTier = {};
-    
-    Object.values(this.nodes).forEach(node => {
-      const tier = node.tier || 0;
-      
-      if (!nodesByTier[tier]) {
-        nodesByTier[tier] = [];
-      }
-      
-      nodesByTier[tier].push(node);
-    });
-    
-    // Calculate positions for each tier
-    Object.entries(nodesByTier).forEach(([tier, nodes]) => {
-      const tierInt = parseInt(tier);
-      
-      // Skip tier 0 (core node)
-      if (tierInt === 0) {
-        nodes.forEach(node => {
-          node.position = { x: centerX, y: centerY };
-        });
-        return;
-      }
-      
-      // Get orbit radius for this tier
-      const orbitRadius = this.config.orbitRadius[tierInt - 1] || 
-                          this.config.orbitRadius[this.config.orbitRadius.length - 1];
-      
-      // Calculate angle step
-      const angleStep = (Math.PI * 2) / nodes.length;
-      
-      // Assign positions
-      nodes.forEach((node, index) => {
-        const angle = index * angleStep;
-        
-        // Calculate position
-        const x = centerX + Math.cos(angle) * orbitRadius;
-        const y = centerY + Math.sin(angle) * orbitRadius;
-        
-        node.position = { x, y };
-      });
-    });
+    // If d3 is available
+    if (typeof d3 !== 'undefined' && this.zoom) {
+      d3.select(this.svg).call(
+        this.zoom.transform,
+        d3.zoomIdentity.translate(0, 0).scale(0.8)
+      );
+    } else {
+      this.currentTransform = { k: 0.8, x: 0, y: 0 };
+      this.applyTransform();
+    }
   }
-};
+  
+  /**
+   * Update node states
+   * @param {Object} nodeStates - Map of node IDs to states
+   */
+  updateNodeStates(nodeStates) {
+    console.log('Updating node states');
+    
+    // Update each node state in data and virtual DOM
+    Object.entries(nodeStates).forEach(([nodeId, state]) => {
+      // Update node data
+      if (this.nodes[nodeId]) {
+        this.nodes[nodeId].state = state;
+      }
+      
+      // Update virtual node
+      const vNode = this.virtualNodes.get(nodeId);
+      if (vNode) {
+        vNode.data.state = state;
+      }
+      
+      // Update DOM if it exists
+      const nodeElement = this.nodeElements[nodeId];
+      if (nodeElement) {
+        // Update data attribute
+        nodeElement.dataset.nodeState = state;
+        
+        // Remove old state classes
+        nodeElement.classList.remove('node-locked', 'node-unlockable', 'node-unlocked', 'node-active');
+        
+        // Add new state class
+        nodeElement.classList.add(`node-${state}`);
+        
+        // Update visual appearance based on state
+        switch (state) {
+          case 'locked':
+            nodeElement.setAttribute('fill-opacity', '0.3');
+            break;
+          case 'unlockable':
+            nodeElement.setAttribute('fill-opacity', '0.6');
+            nodeElement.style.filter = 'brightness(110%)';
+            break;
+          case 'unlocked':
+            nodeElement.setAttribute('fill-opacity', '0.8');
+            break;
+          case 'active':
+            nodeElement.setAttribute('fill-opacity', '1');
+            nodeElement.style.filter = 'brightness(120%)';
+            break;
+        }
+      }
+    });
+    
+    // Mark as dirty and schedule render for full update
+    this.renderState.isDirty = true;
+    this._scheduleRender();
+  }
+  
+  /**
+   * Filter the tree by specialization
+   * @param {string} specializationId - Specialization ID to filter by or null for all
+   */
+  filterBySpecialization(specializationId) {
+    this.renderState.filter = specializationId;
+    
+    // If no specialization selected, show all nodes
+    if (!specializationId) {
+      this.virtualNodes.forEach(vNode => {
+        vNode.visible = true;
+      });
+      
+      this.virtualConnections.forEach(vConn => {
+        vConn.visible = true;
+      });
+    } else {
+      // Create a set to track nodes in this specialization and connected nodes
+      const visibleNodes = new Set();
+      
+      // Add nodes of the selected specialization
+      Object.values(this.nodes).forEach(node => {
+        if (node.specialization === specializationId || node.id === 'core_physics') {
+          visibleNodes.add(node.id);
+        }
+      });
+      
+      // Update visibility of nodes
+      this.virtualNodes.forEach((vNode, id) => {
+        vNode.visible = visibleNodes.has(id);
+      });
+      
+      // Update visibility of connections
+      this.virtualConnections.forEach((vConn, id) => {
+        const sourceId = vConn.data.source;
+        const targetId = vConn.data.target;
+        
+        vConn.visible = visibleNodes.has(sourceId) && visibleNodes.has(targetId);
+      });
+    }
+    
+    // Mark as dirty and schedule render
+    this.renderState.isDirty = true;
+    this._scheduleRender();
+  }
+}
 
 // Export the SkillTreeRenderer object
 window.SkillTreeRenderer = SkillTreeRenderer;
-console.log("Loaded: skill_tree_renderer.js");
+console.log("Loaded: Enhanced skill_tree_renderer.js");
