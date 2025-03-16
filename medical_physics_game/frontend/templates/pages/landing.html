@@ -2,8 +2,7 @@
 
 {% block title %}Rogue Resident{% endblock %}
 
-{% block styles %}
-<!-- Include the landing page specific CSS -->
+{% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/screens/landing.css') }}">
 {% endblock %}
 
@@ -26,42 +25,22 @@
 <div class="menu-container">
     <button class="menu-button new-game" onclick="location.href='character-select'">
         NEW GAME
-        <span class="pixel-corner pixel-top-left"></span>
-        <span class="pixel-corner pixel-top-right"></span>
-        <span class="pixel-corner pixel-bottom-left"></span>
-        <span class="pixel-corner pixel-bottom-right"></span>
     </button>
     <button class="menu-button continue" onclick="location.href='game'">
         CONTINUE
-        <span class="pixel-corner pixel-top-left"></span>
-        <span class="pixel-corner pixel-top-right"></span>
-        <span class="pixel-corner pixel-bottom-left"></span>
-        <span class="pixel-corner pixel-bottom-right"></span>
     </button>
     <button class="menu-button options" onclick="openOptions()">
         OPTIONS
-        <span class="pixel-corner pixel-top-left"></span>
-        <span class="pixel-corner pixel-top-right"></span>
-        <span class="pixel-corner pixel-bottom-left"></span>
-        <span class="pixel-corner pixel-bottom-right"></span>
     </button>
     <button class="menu-button help" onclick="openHelp()">
         HELP
-        <span class="pixel-corner pixel-top-left"></span>
-        <span class="pixel-corner pixel-top-right"></span>
-        <span class="pixel-corner pixel-bottom-left"></span>
-        <span class="pixel-corner pixel-bottom-right"></span>
     </button>
 </div>
 
 <div class="start-prompt">PRESS SPACE TO START</div>
 <div class="game-version">v0.1.0</div>
-
-<!-- CRT effect overlay -->
-<div class="crt-effect"></div>
 {% endblock %}
 
-{% block scripts %}
-<!-- Include the landing page specific JavaScript -->
+{% block additional_js %}
 <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}

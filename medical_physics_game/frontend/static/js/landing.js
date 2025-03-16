@@ -2,6 +2,8 @@
  * Landing page script for Rogue Resident
  */
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("Landing page initialized");
+    
     // Generate grid background
     createGridBackground();
     
@@ -14,16 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
-            location.href = 'character_select';
+            location.href = 'character-select';
         }
-    });
-    
-    // Add button hover effects
-    const buttons = document.querySelectorAll('.menu-button');
-    buttons.forEach(button => {
-        button.addEventListener('mouseover', () => {
-            createButtonParticles(button);
-        });
     });
 });
 
@@ -155,62 +149,6 @@ function createGeometricElements() {
         element.style.setProperty('--geo-pulse', `${Math.random() * 6 + 3}s`);
         
         container.appendChild(element);
-    }
-}
-
-/**
- * Creates particles when hovering over buttons
- */
-function createButtonParticles(button) {
-    // Get button color
-    const computedStyle = window.getComputedStyle(button);
-    const buttonColor = computedStyle.backgroundColor;
-    
-    // Create particle burst
-    for (let i = 0; i < 10; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('particle');
-        particle.style.position = 'absolute';
-        
-        // Start from random position within button
-        const buttonRect = button.getBoundingClientRect();
-        const randomX = Math.random() * buttonRect.width;
-        const randomY = Math.random() * buttonRect.height;
-        
-        particle.style.top = `${buttonRect.top + randomY}px`;
-        particle.style.left = `${buttonRect.left + randomX}px`;
-        
-        // Random size between 2-4px
-        particle.style.width = `${Math.random() * 2 + 2}px`;
-        particle.style.height = `${Math.random() * 2 + 2}px`;
-        
-        // Use button color with transparency
-        particle.style.backgroundColor = buttonColor.replace('rgb', 'rgba').replace(')', ', 0.7)');
-        
-        // Animate particles outward
-        particle.style.transition = 'all 0.6s ease-out';
-        particle.style.zIndex = '5';
-        
-        document.body.appendChild(particle);
-        
-        // Trigger animation after a small delay
-        setTimeout(() => {
-            // Random direction
-            const angle = Math.random() * Math.PI * 2;
-            const distance = Math.random() * 50 + 20;
-            const x = Math.cos(angle) * distance;
-            const y = Math.sin(angle) * distance;
-            
-            particle.style.transform = `translate(${x}px, ${y}px)`;
-            particle.style.opacity = '0';
-        }, 10);
-        
-        // Remove particle after animation
-        setTimeout(() => {
-            if (particle.parentNode) {
-                particle.parentNode.removeChild(particle);
-            }
-        }, 700);
     }
 }
 
