@@ -20,6 +20,10 @@
 │   │   ├── state_manager.py
 │   │   └── state_manager.py.new
 │   ├── data
+│   │   ├── characters
+│   │   │   └── custom
+│   │   │       ├── 1742156656417.json
+│   │   │       └── 1742158753566.json
 │   │   ├── models
 │   │   │   ├── __init__.py
 │   │   │   ├── character.py
@@ -170,8 +174,11 @@
 │   │   │   │   └── __init__.py
 │   │   │   ├── skill_tree
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── skill_effect_system.js
 │   │   │   │   ├── skill_tree_controller.js
-│   │   │   │   └── skill_tree_manager.js
+│   │   │   │   ├── skill_tree_manager.js
+│   │   │   │   ├── skill_tree_renderer.js
+│   │   │   │   └── skill_tree_ui.js
 │   │   │   └── __init__.py
 │   │   ├── ui
 │   │   │   ├── components
@@ -232,13 +239,19 @@
 │   │   │   │   ├── map.css
 │   │   │   │   └── nodes.css
 │   │   │   ├── screens
+│   │   │   │   ├── character_create.css
+│   │   │   │   ├── character_select.css
 │   │   │   │   ├── dashboard.css
-│   │   │   │   └── game.css
+│   │   │   │   ├── game.css
+│   │   │   │   ├── game_screen.css
+│   │   │   │   ├── landing.css
+│   │   │   │   └── skill_tree.css
 │   │   │   ├── themes
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── retro_theme.css
-│   │   │   ├── character_image_styles.css
-│   │   │   └── main.css
+│   │   │   ├── components.css
+│   │   │   ├── main.css
+│   │   │   └── utilities.css
 │   │   ├── img
 │   │   │   ├── characters
 │   │   │   │   ├── __init__.py
@@ -289,22 +302,36 @@
 │   │       │   ├── game.js -> ../../../src/core/game.js
 │   │       │   └── state_manager.js -> ../../../src/core/state_manager.js
 │   │       ├── utils
-│   │       └── character_assets.js
+│   │       ├── character_assets.js
+│   │       ├── character_creator.js
+│   │       ├── character_select.js
+│   │       ├── landing.js
+│   │       └── skill_tree_page.js
 │   ├── templates
 │   │   ├── components
 │   │   ├── errors
 │   │   │   ├── 404.html
 │   │   │   └── 500.html
 │   │   ├── pages
+│   │   │   ├── character_create.html
 │   │   │   ├── character_select.html
 │   │   │   ├── character_select.html.bak
 │   │   │   ├── dashboard.html
 │   │   │   ├── game.html
 │   │   │   ├── index.html
 │   │   │   ├── item_editor.html
-│   │   │   └── landing.html
+│   │   │   ├── landing.html
+│   │   │   └── skill_tree.html
 │   │   └── base.html
 │   └── __init__.py
+├── medical_physics_game
+│   ├── data
+│   │   └── characters
+│   │       └── custom
+│   └── frontend
+│       └── static
+│           └── img
+│               └── characters
 ├── plugins
 │   ├── __init__.py
 │   └── question_plugin.py
@@ -354,6 +381,7 @@
 ├── asset_verification.sh
 ├── backend_results.txt
 ├── backend_test.sh
+├── bootstrap.js -> ../../../src/core/bootstrap.js
 ├── browser_testing_guide.md
 ├── check_files.sh
 ├── check_imports.py
@@ -368,6 +396,7 @@
 ├── dev-guide.txt
 ├── dev_guide_5 PRIMARY FIX.md
 ├── docker-compose.yml
+├── event_system.js -> ../../../src/core/event_system.js
 ├── final_api_verification.sh
 ├── final_cleanup_plan.sh
 ├── final_verification.py
@@ -389,6 +418,7 @@
 ├── fix_template_paths.sh
 ├── frontend_test.sh
 ├── full directory.txt
+├── game.js -> ../../../src/core/game.js
 ├── game_data.db
 ├── installation-guide.md
 ├── js_module_checker.sh
@@ -408,6 +438,7 @@
 ├── simplify_bootstrap.sh
 ├── skill-tree-concept.svg
 ├── skill-tree-dev-guide.txt
+├── state_manager.js -> ../../../src/core/state_manager.js
 ├── test_application.sh
 ├── test_file.txt
 ├── test_frontend.html
@@ -421,4 +452,4 @@
 ├── verify_structure.py
 └── wsgi.py
 
-84 directories, 337 files
+94 directories, 358 files

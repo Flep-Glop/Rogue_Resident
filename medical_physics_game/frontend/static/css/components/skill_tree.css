@@ -1,0 +1,469 @@
+/* frontend/static/css/components/skill_tree.css */
+
+/* 
+ * Skill Tree Core Styling
+ * Comprehensive styling for skill tree visualization with orbital layout and effects
+ */
+
+/* ========== CONTAINERS & LAYOUT ========== */
+
+/* Skill Tree Container */
+.skill-tree-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+  }
+  
+  /* SVG Base */
+  .skill-tree-svg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  
+  .skill-tree-svg:active {
+    cursor: grabbing;
+  }
+  
+  /* Orbital Rings */
+  .orbital-ring {
+    fill: none;
+    stroke: rgba(42, 58, 92, 0.6);
+    stroke-width: 1px;
+    stroke-dasharray: 5, 3;
+  }
+  
+  /* ========== NODE STYLING ========== */
+  
+  /* Base Node Style */
+  .skill-node {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .skill-node:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+  
+  /* Node States */
+  .skill-node-locked {
+    fill-opacity: 0.6;
+    stroke-opacity: 0.4;
+    filter: grayscale(70%);
+  }
+  
+  .skill-node-unlockable {
+    fill-opacity: 0.8;
+    stroke-opacity: 0.9;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4));
+    animation: pulse 2s infinite alternate;
+  }
+  
+  .skill-node-unlocked {
+    fill-opacity: 1;
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(144, 238, 144, 0.5));
+  }
+  
+  .skill-node-active {
+    fill-opacity: 1;
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(144, 238, 144, 0.8));
+    animation: glow 3s infinite alternate;
+  }
+  
+  .skill-node-selected {
+    stroke: #FFD700 !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7)) !important;
+  }
+  
+  /* Node text and icons */
+  .skill-node-text, 
+  .skill-node-icon {
+    pointer-events: none;
+    user-select: none;
+  }
+  
+  /* Specialization node coloring */
+  .skill-node-theory {
+    fill: #1D4E89;
+    stroke: #87CEEB;
+  }
+  
+  .skill-node-clinical {
+    fill: #2E8B57;
+    stroke: #90EE90;
+  }
+  
+  .skill-node-technical {
+    fill: #B8860B;
+    stroke: #FFA500;
+  }
+  
+  .skill-node-research {
+    fill: #663399;
+    stroke: #DDA0DD;
+  }
+  
+  .skill-node-core {
+    fill: #2A4A6A;
+    stroke: #4682B4;
+  }
+  
+  .skill-node-connector {
+    fill: #B8860B;
+    stroke: #FFD700;
+  }
+  
+  /* ========== CONNECTION STYLING ========== */
+  
+  .skill-connection {
+    stroke-linecap: round;
+    transition: all 0.3s ease;
+  }
+  
+  .skill-connection-locked {
+    stroke-opacity: 0.2;
+    stroke-width: 1px;
+  }
+  
+  .skill-connection-unlockable {
+    stroke-opacity: 0.6;
+    stroke-width: 1.5px;
+    stroke-dasharray: 5, 3;
+  }
+  
+  .skill-connection-unlocked {
+    stroke-opacity: 0.8;
+    stroke-width: 2px;
+  }
+  
+  .skill-connection-active {
+    stroke-opacity: 1;
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 3px currentColor);
+    animation: connection-pulse 3s infinite alternate;
+  }
+  
+  /* ========== TOOLTIP STYLING ========== */
+  
+  .skill-tooltip {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    overflow: visible;
+  }
+  
+  .skill-node:hover + .skill-tooltip,
+  .skill-node-group:hover .skill-tooltip {
+    opacity: 1;
+  }
+  
+  .tooltip-content {
+    background-color: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(91, 141, 217, 0.5);
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-size: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    max-width: 200px;
+    pointer-events: none;
+  }
+  
+  .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.5);
+    padding-bottom: 4px;
+  }
+  
+  .tooltip-name {
+    font-weight: bold;
+    color: white;
+  }
+  
+  .tooltip-spec {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .tooltip-description {
+    margin-bottom: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  
+  .tooltip-cost {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  /* ========== SPECIALIZATION TITLES & FILTERS ========== */
+  
+  /* Specialization Titles */
+  .specialization-title {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+  }
+  
+  /* Specialization Filters */
+  .specialization-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .specialization-chip {
+    padding: 5px 10px;
+    border-radius: 15px;
+    background-color: rgba(15, 23, 42, 0.7);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    font-size: 12px;
+  }
+  
+  .specialization-chip:hover {
+    background-color: rgba(30, 41, 59, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .specialization-chip.selected {
+    background-color: rgba(51, 65, 85, 0.9);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .specialization-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  
+  /* ========== UI CONTROLS ========== */
+  
+  .skill-tree-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+    z-index: 10;
+  }
+  
+  .canvas-control {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(30, 34, 50, 0.7);
+    color: white;
+    border: 1px solid rgba(91, 141, 217, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s ease;
+  }
+  
+  .canvas-control:hover {
+    background-color: rgba(91, 141, 217, 0.3);
+  }
+  
+  /* ========== SKILL INFO PANEL ========== */
+  
+  .skill-info-content {
+    animation: fade-in 0.3s ease;
+  }
+  
+  .skill-info-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .skill-info-description {
+    line-height: 1.5;
+  }
+  
+  .skill-info-effects ul {
+    padding-left: 20px;
+    list-style-type: disc;
+  }
+  
+  .skill-info-effects li {
+    margin-bottom: 5px;
+  }
+  
+  .skill-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .skill-action-message {
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    color: var(--color-text-muted, rgba(255, 255, 255, 0.6));
+    font-style: italic;
+  }
+  
+  /* ========== LOADING & ERROR STATES ========== */
+  
+  .skill-tree-loading,
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    color: white;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid var(--skill-primary, #5b8dd9);
+    animation: spin 1s linear infinite;
+    margin-right: 12px;
+  }
+  
+  .skill-info-error {
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(230, 126, 115, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(230, 126, 115, 0.5);
+  }
+  
+  .skill-info-error p {
+    margin-bottom: 15px;
+    color: var(--color-danger, #e67e73);
+  }
+  
+  /* ========== VISUAL EFFECTS ========== */
+  
+  /* Star background */
+  .star-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  .star {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: twinkle 4s infinite alternate;
+  }
+  
+  /* Scanlines effect */
+  .scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 90;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%, 
+      rgba(0, 0, 0, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.2;
+  }
+  
+  /* ========== ANIMATIONS ========== */
+  
+  @keyframes pulse {
+    0% { filter: drop-shadow(0 0 5px rgba(144, 238, 144, 0.4)); }
+    100% { filter: drop-shadow(0 0 8px rgba(144, 238, 144, 0.8)); }
+  }
+  
+  @keyframes glow {
+    0% { filter: brightness(1) drop-shadow(0 0 3px currentColor); }
+    50% { filter: brightness(1.4) drop-shadow(0 0 10px currentColor); }
+    100% { filter: brightness(1) drop-shadow(0 0 3px currentColor); }
+  }
+  
+  @keyframes connection-pulse {
+    0% { opacity: 0.6; stroke-width: 2px; }
+    100% { opacity: 1; stroke-width: 3px; }
+  }
+  
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+  
+  /* ========== RESPONSIVE ADJUSTMENTS ========== */
+  
+  @media (max-width: 768px) {
+    .skill-info-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .skill-info-specialization {
+      margin-top: 5px;
+    }
+    
+    .skill-action-buttons {
+      flex-direction: column;
+    }
+    
+    .skill-action-button {
+      width: 100%;
+    }
+    
+    .specialization-filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+    
+    .specialization-chip {
+      flex-shrink: 0;
+    }
+  }
