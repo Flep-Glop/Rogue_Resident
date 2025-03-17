@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Tree - Medical Physics Game{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/skill_tree.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="pixel-container" data-screen="skill-tree">
+    <!-- Animated background elements -->
+    <div class="star-bg" id="star-bg"></div>
+    
+    <div class="skill-tree-container">
+        <h1 class="skill-title">SKILL TREE</h1>
+        <p class="skill-subtitle">Unlock and equip skills to enhance your medical physics journey</p>
+        
+        <!-- Character stats display -->
+        <div class="character-stats-display">
+            <div class="stat-block reputation-block">
+                <div class="stat-label">REPUTATION</div>
+                <div class="stat-value" id="reputation-value">0</div>
+            </div>
+            <div class="stat-block points-block">
+                <div class="stat-label">SKILL POINTS</div>
+                <div class="stat-value" id="skill-points-value">0</div>
+            </div>
+        </div>
+        
+        <!-- Specialization filters -->
+        <div class="specialization-filters" id="skill-tree-controls">
+            <!-- Will be populated by JavaScript -->
+        </div>
+        
+        <!-- Skill tree visualization -->
+        <div class="skill-tree-visualization-container">
+            <div id="skill-tree-visualization"></div>
+        </div>
+        
+        <!-- Selected skill information -->
+        <div class="skill-info-panel" id="skill-tree-info">
+            <div class="skill-info-empty">
+                <p>Select a skill to view details</p>
+            </div>
+        </div>
+        
+        <!-- UI elements for unlocking/activating skills -->
+        <div id="skill-tree-ui"></div>
+        
+        <!-- Action buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('game') }}" class="action-button back-button">
+                <i class="fas fa-arrow-left"></i> Back to Game
+            </a>
+        </div>
+    </div>
+    
+    <!-- Visual effects -->
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate star background
+        const starBg = document.getElementById('star-bg');
+        if (starBg) {
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                star.style.width = `${1 + Math.random() * 2}px`;
+                star.style.height = star.style.width;
+                starBg.appendChild(star);
+            }
+        }
+    });
+</script>
+{% endblock %}
