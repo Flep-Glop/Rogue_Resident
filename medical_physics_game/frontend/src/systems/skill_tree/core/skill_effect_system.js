@@ -1,374 +1,396 @@
-// frontend/src/systems/skill_tree/skill_effect_system.js
-
 /**
- * SkillEffectSystem - Manages and applies the effects of activated skills
+ * SkillEffectSystem
+ * Manages and applies skill tree effects to game mechanics
  */
-class SkillEffectSystem {
-    // Configuration
-    config = {
-      debug: false
-    };
-    
-    // State
-    state = {
-      initialized: false,
-      activeEffects: [],
-      calculatedBonuses: {
-        insightGain: 1.0,
-        patientOutcome: 1.0,
-        equipmentCost: 1.0,
-        criticalInsight: 1.0,
-        revealParameters: 0,
-        autoSolveChance: 0
-      }
-    };
-    
-    /**
-     * Initialize the effect system
-     * @param {Object} options - Configuration options
-     */
-    initialize(options = {}) {
-      if (this.state.initialized) {
-        console.log("SkillEffectSystem already initialized");
-        return this;
+const SkillEffectSystem = {
+  // State tracking
+  initialized: false,
+  activeEffects: {},
+  
+  /**
+   * Initialize the effect system
+   * @returns {Object} - This instance for chaining
+   */
+  initialize: function() {
+      if (this.initialized) {
+          console.log("SkillEffectSystem already initialized");
+          return this;
       }
       
-      // Apply options
-      Object.assign(this.config, options);
+      console.log("Initializing SkillEffectSystem...");
       
-      // Register for events
-      this._registerEventListeners();
-      
-      // Mark as initialized
-      this.state.initialized = true;
-      console.log("SkillEffectSystem initialized");
-      
-      return this;
-    }
-    
-    /**
-     * Register event listeners
-     * @private
-     */
-    _registerEventListeners() {
-      // Listen for skill activation
-      document.addEventListener('skillActivated', this._handleSkillActivation.bind(this));
-      
-      // Listen for skill deactivation
-      document.addEventListener('skillDeactivated', this._handleSkillDeactivation.bind(this));
-      
-      // Listen for run start (reset effects)
-      document.addEventListener('runStarted', this._resetActiveEffects.bind(this));
-    }
-    
-    /**
-     * Handle skill activation
-     * @private
-     * @param {CustomEvent} event - Skill activation event
-     */
-    _handleSkillActivation(event) {
-      const { skill } = event.detail;
-      if (!skill) return;
-      
-      this.applySkillEffects(skill);
-    }
-    
-    /**
-     * Handle skill deactivation
-     * @private
-     * @param {CustomEvent} event - Skill deactivation event
-     */
-    _handleSkillDeactivation(event) {
-      const { skill } = event.detail;
-      if (!skill) return;
-      
-      this.removeSkillEffects(skill);
-    }
-    
-    /**
-     * Reset active effects
-     * @private
-     */
-    _resetActiveEffects() {
-      this.state.activeEffects = [];
-      this._recalculateBonuses();
-      
-      if (this.config.debug) {
-        console.log("Reset all skill effects");
-      }
-    }
-    
-    /**
-     * Apply effects from a skill
-     * @param {Object} skill - Skill data
-     */
-    applySkillEffects(skill) {
-      if (!skill || !skill.effects) return;
-      
-      // For each effect in the skill
-      skill.effects.forEach(effect => {
-        // Create active effect entry
-        const activeEffect = {
-          id: `${skill.id}_${effect.type}_${Date.now()}`,
-          skillId: skill.id,
-          skillName: skill.name,
-          type: effect.type,
-          value: effect.value,
-          condition: effect.condition
-        };
-        
-        // Add to active effects
-        this.state.activeEffects.push(activeEffect);
-        
-        if (this.config.debug) {
-          console.log(`Applied skill effect: ${effect.type} from ${skill.name}`);
-        }
-      });
-      
-      // Recalculate all bonuses
-      this._recalculateBonuses();
-      
-      // Emit event for effect changes
-      this._emitEffectChanges();
-    }
-    
-    /**
-     * Remove effects from a skill
-     * @param {Object} skill - Skill data
-     */
-    removeSkillEffects(skill) {
-      if (!skill) return;
-      
-      // Remove all effects from this skill
-      const initialCount = this.state.activeEffects.length;
-      this.state.activeEffects = this.state.activeEffects.filter(effect => effect.skillId !== skill.id);
-      
-      if (initialCount !== this.state.activeEffects.length) {
-        // Recalculate all bonuses
-        this._recalculateBonuses();
-        
-        // Emit event for effect changes
-        this._emitEffectChanges();
-        
-        if (this.config.debug) {
-          console.log(`Removed effects from skill: ${skill.name}`);
-        }
-      }
-    }
-    
-    /**
-     * Recalculate all bonuses from active effects
-     * @private
-     */
-    _recalculateBonuses() {
-      // Reset calculated bonuses to defaults
-      this.state.calculatedBonuses = {
-        insightGain: 1.0,
-        patientOutcome: 1.0,
-        equipmentCost: 1.0,
-        criticalInsight: 1.0,
-        revealParameters: 0,
-        autoSolveChance: 0
+      // Reset effects
+      this.activeEffects = {
+          insight_gain_flat: 0,
+          insight_gain_multiplier: 1,
+          patient_outcome_multiplier: 1,
+          auto_solve_chance: 0,
+          treatment_effectiveness_multiplier: 1,
+          equipment_cost_reduction: 0,
+          reveal_parameter: false,
+          reveal_patient_parameter: 0,
+          critical_insight_multiplier: 1,
+          calibration_success: 0,
+          unlock_dialogue_options: false,
+          unlock_experimental_treatments: false,
+          time_cost_reduction: 0,
+          consult_help: 0,
+          adverse_event_reduction: 0,
+          preview_outcomes: false,
+          malfunction_penalty_reduction: 0,
+          repair_cost_reduction: 0,
+          reveal_equipment_internals: false,
+          auto_detect_qa_issues: false,
+          auto_detect_radiation_anomalies: false,
+          multi_equipment_bonus: 0,
+          temporary_equipment_fix: false,
+          funding_multiplier: 1,
+          favor_usage: 0,
+          insight_to_reputation_conversion: 0,
+          clinical_to_reputation_conversion: 0,
+          multi_specialization_bonus: 0,
+          recall_similar_questions: false,
+          failure_conversion: 0
       };
       
-      // Apply effects
-      this.state.activeEffects.forEach(effect => {
-        switch (effect.type) {
+      // Register for game events
+      this._registerEvents();
+      
+      // Mark as initialized
+      this.initialized = true;
+      console.log("SkillEffectSystem initialization complete");
+      
+      return this;
+  },
+  
+  /**
+   * Apply effects from a skill node
+   * @param {Object} node - Skill node data
+   * @returns {Boolean} - Success status
+   */
+  applyNodeEffects: function(node) {
+      if (!this.initialized) {
+          console.error("Cannot apply effects: system not initialized");
+          return false;
+      }
+      
+      if (!node || !node.effects) {
+          console.error("Invalid node or missing effects");
+          return false;
+      }
+      
+      console.log(`Applying effects for node: ${node.id}`);
+      
+      try {
+          // Process each effect
+          node.effects.forEach(effect => {
+              this._applyEffect(effect);
+          });
+          
+          // Emit event
+          const event = new CustomEvent('skill-effects-changed', {
+              detail: { 
+                  nodeId: node.id,
+                  effects: node.effects,
+                  activeEffects: { ...this.activeEffects }
+              }
+          });
+          document.dispatchEvent(event);
+          
+          console.log("Node effects applied successfully");
+          return true;
+      } catch (error) {
+          console.error("Error applying node effects:", error);
+          return false;
+      }
+  },
+  
+  /**
+   * Apply a single effect
+   * @param {Object} effect - Effect data
+   * @private
+   */
+  _applyEffect: function(effect) {
+      if (!effect || !effect.type) return;
+      
+      const type = effect.type;
+      const value = effect.value;
+      
+      console.log(`Applying effect: ${type} = ${value}`);
+      
+      // Handle different effect types
+      switch (type) {
+          // Numeric addition effects
           case 'insight_gain_flat':
-            // Store as flat bonuses separately
-            this.state.calculatedBonuses.insightGainFlat = 
-              (this.state.calculatedBonuses.insightGainFlat || 0) + effect.value;
-            break;
-            
+          case 'reveal_patient_parameter':
+          case 'consult_help':
+          case 'favor_usage':
+              this.activeEffects[type] += value;
+              break;
+              
+          // Numeric multiplication effects
           case 'insight_gain_multiplier':
-            // Multiplicative stacking
-            this.state.calculatedBonuses.insightGain *= effect.value;
-            break;
-            
           case 'patient_outcome_multiplier':
-            // Multiplicative stacking
-            this.state.calculatedBonuses.patientOutcome *= effect.value;
-            break;
-            
-          case 'equipment_cost_reduction':
-            // Additive stacking (capped at 90%)
-            this.state.calculatedBonuses.equipmentCost = 
-              Math.max(0.1, this.state.calculatedBonuses.equipmentCost - effect.value);
-            break;
-            
+          case 'treatment_effectiveness_multiplier':
           case 'critical_insight_multiplier':
-            // Take highest value
-            this.state.calculatedBonuses.criticalInsight = 
-              Math.max(this.state.calculatedBonuses.criticalInsight, effect.value);
-            break;
-            
-          case 'reveal_parameter':
-            // Additive stacking
-            this.state.calculatedBonuses.revealParameters += 
-              typeof effect.value === 'number' ? effect.value : 1;
-            break;
-            
+          case 'funding_multiplier':
+              this.activeEffects[type] *= value;
+              break;
+              
+          // Probability effects
           case 'auto_solve_chance':
-            // Additive stacking (capped at 80%)
-            this.state.calculatedBonuses.autoSolveChance = 
-              Math.min(0.8, (this.state.calculatedBonuses.autoSolveChance || 0) + effect.value);
-            break;
-            
+          case 'calibration_success':
+          case 'malfunction_penalty_reduction':
+          case 'equipment_cost_reduction':
+          case 'repair_cost_reduction':
+          case 'time_cost_reduction':
+          case 'adverse_event_reduction':
+          case 'multi_equipment_bonus':
+          case 'insight_to_reputation_conversion':
+          case 'clinical_to_reputation_conversion':
+          case 'multi_specialization_bonus':
           case 'failure_conversion':
-            // Take highest value
-            this.state.calculatedBonuses.failureConversion = 
-              Math.max(this.state.calculatedBonuses.failureConversion || 0, effect.value);
-            break;
-            
+              // Cap probabilities at logical limits
+              this.activeEffects[type] = Math.min(1, this.activeEffects[type] + value);
+              break;
+              
+          // Boolean effects
+          case 'reveal_parameter':
+          case 'unlock_dialogue_options':
+          case 'unlock_experimental_treatments':
+          case 'preview_outcomes':
+          case 'reveal_equipment_internals':
+          case 'auto_detect_qa_issues':
+          case 'auto_detect_radiation_anomalies':
+          case 'temporary_equipment_fix':
           case 'recall_similar_questions':
-            // Boolean flag
-            this.state.calculatedBonuses.recallSimilarQuestions = true;
-            break;
-            
-          // Add additional effect types here
-        }
-      });
-      
-      if (this.config.debug) {
-        console.log("Recalculated bonuses:", this.state.calculatedBonuses);
+              this.activeEffects[type] = true;
+              break;
+              
+          // Handle complex effects or items
+          case 'start_with_items':
+              // This would be handled when starting a new game
+              console.log(`Starting with items: ${JSON.stringify(value)}`);
+              break;
+              
+          case 'companion':
+              // This would spawn a companion character
+              console.log(`Companion unlocked: ${value}`);
+              break;
+              
+          case 'specialization_synergy':
+              // This handles synergy between specializations
+              console.log(`Specialization synergy: ${JSON.stringify(value)}`);
+              break;
+              
+          default:
+              console.warn(`Unknown effect type: ${type}`);
       }
-    }
-    
-    /**
-     * Emit event for effect changes
-     * @private
-     */
-    _emitEffectChanges() {
-      const event = new CustomEvent('skillEffectsChanged', {
-        detail: {
-          activeEffects: this.state.activeEffects,
-          calculatedBonuses: this.state.calculatedBonuses
-        }
-      });
-      
-      document.dispatchEvent(event);
-    }
-    
-    /**
-     * Get the current value of a specific bonus
-     * @param {String} bonusType - Type of bonus to get
-     * @param {Object} context - Optional context for conditional bonuses
-     * @returns {Number|Boolean} Bonus value
-     */
-    getBonus(bonusType, context = {}) {
-      switch (bonusType) {
-        case 'insightGain':
-          return this._calculateConditionalBonus('insight_gain_multiplier', context, this.state.calculatedBonuses.insightGain);
-          
-        case 'insightGainFlat':
-          return this._calculateConditionalBonus('insight_gain_flat', context, this.state.calculatedBonuses.insightGainFlat || 0);
-          
-        case 'patientOutcome':
-          return this._calculateConditionalBonus('patient_outcome_multiplier', context, this.state.calculatedBonuses.patientOutcome);
-          
-        case 'equipmentCost':
-          return this._calculateConditionalBonus('equipment_cost_reduction', context, this.state.calculatedBonuses.equipmentCost);
-          
-        case 'criticalInsight':
-          return this._calculateConditionalBonus('critical_insight_multiplier', context, this.state.calculatedBonuses.criticalInsight);
-          
-        case 'revealParameters':
-          return this.state.calculatedBonuses.revealParameters || 0;
-          
-        case 'autoSolveChance':
-          return this._calculateConditionalBonus('auto_solve_chance', context, this.state.calculatedBonuses.autoSolveChance || 0);
-          
-        case 'failureConversion':
-          return this.state.calculatedBonuses.failureConversion || 0;
-          
-        case 'recallSimilarQuestions':
-          return this.state.calculatedBonuses.recallSimilarQuestions || false;
-          
-        default:
-          return 0;
-      }
-    }
-    
-    /**
-     * Calculate bonus considering conditions
-     * @private
-     * @param {String} effectType - Type of effect
-     * @param {Object} context - Context for conditions
-     * @param {Number} defaultValue - Default value if no conditions apply
-     * @returns {Number} Calculated bonus
-     */
-    _calculateConditionalBonus(effectType, context, defaultValue) {
-      // Start with the default calculated value
-      let result = defaultValue;
-      
-      // Find conditional effects that match the effect type
-      const conditionalEffects = this.state.activeEffects.filter(
-        effect => effect.type === effectType && effect.condition
-      );
-      
-      // If no conditional effects, return the default
-      if (conditionalEffects.length === 0) {
-        return result;
-      }
-      
-      // For each conditional effect
-      conditionalEffects.forEach(effect => {
-        // Simple condition parser (can be expanded for more complex conditions)
-        const conditionParts = effect.condition.split('==');
-        if (conditionParts.length === 2) {
-          const leftSide = conditionParts[0].trim();
-          const rightSide = conditionParts[1].trim().replace(/['"]/g, ''); // Remove quotes
-          
-          // Check if condition is met
-          if (context[leftSide] === rightSide) {
-            switch (effectType) {
+  },
+  
+  /**
+   * Get current value of an effect
+   * @param {String} effectType - Type of effect
+   * @param {Object} context - Optional context for conditional effects
+   * @returns {*} - Effect value
+   */
+  getEffectValue: function(effectType, context = {}) {
+      if (!this.initialized || !this.activeEffects[effectType]) {
+          // Return sensible defaults based on effect type
+          switch (effectType) {
               case 'insight_gain_multiplier':
               case 'patient_outcome_multiplier':
-                result *= effect.value; // Multiplicative
-                break;
-                
-              case 'equipment_cost_reduction':
-                result -= effect.value; // Additive reduction
-                break;
-                
-              case 'auto_solve_chance':
-                result += effect.value; // Additive
-                break;
-                
+              case 'treatment_effectiveness_multiplier':
+              case 'critical_insight_multiplier':
+              case 'funding_multiplier':
+                  return 1; // Multiplicative effects default to 1
+                  
               case 'insight_gain_flat':
-                result += effect.value; // Additive
-                break;
-                
+              case 'auto_solve_chance':
+              case 'equipment_cost_reduction':
+              case 'reveal_patient_parameter':
+              case 'time_cost_reduction':
+              case 'consult_help':
+              case 'adverse_event_reduction':
+              case 'multi_equipment_bonus':
+              case 'insight_to_reputation_conversion':
+              case 'clinical_to_reputation_conversion':
+              case 'multi_specialization_bonus':
+              case 'failure_conversion':
+                  return 0; // Additive effects default to 0
+                  
               default:
-                // For unknown types, assume multiplicative
-                result *= effect.value;
-            }
+                  return false; // Boolean effects default to false
           }
-        }
-      });
+      }
       
-      return result;
-    }
-    
-    /**
-     * Get all active effects
-     * @returns {Array} Array of active effects
-     */
-    getActiveEffects() {
-      return [...this.state.activeEffects];
-    }
-    
-    /**
-     * Get all calculated bonuses
-     * @returns {Object} Object with all bonus values
-     */
-    getAllBonuses() {
-      return {...this.state.calculatedBonuses};
-    }
+      return this.activeEffects[effectType];
+  },
+  
+  /**
+   * Reset all effects
+   */
+  resetEffects: function() {
+      this.activeEffects = {
+          insight_gain_flat: 0,
+          insight_gain_multiplier: 1,
+          patient_outcome_multiplier: 1,
+          auto_solve_chance: 0,
+          treatment_effectiveness_multiplier: 1,
+          equipment_cost_reduction: 0,
+          reveal_parameter: false,
+          reveal_patient_parameter: 0,
+          critical_insight_multiplier: 1,
+          calibration_success: 0,
+          unlock_dialogue_options: false,
+          unlock_experimental_treatments: false,
+          time_cost_reduction: 0,
+          consult_help: 0,
+          adverse_event_reduction: 0,
+          preview_outcomes: false,
+          malfunction_penalty_reduction: 0,
+          repair_cost_reduction: 0,
+          reveal_equipment_internals: false,
+          auto_detect_qa_issues: false,
+          auto_detect_radiation_anomalies: false,
+          multi_equipment_bonus: 0,
+          temporary_equipment_fix: false,
+          funding_multiplier: 1,
+          favor_usage: 0,
+          insight_to_reputation_conversion: 0,
+          clinical_to_reputation_conversion: 0,
+          multi_specialization_bonus: 0,
+          recall_similar_questions: false,
+          failure_conversion: 0
+      };
+      
+      console.log("All effects reset");
+  },
+  
+  /**
+   * Register for game events
+   * @private
+   */
+  _registerEvents: function() {
+      // If game has an event system, register for events
+      if (window.eventSystem) {
+          console.log("Registering with game event system");
+          
+          // Register for question events
+          window.eventSystem.subscribe('question_answered', (data) => {
+              this._processQuestionAnswered(data);
+          });
+          
+          // Register for patient case events
+          window.eventSystem.subscribe('patient_case_completed', (data) => {
+              this._processPatientCaseCompleted(data);
+          });
+      }
+  },
+  
+  /**
+   * Process question answered event
+   * @param {Object} data - Event data
+   * @private
+   */
+  _processQuestionAnswered: function(data) {
+      if (!data) return;
+      
+      console.log("Processing question answered event:", data);
+      
+      // Apply insight gain effects
+      if (data.correct) {
+          // Calculate base insight
+          let insight = data.insight || 10;
+          
+          // Apply flat bonus
+          insight += this.getEffectValue('insight_gain_flat');
+          
+          // Apply multiplier
+          insight *= this.getEffectValue('insight_gain_multiplier');
+          
+          // Apply critical insight if applicable
+          if (data.critical) {
+              insight *= this.getEffectValue('critical_insight_multiplier');
+          }
+          
+          // Update insight gain
+          data.insight = Math.round(insight);
+          
+          console.log(`Modified insight gain: ${data.insight}`);
+          
+          // Convert insight to reputation if applicable
+          const conversionRate = this.getEffectValue('insight_to_reputation_conversion');
+          if (conversionRate > 0) {
+              const reputationGain = Math.floor(insight * conversionRate);
+              
+              if (reputationGain > 0) {
+                  // Update reputation if game state manager is available
+                  if (window.stateManager) {
+                      const currentState = window.stateManager.getState();
+                      const newReputation = (currentState.reputation || 0) + reputationGain;
+                      
+                      window.stateManager.updateState({
+                          reputation: newReputation
+                      });
+                      
+                      console.log(`Converted insight to ${reputationGain} reputation`);
+                  }
+              }
+          }
+      } else {
+          // Apply failure conversion if applicable
+          const conversionRate = this.getEffectValue('failure_conversion');
+          if (conversionRate > 0) {
+              // Convert some failed insight to partial insight
+              const baseInsight = data.baseInsight || 10;
+              const partialInsight = Math.floor(baseInsight * conversionRate);
+              
+              data.insight = partialInsight;
+              console.log(`Converted failure to ${partialInsight} partial insight`);
+          }
+      }
+  },
+  
+  /**
+   * Process patient case completed event
+   * @param {Object} data - Event data
+   * @private
+   */
+  _processPatientCaseCompleted: function(data) {
+      if (!data) return;
+      
+      console.log("Processing patient case completed event:", data);
+      
+      // Apply patient outcome effects
+      if (data.outcome) {
+          // Apply multiplier
+          data.outcome *= this.getEffectValue('patient_outcome_multiplier');
+          
+          console.log(`Modified patient outcome: ${data.outcome}`);
+          
+          // Convert clinical success to reputation if applicable
+          const conversionRate = this.getEffectValue('clinical_to_reputation_conversion');
+          if (conversionRate > 0) {
+              const reputationGain = Math.floor(data.outcome * conversionRate);
+              
+              if (reputationGain > 0) {
+                  // Update reputation if game state manager is available
+                  if (window.stateManager) {
+                      const currentState = window.stateManager.getState();
+                      const newReputation = (currentState.reputation || 0) + reputationGain;
+                      
+                      window.stateManager.updateState({
+                          reputation: newReputation
+                      });
+                      
+                      console.log(`Converted clinical outcome to ${reputationGain} reputation`);
+                  }
+              }
+          }
+      }
   }
-  
-  // Export for module use
-  export default SkillEffectSystem;
-  
-  // For backward compatibility with existing code
-  window.SkillEffectSystem = new SkillEffectSystem();
+};
+
+// Make globally available
+window.SkillEffectSystem = SkillEffectSystem;
