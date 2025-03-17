@@ -135,7 +135,6 @@
 │   │   │   ├── progression.js
 │   │   │   ├── reputation_system.js
 │   │   │   ├── save_manager.js
-│   │   │   ├── skill-tree-data.js
 │   │   │   ├── state_manager.js
 │   │   │   └── state_manager.js.bak
 │   │   ├── entities
@@ -173,12 +172,22 @@
 │   │   │   ├── progression
 │   │   │   │   └── __init__.py
 │   │   │   ├── skill_tree
+│   │   │   │   ├── components
+│   │   │   │   │   ├── skill_tree_controls.js
+│   │   │   │   │   ├── skill_tree_panel.js
+│   │   │   │   │   ├── skill_tree_renderer.js
+│   │   │   │   │   └── skill_tree_ui.js
+│   │   │   │   ├── core
+│   │   │   │   │   ├── skill_effect_system.js
+│   │   │   │   │   ├── skill_tree_controller.js
+│   │   │   │   │   ├── skill_tree_data.js
+│   │   │   │   │   └── skill_tree_manager.js
+│   │   │   │   ├── utils
+│   │   │   │   │   ├── node_position_calculator.js
+│   │   │   │   │   ├── skill_tree_api.js
+│   │   │   │   │   └── skill_tree_parser.js
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── skill_effect_system.js
-│   │   │   │   ├── skill_tree_controller.js
-│   │   │   │   ├── skill_tree_manager.js
-│   │   │   │   ├── skill_tree_renderer.js
-│   │   │   │   └── skill_tree_ui.js
+│   │   │   │   └── index.js
 │   │   │   └── __init__.py
 │   │   ├── ui
 │   │   │   ├── components
@@ -237,15 +246,15 @@
 │   │   │   │   ├── character.css
 │   │   │   │   ├── inventory.css
 │   │   │   │   ├── map.css
-│   │   │   │   └── nodes.css
+│   │   │   │   ├── nodes.css
+│   │   │   │   └── skill_tree.css
 │   │   │   ├── screens
 │   │   │   │   ├── character_create.css
 │   │   │   │   ├── character_select.css
 │   │   │   │   ├── dashboard.css
 │   │   │   │   ├── game.css
 │   │   │   │   ├── game_screen.css
-│   │   │   │   ├── landing.css
-│   │   │   │   └── skill_tree.css
+│   │   │   │   └── landing.css
 │   │   │   ├── themes
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── retro_theme.css
@@ -342,6 +351,10 @@
 │   │   │   └── test_skill_tree_manager.py
 │   │   └── __init__.py
 │   ├── frontend
+│   │   ├── systems
+│   │   │   └── skill_tree
+│   │   │       ├── skill_tree_integration.test.js
+│   │   │       └── skill_tree_manager.test.js
 │   │   ├── ui
 │   │   │   └── test_map_renderer.js
 │   │   └── __init__.py
@@ -452,4 +465,4 @@
 ├── verify_structure.py
 └── wsgi.py
 
-94 directories, 358 files
+99 directories, 366 files
