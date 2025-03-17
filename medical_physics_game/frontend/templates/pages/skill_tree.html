@@ -4,7 +4,7 @@
 
 {% block additional_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/screens/skill_tree.css') }}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced_skill_tree.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -33,6 +33,13 @@
             <!-- Will be populated by JavaScript -->
         </div>
         
+        <!-- Canvas controls -->
+        <div class="skill-tree-controls">
+            <button id="zoom-in-btn" class="canvas-control">+</button>
+            <button id="zoom-out-btn" class="canvas-control">-</button>
+            <button id="reset-view-btn" class="canvas-control">⟳</button>
+        </div>
+        
         <!-- Skill tree visualization -->
         <div class="skill-tree-visualization-container">
             <div id="skill-tree-visualization"></div>
@@ -53,6 +60,9 @@
             <a href="{{ url_for('game') }}" class="action-button back-button">
                 <i class="fas fa-arrow-left"></i> Back to Game
             </a>
+            <button id="save-progress-btn" class="action-button save-button">
+                <i class="fas fa-save"></i> Save Progress
+            </button>
         </div>
     </div>
     
@@ -63,21 +73,60 @@
 {% endblock %}
 
 {% block additional_js %}
+<!-- Core skill tree components -->
+<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_renderer.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_ui.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_effect_system.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_controller.js') }}" type="module"></script>
+
+<!-- Page integration script -->
+<script src="{{ url_for('static', filename='js/skill_tree_page.js') }}"></script>
+
 <script>
+    // Add event listeners for canvas controls
     document.addEventListener('DOMContentLoaded', function() {
-        // Generate star background
-        const starBg = document.getElementById('star-bg');
-        if (starBg) {
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.animationDelay = `${Math.random() * 4}s`;
-                star.style.width = `${1 + Math.random() * 2}px`;
-                star.style.height = star.style.width;
-                starBg.appendChild(star);
-            }
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', function() {
+                if (window.SkillTreeRenderer) {
+                    window.SkillTreeRenderer.zoomCanvas(0.1);
+                }
+            });
+        }
+        
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', function() {
+                if (window.SkillTreeRenderer) {
+                    window.SkillTreeRenderer.zoomCanvas(-0.1);
+                }
+            });
+        }
+        
+        const resetViewBtn = document.getElementById('reset-view-btn');
+        if (resetViewBtn) {
+            resetViewBtn.addEventListener('click', function() {
+                if (window.SkillTreeRenderer) {
+                    window.SkillTreeRenderer.resetView();
+                }
+            });
+        }
+        
+        const saveProgressBtn = document.getElementById('save-progress-btn');
+        if (saveProgressBtn) {
+            saveProgressBtn.addEventListener('click', function() {
+                if (window.SkillTreeController) {
+                    window.SkillTreeController.saveProgress()
+                        .then(() => {
+                            // Show success message
+                            alert('Progress saved successfully!');
+                        })
+                        .catch(error => {
+                            console.error('Error saving progress:', error);
+                            alert('Failed to save progress. Please try again.');
+                        });
+                }
+            });
         }
     });
 </script>
