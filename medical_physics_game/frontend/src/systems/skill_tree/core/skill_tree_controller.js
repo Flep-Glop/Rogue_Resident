@@ -1,250 +1,248 @@
-// frontend/src/systems/skill_tree/core/skill_tree_controller.js
-
 /**
  * SkillTreeController
- * Coordinates between the skill tree manager, renderer, and UI components
+ * Manages the skill tree system and coordinates between UI, renderer, and data
  */
-class SkillTreeController {
-  constructor() {
-    this.initialized = false;
-    this.manager = null;
-    this.renderer = null;
-    this.eventSystem = null;
-    this.state = {
-      loading: false,
-      error: null,
-      selectedNodeId: null
-    };
-  }
-
+const SkillTreeController = {
+  // State tracking
+  initialized: false,
+  skillTree: null,
+  progression: null,
+  
   /**
-   * Initialize the controller
-   * @param {Object} options Configuration options
-   * @returns {SkillTreeController} This instance for chaining
+   * Initialize the skill tree controller
+   * @param {Object} config - Optional configuration settings
+   * @returns {Object} - This instance for chaining
    */
-  initialize(options = {}) {
-    if (this.initialized) return this;
-    
-    // Store references to dependencies
-    this.manager = options.manager;
-    this.renderer = options.renderer;
-    this.eventSystem = options.eventSystem;
-    
-    // Set up event listeners
-    if (this.eventSystem) {
-      // Listen for UI events
-      this.eventSystem.subscribe('ui.node_selected', this.selectNode.bind(this));
-      this.eventSystem.subscribe('ui.node_unlock_requested', this.unlockNode.bind(this));
-      this.eventSystem.subscribe('ui.reset_view', this.resetView.bind(this));
-      this.eventSystem.subscribe('ui.zoom_in', this.zoomIn.bind(this));
-      this.eventSystem.subscribe('ui.zoom_out', this.zoomOut.bind(this));
-      
-      // Listen for direct DOM events (for backwards compatibility)
-      document.addEventListener('skillNodeSelected', (event) => {
-        this.selectNode(event.detail.nodeId);
-      });
-    }
-    
-    this.initialized = true;
-    return this;
-  }
-
-  /**
-   * Load skill tree data and player progress
-   * @returns {Promise} Promise resolving with the loaded data
-   */
-  loadData() {
-    if (!this.initialized || !this.manager) {
-      return Promise.reject(new Error('Controller not properly initialized'));
-    }
-    
-    this.state.loading = true;
-    this._notifyEvent('loading_started');
-    
-    // Load data through the manager
-    return this.manager.loadData()
-      .then(data => {
-        // Process data for visualization
-        const visualData = this._processDataForVisualization(data);
-        
-        // Load data into renderer
-        if (this.renderer) {
-          this.renderer.loadSkillTree(visualData);
-          this._updateNodeStates(data.progress);
-        }
-        
-        this.state.loading = false;
-        this._notifyEvent('data_loaded', data);
-        
-        return data;
-      })
-      .catch(error => {
-        this.state.loading = false;
-        this.state.error = error.message;
-        this._notifyEvent('loading_error', { error: error.message });
-        throw error;
-      });
-  }
-
-  /**
-   * Process data for visualization
-   * @private
-   * @param {Object} data Raw data from manager
-   * @returns {Object} Processed data for renderer
-   */
-  _processDataForVisualization(data) {
-    // For orbital renderer, we might need to modify the data structure
-    // This will depend on what format your renderer expects
-    
-    return {
-      nodes: data.data.nodes,
-      connections: data.data.connections,
-      specializations: data.data.specializations
-    };
-  }
-
-  /**
-   * Update node states in the renderer
-   * @private
-   * @param {Object} progress Player progress data
-   */
-  _updateNodeStates(progress) {
-    if (!this.renderer || !progress) return;
-    
-    const nodeStates = {};
-    
-    // Create a map of node IDs to states
-    progress.unlocked_skills.forEach(nodeId => {
-      // Mark as unlocked
-      nodeStates[nodeId] = progress.active_skills.includes(nodeId) ? 'active' : 'unlocked';
-    });
-    
-    // Mark available nodes
-    const availableNodes = this.manager.availableNodes || new Set();
-    availableNodes.forEach(nodeId => {
-      if (!nodeStates[nodeId]) {
-        nodeStates[nodeId] = 'unlockable';
+  initialize: function(config = {}) {
+      if (this.initialized) {
+          console.log("SkillTreeController already initialized");
+          return this;
       }
-    });
-    
-    // Update renderer
-    this.renderer.updateNodeStates(nodeStates);
-    
-    // If a node is already selected, reselect it to update any UI
-    if (this.state.selectedNodeId) {
-      this.selectNode(this.state.selectedNodeId);
-    }
-  }
-
-  /**
-   * Select a node
-   * @param {String} nodeId Node ID to select
-   */
-  selectNode(nodeId) {
-    if (!this.initialized) return;
-    
-    this.state.selectedNodeId = nodeId;
-    
-    // Update renderer selection
-    if (this.renderer) {
-      this.renderer.selectNode(nodeId);
-    }
-    
-    // Get node details
-    if (this.manager && nodeId) {
-      const nodeDetails = this.manager.getNodeDetails(nodeId);
-      if (nodeDetails) {
-        this._notifyEvent('node_details_updated', {
-          nodeId,
-          node: nodeDetails,
-          unlocked: nodeDetails.unlocked,
-          canUnlock: nodeDetails.canUnlock
-        });
-      }
-    }
-  }
-
-  /**
-   * Unlock a node
-   * @param {String} nodeId Node ID to unlock
-   * @returns {Boolean} Success status
-   */
-  unlockNode(nodeId) {
-    if (!this.initialized || !this.manager) return false;
-    
-    // Use manager to unlock node
-    const success = this.manager.unlockNode(nodeId);
-    
-    if (success) {
-      // Update node states
-      this._updateNodeStates(this.manager.progress);
       
-      // Notify success
-      this._notifyEvent('node_unlocked', {
-        nodeId,
-        node: this.manager.getNodeDetails(nodeId)
-      });
-    }
-    
-    return success;
-  }
-
+      console.log("Initializing SkillTreeController...");
+      
+      // Store configuration
+      this.config = Object.assign({
+          renderContainerId: 'skill-tree-visualization',
+          uiContainerId: 'skill-tree-ui',
+          controlsContainerId: 'skill-tree-controls',
+          infoContainerId: 'skill-tree-info'
+      }, config);
+      
+      // Initialize component references
+      this.ui = window.SkillTreeUI;
+      this.renderer = window.SkillTreeRenderer;
+      this.effectSystem = window.SkillEffectSystem;
+      
+      // Mark as initialized
+      this.initialized = true;
+      console.log("SkillTreeController initialization complete");
+      
+      return this;
+  },
+  
   /**
-   * Save player progress
-   * @returns {Promise} Promise resolving when saved
+   * Load the skill tree data
+   * @param {Object} skillTreeData - Skill tree data
+   * @param {Object} progressData - Player progression data
+   * @returns {Boolean} - Success status
    */
-  saveProgress() {
-    if (!this.initialized || !this.manager) {
-      return Promise.reject(new Error('Controller not properly initialized'));
-    }
-    
-    return this.manager.saveProgress();
-  }
-
+  loadSkillTree: function(skillTreeData, progressData) {
+      console.log("Loading skill tree data...");
+      
+      if (!this.initialized) {
+          console.error("Cannot load skill tree: controller not initialized");
+          return false;
+      }
+      
+      try {
+          // Store data
+          this.skillTree = skillTreeData;
+          this.progression = progressData;
+          
+          // Process data
+          this._processSkillTreeData();
+          
+          // Initialize components with data
+          if (this.ui && this.ui.initialized) {
+              this.ui.updateSkillTree(this.skillTree, this.progression);
+          }
+          
+          if (this.renderer && this.renderer.initialized) {
+              this.renderer.renderSkillTree(this.skillTree, this.progression);
+          }
+          
+          console.log("Skill tree data loaded successfully");
+          return true;
+      } catch (error) {
+          console.error("Error loading skill tree data:", error);
+          return false;
+      }
+  },
+  
   /**
-   * Reset the view
-   */
-  resetView() {
-    if (this.renderer) {
-      this.renderer.resetView();
-    }
-  }
-
-  /**
-   * Zoom in
-   * @param {Number} increment Zoom increment amount
-   */
-  zoomIn(increment = 0.1) {
-    if (this.renderer) {
-      // For orbital renderer which already has zoom functionality
-      this.renderer.state.zoom += increment;
-      this.renderer._applyTransform();
-    }
-  }
-
-  /**
-   * Zoom out
-   * @param {Number} increment Zoom increment amount
-   */
-  zoomOut(increment = 0.1) {
-    if (this.renderer) {
-      // For orbital renderer which already has zoom functionality
-      this.renderer.state.zoom -= increment;
-      this.renderer._applyTransform();
-    }
-  }
-
-  /**
-   * Emit an event using the event system
+   * Process and prepare skill tree data
    * @private
-   * @param {String} eventName Event name
-   * @param {Object} data Event data
    */
-  _notifyEvent(eventName, data = {}) {
-    if (this.eventSystem) {
-      this.eventSystem.publish(`skill_tree.${eventName}`, data);
-    }
+  _processSkillTreeData: function() {
+      if (!this.skillTree || !this.progression) return;
+      
+      // Extract key details
+      const nodes = this.skillTree.nodes || [];
+      const unlockedNodes = this.progression.unlocked_skills || [];
+      
+      // Calculate available nodes
+      const availableNodes = [];
+      
+      // Check each node
+      nodes.forEach(node => {
+          if (!unlockedNodes.includes(node.id)) {
+              // Check prerequisites
+              const prerequisites = node.prerequisites || [];
+              const allPrereqsMet = prerequisites.every(prereq => 
+                  unlockedNodes.includes(prereq)
+              );
+              
+              if (allPrereqsMet) {
+                  availableNodes.push(node.id);
+              }
+          }
+      });
+      
+      // Store processed data
+      this.skillTree.available_nodes = availableNodes;
+  },
+  
+  /**
+   * Unlock a skill node
+   * @param {String} nodeId - ID of the node to unlock
+   * @returns {Boolean} - Success status
+   */
+  unlockNode: function(nodeId) {
+      if (!this.progression || !this.skillTree) {
+          console.error("Cannot unlock node: data not loaded");
+          return false;
+      }
+      
+      try {
+          // Get node details
+          const node = this.skillTree.nodes.find(n => n.id === nodeId);
+          if (!node) {
+              console.error(`Node not found: ${nodeId}`);
+              return false;
+          }
+          
+          // Check if player has enough points
+          const cost = node.cost || 0;
+          if (this.progression.skill_points_available < cost) {
+              console.error("Not enough skill points to unlock node");
+              return false;
+          }
+          
+          // Unlock the node
+          this.progression.unlocked_skills.push(nodeId);
+          this.progression.skill_points_available -= cost;
+          
+          // Update UI and renderer
+          this._processSkillTreeData();
+          
+          if (this.ui && this.ui.initialized) {
+              this.ui.updateSkillTree(this.skillTree, this.progression);
+          }
+          
+          if (this.renderer && this.renderer.initialized) {
+              this.renderer.renderSkillTree(this.skillTree, this.progression);
+          }
+          
+          // Apply effects
+          if (this.effectSystem && this.effectSystem.initialized) {
+              this.effectSystem.applyNodeEffects(node);
+          }
+          
+          console.log(`Node unlocked: ${nodeId}`);
+          return true;
+      } catch (error) {
+          console.error("Error unlocking node:", error);
+          return false;
+      }
+  },
+  
+  /**
+   * Save player progression
+   * @returns {Promise} - Promise that resolves with save result
+   */
+  saveProgress: function() {
+      return new Promise((resolve, reject) => {
+          if (!this.progression) {
+              reject(new Error("No progression data to save"));
+              return;
+          }
+          
+          // Create payload
+          const payload = {
+              reputation: this.progression.reputation,
+              unlocked_skills: this.progression.unlocked_skills,
+              active_skills: this.progression.active_skills,
+              skill_points_available: this.progression.skill_points_available,
+              specialization_progress: this.progression.specialization_progress
+          };
+          
+          // Send to API
+          fetch('/api/skill-progress', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Failed to save progress: ${response.status} ${response.statusText}`);
+              }
+              return response.json();
+          })
+          .then(data => {
+              console.log("Progress saved successfully");
+              resolve(data);
+          })
+          .catch(error => {
+              console.error("Error saving progress:", error);
+              reject(error);
+          });
+      });
+  },
+  
+  /**
+   * Get node details
+   * @param {String} nodeId - ID of the node
+   * @returns {Object|null} - Node details or null if not found
+   */
+  getNodeDetails: function(nodeId) {
+      if (!this.skillTree || !this.skillTree.nodes) {
+          return null;
+      }
+      
+      const node = this.skillTree.nodes.find(n => n.id === nodeId);
+      if (!node) {
+          return null;
+      }
+      
+      // Determine node status
+      let status = 'locked';
+      
+      if (this.progression.unlocked_skills.includes(nodeId)) {
+          status = 'unlocked';
+      } else if (this.skillTree.available_nodes.includes(nodeId)) {
+          status = 'available';
+      }
+      
+      // Return node with additional details
+      return {
+          ...node,
+          status
+      };
   }
-}
+};
 
-export default SkillTreeController;
+// Make globally available
+window.SkillTreeController = SkillTreeController;
