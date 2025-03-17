@@ -1,10 +1,43 @@
 /**
- * Character Party Selection
- * 
- * This module handles the character party selection screen functionality
+ * Character Selection System
+ * Improved version with better error handling, more robust state management,
+ * and improved performance.
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // State management
+    // Create or ensure EventSystem is available
+    window.EventSystem = {
+        events: {},
+        subscribe: function(event, callback) {
+            if (!this.events[event]) {
+                this.events[event] = [];
+            }
+            this.events[event].push(callback);
+            return () => this.unsubscribe(event, callback);
+        },
+        publish: function(event, data) {
+            if (!this.events[event]) return;
+            this.events[event].forEach(callback => {
+                try {
+                    callback(data);
+                } catch (error) {
+                    console.error(`Error in event handler for ${event}:`, error);
+                }
+            });
+        },
+        unsubscribe: function(event, callback) {
+            if (!this.events[event]) return;
+            this.events[event] = this.events[event].filter(cb => cb !== callback);
+        },
+        clear: function(event) {
+            if (event) {
+                this.events[event] = [];
+            } else {
+                this.events = {};
+            }
+        }
+    };
+
+    // State management using a more structured approach
     const CharacterStateManager = {
         state: {
             characters: [],
@@ -17,7 +50,16 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         init: function() {
+            // Register a listener for back button navigation to clean up
+            window.addEventListener('beforeunload', () => {
+                EventSystem.clear();
+            });
+            
+            // Start loading characters
             this.loadCharacters();
+            
+            // Log that initialization is complete
+            console.log('Character State Manager initialized');
         },
 
         getState: function() {
@@ -25,66 +67,108 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         setState: function(newState) {
+            const oldState = {...this.state};
             this.state = {...this.state, ...newState};
-            EventSystem.publish('stateChanged', this.state);
+            
+            // Determine which parts of state changed for targeted updates
+            const changedProps = Object.keys(newState).filter(
+                key => oldState[key] !== newState[key]
+            );
+            
+            // Only publish event if something actually changed
+            if (changedProps.length > 0) {
+                EventSystem.publish('stateChanged', {
+                    state: this.state,
+                    changedProps
+                });
+            }
         },
 
         loadCharacters: function() {
             this.setState({isLoading: true, error: null});
+            console.log('Loading characters...');
             
-            try {
-                // Load template characters from global variable
-                const templateCharacters = window.gameCharacters || [];
-                
-                // Load custom characters from localStorage
-                let customCharacters = [];
-                try {
-                    customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
-                } catch (e) {
-                    console.error('Error parsing custom characters:', e);
-                    UI.showToast('Error loading custom characters', 'error');
-                }
-                
-                // API call to get server-side characters
-                fetch('/api/characters')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch characters');
-                        }
-                        return response.json();
-                    })
-                    .then(serverCharacters => {
-                        this.processCharacters([...customCharacters, ...templateCharacters, ...serverCharacters]);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching characters from API:', error);
-                        this.processCharacters([...customCharacters, ...templateCharacters]);
-                    });
-            } catch (error) {
-                console.error('Error loading characters:', error);
-                this.setState({
-                    isLoading: false, 
-                    error: 'Failed to load characters'
+            // Create a promise for each data source
+            const apiPromise = fetch('/api/characters')
+                .then(response => {
+                    if (!response.ok) {
+                        console.warn('API response not OK', response.status);
+                        return [];
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.warn('API character fetch error:', error);
+                    return [];
                 });
-                UI.showToast('Error loading characters', 'error');
-            }
+                
+            // Safely load from localStorage with fallback
+            const localPromise = new Promise(resolve => {
+                try {
+                    const customChars = JSON.parse(localStorage.getItem('customCharacters') || '[]');
+                    resolve(Array.isArray(customChars) ? customChars : []);
+                } catch (error) {
+                    console.warn('Error parsing custom characters:', error);
+                    resolve([]);
+                }
+            });
+            
+            // Get template characters from window.gameCharacters
+            const templatePromise = Promise.resolve(
+                Array.isArray(window.gameCharacters) ? window.gameCharacters : []
+            );
+            
+            // Wait for all sources and combine results
+            Promise.all([apiPromise, localPromise, templatePromise])
+                .then(([apiChars, localChars, templateChars]) => {
+                    console.log(`Loaded characters - API: ${apiChars.length}, Local: ${localChars.length}, Template: ${templateChars.length}`);
+                    this.processCharacters([...localChars, ...templateChars, ...apiChars]);
+                })
+                .catch(error => {
+                    console.error('Error loading characters:', error);
+                    this.setState({
+                        isLoading: false, 
+                        error: 'Failed to load characters'
+                    });
+                    UI.showToast('Error loading characters. Please try refreshing the page.', 'error');
+                });
         },
 
         processCharacters: function(characters) {
+            // Ensure all characters have required properties
+            const processedChars = characters.map(char => ({
+                id: char.id || Date.now() + Math.random().toString(36).substring(2, 9),
+                name: char.name || 'Unnamed Character',
+                max_hp: char.max_hp || 100,
+                current_hp: char.current_hp || 100,
+                abilities: Array.isArray(char.abilities) ? char.abilities : [],
+                stats: char.stats || { intelligence: 5, persistence: 5, adaptability: 5 },
+                custom: !!char.custom,
+                image: char.image || '/static/img/characters/debug_mode.png',
+                description: char.description || 'A medical physics adventurer'
+            }));
+            
             // Deduplicate characters based on ID
-            const uniqueCharacters = Array.from(
-                new Map(characters.map(char => [char.id, char])).values()
-            );
+            const uniqueChars = [];
+            const seenIds = new Set();
+            
+            processedChars.forEach(char => {
+                const charId = String(char.id);
+                if (!seenIds.has(charId)) {
+                    seenIds.add(charId);
+                    uniqueChars.push(char);
+                }
+            });
             
             // Sort characters (custom first, then standard)
-            uniqueCharacters.sort((a, b) => {
+            uniqueChars.sort((a, b) => {
                 if (a.custom && !b.custom) return -1;
                 if (!a.custom && b.custom) return 1;
-                return 0;
+                return a.name.localeCompare(b.name);
             });
             
             this.setState({
-                characters: uniqueCharacters,
+                characters: uniqueChars,
                 isLoading: false
             });
             
@@ -92,9 +176,11 @@ document.addEventListener('DOMContentLoaded', function() {
             this.updateVisibleCharacters();
             
             // Select first character by default if available
-            if (uniqueCharacters.length > 0) {
+            if (uniqueChars.length > 0) {
                 this.selectCharacter(0);
             }
+            
+            console.log('Characters processed:', uniqueChars.length);
         },
 
         // Update which characters are visible in the party lineup
@@ -106,35 +192,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Calculate correct center index
+            const safeCenter = Math.min(Math.max(0, centerIndex), characters.length - 1);
+            
             // Calculate how many characters to show on each side of center
             const sideCount = Math.floor(maxVisibleCharacters / 2);
             
-            // Calculate start and end indices
-            let startIdx = centerIndex - sideCount;
-            let endIdx = centerIndex + sideCount;
+            // Simple calculation with bounds checking
+            const startIdx = Math.max(0, safeCenter - sideCount);
+            const endIdx = Math.min(characters.length, startIdx + maxVisibleCharacters);
             
-            // Adjust if out of bounds
-            if (startIdx < 0) {
-                endIdx = Math.min(endIdx - startIdx, characters.length - 1);
-                startIdx = 0;
-            }
-            
-            if (endIdx >= characters.length) {
-                startIdx = Math.max(0, startIdx - (endIdx - characters.length + 1));
-                endIdx = characters.length - 1;
-            }
+            // Adjust start if we have room at the end
+            const finalStartIdx = Math.max(0, endIdx - maxVisibleCharacters);
             
             // Get the visible characters
-            const visibleCharacters = characters.slice(startIdx, endIdx + 1);
+            const visibleCharacters = characters.slice(finalStartIdx, endIdx);
             
             this.setState({ 
                 visibleCharacters,
-                centerIndex
+                centerIndex: safeCenter
             });
+            
+            console.log(`Showing characters ${finalStartIdx}-${endIdx} with center at ${safeCenter}`);
         },
 
         selectCharacter: function(index) {
-            if (index < 0 || index >= this.state.characters.length) return;
+            const { characters } = this.state;
+            
+            if (index < 0 || index >= characters.length) {
+                console.warn(`Attempted to select invalid character index: ${index}`);
+                return;
+            }
+            
+            console.log(`Selecting character at index ${index}: ${characters[index].name}`);
             
             this.setState({ 
                 selectedCharacterIndex: index,
@@ -144,7 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update visible characters based on new center
             this.updateVisibleCharacters();
             
-            EventSystem.publish('characterSelected', this.state.characters[index]);
+            // Publish character selected event
+            EventSystem.publish('characterSelected', characters[index]);
         },
 
         nextCharacter: function() {
@@ -162,13 +253,18 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         deleteCharacter: function(id) {
+            // Get current state info
+            const { characters, selectedCharacterIndex } = this.state;
+            const currentSelected = characters[selectedCharacterIndex];
+            
+            console.log(`Deleting character with ID: ${id}`);
+            
             // Get custom characters from localStorage
-            let customCharacters = [];
             try {
-                customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
+                let customCharacters = JSON.parse(localStorage.getItem('customCharacters') || '[]');
                 
                 // Remove character with matching id
-                customCharacters = customCharacters.filter(char => char.id != id);
+                customCharacters = customCharacters.filter(char => String(char.id) !== String(id));
                 
                 // Save back to localStorage
                 localStorage.setItem('customCharacters', JSON.stringify(customCharacters));
@@ -177,20 +273,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetch(`/api/characters/${id}`, {
                     method: 'DELETE'
                 }).catch(error => {
-                    console.log('Could not delete from server, character removed from local storage only');
+                    console.warn('Could not delete from server, character removed from local storage only:', error);
                 });
                 
-                // Update current state
-                const updatedCharacters = this.state.characters.filter(char => char.id != id);
+                // Update current state - remove character
+                const updatedCharacters = this.state.characters.filter(char => String(char.id) !== String(id));
                 
-                // Update selected index if needed
-                let newSelectedIndex = this.state.selectedCharacterIndex;
-                if (updatedCharacters.length === 0) {
-                    newSelectedIndex = null;
-                } else if (this.state.selectedCharacterIndex >= updatedCharacters.length) {
-                    newSelectedIndex = updatedCharacters.length - 1;
+                // Find index of currently selected character in new array
+                let newSelectedIndex = null;
+                
+                if (currentSelected && String(currentSelected.id) !== String(id)) {
+                    // Find the index of the currently selected character in the new array
+                    newSelectedIndex = updatedCharacters.findIndex(
+                        char => String(char.id) === String(currentSelected.id)
+                    );
                 }
                 
+                // If we couldn't find it or it was the deleted character
+                if (newSelectedIndex === -1 || newSelectedIndex === null) {
+                    // Select the first character or null if empty
+                    newSelectedIndex = updatedCharacters.length > 0 ? 0 : null;
+                }
+                
+                console.log(`New selected index after deletion: ${newSelectedIndex}`);
+                
+                // Update state with new characters and selected index
                 this.setState({
                     characters: updatedCharacters,
                     selectedCharacterIndex: newSelectedIndex
@@ -198,6 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update visible characters
                 this.updateVisibleCharacters();
+                
+                // If we have a selected character, publish event
+                if (newSelectedIndex !== null) {
+                    EventSystem.publish('characterSelected', updatedCharacters[newSelectedIndex]);
+                }
                 
                 UI.showToast('Character deleted successfully', 'success');
             } catch (error) {
@@ -207,31 +319,53 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         saveSelection: function() {
-            if (this.state.selectedCharacterIndex === null) return;
+            if (this.state.selectedCharacterIndex === null) {
+                console.warn('Attempted to save with no character selected');
+                return;
+            }
             
             const selectedCharacter = this.state.characters[this.state.selectedCharacterIndex];
+            console.log(`Saving selected character: ${selectedCharacter.name}`);
             
             // Save to localStorage
-            localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
-            
-            // Navigate to game
-            window.location.href = '/game';
+            try {
+                localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+                
+                // Navigate to game
+                window.location.href = '/game';
+            } catch (error) {
+                console.error('Error saving character selection:', error);
+                UI.showToast('Error saving character selection', 'error');
+            }
         }
     };
 
-    // UI Manager
+    // UI Manager with better component organization
     const UI = {
         elements: {
             characterLineup: document.getElementById('character-lineup'),
             characterDetails: document.getElementById('character-details'),
             selectButton: document.getElementById('select-button'),
             prevButton: document.getElementById('prev-character'),
-            nextButton: document.getElementById('next-character')
+            nextButton: document.getElementById('next-character'),
+            sideStats: document.querySelector('.character-side-info'),
+            selectedCharNameElement: document.getElementById('selected-character-name')
         },
 
         init: function() {
+            console.log('Initializing UI Manager');
+            this.validateRequiredElements();
             this.setupEventListeners();
             this.setupStateSubscription();
+        },
+        
+        validateRequiredElements: function() {
+            // Log warnings for missing elements
+            for (const [key, element] of Object.entries(this.elements)) {
+                if (!element) {
+                    console.warn(`Required UI element not found: ${key}`);
+                }
+            }
         },
 
         setupEventListeners: function() {
@@ -267,34 +401,56 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            
+            // Add document-level handler for delete buttons
+            document.addEventListener('click', (e) => {
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn) {
+                    e.stopPropagation(); // Prevent character selection
+                    const id = deleteBtn.dataset.id;
+                    if (id) {
+                        this.confirmDelete(id);
+                    }
+                }
+            });
         },
 
         setupStateSubscription: function() {
-            EventSystem.subscribe('stateChanged', (state) => {
-                this.updateUI(state);
+            // Subscribe to state changes
+            EventSystem.subscribe('stateChanged', (data) => {
+                const { state, changedProps } = data;
+                
+                // Only update UI components that need to change
+                if (changedProps.includes('visibleCharacters') || 
+                    changedProps.includes('selectedCharacterIndex') ||
+                    changedProps.includes('isLoading')) {
+                    this.renderCharacterLineup(state);
+                }
+                
+                if (changedProps.includes('selectedCharacterIndex') ||
+                    changedProps.includes('characters')) {
+                    this.updateSelectButton(state);
+                    this.updateNavigationButtons(state);
+                }
+                
+                // Show loading state if needed
+                if (changedProps.includes('isLoading') && state.isLoading) {
+                    this.showLoadingState();
+                }
+                
+                // Show error if present
+                if (changedProps.includes('error') && state.error) {
+                    this.showToast(state.error, 'error');
+                }
             });
             
+            // Handle character selection
             EventSystem.subscribe('characterSelected', (character) => {
-                this.updateCharacterDetails(character);
+                if (character) {
+                    this.updateCharacterDetails(character);
+                    this.updateSideInfo(character);
+                }
             });
-        },
-
-        updateUI: function(state) {
-            this.renderCharacterLineup(state);
-            this.updateSelectButton(state);
-            
-            // Show loading state if needed
-            if (state.isLoading) {
-                this.showLoadingState();
-            }
-            
-            // Show error if present
-            if (state.error) {
-                this.showToast(state.error, 'error');
-            }
-            
-            // Update navigation buttons
-            this.updateNavigationButtons(state);
         },
 
         showLoadingState: function() {
@@ -322,18 +478,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.elements.characterLineup.innerHTML = `
                     <a href="/character-create" class="new-character-slot">
                         <div class="new-icon">+</div>
+                        <div class="new-text">Create Character</div>
                     </a>
                 `;
                 return;
             }
             
             // Create visible character figures
-            state.visibleCharacters.forEach((character, index) => {
-                const absoluteIndex = state.characters.indexOf(character);
+            state.visibleCharacters.forEach((character) => {
+                const absoluteIndex = state.characters.findIndex(c => c.id === character.id);
                 const isSelected = absoluteIndex === state.selectedCharacterIndex;
                 
                 const figure = document.createElement('div');
                 figure.className = 'character-figure';
+                figure.dataset.id = character.id;
                 
                 if (isSelected) {
                     figure.classList.add('selected');
@@ -345,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fas fa-caret-down"></i>
                     </div>
                     <div class="character-avatar">
-                        <img src="${character.image || '/static/img/characters/debug_mode.png'}" 
+                        <img src="${character.image}" 
                              alt="${character.name}"
                              onerror="this.src='/static/img/characters/debug_mode.png'">
                         ${character.custom ? '<div class="custom-badge">Custom</div>' : ''}
@@ -366,22 +524,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Add "new character" slot at the end if we're showing the last characters
-            if (state.centerIndex + Math.floor(state.maxVisibleCharacters / 2) >= state.characters.length - 1) {
+            if (state.characters.length < 5 || 
+                state.centerIndex + Math.floor(state.maxVisibleCharacters / 2) >= state.characters.length - 1) {
                 const newSlot = document.createElement('a');
                 newSlot.href = '/character-create';
                 newSlot.className = 'new-character-slot';
-                newSlot.innerHTML = '<div class="new-icon">+</div>';
+                newSlot.innerHTML = `
+                    <div class="new-icon">+</div>
+                    <div class="new-text">Create Character</div>
+                `;
                 this.elements.characterLineup.appendChild(newSlot);
             }
-            
-            // Add delete button event listeners
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const id = btn.dataset.id;
-                    this.confirmDelete(id);
-                });
-            });
         },
 
         updateCharacterDetails: function(character) {
@@ -390,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create stats HTML
             let statsHtml = '';
             if (character.stats) {
-                // Get stats
+                // Get stats with defaults
                 const stats = {
                     intelligence: character.stats.intelligence || 5,
                     persistence: character.stats.persistence || 5,
@@ -439,24 +592,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
+            // Fallback description if missing
+            const description = character.description || 'A medical physics adventurer';
+            
             // Assemble details panel
             this.elements.characterDetails.innerHTML = `
                 <h3 class="character-detail-name">${character.name}</h3>
-                ${character.description ? `<p class="character-description">${character.description}</p>` : ''}
+                <p class="character-description">${description}</p>
                 ${statsHtml}
                 ${abilitiesHtml}
             `;
+        },
+        
+        updateSideInfo: function(character) {
+            if (!this.elements.sideStats) return;
+            
+            // Update HP value
+            const hpValue = this.elements.sideStats.querySelector('.side-stat:nth-child(1) .side-stat-value');
+            if (hpValue) {
+                hpValue.textContent = character.max_hp || 100;
+            }
+            
+            // Update selected character name in button
+            if (this.elements.selectedCharNameElement) {
+                this.elements.selectedCharNameElement.textContent = character.name;
+            }
         },
 
         updateSelectButton: function(state) {
             if (!this.elements.selectButton) return;
             
             // Disable if no character selected
-            this.elements.selectButton.disabled = state.selectedCharacterIndex === null;
+            const hasSelection = state.selectedCharacterIndex !== null;
+            this.elements.selectButton.disabled = !hasSelection;
             
             // Update button text/icon
-            if (state.selectedCharacterIndex !== null) {
-                const selectedName = state.characters[state.selectedCharacterIndex].name;
+            if (hasSelection) {
+                const selectedName = state.characters[state.selectedCharacterIndex]?.name || 'Character';
                 this.elements.selectButton.innerHTML = `<i class="fas fa-check"></i> Play as ${selectedName}`;
             } else {
                 this.elements.selectButton.innerHTML = 'Select Character';
@@ -482,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmDelete: function(id) {
             // Find character name
             const state = CharacterStateManager.getState();
-            const character = state.characters.find(c => c.id == id);
+            const character = state.characters.find(c => String(c.id) === String(id));
             const characterName = character ? character.name : 'this character';
             
             // Simple confirm for now - could be enhanced with a custom modal
@@ -509,6 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let icon = 'info-circle';
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'exclamation-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
             
             // Add content
             toast.innerHTML = `
@@ -518,6 +691,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add to container
             toastContainer.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
             
             // Remove after delay
             setTimeout(() => {
@@ -529,32 +707,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Event System
-    const EventSystem = {
-        events: {},
-        subscribe: function(event, callback) {
-            if (!this.events[event]) {
-                this.events[event] = [];
-            }
-            this.events[event].push(callback);
-            return () => this.unsubscribe(event, callback);
-        },
-        publish: function(event, data) {
-            if (!this.events[event]) return;
-            this.events[event].forEach(callback => callback(data));
-        },
-        unsubscribe: function(event, callback) {
-            if (!this.events[event]) return;
-            this.events[event] = this.events[event].filter(cb => cb !== callback);
-        }
-    };
-
-    // Background effects
+    // Initialize background effects
     function initBackgroundEffects() {
         // Generate star background
         const starBg = document.getElementById('star-bg');
         if (starBg) {
-            // Create stars
+            // Create a limited number of stars for better performance
+            const fragmentStars = document.createDocumentFragment();
             for (let i = 0; i < 70; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
@@ -563,13 +722,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 star.style.animationDelay = `${Math.random() * 4}s`;
                 star.style.width = `${1 + Math.random() * 2}px`;
                 star.style.height = star.style.width;
-                starBg.appendChild(star);
+                fragmentStars.appendChild(star);
             }
+            starBg.appendChild(fragmentStars);
         }
 
         // Add lab equipment to background
         const labEnvironment = document.querySelector('.lab-environment');
         if (labEnvironment) {
+            // Use document fragment for better performance
+            const fragmentEquipment = document.createDocumentFragment();
+            
             // Add some simple lab equipment shapes
             const equipment = [
                 { width: 40, height: 80, top: 30, left: 80 },
@@ -581,30 +744,33 @@ document.addEventListener('DOMContentLoaded', function() {
             
             equipment.forEach(item => {
                 const elem = document.createElement('div');
+                elem.className = 'lab-equipment';
                 elem.style.position = 'absolute';
                 elem.style.width = `${item.width}px`;
                 elem.style.height = `${item.height}px`;
-                elem.style.backgroundColor = 'var(--color-lab-equipment, #2a3049)';
-                elem.style.borderRadius = '3px';
-                elem.style.border = '1px solid rgba(91, 141, 217, 0.3)';
                 
                 if (item.top) elem.style.top = `${item.top}px`;
                 if (item.left) elem.style.left = `${item.left}px`;
                 if (item.right) elem.style.right = `${item.right}px`;
                 if (item.bottom) elem.style.bottom = `${item.bottom}px`;
                 
-                labEnvironment.appendChild(elem);
+                fragmentEquipment.appendChild(elem);
             });
+            
+            labEnvironment.appendChild(fragmentEquipment);
         }
     }
 
     // Initialize the module
     function init() {
+        console.log('Initializing Character Selection Screen');
         UI.init();
         CharacterStateManager.init();
-        initBackgroundEffects();
         
-        console.log('Character Party Selection module initialized');
+        // Initialize visual effects with a slight delay for better page load
+        setTimeout(() => {
+            initBackgroundEffects();
+        }, 100);
     }
 
     // Run initialization

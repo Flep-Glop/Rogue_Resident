@@ -9,7 +9,11 @@
 
 {% block content %}
 <div class="pixel-container" data-screen="character-select">
-    <!-- UI Frame with panels and bars that match the screenshot -->
+    <!-- Animated background elements -->
+    <div class="star-bg" id="star-bg"></div>
+    <div class="lab-environment"></div>
+    
+    <!-- UI Frame - simplified for better performance -->
     <div class="ui-frame-container">
         <!-- Left panel with multiple sections -->
         <div class="ui-left-frame">
@@ -40,8 +44,8 @@
         <div class="ui-bottom-bar"></div>
         
         <!-- Skill tree button -->
-        <a href="#" class="skill-tree-button">
-            <i class="fas fa-project-diagram skill-tree-icon"></i>
+        <a href="#" class="skill-tree-button" aria-label="Skill Tree">
+            <i class="fas fa-project-diagram skill-tree-icon" aria-hidden="true"></i>
             <span>Skills</span>
         </a>
         
@@ -49,104 +53,61 @@
         <div class="version-info">v0.1.0</div>
     </div>
     
-    <!-- Animated background elements -->
-    <div class="star-bg" id="star-bg"></div>
-    <div class="lab-environment"></div>
-    
     <!-- Main content container -->
     <div class="character-selection-container">
         <h1 class="selection-title">CHARACTER SELECTION</h1>
         <p class="selection-subtitle">Choose your hero to begin your medical physics journey</p>
         
-        <!-- Character party stage -->
+        <!-- Character party stage with a platform line for characters to stand on -->
         <div class="character-party-stage">
             <div class="lab-platform"></div>
             
-            <!-- Character lineup will be populated by JavaScript -->
+            <!-- Character lineup - will be populated by JavaScript -->
             <div class="character-lineup" id="character-lineup">
                 <div class="loading-state">
-                    <div class="loading-spinner"></div>
+                    <div class="loading-spinner" aria-hidden="true"></div>
                     <div class="loading-text">Loading characters...</div>
                 </div>
             </div>
             
-            <!-- Navigation arrows -->
-            <button class="nav-arrow nav-prev" id="prev-character">
-                <i class="fas fa-chevron-left"></i>
+            <!-- Navigation arrows with ARIA labels -->
+            <button class="nav-arrow nav-prev" id="prev-character" aria-label="Previous character">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
-            <button class="nav-arrow nav-next" id="next-character">
-                <i class="fas fa-chevron-right"></i>
+            <button class="nav-arrow nav-next" id="next-character" aria-label="Next character">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
             </button>
         </div>
         
         <!-- Character details panel -->
-        <div class="character-details-panel" id="character-details">
+        <div class="character-details-panel" id="character-details" aria-live="polite">
             <!-- Will be populated by JavaScript -->
+            <div class="loading-state">
+                <div class="loading-text">Select a character to view details</div>
+            </div>
         </div>
         
         <!-- Action buttons -->
         <div class="action-buttons">
             <button id="select-button" class="action-button select-button" disabled>
-                <i class="fas fa-check"></i> Play as <span id="selected-character-name">Character</span>
+                <i class="fas fa-check" aria-hidden="true"></i> Play as <span id="selected-character-name">Character</span>
             </button>
             <a href="{{ url_for('character_create') }}" id="create-button" class="action-button create-button">
-                <i class="fas fa-plus"></i> Create Character
+                <i class="fas fa-plus" aria-hidden="true"></i> Create Character
             </a>
             <a href="{{ url_for('index') }}" id="back-button" class="action-button back-button">
-                <i class="fas fa-arrow-left"></i> Back to Menu
+                <i class="fas fa-arrow-left" aria-hidden="true"></i> Back to Menu
             </a>
         </div>
     </div>
     
     <!-- Visual effects -->
-    <div class="scanlines"></div>
-    <div class="vignette"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
 </div>
 {% endblock %}
 
 {% block additional_js %}
 <script src="{{ url_for('static', filename='js/character_assets.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_select.js') }}"></script>
-<script>
-    // Generate star background
-    document.addEventListener('DOMContentLoaded', function() {
-        const starBg = document.getElementById('star-bg');
-        if (starBg) {
-            // Create stars
-            for (let i = 0; i < 70; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.animationDelay = `${Math.random() * 4}s`;
-                star.style.width = `${1 + Math.random() * 2}px`;
-                star.style.height = star.style.width;
-                starBg.appendChild(star);
-            }
-        }
-        
-        // Update side info when character is selected
-        if (typeof EventSystem !== 'undefined') {
-            EventSystem.subscribe('characterSelected', (character) => {
-                if (character) {
-                    // Update side panel info with character data
-                    const sideStats = document.querySelector('.character-side-info');
-                    if (sideStats) {
-                        // Update with basic character info
-                        const hpValue = sideStats.querySelector('.side-stat:nth-child(1) .side-stat-value');
-                        if (hpValue) hpValue.textContent = character.max_hp || 100;
-                        
-                        // Could add more stats here as needed
-                    }
-                    
-                    // Update play button text
-                    const selectedCharNameElement = document.getElementById('selected-character-name');
-                    if (selectedCharNameElement) {
-                        selectedCharNameElement.textContent = character.name;
-                    }
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}
