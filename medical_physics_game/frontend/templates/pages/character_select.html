@@ -11,37 +11,33 @@
 <div class="pixel-container" data-screen="character-select">
     <!-- Animated background elements -->
     <div class="star-bg" id="star-bg"></div>
-    <div class="lab-environment"></div>
-    
-    <!-- Simplified UI Frame -->
-    <div class="ui-frame-container">
-        <!-- Stats display -->
-        <div class="character-stats-display">
-            <div class="stat-block hp-block">
-                <div class="stat-label">HP</div>
-                <div class="stat-value">100</div>
-            </div>
-            <div class="stat-block xp-block">
-                <div class="stat-label">XP</div>
-                <div class="stat-value">0</div>
-            </div>
-            <div class="level-indicator">LVL 1</div>
-        </div>
-        
-        <!-- Skill tree button -->
-        <a href="#" class="skill-tree-button" aria-label="Skill Tree">
-            <i class="fas fa-project-diagram skill-tree-icon" aria-hidden="true"></i>
-            <span>SKILLS</span>
-        </a>
-        
-        <!-- Version info -->
-        <div class="version-info">v0.1.0</div>
-    </div>
     
     <!-- Main content container -->
     <div class="character-selection-container">
         <h1 class="selection-title">CHARACTER SELECTION</h1>
         <p class="selection-subtitle">Choose your hero to begin your medical physics journey</p>
+        
+        <!-- Stats display and controls now inside main container -->
+        <div class="game-interface">
+            <div class="skills-button-container">
+                <a href="#" class="skill-tree-button" aria-label="Skill Tree">
+                    <i class="fas fa-project-diagram skill-tree-icon" aria-hidden="true"></i>
+                    <span>SKILLS</span>
+                </a>
+            </div>
+            
+            <div class="character-stats-display">
+                <div class="stat-block hp-block">
+                    <div class="stat-label">HP</div>
+                    <div class="stat-value">100</div>
+                </div>
+                <div class="stat-block xp-block">
+                    <div class="stat-label">XP</div>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="level-indicator">LVL 1</div>
+            </div>
+        </div>
         
         <!-- Character party stage with a platform line for characters to stand on -->
         <div class="character-party-stage">
