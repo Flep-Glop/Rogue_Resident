@@ -1,451 +1,216 @@
 /**
  * Skill Tree CSS
- * Styling for the skill tree visualization and UI
+ * Styling for the skill tree system components
  */
 
-/* Variables */
-:root {
-    --st-background: #1a1a2e;
-    --st-text-color: #e6e6e6;
-    --st-border-color: #2a2a3e;
-    --st-highlight: #4361ee;
-    --st-available: #4cc9f0;
-    --st-locked: #5c5c6f;
-    --st-unlocked: #72efdd;
-    --st-theory-color: #4287f5;
-    --st-clinical-color: #42f575;
-    --st-technical-color: #f59142;
-    --st-research-color: #a142f5;
-    --st-connector-color: #f1c0e8;
-  }
-  
-  /* Container */
-  .skill-tree-container {
-    background-color: var(--st-background);
-    border-radius: 8px;
-    border: 2px solid var(--st-border-color);
-    color: var(--st-text-color);
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+/* Container Layout */
+.skill-tree-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100%;
-    max-height: 90vh;
-  }
-  
-  /* Header */
-  .skill-title {
-    text-align: center;
-    font-size: 2rem;
-    margin: 0.5rem 0;
-    text-shadow: 0 0 10px var(--st-highlight);
-    letter-spacing: 2px;
-  }
-  
-  .skill-subtitle {
-    text-align: center;
-    font-size: 0.9rem;
-    margin: 0 0 1rem;
-    opacity: 0.8;
-  }
-  
-  /* Stats Display */
-  .character-stats-display {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    padding: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid var(--st-border-color);
-    border-bottom: 1px solid var(--st-border-color);
-  }
-  
-  .stat-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .stat-label {
-    font-size: 0.8rem;
-    opacity: 0.7;
-    text-transform: uppercase;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--st-highlight);
-  }
-  
-  .reputation-block .stat-value {
-    color: var(--st-theory-color);
-  }
-  
-  .points-block .stat-value {
-    color: var(--st-clinical-color);
-  }
-  
-  /* Specialization Filters */
-  .specialization-filters {
-    padding: 0.5rem;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  
-  .specialization-filter {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .filter-button {
-    padding: 0.25rem 0.75rem;
-    border-radius: 16px;
-    border: 2px solid var(--st-border-color);
-    background-color: rgba(0, 0, 0, 0.3);
-    color: var(--st-text-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .filter-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .filter-button.active {
-    border-color: var(--st-highlight);
-    background-color: rgba(67, 97, 238, 0.2);
-  }
-  
-  /* Canvas Controls */
-  .skill-tree-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    z-index: 10;
-  }
-  
-  .canvas-control {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--st-border-color);
-    color: var(--st-text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: all 0.2s ease;
-  }
-  
-  .canvas-control:hover {
-    background-color: rgba(67, 97, 238, 0.3);
-  }
-  
-  /* Visualization Container */
-  .skill-tree-visualization-container {
-    flex: 1;
+    min-height: 600px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
     overflow: hidden;
-    position: relative;
-    min-height: 300px;
-    border: 1px solid var(--st-border-color);
-    margin: 0.5rem;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  #skill-tree-visualization {
+  /* Canvas Container */
+  .skill-tree-canvas-container {
+    flex: 1;
+    position: relative;
+    background-color: #1a1a2e;
+    overflow: hidden;
+  }
+  
+  #skill-tree-canvas {
+    display: block;
     width: 100%;
     height: 100%;
     cursor: grab;
   }
   
-  /* SVG Elements */
-  .skill-tree-svg {
-    width: 100%;
-    height: 100%;
-  }
-  
-  .skill-connection {
-    stroke-width: 2px;
-    stroke-linecap: round;
-  }
-  
-  .skill-connection-locked {
-    stroke: var(--st-locked);
-    stroke-dasharray: 4 4;
-    opacity: 0.5;
-  }
-  
-  .skill-connection-available {
-    stroke: var(--st-available);
-    stroke-dasharray: 4 2;
-    animation: pulse 1.5s infinite;
-  }
-  
-  .skill-connection-unlocked {
-    stroke: var(--st-unlocked);
-  }
-  
-  .skill-node {
-    stroke-width: 2px;
-    transition: all 0.3s ease;
-  }
-  
-  .skill-node-locked {
-    fill: var(--st-locked);
-    stroke: #444455;
-    opacity: 0.7;
-  }
-  
-  .skill-node-available {
-    fill: var(--st-available);
-    stroke: white;
-    filter: drop-shadow(0 0 5px var(--st-available));
-    animation: pulse 1.5s infinite;
-  }
-  
-  .skill-node-unlocked {
-    fill: var(--st-unlocked);
-    stroke: white;
-  }
-  
-  .skill-node-label {
-    font-size: 10px;
-    fill: white;
-    text-anchor: middle;
-    pointer-events: none;
+  #skill-tree-canvas:active {
+    cursor: grabbing;
   }
   
   /* Info Panel */
-  .skill-info-panel {
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid var(--st-border-color);
-    min-height: 150px;
-    max-height: 250px;
+  .skill-tree-info-panel {
+    width: 300px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-left: 1px solid #ddd;
     overflow-y: auto;
   }
   
-  .skill-info-empty {
+  /* Node Info Styling */
+  .node-info {
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .node-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    opacity: 0.5;
+    border-bottom: 2px solid #3a5fe3;
+    padding-bottom: 10px;
+  }
+  
+  .node-header h3 {
+    margin: 0;
+    font-size: 1.4em;
+    color: #2a2a4a;
+  }
+  
+  .node-level {
+    font-weight: bold;
+    color: #3a5fe3;
+  }
+  
+  .node-description {
+    line-height: 1.5;
+    color: #444;
+  }
+  
+  .node-effects, .node-prerequisites {
+    background-color: #f7f9ff;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  
+  .node-effects h4, .node-prerequisites h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    color: #2a2a4a;
+  }
+  
+  .node-effects ul, .node-prerequisites ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .node-effects li, .node-prerequisites li {
+    margin-bottom: 5px;
+  }
+  
+  .prerequisite-met {
+    color: #2e7d32;
+  }
+  
+  .prerequisite-unmet {
+    color: #c62828;
+  }
+  
+  .prerequisite-unknown {
+    color: #757575;
     font-style: italic;
   }
   
-  .skill-info-header {
+  .node-cost {
+    font-weight: bold;
+    color: #4a4a6a;
+  }
+  
+  .node-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  /* Info Messages */
+  .info-message {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+  
+  .error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #c62828;
+    margin-bottom: 15px;
+  }
+  
+  /* Controls Bar */
+  .skill-tree-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    background-color: rgba(26, 26, 46, 0.8);
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--st-border-color);
-    padding-bottom: 0.5rem;
-  }
-  
-  .skill-name {
-    font-size: 1.5rem;
-    margin: 0;
-    color: var(--st-highlight);
-  }
-  
-  .skill-specialization {
-    font-size: 0.9rem;
-    opacity: 0.8;
-  }
-  
-  .skill-description {
-    margin-bottom: 1rem;
-    line-height: 1.4;
-  }
-  
-  .skill-cost {
-    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
   }
   
-  .cost-label {
+  .points-display {
+    color: #ffffff;
     font-weight: bold;
+    font-size: 1.1em;
   }
   
-  .cost-value {
-    color: var(--st-clinical-color);
-  }
-  
-  .skill-effects h4, 
-  .skill-prerequisites h4 {
-    margin: 0.5rem 0 0.25rem;
-    font-size: 1rem;
-  }
-  
-  .skill-effects ul, 
-  .skill-prerequisites ul {
-    margin: 0 0 0.5rem;
-    padding-left: 1.5rem;
-  }
-  
-  .skill-effects li, 
-  .skill-prerequisites li {
-    margin-bottom: 0.25rem;
-  }
-  
-  .skill-unlocked-label {
-    display: inline-block;
-    background-color: var(--st-unlocked);
-    color: black;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-top: 0.5rem;
-  }
-  
-  .skill-locked-label {
-    display: inline-block;
-    background-color: var(--st-locked);
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-top: 0.5rem;
-    opacity: 0.7;
-  }
-  
-  /* Action Buttons */
-  .action-buttons {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid var(--st-border-color);
-  }
-  
-  .action-button {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    background-color: var(--st-highlight);
-    color: white;
+  /* Buttons */
+  .action-button, .control-button {
+    padding: 8px 16px;
     border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    border-radius: 4px;
     font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
   }
   
-  .action-button:hover {
-    background-color: #2d4dd6;
+  .action-button:hover, .control-button:hover {
+    transform: translateY(-2px);
+  }
+  
+  .action-button:active, .control-button:active {
+    transform: translateY(0);
   }
   
   .unlock-button {
-    background-color: var(--st-clinical-color);
-    color: black;
-    margin-top: 0.5rem;
+    background-color: #3a5fe3;
+    color: white;
   }
   
   .unlock-button:hover {
-    background-color: #25d95c;
+    background-color: #2a4fd3;
   }
   
-  .back-button {
-    background-color: transparent;
-    border: 1px solid var(--st-border-color);
+  .level-up-button {
+    background-color: #4caf50;
+    color: white;
   }
   
-  .back-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  .level-up-button:hover {
+    background-color: #3c9f40;
   }
   
-  .save-button {
-    background-color: var(--st-technical-color);
-    color: black;
+  .reset-button {
+    background-color: #f44336;
+    color: white;
   }
   
-  .save-button:hover {
-    background-color: #e57b25;
-  }
-  
-  /* Loading Overlay */
-  .loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid var(--st-highlight);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-  }
-  
-  /* Animations */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes pulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-  }
-  
-  /* Error Styling */
-  .skill-info-error {
-    padding: 1rem;
-    background-color: rgba(255, 0, 0, 0.2);
-    border: 1px solid #ff5555;
-    border-radius: 4px;
+  .reset-button:hover {
+    background-color: #e53935;
   }
   
   /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .skill-title {
-      font-size: 1.5rem;
+    .skill-tree-container {
+      flex-direction: column;
     }
-    
-    .skill-subtitle {
-      font-size: 0.8rem;
-    }
-    
-    .stat-value {
-      font-size: 1.2rem;
-    }
-    
-    .skill-info-panel {
-      min-height: 120px;
-      max-height: 200px;
-    }
-    
-    .action-buttons {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    
-    .action-button {
-      flex: 1;
-      min-width: 120px;
+  
+    .skill-tree-info-panel {
+      width: 100%;
+      height: 250px;
+      border-left: none;
+      border-top: 1px solid #ddd;
     }
   }

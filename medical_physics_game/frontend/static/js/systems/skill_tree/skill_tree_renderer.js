@@ -1,1 +1,1 @@
-../../../../src/systems/skill_tree/components/skill_tree_renderer.js
+../../../../src/systems/skill_tree/skill_tree_renderer.js

@@ -2,131 +2,60 @@
 
 {% block title %}Skill Tree - Medical Physics Game{% endblock %}
 
-{% block additional_css %}
+{% block stylesheets %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components/skill_tree.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="pixel-container" data-screen="skill-tree">
-    <!-- Animated background elements -->
-    <div class="star-bg" id="star-bg"></div>
-    
-    <div class="skill-tree-container">
-        <h1 class="skill-title">SKILL TREE</h1>
-        <p class="skill-subtitle">Unlock and equip skills to enhance your medical physics journey</p>
-        
-        <!-- Character stats display -->
-        <div class="character-stats-display">
-            <div class="stat-block reputation-block">
-                <div class="stat-label">REPUTATION</div>
-                <div class="stat-value" id="reputation-value">0</div>
-            </div>
-            <div class="stat-block points-block">
-                <div class="stat-label">SKILL POINTS</div>
-                <div class="stat-value" id="skill-points-value">0</div>
-            </div>
-        </div>
-        
-        <!-- Specialization filters -->
-        <div class="specialization-filters" id="skill-tree-controls">
-            <!-- Will be populated by JavaScript -->
-        </div>
-        
-        <!-- Canvas controls -->
-        <div class="skill-tree-controls">
-            <button id="zoom-in-btn" class="canvas-control">+</button>
-            <button id="zoom-out-btn" class="canvas-control">-</button>
-            <button id="reset-view-btn" class="canvas-control">⟳</button>
-        </div>
-        
-        <!-- Skill tree visualization -->
-        <div class="skill-tree-visualization-container">
-            <div id="skill-tree-visualization"></div>
-        </div>
-        
-        <!-- Selected skill information -->
-        <div class="skill-info-panel" id="skill-tree-info">
-            <div class="skill-info-empty">
-                <p>Select a skill to view details</p>
-            </div>
-        </div>
-        
-        <!-- UI elements for unlocking/activating skills -->
-        <div id="skill-tree-ui"></div>
-        
-        <!-- Action buttons -->
-        <div class="action-buttons">
-            <a href="{{ url_for('game') }}" class="action-button back-button">
-                <i class="fas fa-arrow-left"></i> Back to Game
-            </a>
-            <button id="save-progress-btn" class="action-button save-button">
-                <i class="fas fa-save"></i> Save Progress
-            </button>
-        </div>
-    </div>
-    
-    <!-- Visual effects -->
-    <div class="scanlines" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
+<div class="page-header">
+  <h1>Character Skill Tree</h1>
+  <div class="character-info">
+    <span class="character-name">{{ character.name }}</span>
+    <span class="character-class">{{ character.character_class }}</span>
+  </div>
+</div>
+
+<div class="skill-tree-container">
+  <div class="skill-tree-canvas-container">
+    <canvas id="skill-tree-canvas"></canvas>
+    <div id="skill-tree-controls" class="skill-tree-controls"></div>
+  </div>
+  <div id="skill-tree-info" class="skill-tree-info-panel">
+    <div class="info-message">Select a skill to view details</div>
+  </div>
 </div>
 {% endblock %}
 
-{% block additional_js %}
-<!-- Core skill tree components -->
-<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_renderer.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_ui.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_effect_system.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/systems/skill_tree/skill_tree_controller.js') }}" type="module"></script>
-
-<!-- Page integration script -->
-<script src="{{ url_for('static', filename='js/skill_tree_page.js') }}"></script>
-
-<script>
-    // Add event listeners for canvas controls
-    document.addEventListener('DOMContentLoaded', function() {
-        const zoomInBtn = document.getElementById('zoom-in-btn');
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', function() {
-                if (window.SkillTreeRenderer) {
-                    window.SkillTreeRenderer.zoomCanvas(0.1);
-                }
-            });
-        }
-        
-        const zoomOutBtn = document.getElementById('zoom-out-btn');
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', function() {
-                if (window.SkillTreeRenderer) {
-                    window.SkillTreeRenderer.zoomCanvas(-0.1);
-                }
-            });
-        }
-        
-        const resetViewBtn = document.getElementById('reset-view-btn');
-        if (resetViewBtn) {
-            resetViewBtn.addEventListener('click', function() {
-                if (window.SkillTreeRenderer) {
-                    window.SkillTreeRenderer.resetView();
-                }
-            });
-        }
-        
-        const saveProgressBtn = document.getElementById('save-progress-btn');
-        if (saveProgressBtn) {
-            saveProgressBtn.addEventListener('click', function() {
-                if (window.SkillTreeController) {
-                    window.SkillTreeController.saveProgress()
-                        .then(() => {
-                            // Show success message
-                            alert('Progress saved successfully!');
-                        })
-                        .catch(error => {
-                            console.error('Error saving progress:', error);
-                            alert('Failed to save progress. Please try again.');
-                        });
-                }
-            });
-        }
-    });
+{% block scripts %}
+<!-- Import core modules -->
+<script type="module">
+  import skillTreeSystem from "{{ url_for('static', filename='js/systems/skill_tree/index.js') }}";
+  
+  // Initialize the skill tree when the DOM is loaded
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // Get character data from page
+      const characterClass = "{{ character.character_class }}";
+      const characterId = "{{ character.id }}";
+      
+      // Initialize the skill tree
+      await skillTreeSystem.initialize({
+        characterClass,
+        characterId,
+        canvasId: 'skill-tree-canvas',
+        infoPanelId: 'skill-tree-info',
+        controlsId: 'skill-tree-controls'
+      });
+      
+      console.log('Skill tree initialized successfully');
+    } catch (error) {
+      console.error('Error initializing skill tree:', error);
+      document.getElementById('skill-tree-info').innerHTML = `
+        <div class="error-message">
+          Failed to load skill tree: ${error.message}
+        </div>
+      `;
+    }
+  });
 </script>
 {% endblock %}

@@ -1,136 +1,131 @@
-from flask import jsonify, request
-from backend.api.routes import api_bp
-import json
-import os
-from pathlib import Path
+"""
+Skill Tree API Routes for the Medical Physics Game.
+This file defines the API endpoints for skill tree operations.
+"""
+from flask import Blueprint, jsonify, request
 
-# Path to skill tree data files
-DATA_DIR = Path(__file__).resolve().parents[2] / 'data'
-SKILL_TREE_FILE = DATA_DIR / 'skill_tree' / 'skill_tree.json'
+from backend.core.skill_tree_manager import SkillTreeManager
 
-@api_bp.route('/skill-tree', methods=['GET'])
-def get_skill_tree():
-    """Get the skill tree data."""
+# Create blueprint
+skill_tree_bp = Blueprint('skill_tree', __name__, url_prefix='/api/skill-tree')
+
+# Create manager instance
+skill_tree_manager = SkillTreeManager()
+
+
+@skill_tree_bp.route('/<tree_id>', methods=['GET'])
+def get_skill_tree(tree_id):
+    """Get a skill tree by its ID."""
+    tree = skill_tree_manager.get_skill_tree(tree_id)
+    if tree is None:
+        return jsonify({"error": "Skill tree not found"}), 404
+    
+    return jsonify(tree.to_dict())
+
+
+@skill_tree_bp.route('/character/<character_class>/<character_id>', methods=['GET'])
+def get_character_skill_tree(character_class, character_id):
+    """Get or create a skill tree for a character."""
     try:
-        # Check if file exists
-        if not SKILL_TREE_FILE.exists():
-            # Return default data
-            return jsonify({
-                "specializations": [
-                    {
-                        "id": "core",
-                        "name": "Core Competencies",
-                        "description": "Fundamental medical physics knowledge",
-                        "color": "#777777",
-                        "threshold": 4,
-                        "mastery_threshold": 8
-                    },
-                    {
-                        "id": "theory",
-                        "name": "Theory Specialist",
-                        "description": "Focus on physics principles and mathematical understanding",
-                        "color": "#4287f5",
-                        "threshold": 5,
-                        "mastery_threshold": 8
-                    },
-                    {
-                        "id": "clinical",
-                        "name": "Clinical Expert",
-                        "description": "Focus on patient care and treatment application",
-                        "color": "#42f575",
-                        "threshold": 5,
-                        "mastery_threshold": 8
-                    }
-                ],
-                "nodes": [
-                    {
-                        "id": "core_physics",
-                        "name": "Core Physics",
-                        "specialization": "core",
-                        "tier": 0,
-                        "description": "Foundation of medical physics knowledge",
-                        "position": {"x": 400, "y": 250},
-                        "cost": {
-                            "reputation": 0,
-                            "skill_points": 0
-                        },
-                        "effects": []
-                    }
-                ],
-                "connections": []
-            })
-        
-        # Load skill tree data from file
-        with open(SKILL_TREE_FILE, 'r') as f:
-            skill_tree_data = json.load(f)
-        
-        return jsonify(skill_tree_data)
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        tree = skill_tree_manager.get_skill_tree_for_character(character_class, character_id)
+        return jsonify(tree.to_dict())
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
 
-@api_bp.route('/skill-progress', methods=['GET'])
-def get_skill_progress():
-    """Get the player's skill tree progress."""
-    # In a real implementation, this would load from a database
-    # For now, we'll return some default data
-    
-    # Get character ID from query parameter
-    character_id = request.args.get('character_id', '')
-    
-    # Create a file path for this character's progress
-    character_progress_file = DATA_DIR / 'skill_tree' / 'progress' / f"{character_id}.json"
+
+@skill_tree_bp.route('/<tree_id>/points', methods=['POST'])
+def award_skill_points(tree_id):
+    """Award skill points to a character's skill tree."""
+    data = request.get_json()
+    if not data or 'points' not in data:
+        return jsonify({"error": "Points value required"}), 400
     
     try:
-        # Check if file exists
-        if not character_progress_file.exists():
-            # Return default progress
-            return jsonify({
-                "reputation": 10,
-                "unlocked_skills": ["core_physics"],
-                "active_skills": ["core_physics"],
-                "skill_points_available": 3,
-                "specialization_progress": {
-                    "core": 1,
-                    "theory": 0,
-                    "clinical": 0
-                }
-            })
-        
-        # Load progress from file
-        with open(character_progress_file, 'r') as f:
-            progress_data = json.load(f)
-        
-        return jsonify(progress_data)
+        points = int(data['points'])
+        if points <= 0:
+            return jsonify({"error": "Points must be positive"}), 400
+    except (ValueError, TypeError):
+        return jsonify({"error": "Points must be a valid integer"}), 400
     
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    success = skill_tree_manager.award_skill_points(tree_id, points)
+    if not success:
+        return jsonify({"error": "Failed to award points"}), 404
+    
+    # Get updated tree to return current state
+    tree = skill_tree_manager.get_skill_tree(tree_id)
+    
+    return jsonify({
+        "success": True,
+        "tree_id": tree_id,
+        "points_awarded": points,
+        "available_points": tree.available_points,
+        "total_earned_points": tree.total_earned_points
+    })
 
-@api_bp.route('/skill-progress', methods=['POST'])
-def save_skill_progress():
-    """Save the player's skill tree progress."""
-    try:
-        # Get data from request
-        data = request.get_json()
-        
-        # Get character ID from query parameter
-        character_id = request.args.get('character_id', '')
-        
-        if not character_id:
-            return jsonify({"error": "Character ID is required"}), 400
-        
-        # Create directory if it doesn't exist
-        progress_dir = DATA_DIR / 'skill_tree' / 'progress'
-        os.makedirs(progress_dir, exist_ok=True)
-        
-        # Create a file path for this character's progress
-        character_progress_file = progress_dir / f"{character_id}.json"
-        
-        # Save progress to file
-        with open(character_progress_file, 'w') as f:
-            json.dump(data, f, indent=2)
-        
-        return jsonify({"status": "success"})
+
+@skill_tree_bp.route('/<tree_id>/nodes/<node_id>/unlock', methods=['POST'])
+def unlock_node(tree_id, node_id):
+    """Unlock a skill tree node."""
+    success, result = skill_tree_manager.unlock_node(tree_id, node_id)
     
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    if not success:
+        return jsonify({"success": False, **result}), 400
+    
+    return jsonify({"success": True, **result})
+
+
+@skill_tree_bp.route('/<tree_id>/nodes/<node_id>/level-up', methods=['POST'])
+def level_up_node(tree_id, node_id):
+    """Level up a skill tree node."""
+    success, result = skill_tree_manager.level_up_node(tree_id, node_id)
+    
+    if not success:
+        return jsonify({"success": False, **result}), 400
+    
+    return jsonify({"success": True, **result})
+
+
+@skill_tree_bp.route('/<tree_id>/reset', methods=['POST'])
+def reset_skill_tree(tree_id):
+    """Reset a character's skill tree."""
+    success = skill_tree_manager.reset_skill_tree(tree_id)
+    
+    if not success:
+        return jsonify({"success": False, "error": "Failed to reset skill tree"}), 404
+    
+    # Get updated tree to return current state
+    tree = skill_tree_manager.get_skill_tree(tree_id)
+    
+    return jsonify({
+        "success": True,
+        "tree_id": tree_id,
+        "available_points": tree.available_points
+    })
+
+
+@skill_tree_bp.route('/<tree_id>/effects', methods=['GET'])
+def get_node_effects(tree_id):
+    """Get all active effects from unlocked nodes in a skill tree."""
+    effects = skill_tree_manager.get_node_effects(tree_id)
+    
+    return jsonify({
+        "tree_id": tree_id,
+        "effects": effects
+    })
+
+
+@skill_tree_bp.route('/<tree_id>/effects/<effect_type>/total', methods=['GET'])
+def get_total_effect(tree_id, effect_type):
+    """Get the total value of a specific effect type."""
+    total = skill_tree_manager.calculate_total_effect(tree_id, effect_type)
+    
+    return jsonify({
+        "tree_id": tree_id,
+        "effect_type": effect_type,
+        "total_value": total
+    })
+
+
+def register_routes(app):
+    """Register routes with the Flask app."""
+    app.register_blueprint(skill_tree_bp)

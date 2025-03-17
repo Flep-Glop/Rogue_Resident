@@ -1,10 +1,14 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
+from backend.api.skill_tree_routes import register_routes as register_skill_tree_routes
 import os
 
 def create_app(config_name='development'):
-    app = Flask(__name__, 
+    app = Flask(__name__,
                static_folder='frontend/static',
                template_folder='frontend/templates')
+    
+    # Register skill tree routes
+    register_skill_tree_routes(app)
     
     # Load configuration
     if config_name == 'development':
@@ -65,10 +69,12 @@ def create_app(config_name='development'):
     def character_create():
         """Render the character creation page."""
         return render_template('pages/character_create.html')
+        
     @app.route('/skill-tree')
     def skill_tree():
         """Render the skill tree page."""
         return render_template('pages/skill_tree.html')
+        
     @app.route('/game')
     def game():
         return render_template('pages/game.html')

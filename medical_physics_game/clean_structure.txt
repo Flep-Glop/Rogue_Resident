@@ -178,6 +178,8 @@
 │   │   │   │   │   ├── skill_tree_renderer.js
 │   │   │   │   │   └── skill_tree_ui.js
 │   │   │   │   ├── core
+│   │   │   │   │   ├── atomic_skill_tree_controller.js
+│   │   │   │   │   ├── atomic_skill_tree_renderer.js
 │   │   │   │   │   ├── skill_effect_system.js
 │   │   │   │   │   ├── skill_tree_controller.js
 │   │   │   │   │   ├── skill_tree_data.js
@@ -241,6 +243,7 @@
 │   │   │   │   └── variables.css
 │   │   │   ├── components
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── atomic_skill_tree.css
 │   │   │   │   ├── boss.css
 │   │   │   │   ├── boss_effects.css
 │   │   │   │   ├── character.css
@@ -310,6 +313,12 @@
 │   │       │   ├── event_system.js -> ../../../src/core/event_system.js
 │   │       │   ├── game.js -> ../../../src/core/game.js
 │   │       │   └── state_manager.js -> ../../../src/core/state_manager.js
+│   │       ├── systems
+│   │       │   └── skill_tree
+│   │       │       ├── skill_effect_system.js -> ../../../../src/systems/skill_tree/core/skill_effect_system.js
+│   │       │       ├── skill_tree_controller.js -> ../../../../src/systems/skill_tree/core/skill_tree_controller.js
+│   │       │       ├── skill_tree_renderer.js -> ../../../../src/systems/skill_tree/components/skill_tree_renderer.js
+│   │       │       └── skill_tree_ui.js -> ../../../../src/systems/skill_tree/components/skill_tree_ui.js
 │   │       ├── utils
 │   │       ├── character_assets.js
 │   │       ├── character_creator.js
@@ -322,6 +331,7 @@
 │   │   │   ├── 404.html
 │   │   │   └── 500.html
 │   │   ├── pages
+│   │   │   ├── atomic_skill_tree.html
 │   │   │   ├── character_create.html
 │   │   │   ├── character_select.html
 │   │   │   ├── character_select.html.bak
@@ -465,4 +475,4 @@
 ├── verify_structure.py
 └── wsgi.py
 
-99 directories, 366 files
+101 directories, 374 files

@@ -1,294 +1,247 @@
 """
-Skill Tree Manager Implementation for Medical Physics Game
-
-This implements the skill tree functionality as described in Developer Guide 3.
-It handles:
-- Loading the skill tree structure
-- Checking node prerequisites
-- Unlocking nodes
-- Applying skill effects to character stats
+Skill Tree Manager for the Medical Physics Game.
+This file contains the business logic for skill tree operations.
 """
+from typing import Dict, List, Optional, Tuple
 
-import json
-import os
-from backend.data.models.skill_tree import SkillTreeNode
-from backend.utils.logging import GameLogger
+from backend.data.models.skill_tree import SkillNode, SkillTree
+from backend.data.repositories.skill_tree_repo import SkillTreeRepository
+from backend.core.event_system import EventSystem
 
-logger = GameLogger()
 
 class SkillTreeManager:
-    def __init__(self, character_id):
-        """
-        Initialize the skill tree manager for a specific character
+    """Manager for skill tree operations."""
+    
+    def __init__(self, repository: SkillTreeRepository = None, event_system: EventSystem = None):
+        """Initialize the manager with a repository and event system."""
+        self.repository = repository or SkillTreeRepository()
+        self.event_system = event_system or EventSystem()
+    
+    def get_skill_tree(self, tree_id: str) -> Optional[SkillTree]:
+        """Get a skill tree by its ID."""
+        return self.repository.get_skill_tree_by_id(tree_id)
+    
+    def get_skill_tree_for_character(self, character_class: str, character_id: str) -> SkillTree:
+        """Get or create a skill tree for a character."""
+        # Try to load an existing tree
+        tree_id = f"{character_class}_{character_id}"
+        tree = self.repository.get_skill_tree_by_id(tree_id)
         
-        Args:
-            character_id (str): The unique identifier for the character
-        """
-        self.character_id = character_id
-        self.nodes = self._load_skill_tree()
-        self._load_character_data()
-        
-    def _load_skill_tree(self):
-        """Load the skill tree structure from the data file"""
-        from backend.data.repositories.skill_tree_repo import SkillTreeRepository
-        
-        try:
-            return SkillTreeRepository.get_skill_tree()
-        except Exception as e:
-            logger.error(f"Error loading skill tree: {str(e)}")
-            return []
+        if tree is None:
+            # Create a new tree based on the template for this class
+            template = self.repository.get_skill_tree_by_character_class(character_class)
+            if template is None:
+                # If no template exists, create the defaults and try again
+                self.repository.create_default_skill_trees()
+                template = self.repository.get_skill_tree_by_character_class(character_class)
             
-    def _load_character_data(self):
-        """Load character data, including unlocked skills"""
-        from backend.data.repositories.character_repo import CharacterRepository
-        
-        try:
-            self.character = CharacterRepository.get_character_by_id(self.character_id)
-            if not hasattr(self.character, 'unlocked_skills'):
-                self.character.unlocked_skills = []
-            self.unlocked_nodes = self.character.unlocked_skills
-        except Exception as e:
-            logger.error(f"Error loading character data: {str(e)}")
-            self.character = None
-            self.unlocked_nodes = []
+            # Still couldn't find a template
+            if template is None:
+                raise ValueError(f"No skill tree template found for character class: {character_class}")
             
-    def get_available_nodes(self):
-        """
-        Get all nodes that the character can potentially unlock
-        
-        Returns:
-            list: A list of node IDs that can be unlocked
-        """
-        available_nodes = []
-        
-        for node in self.nodes:
-            # Skip already unlocked nodes
-            if node.id in self.unlocked_nodes:
-                continue
-                
-            # Check if prerequisites are met
-            if self.are_prerequisites_met(node.id):
-                available_nodes.append(node.id)
-                
-        return available_nodes
-        
-    def are_prerequisites_met(self, node_id):
-        """
-        Check if all prerequisites for a node are unlocked
-        
-        Args:
-            node_id (str): The ID of the node to check
+            # Create a new instance from template
+            tree = SkillTree(
+                id=tree_id,
+                name=f"{template.name} - {character_id}",
+                description=template.description,
+                character_class=character_class,
+                nodes={node_id: SkillNode(**node.__dict__) for node_id, node in template.nodes.items()}
+            )
             
-        Returns:
-            bool: True if all prerequisites are met, False otherwise
-        """
-        # Find the node
-        node = next((n for n in self.nodes if n.id == node_id), None)
+            # Unlock starting nodes
+            for node_id, node in tree.nodes.items():
+                if not node.prerequisites:
+                    node.unlocked = True
+                    node.level = 1
+            
+            # Save the new tree
+            self.repository.save_skill_tree(tree)
         
-        if not node:
-            logger.warning(f"Node {node_id} not found in skill tree")
+        return tree
+    
+    def award_skill_points(self, tree_id: str, points: int) -> bool:
+        """Award skill points to a character's skill tree."""
+        tree = self.repository.get_skill_tree_by_id(tree_id)
+        if tree is None:
             return False
-            
-        # If no prerequisites, always available
-        if not node.prerequisites:
-            return True
-            
-        # Check if all prerequisites are in unlocked nodes
-        return all(prereq in self.unlocked_nodes for prereq in node.prerequisites)
         
-    def can_unlock_node(self, node_id):
-        """
-        Check if a node can be unlocked (prerequisites met and enough skill points)
+        tree.add_points(points)
+        self.repository.save_skill_tree(tree)
         
-        Args:
-            node_id (str): The ID of the node to check
-            
-        Returns:
-            bool: True if the node can be unlocked, False otherwise
-        """
-        # Check if node exists
-        node = next((n for n in self.nodes if n.id == node_id), None)
-        if not node:
-            logger.warning(f"Node {node_id} not found in skill tree")
-            return False
-            
-        # Check if already unlocked
-        if node_id in self.unlocked_nodes:
-            return False
-            
-        # Check prerequisites
-        if not self.are_prerequisites_met(node_id):
-            return False
-            
-        # Check if enough skill points
-        if not self.character or self.character.skill_points < node.cost:
-            return False
-            
-        return True
-        
-    def unlock_node(self, node_id):
-        """
-        Unlock a skill tree node for the character
-        
-        Args:
-            node_id (str): The ID of the node to unlock
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        if not self.can_unlock_node(node_id):
-            return False
-            
-        # Find the node
-        node = next((n for n in self.nodes if n.id == node_id), None)
-        
-        # Deduct skill points
-        self.character.skill_points -= node.cost
-        
-        # Add to unlocked nodes
-        self.unlocked_nodes.append(node_id)
-        self.character.unlocked_skills = self.unlocked_nodes
-        
-        # Apply effects
-        self._apply_node_effects(node)
-        
-        # Save character
-        from backend.data.repositories.character_repo import CharacterRepository
-        CharacterRepository.update_character(self.character)
-        
-        logger.info(f"Character {self.character_id} unlocked skill node {node_id}")
+        # Fire event
+        self.event_system.emit("skill_points_awarded", {
+            "tree_id": tree_id,
+            "points_awarded": points,
+            "total_points": tree.available_points
+        })
         
         return True
-        
-    def _apply_node_effects(self, node):
-        """
-        Apply the effects of a node to the character
-        
-        Args:
-            node (SkillTreeNode): The node whose effects should be applied
-        """
-        if not node.effects:
-            return
-            
-        for effect in node.effects:
-            effect_type = effect.get('type')
-            effect_value = effect.get('value')
-            
-            # Handle different effect types
-            if effect_type == 'diagnosis_accuracy':
-                if not hasattr(self.character, 'stats'):
-                    self.character.stats = {}
-                if 'diagnosis_accuracy' not in self.character.stats:
-                    self.character.stats['diagnosis_accuracy'] = 0
-                self.character.stats['diagnosis_accuracy'] += effect_value
-            
-            elif effect_type == 'treatment_effectiveness':
-                if not hasattr(self.character, 'stats'):
-                    self.character.stats = {}
-                if 'treatment_effectiveness' not in self.character.stats:
-                    self.character.stats['treatment_effectiveness'] = 0
-                self.character.stats['treatment_effectiveness'] += effect_value
-            
-            elif effect_type == 'max_hp':
-                self.character.max_hp += effect_value
-                # Also increase current HP
-                self.character.current_hp += effect_value
-            
-            elif effect_type == 'reveal_hidden_info':
-                if not hasattr(self.character, 'abilities'):
-                    self.character.abilities = []
-                self.character.abilities.append({
-                    'id': 'reveal_hidden_info',
-                    'name': 'Reveal Hidden Information',
-                    'description': 'Reveals hidden information in patient cases',
-                    'effect': effect_value
-                })
-            
-            # Additional effect types can be handled here
-            
-        logger.info(f"Applied effects of node {node.id} to character {self.character_id}")
     
-    def get_node_details(self, node_id):
-        """
-        Get detailed information about a specific node
+    def unlock_node(self, tree_id: str, node_id: str) -> Tuple[bool, Optional[Dict]]:
+        """Unlock a skill tree node for a character."""
+        tree = self.repository.get_skill_tree_by_id(tree_id)
+        if tree is None:
+            return False, {"error": "Skill tree not found"}
         
-        Args:
-            node_id (str): The ID of the node
+        if not tree.can_unlock_node(node_id):
+            # Check specific reasons for failure
+            node = tree.get_node(node_id)
+            if not node:
+                return False, {"error": "Node not found"}
+            if node.unlocked:
+                return False, {"error": "Node already unlocked"}
+            if tree.available_points < node.cost:
+                return False, {"error": "Not enough skill points"}
             
-        Returns:
-            dict: Node details including status (unlocked/available/locked)
-        """
-        # Find the node
-        node = next((n for n in self.nodes if n.id == node_id), None)
-        
-        if not node:
-            return None
+            # Check prerequisites
+            missing_prereqs = []
+            for prereq_id in node.prerequisites:
+                prereq = tree.get_node(prereq_id)
+                if not prereq or not prereq.unlocked:
+                    missing_prereqs.append(prereq_id)
             
-        # Determine status
-        if node_id in self.unlocked_nodes:
-            status = 'unlocked'
-        elif self.can_unlock_node(node_id):
-            status = 'available'
-        else:
-            status = 'locked'
+            if missing_prereqs:
+                return False, {"error": "Missing prerequisites", "missing": missing_prereqs}
             
-        # Convert node to dictionary
-        node_dict = {
-            'id': node.id,
-            'name': node.name,
-            'description': node.description,
-            'cost': node.cost,
-            'prerequisites': node.prerequisites,
-            'effects': node.effects,
-            'category': node.category,
-            'position': node.position,
-            'icon': node.icon,
-            'status': status
-        }
+            return False, {"error": "Cannot unlock node"}
         
-        return node_dict
-    
-    def get_skill_tree_data(self):
-        """
-        Get the complete skill tree data for UI rendering
-        
-        Returns:
-            dict: Complete skill tree data including node statuses
-        """
-        nodes_data = []
-        
-        for node in self.nodes:
-            # Determine status
-            if node.id in self.unlocked_nodes:
-                status = 'unlocked'
-            elif self.can_unlock_node(node.id):
-                status = 'available'
-            else:
-                status = 'locked'
-                
-            nodes_data.append({
-                'id': node.id,
-                'name': node.name,
-                'description': node.description,
-                'cost': node.cost,
-                'prerequisites': node.prerequisites,
-                'category': node.category,
-                'position': node.position,
-                'icon': node.icon,
-                'status': status
+        # Unlock the node
+        success = tree.unlock_node(node_id)
+        if success:
+            self.repository.save_skill_tree(tree)
+            
+            # Get the node and its effects for the event
+            node = tree.get_node(node_id)
+            
+            # Fire event
+            self.event_system.emit("skill_node_unlocked", {
+                "tree_id": tree_id,
+                "node_id": node_id,
+                "node_name": node.name,
+                "node_level": node.level,
+                "effects": node.effects
             })
             
-        # Create connections data
-        connections = []
-        for node in self.nodes:
-            for prereq in node.prerequisites:
-                connections.append({
-                    'from': prereq,
-                    'to': node.id
-                })
-                
-        return {
-            'nodes': nodes_data,
-            'connections': connections,
-            'skill_points': self.character.skill_points if self.character else 0
-        }
+            return True, {
+                "node": tree.get_node(node_id).__dict__,
+                "available_points": tree.available_points
+            }
+        
+        return False, {"error": "Failed to unlock node"}
+    
+    def level_up_node(self, tree_id: str, node_id: str) -> Tuple[bool, Optional[Dict]]:
+        """Level up a skill tree node for a character."""
+        tree = self.repository.get_skill_tree_by_id(tree_id)
+        if tree is None:
+            return False, {"error": "Skill tree not found"}
+        
+        if not tree.can_level_up_node(node_id):
+            # Check specific reasons for failure
+            node = tree.get_node(node_id)
+            if not node:
+                return False, {"error": "Node not found"}
+            if not node.unlocked:
+                return False, {"error": "Node not unlocked yet"}
+            if node.level >= node.max_level:
+                return False, {"error": "Node already at max level"}
+            if tree.available_points < node.cost:
+                return False, {"error": "Not enough skill points"}
+            
+            return False, {"error": "Cannot level up node"}
+        
+        # Level up the node
+        success = tree.level_up_node(node_id)
+        if success:
+            self.repository.save_skill_tree(tree)
+            
+            # Get the node for the event
+            node = tree.get_node(node_id)
+            
+            # Fire event
+            self.event_system.emit("skill_node_leveled_up", {
+                "tree_id": tree_id,
+                "node_id": node_id,
+                "node_name": node.name,
+                "node_level": node.level,
+                "effects": node.effects
+            })
+            
+            return True, {
+                "node": tree.get_node(node_id).__dict__,
+                "available_points": tree.available_points
+            }
+        
+        return False, {"error": "Failed to level up node"}
+    
+    def reset_skill_tree(self, tree_id: str) -> bool:
+        """Reset a character's skill tree, refunding all spent points."""
+        tree = self.repository.get_skill_tree_by_id(tree_id)
+        if tree is None:
+            return False
+        
+        # Calculate spent points
+        spent_points = 0
+        for node in tree.nodes.values():
+            if node.unlocked:
+                spent_points += node.cost * node.level
+        
+        # Reset all nodes
+        for node in tree.nodes.values():
+            if not node.prerequisites:  # Keep starting nodes unlocked
+                node.level = 1
+            else:
+                node.unlocked = False
+                node.level = 0
+        
+        # Refund points
+        tree.available_points = tree.total_earned_points
+        
+        # Save the updated tree
+        self.repository.save_skill_tree(tree)
+        
+        # Fire event
+        self.event_system.emit("skill_tree_reset", {
+            "tree_id": tree_id,
+            "refunded_points": spent_points,
+            "available_points": tree.available_points
+        })
+        
+        return True
+    
+    def get_node_effects(self, tree_id: str) -> Dict[str, List[Dict]]:
+        """Get all active effects from unlocked nodes in a skill tree."""
+        tree = self.repository.get_skill_tree_by_id(tree_id)
+        if tree is None:
+            return {}
+        
+        effects = {}
+        for node_id, node in tree.nodes.items():
+            if node.unlocked and node.level > 0:
+                for effect in node.effects:
+                    effect_type = effect.get("type")
+                    if effect_type not in effects:
+                        effects[effect_type] = []
+                    
+                    # Scale effect by node level if appropriate
+                    scaled_effect = effect.copy()
+                    if "value" in scaled_effect:
+                        scaled_effect["value"] = scaled_effect["value"] * node.level
+                    
+                    scaled_effect["source_node"] = node_id
+                    scaled_effect["source_name"] = node.name
+                    effects[effect_type].append(scaled_effect)
+        
+        return effects
+    
+    def calculate_total_effect(self, tree_id: str, effect_type: str) -> float:
+        """Calculate the total value of a specific effect type from all nodes."""
+        effects = self.get_node_effects(tree_id)
+        if effect_type not in effects:
+            return 0
+        
+        total = 0
+        for effect in effects[effect_type]:
+            if "value" in effect:
+                total += effect["value"]
+        
+        return total

@@ -1,1 +1,1 @@
-../../../../src/systems/skill_tree/core/skill_tree_controller.js
+../../../../src/systems/skill_tree/skill_tree_controller.js
