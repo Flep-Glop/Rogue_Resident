@@ -1,0 +1,515 @@
+/* Skill Tree CSS */
+
+:root {
+    /* Skill tree specific colors */
+    --skill-primary: #5b8dd9;
+    --skill-secondary: #56b886;
+    --skill-locked: #444;
+    --skill-unlockable: #8a6cd9;
+    --skill-unlocked: #f0c866;
+    --skill-active: #56b886;
+    --skill-node-size: 50px;
+    --tooltip-bg: rgba(30, 34, 50, 0.95);
+  }
+  
+  /* Main container */
+  .skill-tree-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Title and subtitle */
+  .skill-title {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    color: #8aaceb;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(91, 141, 217, 0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  
+  .skill-subtitle {
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
+    color: var(--color-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Stats display */
+  .character-stats-display {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stat-block {
+    background-color: rgba(12, 14, 24, 0.8);
+    border: 1px solid rgba(91, 141, 217, 0.3);
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .stat-label {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    color: var(--skill-primary);
+    letter-spacing: 2px;
+  }
+  
+  .reputation-block .stat-value {
+    color: var(--skill-unlockable);
+  }
+  
+  .points-block .stat-value {
+    color: var(--skill-active);
+  }
+  
+  /* Specialization filters */
+  .specialization-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .specialization-filter {
+    padding: 0.5rem 1rem;
+    background-color: rgba(30, 34, 50, 0.7);
+    border: 1px solid rgba(91, 141, 217, 0.3);
+    border-radius: 30px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .specialization-filter.active {
+    background-color: rgba(91, 141, 217, 0.3);
+    color: white;
+    border-color: var(--skill-primary);
+  }
+  
+  /* Skill tree visualization container */
+  .skill-tree-visualization-container {
+    background-color: rgba(12, 14, 24, 0.7);
+    border: 1px solid rgba(91, 141, 217, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    height: 500px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #skill-tree-visualization {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  
+  /* Skill info panel */
+  .skill-info-panel {
+    background-color: rgba(12, 14, 24, 0.7);
+    border: 1px solid rgba(91, 141, 217, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 150px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .skill-info-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--color-text-muted);
+  }
+  
+  .skill-info-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .skill-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(91, 141, 217, 0.3);
+  }
+  
+  .skill-info-name {
+    font-size: 1.2rem;
+    color: var(--skill-primary);
+  }
+  
+  .skill-info-specialization {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 30px;
+    color: var(--color-text-muted);
+  }
+  
+  .skill-info-description {
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+  
+  .skill-info-effects {
+    margin-bottom: 1rem;
+  }
+  
+  .skill-info-costs {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    border-radius: 5px;
+  }
+  
+  .skill-info-cost {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .cost-label {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+  
+  .cost-value {
+    color: var(--skill-unlockable);
+    font-weight: bold;
+  }
+  
+  .cost-value.skill-points {
+    color: var(--skill-active);
+  }
+  
+  /* UI elements */
+  #skill-tree-ui {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .skill-action-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    letter-spacing: 1px;
+  }
+  
+  .unlock-button {
+    background-color: var(--skill-unlockable);
+    color: white;
+  }
+  
+  .activate-button {
+    background-color: var(--skill-active);
+    color: white;
+  }
+  
+  .deactivate-button {
+    background-color: var(--skill-unlocked);
+    color: black;
+  }
+  
+  .skill-action-button:disabled {
+    background-color: var(--skill-locked);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+  
+  /* Skill nodes */
+  .skill-node {
+    position: absolute;
+    width: var(--skill-node-size);
+    height: var(--skill-node-size);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+  }
+  
+  .skill-node-inner {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+  }
+  
+  .skill-node.locked {
+    background-color: var(--skill-locked);
+  }
+  
+  .skill-node.unlockable {
+    background-color: var(--skill-unlockable);
+    animation: pulse 2s infinite;
+  }
+  
+  .skill-node.unlocked {
+    background-color: var(--skill-unlocked);
+  }
+  
+  .skill-node.active {
+    background-color: var(--skill-active);
+    box-shadow: 0 0 15px var(--skill-active);
+  }
+  
+  .skill-node:hover {
+    transform: scale(1.1);
+  }
+  
+  .skill-node.locked:hover {
+    transform: scale(1.05);
+  }
+  
+  .skill-node.locked .skill-node-inner {
+    background-color: var(--skill-locked);
+  }
+  
+  .skill-node-icon {
+    color: white;
+  }
+  
+  /* Connections between nodes */
+  .skill-connection {
+    position: absolute;
+    height: 3px;
+    background-color: var(--skill-locked);
+    z-index: 1;
+    transform-origin: left center;
+  }
+  
+  .skill-connection.active {
+    background-color: var(--skill-active);
+    height: 4px;
+    box-shadow: 0 0 10px var(--skill-active);
+  }
+  
+  .skill-connection.unlocked {
+    background-color: var(--skill-unlocked);
+    height: 3px;
+  }
+  
+  /* Node tooltips */
+  .skill-tooltip {
+    position: absolute;
+    background-color: var(--tooltip-bg);
+    border: 1px solid var(--skill-primary);
+    border-radius: 5px;
+    padding: 0.5rem;
+    width: 200px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 100;
+    font-size: 0.8rem;
+  }
+  
+  .skill-node:hover .skill-tooltip {
+    opacity: 1;
+  }
+  
+  .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .tooltip-name {
+    color: white;
+    font-weight: bold;
+  }
+  
+  .tooltip-spec {
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+  }
+  
+  .tooltip-description {
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+  
+  .tooltip-cost {
+    color: var(--skill-unlockable);
+    font-size: 0.7rem;
+  }
+  
+  /* Action buttons (navigation) */
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .action-button {
+    padding: 0.8rem 1.5rem;
+    font-family: var(--font-main);
+    text-transform: uppercase;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 150px;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--color-bg-light);
+  }
+  
+  .action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Background effects */
+  .star {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: twinkle 4s infinite alternate;
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+  
+  .scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 90;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%, 
+      rgba(0, 0, 0, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    opacity: 0.2;
+  }
+  
+  .vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+      circle at center,
+      transparent 30%,
+      rgba(0, 0, 0, 0.8) 100%
+    );
+    pointer-events: none;
+    z-index: 80;
+  }
+  
+  /* Animations */
+  @keyframes pulse {
+    0% { box-shadow: 0 0 5px var(--skill-unlockable); }
+    50% { box-shadow: 0 0 15px var(--skill-unlockable); }
+    100% { box-shadow: 0 0 5px var(--skill-unlockable); }
+  }
+  
+  /* Loading state */
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid var(--skill-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .character-stats-display {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .specialization-filters {
+      gap: 0.5rem;
+    }
+    
+    .skill-tree-visualization-container {
+      height: 400px;
+    }
+    
+    #skill-tree-ui {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .skill-action-button {
+      width: 100%;
+      max-width: 200px;
+    }
+  }

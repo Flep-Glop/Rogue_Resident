@@ -65,7 +65,10 @@ def create_app(config_name='development'):
     def character_create():
         """Render the character creation page."""
         return render_template('pages/character_create.html')
-    
+    @app.route('/skill-tree')
+    def skill_tree():
+        """Render the skill tree page."""
+        return render_template('pages/skill_tree.html')
     @app.route('/game')
     def game():
         return render_template('pages/game.html')

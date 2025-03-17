@@ -707,6 +707,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    function setupSkillTreeButton() {
+        // Find the skill tree button
+        const skillTreeBtn = document.querySelector('.skill-tree-button');
+        
+        if (skillTreeBtn) {
+            // Update the href attribute to point to the skill tree page
+            skillTreeBtn.href = '/skill-tree';
+            
+            // Add click event handler
+            skillTreeBtn.addEventListener('click', function(e) {
+                // If there's no selected character, prevent navigation
+                const state = CharacterStateManager.getState();
+                if (state.selectedCharacterIndex === null) {
+                    e.preventDefault();
+                    UI.showToast('Please select a character first', 'warning');
+                    return;
+                }
+            });
+            
+            console.log("Skill tree button initialized");
+        }
+    }
+
     // Initialize background effects
     function initBackgroundEffects() {
         // Generate star background
@@ -760,16 +783,169 @@ document.addEventListener('DOMContentLoaded', function() {
             labEnvironment.appendChild(fragmentEquipment);
         }
     }
+    
+    /**
+     * Initialize enhanced visual effects
+     */
+    function initEnhancedVisualEffects() {
+        // Create floating pixels
+        createFloatingPixels();
+        
+        // Create dust particles
+        createDustParticles();
+        
+        // Add character selection flash effect
+        addCharacterSelectionEffects();
+    }
 
-    // Initialize the module
+    /**
+     * Create floating pixels in the background
+     */
+    function createFloatingPixels() {
+        const container = document.querySelector('.character-selection-container');
+        if (!container) return;
+        
+        // Create floating pixels
+        const pixelCount = 15;
+        const colors = [
+            'var(--color-primary-dark)',
+            'var(--color-secondary-dark)',
+            'var(--color-warning)',
+            'var(--color-accent-purple)'
+        ];
+        
+        for (let i = 0; i < pixelCount; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'floating-pixel';
+            
+            // Random position
+            pixel.style.left = `${5 + Math.random() * 90}%`;
+            pixel.style.top = `${10 + Math.random() * 80}%`;
+            
+            // Random size
+            const size = 3 + Math.random() * 12;
+            pixel.style.width = `${size}px`;
+            pixel.style.height = `${size}px`;
+            
+            // Random color
+            pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Random opacity
+            pixel.style.opacity = 0.1 + Math.random() * 0.3;
+            
+            // Random animation delay
+            pixel.style.animationDelay = `${Math.random() * 5}s`;
+            
+            // Random animation duration
+            pixel.style.animationDuration = `${5 + Math.random() * 10}s`;
+            
+            // Add to container
+            container.appendChild(pixel);
+        }
+    }
+
+    /**
+     * Create dust particles in the lower part of the screen
+     */
+    function createDustParticles() {
+        const container = document.querySelector('.character-party-stage');
+        if (!container) return;
+        
+        // Create dust particles
+        const particleCount = 20;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'dust-particle';
+            
+            // Random position
+            particle.style.left = `${Math.random() * 100}%`;
+            
+            // Random size
+            const size = 1 + Math.random() * 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // Random opacity
+            particle.style.opacity = 0.3 + Math.random() * 0.5;
+            
+            // Random animation delay
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            
+            // Random animation duration
+            particle.style.animationDuration = `${7 + Math.random() * 13}s`;
+            
+            // Add to container
+            container.appendChild(particle);
+        }
+    }
+
+    /**
+     * Add character selection flash effect
+     */
+    function addCharacterSelectionEffects() {
+        // Add click effects to character figures
+        const characterFigures = document.querySelectorAll('.character-figure');
+        
+        characterFigures.forEach(figure => {
+            figure.addEventListener('click', function() {
+                // Add screen flash effect
+                const flash = document.createElement('div');
+                flash.className = 'screen-flash';
+                document.body.appendChild(flash);
+                
+                // Remove after animation completes
+                setTimeout(() => {
+                    flash.remove();
+                }, 300);
+            });
+        });
+        
+        // Add click effect to action buttons
+        const actionButtons = document.querySelectorAll('.action-button');
+        
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Don't add effect if button is disabled
+                if (button.disabled) return;
+                
+                // Add subtle screen shake
+                document.body.classList.add('screen-shake');
+                
+                // Remove after a short delay
+                setTimeout(() => {
+                    document.body.classList.remove('screen-shake');
+                }, 500);
+            });
+        });
+    }
+
+    // Add screen shake animation to CSS
+    const style = document.createElement('style');
+    style.textContent = `
+    @keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+    }
+
+    .screen-shake {
+    animation: screenShake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    transform-origin: center center;
+    }`;
+    document.head.appendChild(style);
+
+    // Call the enhanced visual effects in your init() function
     function init() {
         console.log('Initializing Character Selection Screen');
         UI.init();
         CharacterStateManager.init();
+        setupSkillTreeButton();
         
         // Initialize visual effects with a slight delay for better page load
         setTimeout(() => {
             initBackgroundEffects();
+            initEnhancedVisualEffects(); // Add this line
         }, 100);
     }
 

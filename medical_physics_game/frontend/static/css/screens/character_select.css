@@ -879,3 +879,178 @@
     border: 2px solid var(--color-secondary, #56b886);
   }
 }
+/* Visual Enhancements for Character Selection Screen */
+
+/* 1. Animated Background Elements */
+@keyframes float {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.floating-pixel {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--color-primary-dark);
+  opacity: 0.3;
+  border-radius: 2px;
+  z-index: 1;
+  animation: float 8s infinite ease-in-out;
+}
+
+/* 2. Character Selection Improvements */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 5px var(--color-secondary), 0 0 10px var(--color-secondary-dark); }
+  50% { box-shadow: 0 0 15px var(--color-secondary), 0 0 20px var(--color-secondary-dark); }
+  100% { box-shadow: 0 0 5px var(--color-secondary), 0 0 10px var(--color-secondary-dark); }
+}
+
+@keyframes bob {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+.character-figure.selected .character-avatar {
+  animation: pulse-glow 3s infinite, bob 2s infinite ease-in-out;
+}
+
+.character-avatar img {
+  transition: transform 0.3s ease;
+}
+
+.character-avatar:hover img {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* 3. UI Polish for stat bars */
+.stat-bar-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.1) 50%, 
+    rgba(255,255,255,0) 100%);
+  transform: translateX(-100%);
+  animation: stat-shine 2s infinite;
+}
+
+@keyframes stat-shine {
+  100% { transform: translateX(100%); }
+}
+
+/* 4. Visual Feedback Effects */
+@keyframes screen-flash {
+  0% { background-color: rgba(255,255,255,0); }
+  10% { background-color: rgba(255,255,255,0.1); }
+  100% { background-color: rgba(255,255,255,0); }
+}
+
+.screen-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  animation: screen-flash 0.3s forwards;
+}
+
+/* 5. Atmospheric Elements */
+.dust-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  bottom: 20%;
+  opacity: 0;
+  animation: dust-float 10s infinite linear;
+}
+
+@keyframes dust-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(-100px) translateX(50px); opacity: 0; }
+}
+
+/* Enhanced CRT effect */
+.crt-effect::before {
+  content: '';
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.crt-effect::after {
+  content: '';
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(10, 0, 20, 0.11) 0%, 
+    rgba(10, 0, 20, 0.11) 2%, 
+    rgba(10, 0, 20, 0.05) 3%, 
+    rgba(10, 0, 20, 0.05) 3%, 
+    rgba(10, 0, 20, 0.02) 10%, 
+    rgba(10, 0, 20, 0.04) 25%, 
+    rgba(10, 0, 20, 0.05) 50%, 
+    rgba(10, 0, 20, 0.02) 70%, 
+    rgba(10, 0, 20, 0.05) 80%, 
+    rgba(10, 0, 20, 0.11) 97%, 
+    rgba(10, 0, 20, 0.11) 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+/* Enhanced Button Effects */
+.action-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.action-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  transition: left 0.7s ease;
+}
+
+.action-button:hover::after {
+  left: 100%;
+}
