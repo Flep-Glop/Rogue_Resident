@@ -1,6 +1,5 @@
 /**
- * visual-effects.js - Enhanced version with all visual features
- * Combines the working physics with visual enhancements
+ * visual-effects.js - Modified with improved shape distribution
  */
 
 // Configuration
@@ -35,6 +34,23 @@ const visualConfig = {
             maxSize: 150,
             opacity: 0.05
         }
+    },
+    
+    // UI protection zone
+    uiProtection: {
+        centerX: 0.5,           // Center X position as ratio of screen width
+        centerY: 0.5,           // Center Y position as ratio of screen height
+        width: 500,             // Width of protected zone in pixels
+        height: 350,            // Height of protected zone in pixels
+        margin: 50              // Extra margin around protected zone
+    },
+    
+    // Distribution settings
+    distribution: {
+        avoidCorners: true,     // Avoid placing shapes in corners
+        cornerRadius: 150,      // Size of corner avoidance zones
+        quadrantBalance: true,  // Try to balance shapes across screen quadrants
+        edgeMargin: 100         // Margin from screen edges
     },
     
     // Color themes
@@ -95,6 +111,7 @@ let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
 let mouseActive = false;
 let lastInteractionTime = 0;
+let screenQuadrants = [0, 0, 0, 0]; // Track shape count in each quadrant
 
 // Initialize the system
 function init() {
@@ -132,6 +149,7 @@ function cleanup() {
     shapes = [];
     staticShapes = [];
     distantShapes = [];
+    screenQuadrants = [0, 0, 0, 0]; // Reset quadrant counts
     
     // Remove existing containers
     const containers = [
@@ -147,6 +165,7 @@ function cleanup() {
 
 // Add CSS styles for animations
 function addAnimationStyles() {
+    // [CSS styles code unchanged]
     if (!document.getElementById('shape-animation-styles')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'shape-animation-styles';
@@ -247,6 +266,7 @@ function addAnimationStyles() {
 
 // Create containers for different types of shapes
 function createContainers() {
+    // [Container creation code unchanged]
     // Static background shapes container
     const staticContainer = document.createElement('div');
     staticContainer.id = 'static-shapes';
@@ -326,17 +346,147 @@ function createAllShapes() {
     }
 }
 
+// Check if a position is in the UI protection zone
+function isInProtectionZone(x, y) {
+    const { uiProtection } = visualConfig;
+    const centerX = window.innerWidth * uiProtection.centerX;
+    const centerY = window.innerHeight * uiProtection.centerY;
+    
+    const halfWidth = uiProtection.width / 2 + uiProtection.margin;
+    const halfHeight = uiProtection.height / 2 + uiProtection.margin;
+    
+    return (
+        x >= centerX - halfWidth &&
+        x <= centerX + halfWidth &&
+        y >= centerY - halfHeight &&
+        y <= centerY + halfHeight
+    );
+}
+
+// Check if position is in a corner
+function isInCorner(x, y) {
+    const { cornerRadius, edgeMargin } = visualConfig.distribution;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Check top-left corner
+    if (x < cornerRadius && y < cornerRadius) return true;
+    
+    // Check top-right corner
+    if (x > width - cornerRadius && y < cornerRadius) return true;
+    
+    // Check bottom-left corner
+    if (x < cornerRadius && y > height - cornerRadius) return true;
+    
+    // Check bottom-right corner
+    if (x > width - cornerRadius && y > height - cornerRadius) return true;
+    
+    // Check if too close to edges
+    if (x < edgeMargin || x > width - edgeMargin || 
+        y < edgeMargin || y > height - edgeMargin) return true;
+    
+    return false;
+}
+
+// Get least populated quadrant
+function getLeastPopulatedQuadrant() {
+    let minIndex = 0;
+    for (let i = 1; i < 4; i++) {
+        if (screenQuadrants[i] < screenQuadrants[minIndex]) {
+            minIndex = i;
+        }
+    }
+    return minIndex;
+}
+
+// Generate a position in a specific quadrant
+function generatePositionInQuadrant(quadrant, size) {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    const margin = visualConfig.distribution.edgeMargin;
+    
+    let x, y;
+    
+    switch (quadrant) {
+        case 0: // Top-left
+            x = margin + Math.random() * (halfWidth - 2 * margin);
+            y = margin + Math.random() * (halfHeight - 2 * margin);
+            break;
+        case 1: // Top-right
+            x = halfWidth + Math.random() * (halfWidth - 2 * margin);
+            y = margin + Math.random() * (halfHeight - 2 * margin);
+            break;
+        case 2: // Bottom-left
+            x = margin + Math.random() * (halfWidth - 2 * margin);
+            y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+            break;
+        case 3: // Bottom-right
+            x = halfWidth + Math.random() * (halfWidth - 2 * margin);
+            y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+            break;
+    }
+    
+    // Ensure we don't place in a corner
+    if (isInCorner(x, y)) {
+        return generatePositionInQuadrant(quadrant, size);
+    }
+    
+    // Avoid UI zone
+    if (isInProtectionZone(x, y)) {
+        return generatePositionInQuadrant(quadrant, size);
+    }
+    
+    // Update quadrant count and return position
+    screenQuadrants[quadrant]++;
+    return { x, y };
+}
+
+// Generate a balanced position for shapes
+function generateBalancedPosition(size) {
+    const { quadrantBalance, avoidCorners } = visualConfig.distribution;
+    
+    if (quadrantBalance) {
+        // Use the least populated quadrant
+        const quadrant = getLeastPopulatedQuadrant();
+        return generatePositionInQuadrant(quadrant, size);
+    } else {
+        // Use completely random position but avoid corners and UI zone
+        let x, y;
+        let attempts = 0;
+        
+        do {
+            x = Math.random() * window.innerWidth;
+            y = Math.random() * window.innerHeight;
+            attempts++;
+            
+            // Prevent infinite loop
+            if (attempts > 50) {
+                break;
+            }
+        } while ((avoidCorners && isInCorner(x, y)) || isInProtectionZone(x, y));
+        
+        // Determine which quadrant this falls into and update counts
+        const quadrant = (x > window.innerWidth / 2 ? 1 : 0) + (y > window.innerHeight / 2 ? 2 : 0);
+        screenQuadrants[quadrant]++;
+        
+        return { x, y };
+    }
+}
+
 // Create a static background shape
 function createStaticShape(container) {
     const config = visualConfig.shapes.static;
     const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
     
+    // Generate balanced position
+    const position = generateBalancedPosition(size);
+    const x = position.x;
+    const y = position.y;
+    
     // Static shapes are always filled
     const color = visualConfig.colors.primary[Math.floor(Math.random() * visualConfig.colors.primary.length)];
-    
-    // Random position
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
     
     // Create shape element
     const shape = document.createElement('div');
@@ -386,13 +536,14 @@ function createLargeDistantShape(container) {
     const config = visualConfig.shapes.distant;
     const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
     
+    // Generate balanced position
+    const position = generateBalancedPosition(size);
+    const x = position.x;
+    const y = position.y;
+    
     // Always hollow
     const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
     const color = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Random position
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
     
     // Create shape element
     const shape = document.createElement('div');
@@ -456,6 +607,11 @@ function createDynamicShape(container) {
     // Size
     const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
     
+    // Generate balanced position
+    const position = generateBalancedPosition(size);
+    const x = position.x;
+    const y = position.y;
+    
     // Color - 1% chance for white, rest normal colors
     let color;
     if (Math.random() < 0.01) {
@@ -463,10 +619,6 @@ function createDynamicShape(container) {
     } else {
         color = visualConfig.colors.primary[Math.floor(Math.random() * visualConfig.colors.primary.length)];
     }
-    
-    // Random position
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
     
     // Determine if shape should be hollow based on size
     let isHollow;
@@ -697,6 +849,23 @@ function updateShapes() {
     requestAnimationFrame(updateShapes);
 }
 
+// Check if a shape is entering the UI protected zone
+function isEnteringProtectedZone(shape) {
+    const { uiProtection } = visualConfig;
+    const centerX = window.innerWidth * uiProtection.centerX;
+    const centerY = window.innerHeight * uiProtection.centerY;
+    
+    const halfWidth = uiProtection.width / 2 + uiProtection.margin;
+    const halfHeight = uiProtection.height / 2 + uiProtection.margin;
+    
+    return (
+        shape.x >= centerX - halfWidth &&
+        shape.x <= centerX + halfWidth &&
+        shape.y >= centerY - halfHeight &&
+        shape.y <= centerY + halfHeight
+    );
+}
+
 // Update physics for a single shape
 function updateShapePhysics(shape) {
     const physics = visualConfig.physics;
@@ -758,6 +927,26 @@ function updateShapePhysics(shape) {
         }
     }
     
+    // Extra repelling force from UI zone
+    if (isEnteringProtectedZone(shape)) {
+        const { uiProtection } = visualConfig;
+        const centerX = window.innerWidth * uiProtection.centerX;
+        const centerY = window.innerHeight * uiProtection.centerY;
+        
+        const dx = shape.x - centerX;
+        const dy = shape.y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            // Calculate stronger repulsion from center of UI zone
+            const repulsionStrength = 0.5; // Adjust as needed
+            
+            // Add velocity away from center
+            shape.velocityX += (dx / distance) * repulsionStrength;
+            shape.velocityY += (dy / distance) * repulsionStrength;
+        }
+    }
+    
     // Apply speed limit
     const speed = Math.sqrt(shape.velocityX * shape.velocityX + shape.velocityY * shape.velocityY);
     if (speed > physics.maxSpeed) {
@@ -802,6 +991,9 @@ function updateShapeTransform(shape) {
 
 // Handle window resize
 function handleResize() {
+    // Reset quadrant counts
+    screenQuadrants = [0, 0, 0, 0];
+    
     // Adjust shape positions proportionally
     shapes.forEach(shape => {
         const widthRatio = window.innerWidth / document.documentElement.clientWidth;
@@ -820,20 +1012,31 @@ function handleResize() {
             shape.y = window.innerHeight * Math.random();
             shape.originY = shape.y;
         }
+        
+        // Update quadrant count
+        const quadrant = (shape.x > window.innerWidth / 2 ? 1 : 0) + 
+                        (shape.y > window.innerHeight / 2 ? 2 : 0);
+        screenQuadrants[quadrant]++;
     });
     
     // Also adjust static and distant shapes
     staticShapes.forEach(shape => {
         if (shape.x > window.innerWidth || shape.y > window.innerHeight) {
-            shape.element.style.left = `${Math.random() * window.innerWidth}px`;
-            shape.element.style.top = `${Math.random() * window.innerHeight}px`;
+            const position = generateBalancedPosition(10); // Assuming a small default size
+            shape.element.style.left = `${position.x}px`;
+            shape.element.style.top = `${position.y}px`;
+            shape.x = position.x;
+            shape.y = position.y;
         }
     });
     
     distantShapes.forEach(shape => {
         if (shape.x > window.innerWidth || shape.y > window.innerHeight) {
-            shape.element.style.left = `${Math.random() * window.innerWidth}px`;
-            shape.element.style.top = `${Math.random() * window.innerHeight}px`;
+            const position = generateBalancedPosition(shape.size);
+            shape.element.style.left = `${position.x - shape.size/2}px`;
+            shape.element.style.top = `${position.y - shape.size/2}px`;
+            shape.x = position.x;
+            shape.y = position.y;
         }
     });
 }
