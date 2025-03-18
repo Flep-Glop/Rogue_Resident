@@ -5,8 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rogue Resident: The Roguelike Study Tool</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Critical CSS for immediate rendering -->
+    <style>
+        /* Include critical.css here for better performance */
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        body {
+            background-color: #292b36;
+            color: #d4dae0;
+            font-family: 'Press Start 2P', cursive, system-ui, sans-serif;
+            line-height: 1.5;
+        }
+        .pixel-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+    <!-- Main CSS with proper import order -->
     <link href="/static/css/main.css" rel="stylesheet">
-    <link href="/static/css/landing-page.css" rel="stylesheet">
 </head>
 <body>
     <div class="pixel-container">
@@ -14,8 +36,9 @@
         <div id="grid-background"></div>
         <div id="pixel-decorations"></div>
         <div class="scanlines"></div>
+        <div class="crt-effect"></div>
         
-        <!-- Solid Title block -->
+        <!-- Title block -->
         <div class="title-block">
             <h1 class="game-title">ROGUE<br>RESIDENT</h1>
             <div id="subtitle-container">
@@ -23,7 +46,7 @@
             </div>
         </div>
         
-        <!-- Enhanced menu buttons -->
+        <!-- Menu buttons -->
         <div class="menu-container">
             <button class="retro-btn start" id="start-game">NEW GAME</button>
             <button class="retro-btn" id="continue-game">CONTINUE</button>
@@ -42,6 +65,10 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Create pixel decorations programmatically
+            const pixelContainer = document.getElementById('pixel-decorations');
+            createPixelDecorations(pixelContainer, 30);
+            
             // Type writer effect for subtitle
             const subtitle = document.querySelector('.subtitle');
             const subtitleText = subtitle.innerText;
@@ -82,6 +109,40 @@
                     window.location.href = '/game';
                 }
             });
+            
+            // Helper function to create pixel decorations
+            function createPixelDecorations(container, count) {
+                const colors = ['#5b8dd9', '#56b886', '#e67e73', '#f0c866', '#d35db3', '#9c77db'];
+                
+                for (let i = 0; i < count; i++) {
+                    const pixel = document.createElement('div');
+                    pixel.className = 'pixel-decoration';
+                    
+                    // Add animation classes based on index
+                    if (i % 3 === 0) {
+                        pixel.classList.add('anim-pixel-float');
+                    } else if (i % 3 === 1) {
+                        pixel.classList.add('anim-pixel-twinkle');
+                    } else {
+                        pixel.classList.add('anim-pixel-combined');
+                    }
+                    
+                    // Set random properties
+                    const size = Math.floor(Math.random() * 6) + 4;
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Apply styles
+                    pixel.style.width = `${size}px`;
+                    pixel.style.height = `${size}px`;
+                    pixel.style.backgroundColor = color;
+                    pixel.style.left = `${x}%`;
+                    pixel.style.top = `${y}%`;
+                    
+                    container.appendChild(pixel);
+                }
+            }
         });
     </script>
 </body>
