@@ -119,16 +119,20 @@
     // Get all nodes
     const allNodes = GameState.getAllNodes();
     
-    // Get current floor for theming
+    // Get current floor
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
-    const patternIndex = Math.min(currentFloor - 1, this.backgroundPatterns.length - 1);
-    const pattern = this.backgroundPatterns[patternIndex];
+    
+    // Set canvas dimensions only if needed
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
     
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw enhanced grid background
-    this.drawEnhancedGridBackground(ctx, canvas.width, canvas.height, pattern);
+    // Draw background
+    this.drawEnhancedBackground(ctx, canvas.width, canvas.height);
     
     // Draw floor title
     this.drawFloorTitle(ctx, currentFloor);
@@ -136,7 +140,7 @@
     // Draw connections between nodes
     this.drawHexagonalConnections(ctx, allNodes, canvas.width, canvas.height);
     
-    // Draw all nodes with hexagonal styling
+    // Draw all nodes
     allNodes.forEach(node => {
       this.drawHexagonalNode(ctx, node, canvas.width, canvas.height);
     });
@@ -145,27 +149,26 @@
   /**
    * Draw enhanced grid background
    */
-  MapRenderer.drawEnhancedGridBackground = function(ctx, width, height, pattern) {
-    // Fill with main background color
-    ctx.fillStyle = '#1a1f2e'; // Darker blue background like in Image 3
+  MapRenderer.drawEnhancedBackground = function(ctx, width, height) {
+    // Fill with dark blue background like in image
+    ctx.fillStyle = '#1a1f2e';
     ctx.fillRect(0, 0, width, height);
     
     // Draw grid with subtle lines
-    const gridSize = this.hexagonalConfig.gridSize;
-    ctx.strokeStyle = '#2a3040'; // Subtle grid lines
+    ctx.strokeStyle = '#2a3040';
     ctx.lineWidth = 1;
     
     // Draw horizontal grid lines
-    for (let y = 0; y < height; y += gridSize) {
+    for (let y = 0; y < height; y += 30) {
       ctx.beginPath();
-      ctx.moveTo(0, y + 0.5); // 0.5 offset for crisp lines
+      ctx.moveTo(0, y + 0.5);
       ctx.lineTo(width, y + 0.5);
       ctx.globalAlpha = 0.4;
       ctx.stroke();
     }
     
     // Draw vertical grid lines
-    for (let x = 0; x < width; x += gridSize) {
+    for (let x = 0; x < width; x += 30) {
       ctx.beginPath();
       ctx.moveTo(x + 0.5, 0);
       ctx.lineTo(x + 0.5, height);
@@ -182,7 +185,7 @@
   MapRenderer.drawFloorTitle = function(ctx, floorNumber) {
     ctx.save();
     
-    // Position at top left like in Image 3
+    // Position matching the image
     const textX = 20;
     const textY = 40;
     
@@ -193,14 +196,7 @@
     ctx.textBaseline = 'middle';
     ctx.fillText(`FLOOR MAP`, textX, textY);
     
-    // Add floor number as subtitle if beyond floor 1
-    if (floorNumber > 1) {
-      ctx.font = '16px "Press Start 2P", monospace';
-      ctx.fillStyle = '#56b886'; // Green subtitle
-      ctx.fillText(`FLOOR ${floorNumber}`, textX, textY + 30);
-    }
-    
-    // Add horizontal line below title
+    // Add horizontal line below title matching image
     ctx.strokeStyle = '#5b8dd9';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -240,29 +236,16 @@
         const endPos = nodePositions[targetId];
         if (!endPos) return;
         
-        // Determine path style based on node states
-        let pathColor, pathWidth, pathAlpha;
+        // Determine path style - simplified to match image
+        let pathColor, pathWidth;
         
-        if (node.visited && targetNode.visited) {
-          // Completed path
-          pathColor = '#56b886'; // Green
-          pathWidth = 3;
-          pathAlpha = 0.7;
-        } else if (node.visited && targetNode.state === NODE_STATE.AVAILABLE) {
-          // Available path
-          pathColor = '#5b8dd9'; // Blue
-          pathWidth = 3;
-          pathAlpha = 0.9;
-        } else if (node.state === NODE_STATE.CURRENT || targetNode.state === NODE_STATE.CURRENT) {
-          // Current node path
-          pathColor = '#e67e73'; // Red
-          pathWidth = 3;
-          pathAlpha = 0.9;
-        } else {
-          // Inactive path
-          pathColor = '#3a4050'; // Dark gray
-          pathWidth = 2;
-          pathAlpha = 0.5;
+        pathColor = '#3d5173'; // Default blue-gray path
+        pathWidth = 3;
+        
+        // Active paths are slightly brighter blue
+        if ((node.visited || node.state === NODE_STATE.CURRENT) && 
+            (targetNode.state === NODE_STATE.AVAILABLE || targetNode.state === NODE_STATE.CURRENT)) {
+          pathColor = '#5b8dd9';
         }
         
         // Draw the path
@@ -271,9 +254,7 @@
         ctx.lineTo(endPos.x, endPos.y);
         ctx.strokeStyle = pathColor;
         ctx.lineWidth = pathWidth;
-        ctx.globalAlpha = pathAlpha;
         ctx.stroke();
-        ctx.globalAlpha = 1.0;
       });
     });
   };
@@ -284,25 +265,26 @@
   MapRenderer.calculateHexNodePosition = function(node, width, height) {
     if (!node.position) return { x: 0, y: 0 };
     
-    // Get all nodes in this row to determine centering
+    // Get all nodes in this row for determining centering
     const nodesInRow = this.getNodesInRow(node.position.row);
     const nodeCount = nodesInRow.length;
     
     // Calculate horizontal spacing for this row
-    const rowWidth = nodeCount * this.hexagonalConfig.colSpacing;
-    const startX = (width - rowWidth) / 2 + this.hexagonalConfig.colSpacing / 2;
+    const rowWidth = nodeCount * 150; // Wider spacing to match image
+    const startX = (width - rowWidth) / 2 + 75;
     
-    // Find node's position in row (index)
+    // Find node's position in row
     const rowIndex = nodesInRow.indexOf(node);
     
     // Calculate the x position (centered in row)
-    const x = startX + rowIndex * this.hexagonalConfig.colSpacing;
+    const x = startX + rowIndex * 150;
     
-    // Calculate the y position
-    const y = this.hexagonalConfig.paddingTop + node.position.row * this.hexagonalConfig.rowSpacing;
+    // Calculate the y position - more vertical spacing to match image
+    const y = 150 + node.position.row * 120;
     
     return { x, y };
   };
+  
   
   /**
    * Draw a hexagonal node
@@ -316,111 +298,90 @@
     const y = pos.y;
     
     // Determine node size based on type
-    let nodeSize = this.hexagonalConfig.nodeSize;
+    let nodeSize = 30; // Default size to match image
     if (node.type === 'boss') {
-      nodeSize *= 1.2;
+      nodeSize *= 1.1; // Slightly larger for boss
     } else if (node.type === 'start') {
-      nodeSize *= 1.1;
+      nodeSize *= 1.1; // Slightly larger for start
     }
     
     // Determine colors based on node type and state
     let fillColor, borderColor, textColor;
     
     // Get base color from node type
-    fillColor = NodeRegistry.getNodeType(node.type).color || '#999999';
-    
-    // Adjust based on state
-    if (node.state === NODE_STATE.CURRENT) {
-      borderColor = '#FFFFFF';
-      textColor = '#FFFFFF';
-    } else if (node.state === NODE_STATE.COMPLETED) {
-      borderColor = '#56b886'; // Green border for completed
-      textColor = '#FFFFFF';
-      fillColor = this.adjustColorBrightness(fillColor, -20); // Darker fill
-    } else if (node.state === NODE_STATE.AVAILABLE) {
-      borderColor = '#FFFFFF';
-      textColor = '#FFFFFF';
-    } else {
-      borderColor = '#3a4050'; // Dark border for locked
-      textColor = '#FFFFFF';
-      fillColor = this.adjustColorBrightness(fillColor, -40); // Much darker fill
+    switch (node.type) {
+      case 'start':
+        fillColor = '#56b886'; // Green
+        break;
+      case 'boss':
+        fillColor = '#e67e73'; // Red
+        break;
+      case 'question':
+        fillColor = '#5b8dd9'; // Blue
+        break;
+      case 'elite':
+        fillColor = '#9c77db'; // Purple
+        break;
+      case 'treasure':
+        fillColor = '#5bbcd9'; // Light blue
+        break;
+      case 'rest':
+        fillColor = '#f0c866'; // Yellow
+        break;
+      default:
+        fillColor = NodeRegistry.getNodeType(node.type).color || '#999999';
     }
     
-    // Draw the hexagon shape - flat-top orientation
+    borderColor = 'white'; // White border for all nodes
+    textColor = 'white'; // White text for all nodes
+    
+    // Dimmer for locked nodes
+    if (node.state !== NODE_STATE.AVAILABLE && 
+        node.state !== NODE_STATE.CURRENT && 
+        node.state !== NODE_STATE.COMPLETED) {
+      fillColor = this.adjustColorBrightness(fillColor, -40);
+      borderColor = '#3a4050';
+    }
+    
     ctx.save();
     
-    // Draw shadow/glow based on state
-    if (node.state === NODE_STATE.AVAILABLE) {
-      // Available nodes get a glow
-      this.drawHexagonalGlow(ctx, x, y, nodeSize, '#5b8dd9', 0.3);
-    } else if (node.state === NODE_STATE.CURRENT) {
-      // Current node gets a brighter glow
-      this.drawHexagonalGlow(ctx, x, y, nodeSize, '#e67e73', 0.5);
-    }
-    
-    // Draw main hexagon shape with pixel-perfect corners
+    // Draw flat-top hexagon to match image
     ctx.beginPath();
-    
-    if (this.hexagonalConfig.pointyTop) {
-      // Pointy-top orientation
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i;
-        const hx = x + nodeSize * Math.cos(angle);
-        const hy = y + nodeSize * Math.sin(angle);
-        
-        if (i === 0) {
-          ctx.moveTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
-        } else {
-          ctx.lineTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
-        }
-      }
-    } else {
-      // Flat-top orientation (like in Image 3)
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - Math.PI / 6;
-        const hx = x + nodeSize * Math.cos(angle);
-        const hy = y + nodeSize * Math.sin(angle);
-        
-        if (i === 0) {
-          ctx.moveTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
-        } else {
-          ctx.lineTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
-        }
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 6;
+      const hx = x + nodeSize * Math.cos(angle);
+      const hy = y + nodeSize * Math.sin(angle);
+      
+      if (i === 0) {
+        ctx.moveTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
+      } else {
+        ctx.lineTo(Math.floor(hx) + 0.5, Math.floor(hy) + 0.5);
       }
     }
-    
     ctx.closePath();
     
     // Fill the hexagon
     ctx.fillStyle = fillColor;
     ctx.fill();
     
-    // Draw border
+    // Draw border - crisp 2px white border
     ctx.strokeStyle = borderColor;
-    ctx.lineWidth = this.hexagonalConfig.borderWidth;
+    ctx.lineWidth = 2;
     ctx.stroke();
     
     // Draw the node symbol/letter in pixel style
     let symbol = this.getNodeSymbol(node.type);
     
-    // Draw pixelated letter in the center
-    if (this.hexagonalConfig.pixelLetters) {
-      ctx.font = 'bold 24px "Press Start 2P", monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = textColor;
-      ctx.fillText(symbol, x, y);
-    } else {
-      // Use regular font as fallback
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = textColor;
-      ctx.fillText(symbol, x, y);
-    }
+    // Draw pixelated letter in the center - exactly as in image
+    ctx.font = 'bold 24px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = textColor;
+    ctx.fillText(symbol, x, y);
     
     ctx.restore();
   };
+  
   
   /**
    * Draw a glow effect for hexagonal nodes
