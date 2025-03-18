@@ -5,24 +5,31 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if pixel-container exists, which is the main container in the landing page
+    const container = document.querySelector('.pixel-container');
+    if (!container) {
+      console.warn('Pixel container not found, background effects disabled');
+      return;
+    }
+    
     // Create and initialize canvas element
     const canvas = document.createElement('canvas');
     canvas.id = 'background-canvas';
     
-    // Apply styles to position canvas behind all content
+    // Apply styles to position canvas behind all content but above the grid background
     Object.assign(canvas.style, {
-      position: 'fixed',
+      position: 'absolute',
       top: 0,
       left: 0,
       width: '100%',
       height: '100%',
-      zIndex: -1,
+      zIndex: 0,
       pointerEvents: 'none', // Allow clicks to pass through
       imageRendering: 'pixelated' // Keep the retro pixel aesthetic
     });
     
-    // Insert canvas as the first element in the body to ensure it's behind everything
-    document.body.insertBefore(canvas, document.body.firstChild);
+    // Insert canvas into the pixel-container before other elements
+    container.insertBefore(canvas, container.firstChild);
     
     const ctx = canvas.getContext('2d');
     
@@ -30,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function setCanvasSize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      
+      // Set canvas background to match the dark blue from the screenshot
+      canvas.style.backgroundColor = '#0f1631';
     }
     setCanvasSize();
     
@@ -43,33 +53,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configuration variables for the visual effects
     const config = {
-      // UI area to protect (center of screen)
+      // UI area to protect (center of screen where game content is)
       uiBox: {
-        get x() { return canvas.width * 0.25; },
-        get y() { return canvas.height * 0.25; },
-        get width() { return canvas.width * 0.5; },
+        get x() { return canvas.width * 0.3; },
+        get y() { return canvas.height * 0.2; },
+        get width() { return canvas.width * 0.4; },
         get height() { return canvas.height * 0.6; }
       },
       colors: {
-        primary: '#5b8dd9',    // Blue
-        secondary: '#56b886',  // Green
+        primary: '#8be8e5',    // Bright cyan (matches the image)
+        secondary: '#5b8dd9',  // Blue
         accent1: '#f0c866',    // Yellow
         accent2: '#d35db3',    // Pink/purple
         accent3: '#9c77db',    // Purple
-        dark: '#292b36'        // Dark background
+        dark: '#0f1631'        // Dark blue background (matches your screenshot)
       },
-      // Max shapes to render for performance
-      maxDynamicShapes: window.innerWidth < 768 ? 15 : 25,
-      maxStaticShapes: window.innerWidth < 768 ? 20 : 35,
-      maxDistantShapes: window.innerWidth < 768 ? 5 : 8,
+      // Reduced number of shapes to avoid overwhelming the grid pattern
+      maxDynamicShapes: window.innerWidth < 768 ? 8 : 15,
+      maxStaticShapes: window.innerWidth < 768 ? 10 : 20,
+      maxDistantShapes: window.innerWidth < 768 ? 3 : 5,
       // Mouse influence distance and force
       mouseInfluenceRadius: 150,
       mouseForce: 0.8,
-      // Prevent shapes from overwhelming the screen
-      minShapeSize: 4,
-      maxShapeSize: 40,
-      distantShapeMinSize: 100,
-      distantShapeMaxSize: 300
+      // Smaller shapes to complement the grid pattern
+      minShapeSize: 3,
+      maxShapeSize: 24,
+      distantShapeMinSize: 80,
+      distantShapeMaxSize: 200
     };
     
     /**
@@ -116,6 +126,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
+        
+        // Increase base alpha to ensure visibility against the dark background
+        alpha = alpha * 1.5;
+        // Cap at 1.0
+        alpha = Math.min(alpha, 1.0);
+        
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
       
@@ -519,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get time for animations
       const time = Date.now() / 1000;
       
+      // Draw grid pattern to maintain the existing look
+      drawGridPattern();
+      
       // Update and draw distant background shapes
       distantShapes.forEach(shape => {
         shape.move();
@@ -543,6 +562,32 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Continue animation loop
       requestAnimationFrame(animate);
+    }
+    
+    // Function to draw the grid pattern as seen in the screenshot
+    function drawGridPattern() {
+      // Set grid line colors and opacity
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      
+      // Define grid size (match the existing grid in your screenshot)
+      const gridSize = 20;
+      
+      // Draw vertical lines
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      
+      // Draw horizontal lines
+      for (let y = 0; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
     }
     
     // Event listeners
@@ -576,6 +621,59 @@ document.addEventListener('DOMContentLoaded', function() {
         createDynamicShape();
       }
     }, 3000);
+    
+    // Add debug message to console to confirm script is running
+    console.log('Rogue Resident background effects initialized');
+    
+    // Add a special floating pixel effect when a button is hovered
+    const buttons = document.querySelectorAll('.retro-btn');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        // Create 5 particles when hovering over buttons
+        for (let i = 0; i < 5; i++) {
+          const x = button.getBoundingClientRect().left + Math.random() * button.offsetWidth;
+          const y = button.getBoundingClientRect().top + Math.random() * button.offsetHeight;
+          
+          // Use button's background color for particles
+          const computedStyle = window.getComputedStyle(button);
+          const color = computedStyle.backgroundColor;
+          
+          // Create a small shape at button position
+          const size = Math.random() * 6 + 4;
+          const options = {
+            x, 
+            y,
+            size,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -Math.random() * 2 - 1, // Float upward
+            alpha: 0.7,
+            color: button.style.backgroundColor || '#5b8dd9'
+          };
+          
+          // Add shape based on random type
+          const shapeType = Math.floor(Math.random() * 4);
+          let shape;
+          
+          switch(shapeType) {
+            case 0: shape = new Circle(options); break;
+            case 1: shape = new Square(options); break;
+            case 2: shape = new Triangle(options); break;
+            case 3: shape = new Diamond(options); break;
+          }
+          
+          // Add to dynamic shapes array
+          dynamicShapes.push(shape);
+          
+          // Remove after animation
+          setTimeout(() => {
+            const index = dynamicShapes.indexOf(shape);
+            if (index > -1) {
+              dynamicShapes.splice(index, 1);
+            }
+          }, 2000);
+        }
+      });
+    });
     
     // For debugging and development
     window.bgEffects = {
