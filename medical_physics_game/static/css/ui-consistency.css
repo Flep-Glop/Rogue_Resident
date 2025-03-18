@@ -1,0 +1,331 @@
+/* ui-consistency.css - Styles for cohesive UI framing across screens
+ * Save this to: medical_physics_game/static/css/ui-consistency.css
+ */
+
+/* ===== SCREEN TRANSITIONS ===== */
+
+/* Transition screen container */
+#screen-transition-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(41, 47, 91, 0.95);
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+  }
+  
+  /* Transition content */
+  .screen-transition-content {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text);
+    opacity: 0;
+    animation: fade-in 0.5s forwards 0.2s;
+  }
+  
+  /* Transition text styles */
+  .transition-title {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0px 0px 10px rgba(91, 141, 217, 0.6);
+  }
+  
+  .transition-subtitle {
+    font-size: 1.5rem;
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .transition-description {
+    font-size: 1rem;
+    color: var(--text);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Scanlines overlay for transition screens */
+  .transition-scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(0, 0, 0, 0.05) 50%
+    );
+    background-size: 100% 4px;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.3;
+    animation: scanline-move 10s linear infinite;
+  }
+  
+  /* ===== ENTRY ANIMATIONS ===== */
+  
+  /* Slide in from left animation */
+  .slide-in-left {
+    animation: slide-in-left 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+  
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Fade in and scale up animation */
+  .fade-in-scale {
+    animation: fade-in-scale 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+  
+  @keyframes fade-in-scale {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* ===== CONSISTENT UI FRAMES ===== */
+  
+  /* Add pixel corners to main game containers */
+  .map-container,
+  .character-stats,
+  #inventory-container,
+  .game-panel {
+    position: relative;
+    background-color: var(--background-alt);
+    border: 2px solid var(--primary);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+  
+  /* Add corner details like in character select */
+  .map-container::before,
+  .map-container::after,
+  .character-stats::before,
+  .character-stats::after,
+  #inventory-container::before,
+  #inventory-container::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--primary);
+    z-index: 1;
+  }
+  
+  /* Top-left corner */
+  .map-container::before,
+  .character-stats::before,
+  #inventory-container::before {
+    top: 0;
+    left: 0;
+    border-top: 2px solid;
+    border-left: 2px solid;
+  }
+  
+  /* Bottom-right corner */
+  .map-container::after,
+  .character-stats::after,
+  #inventory-container::after {
+    bottom: 0;
+    right: 0;
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+  }
+  
+  /* Add pixel-style inner shadow to panels for depth */
+  .character-stats,
+  #inventory-container,
+  .map-container {
+    box-shadow: 
+      inset 0 0 10px rgba(0, 0, 0, 0.3),
+      0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Enhanced header styling for consistent look */
+  .map-container h3,
+  .inventory-title h3 {
+    padding: 0.5rem 1rem;
+    margin: -1px;
+    background-color: var(--dark);
+    color: var(--primary);
+    font-size: var(--font-size-md);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    border-bottom: 2px solid rgba(91, 141, 217, 0.3);
+  }
+  
+  /* Subtle background glow to match character select */
+  .character-stats {
+    background: linear-gradient(
+      to bottom,
+      rgba(91, 141, 217, 0.05) 0%,
+      rgba(41, 43, 54, 0.8) 100%
+    );
+  }
+  
+  /* ===== MAP SCALING & ENHANCEMENT ===== */
+  
+  /* Make map canvas fill container nicely */
+  #floor-map {
+    width: 100% !important; /* Override inline width */
+    height: auto !important; /* Maintain aspect ratio */
+    min-height: 500px; /* Ensure minimum height */
+    display: block;
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: rgba(33, 35, 45, 0.6);
+    border-radius: var(--border-radius-sm);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Enhancement for nodes to match character select aesthetic */
+  .map-node {
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .map-node--available {
+    box-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.3),
+      0 0 20px currentColor;
+  }
+  
+  .map-node--current {
+    box-shadow: 
+      0 0 15px rgba(255, 255, 255, 0.5),
+      0 0 30px currentColor;
+  }
+  
+  /* Make paths more visible */
+  .node-path {
+    height: 4px !important;
+    opacity: 0.8 !important;
+    box-shadow: 0 0 5px currentColor;
+  }
+  
+  .node-path--active {
+    animation: path-pulse 2s infinite;
+  }
+  
+  @keyframes path-pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+  
+  /* ===== SMOOTH HOVER EFFECTS ===== */
+  
+  /* Consistent hover effects across UI elements */
+  .game-btn,
+  .game-option,
+  .inventory-item {
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  }
+  
+  .game-btn:hover,
+  .game-option:hover,
+  .inventory-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* ===== CHARACTER PANEL ENHANCEMENTS ===== */
+  
+  /* Character avatar glow effect similar to selection screen */
+  .character-avatar-container {
+    position: relative;
+  }
+  
+  .character-avatar-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      circle,
+      rgba(91, 141, 217, 0.2) 0%,
+      transparent 70%
+    );
+    z-index: -1;
+  }
+  
+  /* Make ASCII or pixel character more prominent */
+  .ascii-character, 
+  .pixel-character-img {
+    transform: scale(1.2);
+    animation: character-float 3s ease-in-out infinite;
+  }
+  
+  @keyframes character-float {
+    0% { transform: scale(1.2) translateY(0); }
+    50% { transform: scale(1.2) translateY(-4px); }
+    100% { transform: scale(1.2) translateY(0); }
+  }
+  
+  /* Make heart/life icons match the character selection screen */
+  .life-icon {
+    transition: transform 0.3s, filter 0.3s;
+  }
+  
+  .life-icon.active {
+    filter: drop-shadow(0 0 5px rgba(231, 76, 60, 0.7));
+    transform: scale(1.1);
+  }
+  
+  /* Game panel title enhancement */
+  .game-panel__title {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+    text-shadow: 0 0 5px rgba(91, 141, 217, 0.5);
+  }
+  
+  /* ===== RESPONSIVE ADJUSTMENTS ===== */
+  
+  @media (max-width: 768px) {
+    .transition-title {
+      font-size: 1.8rem;
+    }
+    
+    .transition-subtitle {
+      font-size: 1.2rem;
+    }
+    
+    #floor-map {
+      min-height: 350px;
+    }
+    
+    /* Stack columns on small screens */
+    .col-md-3, .col-md-9 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
