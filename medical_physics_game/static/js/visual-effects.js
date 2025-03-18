@@ -356,12 +356,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 300);
 });
 
-// Clean up existing shapes and containers
+// Fix 2: Reset the quadrant counts on init to ensure proper balancing
 function cleanup() {
     shapes = [];
     staticShapes = [];
     distantShapes = [];
-    screenQuadrants = [0, 0, 0, 0]; // Reset quadrant counts
+    
+    // Explicitly set all quadrant counts to 0
+    screenQuadrants = [0, 0, 0, 0];
     
     // Remove existing containers
     const containers = [
@@ -372,6 +374,17 @@ function cleanup() {
     
     containers.forEach(container => {
         if (container) container.remove();
+    });
+    
+    // Also remove debug elements if they exist
+    const debugElements = [
+        document.getElementById('debug-overlay'),
+        document.getElementById('quadrant-lines'),
+        document.getElementById('protection-zone')
+    ];
+    
+    debugElements.forEach(element => {
+        if (element) element.remove();
     });
 }
 
@@ -536,26 +549,43 @@ function createContainers() {
     document.body.appendChild(vignette);
 }
 
-// Create all shape types
+// Fix 6: Override the createAllShapes function to use deterministic shape counts
 function createAllShapes() {
     const staticContainer = document.getElementById('static-shapes');
     const distantContainer = document.getElementById('distant-shapes');
     const shapesContainer = document.getElementById('background-shapes');
     
-    // Create static background shapes
+    // Create static background shapes with balanced distribution
+    console.log("Creating static shapes...");
     for (let i = 0; i < visualConfig.shapes.static.count; i++) {
         createStaticShape(staticContainer);
     }
     
-    // Create large distant shapes
+    // Create large distant shapes with balanced distribution
+    console.log("Creating distant shapes...");
     for (let i = 0; i < visualConfig.shapes.distant.count; i++) {
         createLargeDistantShape(distantContainer);
     }
     
-    // Create dynamic shapes
-    for (let i = 0; i < visualConfig.shapes.dynamic.count; i++) {
-        createDynamicShape(shapesContainer);
+    // Create dynamic shapes with balanced distribution
+    console.log("Creating dynamic shapes...");
+    
+    // Create an equal number of shapes in each quadrant
+    const shapesPerQuadrant = Math.floor(visualConfig.shapes.dynamic.count / 4);
+    const remainder = visualConfig.shapes.dynamic.count % 4;
+    
+    // Create shapes evenly across quadrants
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+        const count = quadrant < remainder ? shapesPerQuadrant + 1 : shapesPerQuadrant;
+        
+        console.log(`Creating ${count} shapes in quadrant ${quadrant}`);
+        
+        for (let i = 0; i < count; i++) {
+            createDynamicShape(shapesContainer, quadrant);
+        }
     }
+    
+    console.log("Final quadrant counts:", screenQuadrants);
 }
 
 // Check if a position is in the UI protection zone
@@ -600,26 +630,39 @@ function isInCorner(x, y) {
     return false;
 }
 
-// Get least populated quadrant
+// Fix 1: Improved getLeastPopulatedQuadrant function
 function getLeastPopulatedQuadrant() {
-    let minIndex = 0;
-    for (let i = 1; i < 4; i++) {
-        if (screenQuadrants[i] < screenQuadrants[minIndex]) {
-            minIndex = i;
+    console.log("Current quadrant counts:", screenQuadrants);
+    
+    // Find the minimum count
+    let minCount = Number.MAX_SAFE_INTEGER;
+    let minQuadrants = [];
+    
+    for (let i = 0; i < 4; i++) {
+        if (screenQuadrants[i] < minCount) {
+            minCount = screenQuadrants[i];
+            minQuadrants = [i];
+        } else if (screenQuadrants[i] === minCount) {
+            minQuadrants.push(i);
         }
     }
-    return minIndex;
+    
+    // If there are multiple quadrants with the same count, choose one randomly
+    // This prevents it from always picking the first one
+    const selectedQuadrant = minQuadrants[Math.floor(Math.random() * minQuadrants.length)];
+    console.log("Selected quadrant:", selectedQuadrant);
+    
+    return selectedQuadrant;
 }
 
-// Modified generatePositionInQuadrant function with debugging
+// Fix 5: Improved position generation in quadrants
 function generatePositionInQuadrant(quadrant, size) {
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // Check if dimensions are valid
+    // Check for valid dimensions
     if (width <= 0 || height <= 0) {
         console.error('Invalid window dimensions:', width, height);
-        // Default to center position
         return { x: width/2, y: height/2 };
     }
     
@@ -630,31 +673,27 @@ function generatePositionInQuadrant(quadrant, size) {
     let x, y;
     let attempts = 0;
     
-    // Debug log quadrant information
-    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
-        console.log(`Generating position in quadrant ${quadrant}`);
-        console.log(`Window dimensions: ${width} x ${height}`);
-        console.log(`Half dimensions: ${halfWidth} x ${halfHeight}`);
-        console.log(`Margin: ${margin}`);
-    }
-    
     do {
+        // More evenly distribute within each quadrant
+        // Use a smaller margin to ensure better coverage
+        const effectiveMargin = Math.min(margin, Math.min(halfWidth, halfHeight) * 0.2);
+        
         switch (quadrant) {
             case 0: // Top-left
-                x = margin + Math.random() * (halfWidth - 2 * margin);
-                y = margin + Math.random() * (halfHeight - 2 * margin);
+                x = effectiveMargin + Math.random() * (halfWidth - effectiveMargin * 2);
+                y = effectiveMargin + Math.random() * (halfHeight - effectiveMargin * 2);
                 break;
             case 1: // Top-right
-                x = halfWidth + Math.random() * (halfWidth - 2 * margin);
-                y = margin + Math.random() * (halfHeight - 2 * margin);
+                x = halfWidth + Math.random() * (halfWidth - effectiveMargin * 2);
+                y = effectiveMargin + Math.random() * (halfHeight - effectiveMargin * 2);
                 break;
             case 2: // Bottom-left
-                x = margin + Math.random() * (halfWidth - 2 * margin);
-                y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+                x = effectiveMargin + Math.random() * (halfWidth - effectiveMargin * 2);
+                y = halfHeight + Math.random() * (halfHeight - effectiveMargin * 2);
                 break;
             case 3: // Bottom-right
-                x = halfWidth + Math.random() * (halfWidth - 2 * margin);
-                y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+                x = halfWidth + Math.random() * (halfWidth - effectiveMargin * 2);
+                y = halfHeight + Math.random() * (halfHeight - effectiveMargin * 2);
                 break;
             default:
                 console.error('Invalid quadrant:', quadrant);
@@ -665,23 +704,18 @@ function generatePositionInQuadrant(quadrant, size) {
         
         attempts++;
         
-        // Prevent infinite loop
-        if (attempts > 50) {
-            console.warn(`Too many attempts to find position in quadrant ${quadrant}, using current position`);
+        // If we've made too many attempts, gradually relax the constraints
+        if (attempts > 30) {
+            // Just find any position in the right quadrant, even if it's in a corner
+            // or protection zone - this prevents infinite loops
             break;
         }
     } while (isInCorner(x, y) || isInProtectionZone(x, y));
-    
-    // Debug log final position
-    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
-        console.log(`Generated position in quadrant ${quadrant}: (${x.toFixed(2)}, ${y.toFixed(2)}) after ${attempts} attempts`);
-    }
     
     // Update quadrant count and return position
     screenQuadrants[quadrant]++;
     return { x, y };
 }
-
 // Modified generateBalancedPosition function with logging
 function generateBalancedPosition(size) {
     const { quadrantBalance, avoidCorners } = visualConfig.distribution;
@@ -741,13 +775,15 @@ function generateBalancedPosition(size) {
     return position;
 }
 
-// Create a static background shape
+// Fix 3: Ensure all shape types use balanced positioning
 function createStaticShape(container) {
     const config = visualConfig.shapes.static;
     const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
     
-    // Generate balanced position
-    const position = generateBalancedPosition(size);
+    // Generate balanced position using quadrant balancing for ALL shape types
+    const quadrant = getLeastPopulatedQuadrant();
+    const position = generatePositionInQuadrant(quadrant, size);
+    
     const x = position.x;
     const y = position.y;
     
@@ -797,13 +833,15 @@ function createStaticShape(container) {
     });
 }
 
-// Create a large distant shape
+// Fix 4: Apply same fix to large distant shapes
 function createLargeDistantShape(container) {
     const config = visualConfig.shapes.distant;
     const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
     
-    // Generate balanced position
-    const position = generateBalancedPosition(size);
+    // Generate balanced position using quadrant balancing
+    const quadrant = getLeastPopulatedQuadrant();
+    const position = generatePositionInQuadrant(quadrant, size);
+    
     const x = position.x;
     const y = position.y;
     
@@ -866,18 +904,26 @@ function createLargeDistantShape(container) {
     });
 }
 
-// Create dynamic shape with mouse interaction
-function createDynamicShape(container) {
+// Fix 7: Modified createDynamicShape to accept a quadrant parameter
+function createDynamicShape(container, forcedQuadrant = null) {
     const dynamicConfig = visualConfig.shapes.dynamic;
     
     // Size
     const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
     
-    // Generate balanced position
-    const position = generateBalancedPosition(size);
+    // Generate balanced position - use forced quadrant if provided
+    let position;
+    if (forcedQuadrant !== null) {
+        position = generatePositionInQuadrant(forcedQuadrant, size);
+    } else {
+        const quadrant = getLeastPopulatedQuadrant();
+        position = generatePositionInQuadrant(quadrant, size);
+    }
+    
     const x = position.x;
     const y = position.y;
     
+    // Rest of the function remains the same as the original...
     // Color - 1% chance for white, rest normal colors
     let color;
     if (Math.random() < 0.01) {
