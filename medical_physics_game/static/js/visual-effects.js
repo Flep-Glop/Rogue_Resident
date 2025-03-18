@@ -103,6 +103,198 @@ const visualConfig = {
     }
 };
 
+// Debug configuration - enable/disable different debugging features
+const DEBUG = {
+    enabled: true,
+    logPositions: true,
+    visualizeQuadrants: true,
+    highlightProtectionZone: true,
+    trackShapeDistribution: true
+};
+
+// Debug counter to limit number of logs
+let debugLogCounter = 0;
+const MAX_DEBUG_LOGS = 20;
+
+// Setup debug overlay to visualize issues
+function setupDebugOverlay() {
+    if (!DEBUG.enabled) return;
+    
+    // Remove existing debug overlay if any
+    let existingOverlay = document.getElementById('debug-overlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    // Create debug overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'debug-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 10000;
+        max-width: 350px;
+        max-height: 500px;
+        overflow: auto;
+    `;
+    
+    // Add title
+    const title = document.createElement('div');
+    title.textContent = 'Visual Effects Debug';
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '8px';
+    overlay.appendChild(title);
+    
+    // Add statistics container
+    const statsContainer = document.createElement('div');
+    statsContainer.id = 'debug-stats';
+    overlay.appendChild(statsContainer);
+    
+    // Add to body
+    document.body.appendChild(overlay);
+    
+    // Update stats periodically
+    updateDebugStats();
+    setInterval(updateDebugStats, 2000);
+    
+    // Draw quadrant visualization if enabled
+    if (DEBUG.visualizeQuadrants) {
+        drawQuadrantVisualization();
+    }
+    
+    // Highlight protection zone if enabled
+    if (DEBUG.highlightProtectionZone) {
+        highlightProtectionZone();
+    }
+    
+    console.log('Debug overlay initialized');
+}
+
+// Draw lines to visualize quadrants
+function drawQuadrantVisualization() {
+    const quadLines = document.createElement('div');
+    quadLines.id = 'quadrant-lines';
+    
+    // Horizontal line
+    const hLine = document.createElement('div');
+    hLine.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: rgba(255, 0, 0, 0.5);
+        z-index: 9000;
+        pointer-events: none;
+    `;
+    
+    // Vertical line
+    const vLine = document.createElement('div');
+    vLine.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 50%;
+        width: 1px;
+        height: 100%;
+        background-color: rgba(255, 0, 0, 0.5);
+        z-index: 9000;
+        pointer-events: none;
+    `;
+    
+    quadLines.appendChild(hLine);
+    quadLines.appendChild(vLine);
+    document.body.appendChild(quadLines);
+}
+
+// Highlight UI protection zone
+function highlightProtectionZone() {
+    const { uiProtection } = visualConfig;
+    const centerX = window.innerWidth * uiProtection.centerX;
+    const centerY = window.innerHeight * uiProtection.centerY;
+    
+    const halfWidth = uiProtection.width / 2 + uiProtection.margin;
+    const halfHeight = uiProtection.height / 2 + uiProtection.margin;
+    
+    const zone = document.createElement('div');
+    zone.id = 'protection-zone';
+    zone.style.cssText = `
+        position: fixed;
+        top: ${centerY - halfHeight}px;
+        left: ${centerX - halfWidth}px;
+        width: ${uiProtection.width + 2 * uiProtection.margin}px;
+        height: ${uiProtection.height + 2 * uiProtection.margin}px;
+        border: 1px dashed rgba(0, 255, 0, 0.5);
+        background-color: rgba(0, 255, 0, 0.1);
+        z-index: 8000;
+        pointer-events: none;
+    `;
+    
+    document.body.appendChild(zone);
+    
+    // Log protection zone dimensions
+    console.log('Protection Zone:', {
+        centerX,
+        centerY,
+        width: uiProtection.width,
+        height: uiProtection.height,
+        margin: uiProtection.margin,
+        top: centerY - halfHeight,
+        left: centerX - halfWidth,
+        right: centerX + halfWidth,
+        bottom: centerY + halfHeight
+    });
+}
+
+// Update debug statistics in overlay
+function updateDebugStats() {
+    const statsContainer = document.getElementById('debug-stats');
+    if (!statsContainer) return;
+    
+    // Calculate quadrant distribution
+    let quadrantCounts = [0, 0, 0, 0];
+    shapes.forEach(shape => {
+        const quadrant = getQuadrantForPosition(shape.x, shape.y);
+        if (quadrant >= 0 && quadrant < 4) {
+            quadrantCounts[quadrant]++;
+        }
+    });
+    
+    // Calculate corner counts
+    let cornerCounts = 0;
+    shapes.forEach(shape => {
+        if (isInCorner(shape.x, shape.y)) {
+            cornerCounts++;
+        }
+    });
+    
+    // Create stats display
+    statsContainer.innerHTML = `
+        <div>Window Size: ${window.innerWidth} x ${window.innerHeight}</div>
+        <div>Total Shapes: ${shapes.length}</div>
+        <div>Quadrant Distribution:</div>
+        <div>- Q0 (Top Left): ${quadrantCounts[0]} (${(quadrantCounts[0] / shapes.length * 100).toFixed(1)}%)</div>
+        <div>- Q1 (Top Right): ${quadrantCounts[1]} (${(quadrantCounts[1] / shapes.length * 100).toFixed(1)}%)</div>
+        <div>- Q2 (Bottom Left): ${quadrantCounts[2]} (${(quadrantCounts[2] / shapes.length * 100).toFixed(1)}%)</div>
+        <div>- Q3 (Bottom Right): ${quadrantCounts[3]} (${(quadrantCounts[3] / shapes.length * 100).toFixed(1)}%)</div>
+        <div>Stored Quadrant Array: [${screenQuadrants.join(', ')}]</div>
+        <div>Shapes in Corner Areas: ${cornerCounts}</div>
+        <div>Last Generated Position: ${lastGeneratedPosition ? `(${lastGeneratedPosition.x.toFixed(0)}, ${lastGeneratedPosition.y.toFixed(0)})` : 'None'}</div>
+    `;
+}
+
+// Determine which quadrant a position falls into
+function getQuadrantForPosition(x, y) {
+    const quadrant = (x > window.innerWidth / 2 ? 1 : 0) + (y > window.innerHeight / 2 ? 2 : 0);
+    return quadrant;
+}
+
+// Variable to track last generated position
+let lastGeneratedPosition = null;
 // Global variables
 let shapes = [];
 let staticShapes = [];
@@ -113,9 +305,15 @@ let mouseActive = false;
 let lastInteractionTime = 0;
 let screenQuadrants = [0, 0, 0, 0]; // Track shape count in each quadrant
 
-// Initialize the system
+// Modified init function to set up debugging
 function init() {
-    console.log("Initializing visual effects...");
+    console.log("Initializing visual effects with debugging...");
+    
+    // Reset debug counter
+    debugLogCounter = 0;
+    
+    // Log initial screen dimensions
+    console.log(`Initial screen dimensions: ${window.innerWidth} x ${window.innerHeight}`);
     
     // Clean up any existing shapes
     cleanup();
@@ -125,6 +323,11 @@ function init() {
     
     // Add animation styles
     addAnimationStyles();
+    
+    // Set up debug overlay
+    if (DEBUG.enabled) {
+        setupDebugOverlay();
+    }
     
     // Create all shape types
     createAllShapes();
@@ -143,6 +346,15 @@ function init() {
     
     console.log("Visual effects initialization complete");
 }
+
+// Add this code to the end of your existing code or replace the initialization:
+// Initialize after a short delay to ensure window dimensions are properly set
+window.addEventListener('DOMContentLoaded', () => {
+    // Give browser a moment to fully calculate dimensions
+    setTimeout(() => {
+        init();
+    }, 300);
+});
 
 // Clean up existing shapes and containers
 function cleanup() {
@@ -399,43 +611,70 @@ function getLeastPopulatedQuadrant() {
     return minIndex;
 }
 
-// Generate a position in a specific quadrant
+// Modified generatePositionInQuadrant function with debugging
 function generatePositionInQuadrant(quadrant, size) {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    
+    // Check if dimensions are valid
+    if (width <= 0 || height <= 0) {
+        console.error('Invalid window dimensions:', width, height);
+        // Default to center position
+        return { x: width/2, y: height/2 };
+    }
+    
     const halfWidth = width / 2;
     const halfHeight = height / 2;
     const margin = visualConfig.distribution.edgeMargin;
     
     let x, y;
+    let attempts = 0;
     
-    switch (quadrant) {
-        case 0: // Top-left
-            x = margin + Math.random() * (halfWidth - 2 * margin);
-            y = margin + Math.random() * (halfHeight - 2 * margin);
-            break;
-        case 1: // Top-right
-            x = halfWidth + Math.random() * (halfWidth - 2 * margin);
-            y = margin + Math.random() * (halfHeight - 2 * margin);
-            break;
-        case 2: // Bottom-left
-            x = margin + Math.random() * (halfWidth - 2 * margin);
-            y = halfHeight + Math.random() * (halfHeight - 2 * margin);
-            break;
-        case 3: // Bottom-right
-            x = halfWidth + Math.random() * (halfWidth - 2 * margin);
-            y = halfHeight + Math.random() * (halfHeight - 2 * margin);
-            break;
+    // Debug log quadrant information
+    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
+        console.log(`Generating position in quadrant ${quadrant}`);
+        console.log(`Window dimensions: ${width} x ${height}`);
+        console.log(`Half dimensions: ${halfWidth} x ${halfHeight}`);
+        console.log(`Margin: ${margin}`);
     }
     
-    // Ensure we don't place in a corner
-    if (isInCorner(x, y)) {
-        return generatePositionInQuadrant(quadrant, size);
-    }
+    do {
+        switch (quadrant) {
+            case 0: // Top-left
+                x = margin + Math.random() * (halfWidth - 2 * margin);
+                y = margin + Math.random() * (halfHeight - 2 * margin);
+                break;
+            case 1: // Top-right
+                x = halfWidth + Math.random() * (halfWidth - 2 * margin);
+                y = margin + Math.random() * (halfHeight - 2 * margin);
+                break;
+            case 2: // Bottom-left
+                x = margin + Math.random() * (halfWidth - 2 * margin);
+                y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+                break;
+            case 3: // Bottom-right
+                x = halfWidth + Math.random() * (halfWidth - 2 * margin);
+                y = halfHeight + Math.random() * (halfHeight - 2 * margin);
+                break;
+            default:
+                console.error('Invalid quadrant:', quadrant);
+                // Default to center
+                x = width/2;
+                y = height/2;
+        }
+        
+        attempts++;
+        
+        // Prevent infinite loop
+        if (attempts > 50) {
+            console.warn(`Too many attempts to find position in quadrant ${quadrant}, using current position`);
+            break;
+        }
+    } while (isInCorner(x, y) || isInProtectionZone(x, y));
     
-    // Avoid UI zone
-    if (isInProtectionZone(x, y)) {
-        return generatePositionInQuadrant(quadrant, size);
+    // Debug log final position
+    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
+        console.log(`Generated position in quadrant ${quadrant}: (${x.toFixed(2)}, ${y.toFixed(2)}) after ${attempts} attempts`);
     }
     
     // Update quadrant count and return position
@@ -443,14 +682,29 @@ function generatePositionInQuadrant(quadrant, size) {
     return { x, y };
 }
 
-// Generate a balanced position for shapes
+// Modified generateBalancedPosition function with logging
 function generateBalancedPosition(size) {
     const { quadrantBalance, avoidCorners } = visualConfig.distribution;
+    
+    // Log beginning of position generation
+    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
+        console.log(`Generating position for shape of size ${size}`);
+        console.log(`Screen dimensions: ${window.innerWidth} x ${window.innerHeight}`);
+        console.log(`Current quadrant counts: [${screenQuadrants.join(', ')}]`);
+        debugLogCounter++;
+    }
+    
+    let position;
     
     if (quadrantBalance) {
         // Use the least populated quadrant
         const quadrant = getLeastPopulatedQuadrant();
-        return generatePositionInQuadrant(quadrant, size);
+        
+        if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
+            console.log(`Selected least populated quadrant: ${quadrant}`);
+        }
+        
+        position = generatePositionInQuadrant(quadrant, size);
     } else {
         // Use completely random position but avoid corners and UI zone
         let x, y;
@@ -463,6 +717,7 @@ function generateBalancedPosition(size) {
             
             // Prevent infinite loop
             if (attempts > 50) {
+                console.warn('Too many attempts to find valid position, using current position');
                 break;
             }
         } while ((avoidCorners && isInCorner(x, y)) || isInProtectionZone(x, y));
@@ -471,8 +726,19 @@ function generateBalancedPosition(size) {
         const quadrant = (x > window.innerWidth / 2 ? 1 : 0) + (y > window.innerHeight / 2 ? 2 : 0);
         screenQuadrants[quadrant]++;
         
-        return { x, y };
+        position = { x, y };
     }
+    
+    // Track last generated position for debugging
+    lastGeneratedPosition = position;
+    
+    // Log final position
+    if (DEBUG.enabled && DEBUG.logPositions && debugLogCounter < MAX_DEBUG_LOGS) {
+        console.log(`Final position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)})`);
+        console.log(`Updated quadrant counts: [${screenQuadrants.join(', ')}]`);
+    }
+    
+    return position;
 }
 
 // Create a static background shape
