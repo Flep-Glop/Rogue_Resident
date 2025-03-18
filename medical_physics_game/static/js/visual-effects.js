@@ -188,8 +188,10 @@ function setupDebugOverlay() {
     overlay.id = 'debug-overlay';
     overlay.style.cssText = `
         position: fixed;
-        top: 10px;
-        left: 10px;
+        bottom: 10px;
+        right: 10px;
+        top: auto;
+        left: auto;
         background-color: rgba(0, 0, 0, 0.7);
         color: white;
         padding: 10px;
