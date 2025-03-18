@@ -27,7 +27,22 @@ const visualConfig = {
             'landing',         // Landing page
             'character-select' // Character selection
             // 'game'          // Commented out to disable on game screen
-        ]
+        ],
+        hollowShapesRatio: 0.4, // 40% of shapes will be hollow
+        friction: 0.98,        // Add friction to prevent uncontrolled acceleration
+        maxSpeed: 0.3          // Maximum speed limit for all shapes
+    },
+    // Add particle config (needed for createParticleBurst function)
+    particles: {
+        count: 15,
+        size: { min: 3, max: 8 },
+        speed: { min: 2, max: 5 },
+        duration: 1000,
+        fadeStart: 0.7,
+        gravity: 0.002,
+        trail: 0.5,
+        glow: true,
+        colors: ['#5b8dd9', '#56b886', '#e67e73', '#f0c866', '#9c77db', '#5bbcd9']
     }
 }
 
@@ -146,20 +161,43 @@ function createShape(container) {
         rotation = '45deg';
     }
     
-    // Shape styling
-    shape.style.cssText = `
-        position: absolute;
-        width: ${size}px;
-        height: ${size}px;
-        background-color: ${color};
-        border-radius: ${borderRadius};
-        opacity: ${baseOpacity};
-        transform: translate(${x}px, ${y}px) rotate(${rotation});
-        box-shadow: 0 0 ${size/3}px rgba(255,255,255,0.2);
-        pointer-events: none;
-        transition: opacity 0.8s ease;
-        will-change: transform, opacity;
-    `;
+    // Determine if shape should be hollow
+    const isHollow = Math.random() < visualConfig.shapes.hollowShapesRatio;
+    
+    // Shape styling - different for hollow vs filled shapes
+    if (isHollow) {
+        // Hollow shape - no background, only border
+        const borderWidth = Math.max(1, size / 20); // Scale border with shape size
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background-color: transparent;
+            border: ${borderWidth}px solid ${color};
+            border-radius: ${borderRadius};
+            opacity: ${baseOpacity * 1.2}; // Slightly increase opacity for hollow shapes
+            transform: translate(${x}px, ${y}px) rotate(${rotation});
+            box-shadow: 0 0 ${size/4}px rgba(255,255,255,0.1);
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            will-change: transform, opacity;
+        `;
+    } else {
+        // Filled shape (original style)
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background-color: ${color};
+            border-radius: ${borderRadius};
+            opacity: ${baseOpacity};
+            transform: translate(${x}px, ${y}px) rotate(${rotation});
+            box-shadow: 0 0 ${size/3}px rgba(255,255,255,0.2);
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            will-change: transform, opacity;
+        `;
+    }
     
     container.appendChild(shape);
     
@@ -176,13 +214,14 @@ function createShape(container) {
         speedX: (Math.random() * 0.4 - 0.2) * speedFactor,
         speedY: (Math.random() * 0.4 - 0.2) * speedFactor,
         rotationSpeed: (Math.random() * 0.4 - 0.2) * speedFactor,
-        baseOpacity: baseOpacity
+        baseOpacity: baseOpacity,
+        isHollow: isHollow
     });
 }
 
 /**
  * Update shapes based on mouse position
- * This is the function that was undefined in your error
+ * With improved speed control to prevent uncontrollable acceleration
  */
 function updateShapesWithMouseInteraction() {
     if (shapes.length === 0) {
@@ -196,6 +235,10 @@ function updateShapesWithMouseInteraction() {
         const dy = mouseY - shape.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
+        // Apply friction to prevent runaway acceleration
+        shape.speedX *= visualConfig.shapes.friction;
+        shape.speedY *= visualConfig.shapes.friction;
+        
         // Apply gentle independent movement
         shape.x += shape.speedX;
         shape.y += shape.speedY;
@@ -205,14 +248,14 @@ function updateShapesWithMouseInteraction() {
             // Smaller direction changes for more stable movement
             shape.speedX += (Math.random() - 0.5) * 0.05;
             shape.speedY += (Math.random() - 0.5) * 0.05;
-            
-            // Limit max speed (lower for smoother movement)
-            const maxSpeed = 0.3;
-            const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
-            if (currentSpeed > maxSpeed) {
-                shape.speedX = (shape.speedX / currentSpeed) * maxSpeed;
-                shape.speedY = (shape.speedY / currentSpeed) * maxSpeed;
-            }
+        }
+        
+        // Always enforce speed limits - not just during random changes
+        const maxSpeed = visualConfig.shapes.maxSpeed;
+        const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
+        if (currentSpeed > maxSpeed) {
+            shape.speedX = (shape.speedX / currentSpeed) * maxSpeed;
+            shape.speedY = (shape.speedY / currentSpeed) * maxSpeed;
         }
         
         // Mouse interaction - only when mouse is close
@@ -269,7 +312,6 @@ function updateShapesWithMouseInteraction() {
 
 /**
  * Create a particle burst effect at the specified coordinates
- * This is the function that was undefined in your error
  */
 function createParticleBurst(x, y, color = null) {
     // Create particle container if it doesn't exist
@@ -434,3 +476,4 @@ window.addEventListener('resize', function() {
 // Export functions so they're available globally
 window.updateShapesWithMouseInteraction = updateShapesWithMouseInteraction;
 window.playButtonSound = playButtonSound;
+window.createParticleBurst = createParticleBurst;
