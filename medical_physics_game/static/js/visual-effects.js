@@ -45,7 +45,7 @@ const visualConfig = {
         // Animation settings
         animation: {
             rotation: {
-                chance: 0.3,       // 30% of shapes will rotate
+                chance: 0.7,       // Increased from 0.3 to 0.7 (70% of shapes will rotate)
                 minDuration: 25,   // Minimum rotation duration in seconds
                 maxDuration: 45    // Maximum rotation duration in seconds
             },
@@ -58,9 +58,9 @@ const visualConfig = {
         },
         mouseInteraction: {
             radius: 150,       // How far mouse influence reaches
-            strength: 0.015,   // Strength of mouse influence
+            strength: 0.05,    // Increased from 0.015 to 0.05 (over 3x stronger)
             friction: 0.985,   // Friction to slow movement
-            maxSpeed: 0.15,    // Speed limit
+            maxSpeed: 0.3,     // Increased from 0.15 to 0.3 (faster movement)
             springStrength: 0.004, // How strongly shapes return to origin
             springRadius: 100, // How far shapes can drift before spring force
             jitter: 0.0005     // Tiny random movement
@@ -77,6 +77,8 @@ let mouseY = window.innerHeight / 2;
  * Initialize the system
  */
 function init() {
+    console.log("Initializing visual effects...");
+    
     // Clean up any existing shapes
     clearExistingShapes();
     
@@ -89,14 +91,21 @@ function init() {
     // Create shapes
     createAllShapes();
     
-    // Listen for mouse movement
-    document.addEventListener('mousemove', trackMouse);
+    // Listen for mouse movement - with error checking
+    try {
+        document.addEventListener('mousemove', trackMouse);
+        console.log("Mouse tracking enabled");
+    } catch (e) {
+        console.error("Error setting up mouse tracking:", e);
+    }
     
     // Start animation loop
     requestAnimationFrame(updateShapes);
     
     // Handle window resize
     window.addEventListener('resize', handleResize);
+    
+    console.log("Visual effects initialization complete");
 }
 
 /**
@@ -373,7 +382,7 @@ function createLargeDistantShape(container) {
 }
 
 /**
- * Create a dynamic shape with mouse interaction
+ * Create dynamic shape with mouse interaction
  */
 function createDynamicShape(container) {
     // Size
@@ -435,6 +444,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         } else {
             style = `
@@ -447,6 +457,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         }
     } else if (typeRoll < visualConfig.shapes.typeDistribution.square + visualConfig.shapes.typeDistribution.circle) {
@@ -465,6 +476,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         } else {
             style = `
@@ -477,6 +489,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         }
     } else if (typeRoll < visualConfig.shapes.typeDistribution.square + visualConfig.shapes.typeDistribution.circle + visualConfig.shapes.typeDistribution.triangle) {
@@ -496,6 +509,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         } else {
             style = `
@@ -509,6 +523,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         }
     } else {
@@ -527,6 +542,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         } else {
             style = `
@@ -539,6 +555,7 @@ function createDynamicShape(container) {
                 top: ${y - size/2}px;
                 opacity: ${opacity};
                 will-change: transform;
+                transition: opacity 0.3s; /* Add transition for opacity changes */
             `;
         }
     }
@@ -589,7 +606,8 @@ function createDynamicShape(container) {
         originY: y,
         size: size,
         speedX: (Math.random() * 0.1 - 0.05) * visualConfig.shapes.mouseInteraction.maxSpeed,
-        speedY: (Math.random() * 0.1 - 0.05) * visualConfig.shapes.mouseInteraction.maxSpeed
+        speedY: (Math.random() * 0.1 - 0.05) * visualConfig.shapes.mouseInteraction.maxSpeed,
+        baseOpacity: opacity
     });
 }
 
@@ -599,6 +617,9 @@ function createDynamicShape(container) {
 function trackMouse(e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
+    
+    // Debug indicator to show mouse is being tracked
+    console.log("Mouse position:", mouseX, mouseY);
 }
 
 /**
@@ -606,6 +627,9 @@ function trackMouse(e) {
  */
 function updateShapes() {
     const interaction = visualConfig.shapes.mouseInteraction;
+    
+    // Debug mouse position
+    // console.log("Current mouse:", mouseX, mouseY);
     
     shapes.forEach(shape => {
         // Apply friction
@@ -631,17 +655,22 @@ function updateShapes() {
             shape.speedY += dyOrigin * springFactor;
         }
         
-        // Mouse interaction
+        // Mouse interaction - STRONGER and more visible
         const dxMouse = mouseX - shape.x;
         const dyMouse = mouseY - shape.y;
         const distanceFromMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
         
         if (distanceFromMouse < interaction.radius) {
-            const influence = (1 - distanceFromMouse / interaction.radius) * interaction.strength;
+            // Using a stronger formula for more noticeable effect
+            const influence = Math.pow(1 - distanceFromMouse / interaction.radius, 1.5) * interaction.strength;
             
             const angle = Math.atan2(dyMouse, dxMouse);
             shape.speedX -= Math.cos(angle) * influence;
             shape.speedY -= Math.sin(angle) * influence;
+            
+            // Optional: temporarily increase opacity when interacting with mouse
+            const currentOpacity = parseFloat(shape.element.style.opacity) || 0.3;
+            shape.element.style.opacity = Math.min(currentOpacity * 1.5, 0.8);
         }
         
         // Apply speed limit
@@ -663,16 +692,16 @@ function updateShapes() {
         if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
         if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
         
-        // Update shape position
+        // Update shape position - MUST use translate3d for better performance
         const transform = shape.element.style.transform;
         let baseTransform = '';
         
         // Need to preserve any rotation in transform
         if (transform.includes('rotate')) {
             baseTransform = transform.replace(/translate\([^)]+\)/, '');
-            shape.element.style.transform = `translate(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px) ${baseTransform}`;
+            shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0) ${baseTransform}`;
         } else {
-            shape.element.style.transform = `translate(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px)`;
+            shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0)`;
         }
     });
     
