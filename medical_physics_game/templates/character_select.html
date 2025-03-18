@@ -26,7 +26,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 450px;
+            min-height: 500px; /* Increased height for taller cards */
             perspective: 1000px;
         }
         
@@ -44,14 +44,14 @@
         .character-card {
             position: absolute;
             width: 280px;
-            min-height: 400px;
-            height: 400px;
+            min-height: 450px; /* Increased height to show all content */
+            height: auto; /* Allow natural height based on content */
             background-color: var(--background-alt);
             border: 4px solid var(--primary);
             border-radius: 8px;
             padding: 0;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); /* Smoother animation with custom easing */
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -70,6 +70,7 @@
             transform: scale(1) translateX(0);
             z-index: 5;
             border-color: var(--secondary);
+            box-shadow: 0 0 20px rgba(86, 184, 134, 0.3);
         }
         
         /* Active card header */
@@ -80,8 +81,8 @@
         /* Left flanking card */
         .character-card.left-flank {
             visibility: visible;
-            opacity: 0.9;
-            transform: scale(0.9) translateX(-85%);
+            opacity: 0.95;
+            transform: scale(0.95) translateX(-80%);
             z-index: 2;
             border-color: var(--primary);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -90,8 +91,8 @@
         /* Right flanking card */
         .character-card.right-flank {
             visibility: visible;
-            opacity: 0.9;
-            transform: scale(0.9) translateX(85%);
+            opacity: 0.95;
+            transform: scale(0.95) translateX(80%);
             z-index: 2;
             border-color: var(--primary);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -179,6 +180,7 @@
             background-color: rgba(0, 0, 0, 0.2);
             border-top: 2px dashed rgba(255, 255, 255, 0.1);
             border-bottom: 2px dashed rgba(255, 255, 255, 0.1);
+            flex-shrink: 0; /* Prevent stats from shrinking */
         }
         
         .stat-row {
@@ -234,6 +236,8 @@
         .special-ability {
             padding: 15px;
             text-align: left;
+            flex-shrink: 0; /* Prevent special ability from shrinking */
+            margin-bottom: 10px; /* Add some bottom margin */
         }
         
         .ability-header {
@@ -266,33 +270,41 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 32px;
+            font-size: 24px;
             cursor: pointer;
             z-index: 10;
-            background-color: rgba(91, 141, 217, 0.7);
+            background-color: var(--primary);
             color: white;
-            border: 3px solid #ffffff;
-            box-shadow: 
-                5px 5px 0 rgba(0, 0, 0, 0.2),
-                0 0 0 2px rgba(0, 0, 0, 0.1);
-            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
             transition: all 0.2s ease;
-            animation: arrow-pulse 2s infinite ease-in-out;
         }
         
         .carousel-arrow.prev {
             left: 50%;
-            margin-left: -350px;
+            margin-left: -320px; /* Position closer to left card */
         }
         
         .carousel-arrow.next {
             right: 50%;
-            margin-right: -350px;
+            margin-right: -320px; /* Position closer to right card */
+        }
+        
+        .carousel-arrow:hover {
+            background-color: var(--secondary);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes arrow-pulse {
@@ -444,10 +456,26 @@
                 
                 <div id="character-carousel">
                     <!-- Characters will be loaded here -->
-                    <div id="loading-message">Loading characters...</div>
+                    <div id="loading-message" class="loading-message">Loading characters...</div>
                 </div>
                 
                 <button class="carousel-arrow next" id="next-character">▶</button>
+                
+                <style>
+                    /* Add a loading animation */
+                    .loading-message {
+                        font-size: 1rem;
+                        color: var(--text);
+                        text-align: center;
+                        animation: pulse 1.5s infinite ease-in-out;
+                    }
+                    
+                    @keyframes pulse {
+                        0% { opacity: 0.5; }
+                        50% { opacity: 1; }
+                        100% { opacity: 0.5; }
+                    }
+                </style>
             </div>
             
             <div class="carousel-indicators" id="carousel-indicators">
@@ -621,6 +649,12 @@
         
         // Navigate the carousel
         function navigateCarousel(direction) {
+            // Add a small debounce to prevent rapid clicking
+            if (window.isNavigating) return;
+            
+            window.isNavigating = true;
+            setTimeout(() => { window.isNavigating = false; }, 500); // Match transition duration
+            
             const newIndex = (currentCharacterIndex + direction + characters.length) % characters.length;
             navigateToCharacter(newIndex);
         }
