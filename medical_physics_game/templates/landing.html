@@ -202,23 +202,34 @@
             animation: blink 1s infinite steps(2);
         }
         
-        /* Particle explosion effect */
-        .particles-container {
+        /* Container for decoration elements */
+        #pixel-decorations {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 100;
+            z-index: 1;
         }
         
-        .particle {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
+        /* More intense scanlines effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.03) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 100% 4px;
+            z-index: 200;
             pointer-events: none;
-            opacity: 0;
+            opacity: 0.3;
         }
 
         /* Animation Keyframes */
@@ -250,71 +261,6 @@
             50% { opacity: 0; }
             100% { opacity: 1; }
         }
-        
-        @keyframes slow-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes pixel-float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0); }
-        }
-        
-        @keyframes pixel-drift {
-            0% { transform: translateX(0); }
-            33% { transform: translateX(15px); }
-            66% { transform: translateX(-15px); }
-            100% { transform: translateX(0); }
-        }
-        
-        @keyframes pixel-twinkle {
-            0% { opacity: 0.1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.1; }
-        }
-        
-        @keyframes circular-path {
-            0% { transform: rotate(0deg) translateX(15px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(15px) rotate(-360deg); }
-        }
-        
-        @keyframes diagonal-move {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(20px, -15px); }
-            50% { transform: translate(10px, -30px); }
-            75% { transform: translate(-15px, -10px); }
-            100% { transform: translate(-20px, -20px); }
-        }
-        
-        /* More intense scanlines effect */
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.03) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            background-size: 100% 4px;
-            z-index: 200;
-            pointer-events: none;
-            opacity: 0.3;
-        }
-        
-        /* Base shape styling */
-        .pixel-decoration {
-            position: absolute;
-            z-index: 1;
-            pointer-events: none;
-            transform-origin: center center;
-            will-change: transform, opacity;
-        }
     </style>
 </head>
 <body>
@@ -344,16 +290,13 @@
         <div class="footer">
             v0.1.0 | PRESS SPACE TO START<span class="blinking-cursor"></span>
         </div>
-        
-        <!-- Container for particle effects -->
-        <div class="particles-container"></div>
     </div>
 
+    <!-- Removed all internal JavaScript - now using visual-effects.js for all shape animations -->
+    <script src="/static/js/visual-effects.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Create pixel decorations
-            createPixelDecorations();
-            
             // Type writer effect for subtitle
             const subtitle = document.querySelector('.subtitle');
             const subtitleText = subtitle.innerText;
@@ -371,148 +314,30 @@
             // Start typewriter after a short delay
             setTimeout(typeWriter, 800);
             
-            // Add mouse tracking for interactivity
-            let mouseX = 0;
-            let mouseY = 0;
-            const shapes = [];
-            
-            // Track mouse position
-            document.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                
-                // Update shapes that should follow or avoid the mouse
-                updateShapesWithMouseInteraction(mouseX, mouseY);
-                
-                // Update scanline intensity based on mouse movement
-                const scanlines = document.querySelector('.scanlines');
-                scanlines.style.opacity = Math.min(0.3 + Math.abs(e.movementX + e.movementY) * 0.001, 0.5);
+            // Simple button navigation (without particle effects)
+            document.getElementById('start-game').addEventListener('click', function() {
+                window.location.href = '/character-select';
             });
             
-            // Button sound effect and particle burst
-            function playButtonSound() {
-                // When we add audio files, we'll uncomment this
-                // const sound = new Audio('/static/audio/click.mp3');
-                // sound.volume = 0.3;
-                // sound.play();
-                
-                // Create particle burst
-                createParticleBurst(event.clientX, event.clientY);
-            }
-            
-            // Event listeners with particle effects
-            document.getElementById('start-game').addEventListener('click', function(event) {
-                playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#45e17c');
-                setTimeout(() => window.location.href = '/character-select', 300);
+            document.getElementById('continue-game').addEventListener('click', function() {
+                window.location.href = '/game';
             });
             
-            document.getElementById('continue-game').addEventListener('click', function(event) {
-                playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#5d9cff');
-                setTimeout(() => window.location.href = '/game', 300);
-            });
-            
-            document.getElementById('options').addEventListener('click', function(event) {
-                playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#ffcc55');
+            document.getElementById('options').addEventListener('click', function() {
                 alert('Options will be available in the next update!');
             });
             
-            document.getElementById('help').addEventListener('click', function(event) {
-                playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#5d6277');
+            document.getElementById('help').addEventListener('click', function() {
                 alert('Welcome to Rogue Resident! Navigate through each challenge, answer questions correctly to gain knowledge, and avoid losing all your lives. Good luck!');
             });
             
             // Space bar to start
             document.addEventListener('keydown', function(event) {
                 if (event.code === 'Space') {
-                    playButtonSound();
-                    createParticleBurst(window.innerWidth/2, window.innerHeight/2, '#ffffff');
-                    setTimeout(() => window.location.href = '/game', 300);
+                    window.location.href = '/game';
                 }
-                
-                // Easter egg: Konami code
-                // TODO: Implement Konami code detection
-            });
-            
-            // Function to create pixel decorations with more vibrant colors
-            function createPixelDecorations() {
-                const decorationContainer = document.getElementById('pixel-decorations');
-                if (!decorationContainer) return;
-                
-                // Clear existing decorations
-                decorationContainer.innerHTML = '';
-                
-                // Create a color palette that matches our theme
-                const colors = [
-                    '#5b8dd9', // primary blue
-                    '#56b886', // secondary green
-                    '#5bbcd9', // cyan
-                    '#9c77db'  // purple
-                ];
-                
-                // Number of shapes to create
-                const shapeCount = 30;
-                
-                // Create various shapes (squares and circles)
-                for (let i = 0; i < shapeCount; i++) {
-                    const decoration = document.createElement('div');
-                    decoration.classList.add('pixel-decoration');
-                    
-                    // Randomize size between 5px and 20px
-                    const size = 5 + Math.floor(Math.random() * 15);
-                    
-                    // Randomize position across entire screen
-                    const x = Math.random() * 100;
-                    const y = Math.random() * 100;
-                    
-                    // Random color from our palette
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    // Apply styles
-                    decoration.style.left = `${x}vw`;
-                    decoration.style.top = `${y}vh`;
-                    decoration.style.width = `${size}px`;
-                    decoration.style.height = `${size}px`;
-                    decoration.style.backgroundColor = 'transparent';
-                    decoration.style.border = `1px solid ${color}`;
-                    decoration.style.opacity = 0.6;
-                    
-                    // 50% chance for circle, 50% chance for square
-                    if (Math.random() > 0.5) {
-                        decoration.style.borderRadius = '50%';
-                    }
-                    
-                    // Use floating animations instead of falling
-                    // Get a random animation duration between 10-30s
-                    const duration = 10 + Math.random() * 20;
-                    const delay = Math.random() * 5;
-                    
-                    // Assign animation based on which number shape it is
-                    if (i % 3 === 0) {
-                        decoration.style.animation = `pixel-float ${duration}s infinite ease-in-out ${delay}s`;
-                    } else if (i % 3 === 1) {
-                        decoration.style.animation = `pixel-twinkle ${duration}s infinite ease-in-out ${delay}s`;
-                    } else {
-                        decoration.style.animation = `pixel-float ${duration}s infinite ease-in-out reverse ${delay}s, 
-                                                    pixel-twinkle ${Math.floor(duration/2)}s infinite ease-in-out ${delay}s`;
-                    }
-                    
-                    decorationContainer.appendChild(decoration);
-                }
-            }
-
-            // Call the function on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                createPixelDecorations();
-                
-                // Refresh decorations occasionally to keep it interesting
-                setInterval(createPixelDecorations, 60000); // Refresh every minute
             });
         });
     </script>
-    <script src="/static/js/visual-effects.js"></script>
 </body>
 </html>

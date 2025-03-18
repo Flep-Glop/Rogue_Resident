@@ -57,6 +57,9 @@ let mouseY = window.innerHeight / 2;
  * Initialize interactive background shapes
  */
 function initBackgroundShapes() {
+    // First, clear any existing shapes (important for landing page to avoid conflicts)
+    clearExistingShapes();
+    
     // Check if we should enable shapes on this page
     if (!shouldEnableShapesOnCurrentPage()) {
         return; // Don't create shapes on this page
@@ -96,13 +99,32 @@ function initBackgroundShapes() {
 }
 
 /**
+ * Clear any existing shapes to prevent duplicates when reinitializing
+ */
+function clearExistingShapes() {
+    shapes = []; // Clear the shapes array
+    
+    // Remove existing shape container if it exists
+    const existingContainer = document.getElementById('background-shapes');
+    if (existingContainer) {
+        existingContainer.remove();
+    }
+    
+    // Also clear any particle containers
+    const particleContainer = document.getElementById('particle-container');
+    if (particleContainer) {
+        particleContainer.remove();
+    }
+}
+
+/**
  * Determine if shapes should be enabled on the current page
  */
 function shouldEnableShapesOnCurrentPage() {
     // Get the current path
     const path = window.location.pathname;
     
-    // Check against enabled pages
+    // Check against enabled pages - include landing page in standard initialization
     return visualConfig.shapes.enabledPages.some(page => {
         if (page === 'landing' && (path === '/' || path.includes('landing'))) {
             return true;
@@ -417,22 +439,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize background shapes
     initBackgroundShapes();
     
-    // Replace button click handlers with enhanced version that includes sound effects
-    document.querySelectorAll('.retro-btn, .game-btn, .btn').forEach(button => {
-        button.addEventListener('click', playButtonSound);
-    });
+    // Remove any existing event listeners to prevent conflicts with landing page
+    if (window.location.pathname.includes('landing')) {
+        console.log('Landing page detected - using specialized shape behavior');
+        // Add specific tweaks for landing page if needed
+    }
 });
 
-// Handle window resize
+/**
+ * Handle window resize - ensure shapes stay in bounds
+ */
 window.addEventListener('resize', function() {
     // Update shapes positions to fit new window size
     shapes.forEach(shape => {
-        if (shape.x > window.innerWidth) shape.x = window.innerWidth * (shape.x / window.innerWidth);
-        if (shape.y > window.innerHeight) shape.y = window.innerHeight * (shape.y / window.innerHeight);
+        // If shape is outside new bounds, wrap it back into view
+        if (shape.x > window.innerWidth) shape.x = window.innerWidth * Math.random();
+        if (shape.y > window.innerHeight) shape.y = window.innerHeight * Math.random();
+        
+        // Also update origin points so shapes have a valid home position
+        if (shape.originX > window.innerWidth) shape.originX = window.innerWidth * Math.random();
+        if (shape.originY > window.innerHeight) shape.originY = window.innerHeight * Math.random();
     });
 });
 
-// Export functions so they're available globally
+// Export only necessary functions
 window.updateShapesWithMouseInteraction = updateShapesWithMouseInteraction;
-window.playButtonSound = playButtonSound;
-window.createParticleBurst = createParticleBurst;
+
+// Cleanup function - use when navigating away
+function cleanupShapes() {
+    shapes = [];
+    const container = document.getElementById('background-shapes');
+    if (container) {
+        container.remove();
+    }
+}
+
+// Initialize on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBackgroundShapes);
+} else {
+    // If DOMContentLoaded already fired, initialize immediately
+    initBackgroundShapes();
+}
