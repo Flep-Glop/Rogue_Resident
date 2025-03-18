@@ -8,10 +8,9 @@
 const visualConfig = {
     // Shape settings
     shapes: {
-        count: 30,             // More shapes
-        minSize: 5,            // Smaller minimum for more variation
-        maxSize: 80,           // Much larger maximum size
-        sizeDistribution: 'varied', // 'uniform', 'varied', or 'extreme'
+        count: 30,             // Number of shapes
+        minSize: 5,            // Minimum shape size
+        maxSize: 60,           // Maximum shape size (reduced for smoother performance)
         colors: [              // Colors matching your game theme
             '#5b8dd9',         // primary
             '#56b886',         // secondary
@@ -20,19 +19,17 @@ const visualConfig = {
             '#9c77db',         // purple
             '#5bbcd9'          // cyan
         ],
-        followSpeed: 0.002,    // Drastically reduced follow speed
-        interactionDistance: 10, // Slightly increased interaction distance
-        interactionStrength: 0.1, // Reduced from default 2.0
+        hollowShapesRatio: 0.6, // 60% of shapes will be hollow
+        friction: 0.99,        // Very gentle friction for smooth movement
+        maxSpeed: 0.15,        // Lower max speed for calmer movement
+        mouseInfluence: 0.01,  // Very subtle mouse influence
+        mouseRadius: 150,      // How far the mouse influence reaches
         enabledPages: [        // Only enable shapes on these pages
             'landing',         // Landing page
             'character-select' // Character selection
-            // 'game'          // Commented out to disable on game screen
-        ],
-        hollowShapesRatio: 0.6, // 60% of shapes will be hollow
-        friction: 0.98,        // Add friction to prevent uncontrolled acceleration
-        maxSpeed: 0.3          // Maximum speed limit for all shapes
+        ]
     },
-    // Add particle config (needed for createParticleBurst function)
+    // Particle config for createParticleBurst function
     particles: {
         count: 15,
         size: { min: 3, max: 8 },
@@ -117,24 +114,8 @@ function shouldEnableShapesOnCurrentPage() {
 function createShape(container) {
     const shape = document.createElement('div');
     
-    // Apply size distribution based on config
-    let size;
-    if (visualConfig.shapes.sizeDistribution === 'uniform') {
-        // Uniform distribution
-        size = Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) + visualConfig.shapes.minSize;
-    } else if (visualConfig.shapes.sizeDistribution === 'extreme') {
-        // More small and large shapes, fewer medium shapes
-        const r = Math.random();
-        if (r < 0.6) { // 60% small shapes
-            size = visualConfig.shapes.minSize + Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) * 0.3;
-        } else { // 40% large shapes
-            size = visualConfig.shapes.minSize + (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) * (0.7 + Math.random() * 0.3);
-        }
-    } else { // 'varied' - default
-        // More varied distribution with bias toward smaller shapes
-        const r = Math.pow(Math.random(), 1.5); // Power function creates more small shapes
-        size = visualConfig.shapes.minSize + r * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize);
-    }
+    // Simple size distribution
+    const size = visualConfig.shapes.minSize + Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize);
     
     const color = visualConfig.shapes.colors[Math.floor(Math.random() * visualConfig.shapes.colors.length)];
     
@@ -142,27 +123,15 @@ function createShape(container) {
     const x = Math.random() * window.innerWidth;
     const y = Math.random() * window.innerHeight;
     
-    // Adjust opacity based on size for a depth effect
-    const sizeRatio = (size - visualConfig.shapes.minSize) / (visualConfig.shapes.maxSize - visualConfig.shapes.minSize);
-    const baseOpacity = 0.2 + (sizeRatio * 0.3); // Larger shapes are more opaque
-    
-    // Vary shape types
-    const shapeType = Math.random();
-    let borderRadius, rotation;
-    
-    if (shapeType < 0.6) { // 60% circles
-        borderRadius = '50%';
-        rotation = '0deg'; // Rotation doesn't matter for perfect circles
-    } else if (shapeType < 0.9) { // 30% rounded squares
-        borderRadius = Math.random() * 5 + 2 + 'px';
-        rotation = Math.random() * 360 + 'deg';
-    } else { // 10% diamond shapes
-        borderRadius = '2px';
-        rotation = '45deg';
-    }
+    // Simple opacity based on size
+    const baseOpacity = 0.2 + (Math.random() * 0.3); // Randomize opacity slightly
     
     // Determine if shape should be hollow
     const isHollow = Math.random() < visualConfig.shapes.hollowShapesRatio;
+    
+    // Simple shape types: circle or rounded square
+    const isCircle = Math.random() < 0.7; // 70% circles, 30% rounded squares
+    const borderRadius = isCircle ? '50%' : '4px';
     
     // Shape styling - different for hollow vs filled shapes
     if (isHollow) {
@@ -175,15 +144,14 @@ function createShape(container) {
             background-color: transparent;
             border: ${borderWidth}px solid ${color};
             border-radius: ${borderRadius};
-            opacity: ${baseOpacity * 1.2}; // Slightly increase opacity for hollow shapes
-            transform: translate(${x}px, ${y}px) rotate(${rotation});
-            box-shadow: 0 0 ${size/4}px rgba(255,255,255,0.1);
+            opacity: ${baseOpacity};
+            transform: translate(${x}px, ${y}px);
             pointer-events: none;
             transition: opacity 0.8s ease;
-            will-change: transform, opacity;
+            will-change: transform;
         `;
     } else {
-        // Filled shape (original style)
+        // Filled shape 
         shape.style.cssText = `
             position: absolute;
             width: ${size}px;
@@ -191,63 +159,33 @@ function createShape(container) {
             background-color: ${color};
             border-radius: ${borderRadius};
             opacity: ${baseOpacity};
-            transform: translate(${x}px, ${y}px) rotate(${rotation});
-            box-shadow: 0 0 ${size/3}px rgba(255,255,255,0.2);
+            transform: translate(${x}px, ${y}px);
             pointer-events: none;
             transition: opacity 0.8s ease;
-            will-change: transform, opacity;
+            will-change: transform;
         `;
     }
     
     container.appendChild(shape);
     
-    // Slower movement for larger shapes to create depth effect
-    const speedFactor = 1 - (sizeRatio * 0.8); // Larger shapes move slower
+    // Very gentle initial movement
+    const speedMultiplier = 0.1; // Lower initial speeds
     
-    // Create more varied initial velocities to distribute shapes more evenly
-    // Hollow shapes move slightly differently than filled ones
-    const speedMultiplier = isHollow ? 1.2 : 1.0; // Hollow shapes move slightly faster
-    
-    // More varied speeds for less uniform movement
-    const speedX = (Math.random() * 0.5 - 0.25) * speedFactor * speedMultiplier;
-    const speedY = (Math.random() * 0.5 - 0.25) * speedFactor * speedMultiplier;
-    
-    // Calculate distance from center to set initial velocity direction
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const dxCenter = x - centerX;
-    const dyCenter = y - centerY;
-    const distanceFromCenter = Math.sqrt(dxCenter * dxCenter + dyCenter * dyCenter);
-    
-    // If shape starts near center, give it a slight push outward
-    let initialSpeedX = speedX;
-    let initialSpeedY = speedY;
-    if (distanceFromCenter < window.innerWidth / 6) {
-        const angle = Math.atan2(dyCenter, dxCenter);
-        initialSpeedX += Math.cos(angle) * 0.1 * speedFactor;
-        initialSpeedY += Math.sin(angle) * 0.1 * speedFactor;
-    }
-    
-    // Store shape data for animation
+    // Store shape data for animation - very simple data structure
     shapes.push({
         element: shape,
         x: x,
         y: y,
         size: size,
-        angle: Math.random() * 360,
-        speedX: initialSpeedX,
-        speedY: initialSpeedY,
-        rotationSpeed: (Math.random() * 0.4 - 0.2) * speedFactor,
+        speedX: (Math.random() * 0.2 - 0.1) * speedMultiplier,
+        speedY: (Math.random() * 0.2 - 0.1) * speedMultiplier,
         baseOpacity: baseOpacity,
-        isHollow: isHollow,
-        age: 0, // Track age for more complex behaviors
-        movementPattern: Math.floor(Math.random() * 3) // Different movement patterns
+        isHollow: isHollow
     });
 }
 
 /**
- * Update shapes based on mouse position
- * With improved speed control to prevent uncontrollable acceleration
+ * Update shapes based on mouse position - simplified for smooth, calming movement
  */
 function updateShapesWithMouseInteraction() {
     if (shapes.length === 0) {
@@ -256,142 +194,46 @@ function updateShapesWithMouseInteraction() {
     }
 
     shapes.forEach(shape => {
-        // Calculate distance to mouse
+        // Apply very gentle friction to current movement
+        shape.speedX *= visualConfig.shapes.friction;
+        shape.speedY *= visualConfig.shapes.friction;
+        
+        // Apply current movement
+        shape.x += shape.speedX;
+        shape.y += shape.speedY;
+        
+        // Extremely gentle mouse interaction - with smooth falloff based on distance
         const dx = mouseX - shape.x;
         const dy = mouseY - shape.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Apply friction to prevent runaway acceleration
-        shape.speedX *= visualConfig.shapes.friction;
-        shape.speedY *= visualConfig.shapes.friction;
-        
-        // Apply gentle independent movement
-        shape.x += shape.speedX;
-        shape.y += shape.speedY;
-        
-        // Occasionally change direction slightly for more organic movement
-        // with more complex behaviors based on movement pattern
-        if (Math.random() < 0.01) {
-            // Increase probability of direction changes for more lively movement
+        if (distance < visualConfig.shapes.mouseRadius) {
+            // Calculate smooth falloff based on distance
+            const influence = (1 - distance / visualConfig.shapes.mouseRadius) * visualConfig.shapes.mouseInfluence;
             
-            // Apply different movement patterns
-            switch(shape.movementPattern) {
-                case 0: // Standard random movement
-                    shape.speedX += (Math.random() - 0.5) * 0.05;
-                    shape.speedY += (Math.random() - 0.5) * 0.05;
-                    break;
-                case 1: // Slight circular tendency
-                    const perpX = -shape.speedY * 0.1;
-                    const perpY = shape.speedX * 0.1;
-                    shape.speedX += perpX + (Math.random() - 0.5) * 0.03;
-                    shape.speedY += perpY + (Math.random() - 0.5) * 0.03;
-                    break;
-                case 2: // Slight zigzag
-                    const zigzag = Math.sin(shape.age * 0.01) * 0.02;
-                    shape.speedX += zigzag + (Math.random() - 0.5) * 0.03;
-                    shape.speedY += (Math.random() - 0.5) * 0.03;
-                    break;
-            }
-        }
-        
-        // Increment age for time-based behaviors
-        shape.age += 1;
-        
-        // Always enforce speed limits - not just during random changes
-        const maxSpeed = visualConfig.shapes.maxSpeed;
-        const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
-        if (currentSpeed > maxSpeed) {
-            shape.speedX = (shape.speedX / currentSpeed) * maxSpeed;
-            shape.speedY = (shape.speedY / currentSpeed) * maxSpeed;
-        }
-        
-        // Mouse interaction - only when mouse is close
-        if (distance < visualConfig.shapes.interactionDistance) {
-            // Move away from mouse with a MUCH more gentle force
+            // Move away from mouse very gently
             const angle = Math.atan2(dy, dx);
-            
-            // Use interaction strength from config - this is key to fixing the flying shapes
-            const repelForce = (1 - distance / visualConfig.shapes.interactionDistance) * visualConfig.shapes.interactionStrength;
-            
-            // Apply gentler repulsion
-            shape.x -= Math.cos(angle) * repelForce;
-            shape.y -= Math.sin(angle) * repelForce;
-            
-            // Increase opacity when interacting
-            const targetOpacity = Math.min(0.8, shape.baseOpacity * 1.5);
-            const currentOpacity = parseFloat(shape.element.style.opacity);
-            shape.element.style.opacity = currentOpacity + (targetOpacity - currentOpacity) * 0.1;
-        } else {
-            // Gradually return to normal opacity
-            const currentOpacity = parseFloat(shape.element.style.opacity);
-            shape.element.style.opacity = currentOpacity + (shape.baseOpacity - currentOpacity) * 0.05;
+            shape.speedX -= Math.cos(angle) * influence;
+            shape.speedY -= Math.sin(angle) * influence;
         }
         
-        // Calculate distance from center of screen (not from mouse)
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const dxCenter = centerX - shape.x;
-        const dyCenter = centerY - shape.y;
-        const distanceFromCenter = Math.sqrt(dxCenter * dxCenter + dyCenter * dyCenter);
-        
-        // Very gentle push AWAY from center if too close to center
-        if (distanceFromCenter < window.innerWidth / 5) {
-            // Push away from center very gently
-            shape.x -= dxCenter * 0.00002;
-            shape.y -= dyCenter * 0.00002;
+        // Apply speed limit for smooth movement
+        const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
+        if (currentSpeed > visualConfig.shapes.maxSpeed) {
+            const ratio = visualConfig.shapes.maxSpeed / currentSpeed;
+            shape.speedX *= ratio;
+            shape.speedY *= ratio;
         }
         
-        // Very gentle attraction to center only if VERY far away
-        // This prevents shapes from completely disappearing off-screen
-        else if (distanceFromCenter > window.innerWidth / 1.5) {
-            shape.x += dxCenter * 0.00001;
-            shape.y += dyCenter * 0.00001;
-        }
-        
-        // Improved boundary behavior - soft bounce with some probability of wrap-around
+        // Simple, gentle wrap-around at screen edges
         const buffer = shape.size;
-        const bounceStrength = 0.5; // How much to bounce (1.0 = perfect bounce)
+        if (shape.x < -buffer) shape.x = window.innerWidth + buffer;
+        if (shape.x > window.innerWidth + buffer) shape.x = -buffer;
+        if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
+        if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
         
-        // X-axis boundary
-        if (shape.x < buffer) {
-            // 80% chance to bounce, 20% chance to wrap around
-            if (Math.random() < 0.8) {
-                shape.x = buffer;
-                shape.speedX = Math.abs(shape.speedX) * bounceStrength;
-            } else {
-                shape.x = window.innerWidth - buffer;
-            }
-        } else if (shape.x > window.innerWidth - buffer) {
-            if (Math.random() < 0.8) {
-                shape.x = window.innerWidth - buffer;
-                shape.speedX = -Math.abs(shape.speedX) * bounceStrength;
-            } else {
-                shape.x = buffer;
-            }
-        }
-        
-        // Y-axis boundary
-        if (shape.y < buffer) {
-            if (Math.random() < 0.8) {
-                shape.y = buffer;
-                shape.speedY = Math.abs(shape.speedY) * bounceStrength;
-            } else {
-                shape.y = window.innerHeight - buffer;
-            }
-        } else if (shape.y > window.innerHeight - buffer) {
-            if (Math.random() < 0.8) {
-                shape.y = window.innerHeight - buffer;
-                shape.speedY = -Math.abs(shape.speedY) * bounceStrength;
-            } else {
-                shape.y = buffer;
-            }
-        }
-        
-        // Update rotation more gently
-        shape.angle += shape.rotationSpeed;
-        
-        // Apply position and rotation with hardware acceleration hint
-        shape.element.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0) rotate(${shape.angle}deg)`;
+        // Apply position update with hardware acceleration hint
+        shape.element.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0)`;
     });
     
     // Continue animation loop
