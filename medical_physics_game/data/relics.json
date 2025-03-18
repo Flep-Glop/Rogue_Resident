@@ -6,7 +6,7 @@
       "description": "A clipboard that occasionally whispers 'None of these measurements matter'",
       "rarity": "uncommon",
       "itemType": "relic",
-      "iconPath": "clipboard.png",
+      "iconPath": "Yellow Sticky Note.png",
       "effect": {
         "type": "heal",
         "value": "",
@@ -20,11 +20,25 @@
       "description": "These glasses simultaneously show radiation as both particles and waves.",
       "rarity": "epic",
       "itemType": "relic",
-      "iconPath": "glasses.png",
+      "iconPath": "3D Glasses.png",
       "effect": {
         "type": "heal",
         "value": "",
         "duration": "permanent"
+      },
+      "passiveText": ""
+    },
+    {
+      "id": "doom_disk",
+      "name": "Disk of Doom",
+      "description": "A copy of the 1992 classic: \"Doom\"",
+      "rarity": "uncommon",
+      "itemType": "relic",
+      "iconPath": "CD.png",
+      "effect": {
+        "type": "insight_gain",
+        "value": "20",
+        "duration": "instant"
       },
       "passiveText": ""
     }

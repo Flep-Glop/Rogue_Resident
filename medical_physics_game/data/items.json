@@ -1,3 +1,60 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "time_dilation_clock",
+      "name": "Planck's Bulb",
+      "description": "As Einstein theorized, time really does slow down when you're in a panic.",
+      "rarity": "uncommon",
+      "itemType": "consumable",
+      "iconPath": "Clock.png",
+      "effect": {
+        "type": "insight_gain",
+        "value": "20",
+        "duration": "instant"
+      },
+      "useText": ""
+    },
+    {
+      "id": "planck_bulb",
+      "name": "Schr\u00f6dinger's Spectacles",
+      "description": "When it turns on above your head, understanding becomes quantized and unavoidable.",
+      "rarity": "uncommon",
+      "itemType": "consumable",
+      "iconPath": "Lightbulb.png",
+      "effect": {
+        "type": "heal",
+        "value": "",
+        "duration": "instant"
+      },
+      "useText": ""
+    },
+    {
+      "id": "time_dilation_clock",
+      "name": "Time Dilation Clock",
+      "description": "As Einstein theorized, time really does slow down when you're in a panic.",
+      "rarity": "uncommon",
+      "itemType": "consumable",
+      "iconPath": "Clock.png",
+      "effect": {
+        "type": "insight_gain",
+        "value": "20",
+        "duration": "instant"
+      },
+      "useText": ""
+    },
+    {
+      "id": "doom_disk",
+      "name": "Planck's Bulb (Clone)",
+      "description": "As Einstein theorized, time really does slow down when you're in a panic.",
+      "rarity": "uncommon",
+      "itemType": "consumable",
+      "iconPath": "CD.png",
+      "effect": {
+        "type": "insight_gain",
+        "value": "20",
+        "duration": "instant"
+      },
+      "useText": ""
+    }
+  ]
 }
