@@ -1,32 +1,3 @@
 {
-  "items": [
-    {
-      "id": "healing_potion",
-      "name": "Existential Relief Potion",
-      "description": "Temporarily relieves the pain of existence. And restores 1 life.",
-      "rarity": "common",
-      "itemType": "consumable",
-      "effect": {
-        "type": "heal",
-        "value": 1,
-        "duration": "instant"
-      },
-      "useText": "Drink to restore 1 life",
-      "iconPath": "potion.png"
-    },
-    {
-      "id": "time_loop_watch",
-      "name": "Groundhog Day Wristwatch",
-      "description": "A watch that sends you back in time to repeat the clinical scenario.",
-      "rarity": "rare",
-      "itemType": "consumable",
-      "effect": {
-        "type": "retry",
-        "value": "Retry a failed question without penalty",
-        "duration": "instant"
-      },
-      "useText": "Use to retry the current question",
-      "iconPath": "watch.png"
-    }
-  ]
+  "items": []
 }
