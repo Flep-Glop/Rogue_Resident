@@ -111,7 +111,7 @@
     const pattern = this.backgroundPatterns[patternIndex];
     
     // Draw retro-style background with enhanced grid
-    this.drawEnhancedBackground(ctx, pattern, canvasWidth, canvasHeight);
+    this.drawEnhancedBackground(ctx, pattern, canvasWidth, canvasHeight, currentFloor, patternIndex);
     
     // Draw ambient floating particles
     this.drawParticles(ctx);
@@ -134,7 +134,7 @@
   /**
    * Draw enhanced background with depth and grid effects
    */
-  MapRenderer.drawEnhancedBackground = function(ctx, pattern, width, height) {
+  MapRenderer.drawEnhancedBackground = function(ctx, pattern, width, height, currentFloor, patternIndex) {
     // Fill with main background color
     ctx.fillStyle = pattern.mainColor;
     ctx.fillRect(0, 0, width, height);
@@ -185,9 +185,13 @@
     ctx.fillRect(0, 0, width, height);
     
     // Add subtle floor-specific ambient color overlay
-    const floorColor = this.backgroundPatterns[patternIndex].accentColor;
-    ctx.fillStyle = this.hexToRgba(floorColor, 0.03);
-    ctx.fillRect(0, 0, width, height);
+    // Make sure patternIndex is valid
+    if (this.backgroundPatterns && patternIndex !== undefined && patternIndex >= 0 && 
+        patternIndex < this.backgroundPatterns.length) {
+      const floorColor = this.backgroundPatterns[patternIndex].accentColor;
+      ctx.fillStyle = this.hexToRgba(floorColor, 0.03);
+      ctx.fillRect(0, 0, width, height);
+    }
   };
   
   /**
@@ -444,9 +448,19 @@
    * Utility function to convert hex color to rgba
    */
   MapRenderer.hexToRgba = function(hex, alpha) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    // Handle invalid hex values
+    if (!hex || typeof hex !== 'string' || !hex.startsWith('#') || hex.length < 7) {
+      return `rgba(100, 100, 100, ${alpha})`; // Fallback gray color
+    }
+    
+    try {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    } catch (e) {
+      console.error("Error parsing hex color:", e);
+      return `rgba(100, 100, 100, ${alpha})`; // Fallback
+    }
   };
 })();
