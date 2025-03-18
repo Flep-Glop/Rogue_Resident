@@ -10,7 +10,7 @@ const visualConfig = {
     shapes: {
         count: 30,             // More shapes
         minSize: 5,            // Smaller minimum for more variation
-        maxSize: 40,           // Much larger maximum size
+        maxSize: 80,           // Much larger maximum size
         sizeDistribution: 'varied', // 'uniform', 'varied', or 'extreme'
         colors: [              // Colors matching your game theme
             '#5b8dd9',         // primary
@@ -21,8 +21,8 @@ const visualConfig = {
             '#5bbcd9'          // cyan
         ],
         followSpeed: 0.002,    // Drastically reduced follow speed
-        interactionDistance: 180, // Slightly increased interaction distance
-        interactionStrength: 0.6, // Reduced from default 2.0
+        interactionDistance: 10, // Slightly increased interaction distance
+        interactionStrength: 0.1, // Reduced from default 2.0
         enabledPages: [        // Only enable shapes on these pages
             'landing',         // Landing page
             'character-select' // Character selection
