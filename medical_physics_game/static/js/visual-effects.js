@@ -9,8 +9,7 @@ const visualConfig = {
         repelForce: 3.0,        // How strongly shapes are pushed by mouse
         repelRadius: 200,       // How far the mouse influence reaches
         friction: 0.95,         // Air resistance (lower = more drag)
-        returnForce: 0.02,      // Force pulling shapes back to origin (reduced)
-        cornerRepelForce: 0.06, // Force pushing away from corners
+        returnForce: 0.03,      // Force pulling shapes back to origin
         maxSpeed: 15,           // Maximum velocity cap
     },
     
@@ -49,10 +48,9 @@ const visualConfig = {
     // Distribution settings
     distribution: {
         avoidCorners: true,     // Avoid placing shapes in corners
-        cornerRadius: 200,      // Size of corner avoidance zones (increased)
+        cornerRadius: 150,      // Size of corner avoidance zones
         quadrantBalance: true,  // Try to balance shapes across screen quadrants
-        edgeMargin: 120,        // Margin from screen edges (increased)
-        topLeftExtra: 100       // Extra avoidance for top-left corner specifically
+        edgeMargin: 100         // Margin from screen edges
     },
     
     // Color themes
@@ -332,9 +330,6 @@ function createAllShapes() {
     const distantContainer = document.getElementById('distant-shapes');
     const shapesContainer = document.getElementById('background-shapes');
     
-    // Initialize quadrant weights to favor non-top-left placement
-    screenQuadrants = [5, 0, 0, 0]; // Start with bias against top-left
-    
     // Create static background shapes
     for (let i = 0; i < visualConfig.shapes.static.count; i++) {
         createStaticShape(staticContainer);
@@ -345,21 +340,9 @@ function createAllShapes() {
         createLargeDistantShape(distantContainer);
     }
     
-    // Create dynamic shapes - distribute more evenly
-    let shapesPerQuadrant = Math.floor(visualConfig.shapes.dynamic.count / 4);
-    let remainder = visualConfig.shapes.dynamic.count % 4;
-    
-    // Explicitly place shapes in each quadrant
-    for (let quadrant = 0; quadrant < 4; quadrant++) {
-        // Give extra shapes to non-top-left quadrants
-        let count = quadrant === 0 ? shapesPerQuadrant : 
-                   (shapesPerQuadrant + (remainder > 0 ? 1 : 0));
-        
-        if (remainder > 0 && quadrant !== 0) remainder--;
-        
-        for (let i = 0; i < count; i++) {
-            createDynamicShapeInQuadrant(shapesContainer, quadrant);
-        }
+    // Create dynamic shapes
+    for (let i = 0; i < visualConfig.shapes.dynamic.count; i++) {
+        createDynamicShape(shapesContainer);
     }
 }
 
@@ -382,12 +365,12 @@ function isInProtectionZone(x, y) {
 
 // Check if position is in a corner
 function isInCorner(x, y) {
-    const { cornerRadius, edgeMargin, topLeftExtra } = visualConfig.distribution;
+    const { cornerRadius, edgeMargin } = visualConfig.distribution;
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // Check top-left corner with extra avoidance
-    if (x < (cornerRadius + topLeftExtra) && y < (cornerRadius + topLeftExtra)) return true;
+    // Check top-left corner
+    if (x < cornerRadius && y < cornerRadius) return true;
     
     // Check top-right corner
     if (x > width - cornerRadius && y < cornerRadius) return true;
@@ -407,22 +390,12 @@ function isInCorner(x, y) {
 
 // Get least populated quadrant
 function getLeastPopulatedQuadrant() {
-    let minIndex = 1; // Default to top-right instead of top-left
-    let minCount = screenQuadrants[1];
-    
-    // Check all quadrants except top-left (index 0) first
-    for (let i = 2; i < 4; i++) {
-        if (screenQuadrants[i] < minCount) {
+    let minIndex = 0;
+    for (let i = 1; i < 4; i++) {
+        if (screenQuadrants[i] < screenQuadrants[minIndex]) {
             minIndex = i;
-            minCount = screenQuadrants[i];
         }
     }
-    
-    // Only use top-left if it has significantly fewer shapes
-    if (screenQuadrants[0] < minCount * 0.7) {
-        minIndex = 0;
-    }
-    
     return minIndex;
 }
 
@@ -470,242 +443,12 @@ function generatePositionInQuadrant(quadrant, size) {
     return { x, y };
 }
 
-// Create a shape specifically in a given quadrant
-function createDynamicShapeInQuadrant(container, quadrant) {
-    const dynamicConfig = visualConfig.shapes.dynamic;
-    
-    // Size
-    const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
-    
-    // Generate position in specified quadrant
-    const position = generatePositionInQuadrant(quadrant, size);
-    const x = position.x;
-    const y = position.y;
-    
-    // The rest of the shape creation logic remains the same as createDynamicShape
-    // Color selection
-    let color;
-    if (Math.random() < 0.01) {
-        color = visualConfig.colors.contrast[0]; // White
-    } else {
-        color = visualConfig.colors.primary[Math.floor(Math.random() * visualConfig.colors.primary.length)];
-    }
-    
-    // Determine if shape should be hollow based on size
-    let isHollow;
-    if (size > visualConfig.hollow.largeSize) {
-        isHollow = true; // Large shapes are always hollow
-    } else if (size < visualConfig.hollow.smallSize) {
-        isHollow = false; // Small shapes are always filled
-    } else {
-        // Medium shapes have a chance to be hollow
-        isHollow = Math.random() < visualConfig.hollow.mediumChance;
-    }
-    
-    // Calculate base opacity
-    const opacityRange = dynamicConfig.opacityRange;
-    const opacity = opacityRange[0] + Math.random() * (opacityRange[1] - opacityRange[0]);
-    
-    // Create the shape element and add it to the container
-    const shape = document.createElement('div');
-    shape.className = 'dynamic-shape';
-    
-    // Determine shape properties and styles as in createDynamicShape
-    let rotationTransform = '';
-    let shapeType;
-    
-    const typeRoll = Math.random();
-    
-    // Shape styling code remains the same as createDynamicShape
-    if (typeRoll < visualConfig.typeDistribution.square) {
-        shapeType = 'square';
-        const borderRadius = Math.random() < 0.3 ? '2px' : '0';
-        
-        if (isHollow) {
-            const borderWidth = Math.max(1, size / 20);
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                border: ${borderWidth}px solid ${color};
-                background-color: transparent;
-                border-radius: ${borderRadius};
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        } else {
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                background-color: ${color};
-                border-radius: ${borderRadius};
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        }
-    } else if (typeRoll < visualConfig.typeDistribution.square + visualConfig.typeDistribution.circle) {
-        shapeType = 'circle';
-        
-        if (isHollow) {
-            const borderWidth = Math.max(1, size / 20);
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                border: ${borderWidth}px solid ${color};
-                background-color: transparent;
-                border-radius: 50%;
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        } else {
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                background-color: ${color};
-                border-radius: 50%;
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        }
-    } else if (typeRoll < visualConfig.typeDistribution.square + visualConfig.typeDistribution.circle + visualConfig.typeDistribution.triangle) {
-        shapeType = 'triangle';
-        
-        if (isHollow) {
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size * 0.866}px;
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-                clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-                border: 1px solid ${color};
-                background-color: transparent;
-            `;
-        } else {
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size * 0.866}px;
-                background-color: ${color};
-                clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        }
-    } else {
-        shapeType = 'diamond';
-        rotationTransform = 'rotate(45deg)';
-        
-        if (isHollow) {
-            const borderWidth = Math.max(1, size / 20);
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                border: ${borderWidth}px solid ${color};
-                background-color: transparent;
-                transform: rotate(45deg);
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        } else {
-            shape.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                background-color: ${color};
-                transform: rotate(45deg);
-                left: 0;
-                top: 0;
-                opacity: ${opacity};
-                will-change: transform;
-                transition: opacity 0.3s;
-            `;
-        }
-    }
-    
-    // Apply animations
-    let hasRotation = shapeType !== 'diamond' && Math.random() < visualConfig.animation.rotation.chance;
-    const hasPulse = !hasRotation && Math.random() < visualConfig.animation.pulse.chance;
-    
-    // Add animations
-    if (hasRotation) {
-        // Slower rotation for larger shapes
-        const sizeFactor = 1 + (size / dynamicConfig.maxSize);
-        const { minDuration, maxDuration } = visualConfig.animation.rotation;
-        const duration = (minDuration + Math.random() * (maxDuration - minDuration)) * sizeFactor;
-        
-        shape.style.animationDuration = `${duration}s`;
-        shape.classList.add('rotate');
-    }
-    
-    if (hasPulse) {
-        // Don't combine pulse and rotation for simplicity
-        const { minDuration, maxDuration } = visualConfig.animation.pulse;
-        const duration = minDuration + Math.random() * (maxDuration - minDuration);
-        
-        shape.style.animationDuration = `${duration}s`;
-        shape.classList.add('pulse');
-    }
-    
-    // Rainbow effect
-    if (Math.random() < visualConfig.animation.rainbow.chance) {
-        shape.classList.add('rainbow');
-    }
-    
-    container.appendChild(shape);
-    
-    // Add to shapes array - this is the physics model
-    shapes.push({
-        element: shape,
-        x: x,
-        y: y,
-        originX: x,
-        originY: y,
-        velocityX: 0,
-        velocityY: 0,
-        size: size,
-        baseOpacity: opacity,
-        color: color,
-        isHollow: isHollow,
-        shapeType: shapeType,
-        rotation: hasRotation,
-        pulse: hasPulse,
-        rotationTransform: rotationTransform,
-        quadrant: quadrant // Track which quadrant this shape belongs to
-    });
-}
-
 // Generate a balanced position for shapes
 function generateBalancedPosition(size) {
     const { quadrantBalance, avoidCorners } = visualConfig.distribution;
     
     if (quadrantBalance) {
-        // Use the least populated quadrant, avoiding top-left if possible
+        // Use the least populated quadrant
         const quadrant = getLeastPopulatedQuadrant();
         return generatePositionInQuadrant(quadrant, size);
     } else {
@@ -714,15 +457,8 @@ function generateBalancedPosition(size) {
         let attempts = 0;
         
         do {
-            // Bias against top-left corner
-            if (Math.random() < 0.85) { // 85% chance to avoid top-left quarter of screen
-                x = Math.random() * 0.75 * window.innerWidth + (window.innerWidth * 0.25);
-                y = Math.random() * 0.75 * window.innerHeight + (window.innerHeight * 0.25);
-            } else {
-                x = Math.random() * window.innerWidth;
-                y = Math.random() * window.innerHeight;
-            }
-            
+            x = Math.random() * window.innerWidth;
+            y = Math.random() * window.innerHeight;
             attempts++;
             
             // Prevent infinite loop
@@ -1138,57 +874,12 @@ function updateShapePhysics(shape) {
     shape.velocityX *= physics.friction;
     shape.velocityY *= physics.friction;
     
-    // Return-to-origin force (spring) - reduced to prevent clustering
+    // Return-to-origin force (spring)
     const dx = shape.originX - shape.x;
     const dy = shape.originY - shape.y;
     
     shape.velocityX += dx * physics.returnForce;
     shape.velocityY += dy * physics.returnForce;
-    
-    // Repulsion from corners - especially top-left
-    const cornerRepelForce = physics.cornerRepelForce;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    
-    // Top-left corner repulsion (stronger)
-    if (shape.x < 200 && shape.y < 200) {
-        const cornerDist = Math.sqrt(shape.x * shape.x + shape.y * shape.y);
-        if (cornerDist > 0) {
-            shape.velocityX += (shape.x / cornerDist) * -cornerRepelForce * 2;
-            shape.velocityY += (shape.y / cornerDist) * -cornerRepelForce * 2;
-        }
-    }
-    
-    // Top-right corner repulsion
-    if (shape.x > width - 200 && shape.y < 200) {
-        const cornerDistX = width - shape.x;
-        const cornerDist = Math.sqrt(cornerDistX * cornerDistX + shape.y * shape.y);
-        if (cornerDist > 0) {
-            shape.velocityX += (cornerDistX / cornerDist) * cornerRepelForce;
-            shape.velocityY += (shape.y / cornerDist) * -cornerRepelForce;
-        }
-    }
-    
-    // Bottom-left corner repulsion
-    if (shape.x < 200 && shape.y > height - 200) {
-        const cornerDistY = height - shape.y;
-        const cornerDist = Math.sqrt(shape.x * shape.x + cornerDistY * cornerDistY);
-        if (cornerDist > 0) {
-            shape.velocityX += (shape.x / cornerDist) * -cornerRepelForce;
-            shape.velocityY += (cornerDistY / cornerDist) * cornerRepelForce;
-        }
-    }
-    
-    // Bottom-right corner repulsion
-    if (shape.x > width - 200 && shape.y > height - 200) {
-        const cornerDistX = width - shape.x;
-        const cornerDistY = height - shape.y;
-        const cornerDist = Math.sqrt(cornerDistX * cornerDistX + cornerDistY * cornerDistY);
-        if (cornerDist > 0) {
-            shape.velocityX += (cornerDistX / cornerDist) * cornerRepelForce;
-            shape.velocityY += (cornerDistY / cornerDist) * cornerRepelForce;
-        }
-    }
     
     // Mouse repulsion
     if (mouseActive) {
@@ -1267,19 +958,11 @@ function updateShapePhysics(shape) {
     shape.x += shape.velocityX;
     shape.y += shape.velocityY;
     
-    // Screen wrapping - with special handling for top-left
+    // Screen wrapping
     const buffer = shape.size;
-    if (shape.x < -buffer) {
-        // When wrapping from left to right, push down slightly to avoid top-left
-        shape.x = window.innerWidth + buffer;
-        shape.y += 50 * Math.random(); // Add random vertical offset when wrapping
-    }
+    if (shape.x < -buffer) shape.x = window.innerWidth + buffer;
     if (shape.x > window.innerWidth + buffer) shape.x = -buffer;
-    if (shape.y < -buffer) {
-        // When wrapping from top to bottom, push right slightly to avoid top-left
-        shape.y = window.innerHeight + buffer;
-        shape.x += 50 * Math.random(); // Add random horizontal offset when wrapping
-    }
+    if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
     if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
     
     // Update visual element with transform
