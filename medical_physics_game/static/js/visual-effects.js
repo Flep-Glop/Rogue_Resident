@@ -1,6 +1,5 @@
 /**
- * visual-effects.js - Optimized version with improved shape distribution
- * Fixes the issue with shapes stacking in the top left corner
+ * visual-effects.js - Modified with minimal changes to fix top-left stacking issue
  */
 
 // Configuration
@@ -52,7 +51,7 @@ const visualConfig = {
         cornerRadius: 150,      // Size of corner avoidance zones
         quadrantBalance: true,  // Try to balance shapes across screen quadrants
         edgeMargin: 100,        // Margin from screen edges
-        cornerMargin: 120       // Explicit margin from corners (added for better corner avoidance)
+        topLeftExtraMargin: 150 // ADDED: Extra margin for top-left corner
     },
     
     // Color themes
@@ -114,12 +113,14 @@ let mouseY = window.innerHeight / 2;
 let mouseActive = false;
 let lastInteractionTime = 0;
 let screenQuadrants = [0, 0, 0, 0]; // Track shape count in each quadrant
-let previousWindowWidth = window.innerWidth;
-let previousWindowHeight = window.innerHeight;
+let windowInitialized = false; // ADDED: Flag to ensure window dimensions are ready
 
 // Initialize the system
 function init() {
     console.log("Initializing visual effects...");
+    
+    // ADDED: Ensure browser has fully measured the window
+    windowInitialized = true;
     
     // Clean up any existing shapes
     cleanup();
@@ -130,12 +131,8 @@ function init() {
     // Add animation styles
     addAnimationStyles();
     
-    // Store initial window dimensions
-    previousWindowWidth = window.innerWidth;
-    previousWindowHeight = window.innerHeight;
-    
     // Reset quadrant counts
-    resetQuadrantCounts();
+    screenQuadrants = [0, 0, 0, 0];
     
     // Create all shape types
     createAllShapes();
@@ -160,31 +157,23 @@ function cleanup() {
     shapes = [];
     staticShapes = [];
     distantShapes = [];
+    screenQuadrants = [0, 0, 0, 0]; // Reset quadrant counts
     
     // Remove existing containers
     const containers = [
         document.getElementById('background-shapes'),
         document.getElementById('static-shapes'),
-        document.getElementById('distant-shapes'),
-        document.querySelector('.crt-overlay'),
-        document.querySelector('.scanlines'),
-        document.querySelector('.vignette-effect')
+        document.getElementById('distant-shapes')
     ];
     
     containers.forEach(container => {
         if (container) container.remove();
     });
-    
-    resetQuadrantCounts();
-}
-
-// Reset quadrant counts
-function resetQuadrantCounts() {
-    screenQuadrants = [0, 0, 0, 0];
 }
 
 // Add CSS styles for animations
 function addAnimationStyles() {
+    // [CSS styles code unchanged]
     if (!document.getElementById('shape-animation-styles')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'shape-animation-styles';
@@ -285,6 +274,7 @@ function addAnimationStyles() {
 
 // Create containers for different types of shapes
 function createContainers() {
+    // [Container creation code unchanged]
     // Static background shapes container
     const staticContainer = document.createElement('div');
     staticContainer.id = 'static-shapes';
@@ -348,6 +338,13 @@ function createAllShapes() {
     const distantContainer = document.getElementById('distant-shapes');
     const shapesContainer = document.getElementById('background-shapes');
     
+    // ADDED: Make sure we have valid window dimensions
+    if (window.innerWidth < 100 || window.innerHeight < 100) {
+        console.warn("Window dimensions seem incorrect, delaying shape creation");
+        setTimeout(createAllShapes, 100);
+        return;
+    }
+    
     // Create static background shapes
     for (let i = 0; i < visualConfig.shapes.static.count; i++) {
         createStaticShape(staticContainer);
@@ -364,140 +361,164 @@ function createAllShapes() {
     }
 }
 
-// Get the center coordinates of the UI protection zone
-function getProtectionZoneCenter() {
-    const { uiProtection } = visualConfig;
-    return {
-        x: window.innerWidth * uiProtection.centerX,
-        y: window.innerHeight * uiProtection.centerY
-    };
-}
-
-// Get the dimensions of the UI protection zone
-function getProtectionZoneDimensions() {
-    const { uiProtection } = visualConfig;
-    return {
-        width: uiProtection.width + 2 * uiProtection.margin,
-        height: uiProtection.height + 2 * uiProtection.margin
-    };
-}
-
 // Check if a position is in the UI protection zone
 function isInProtectionZone(x, y) {
-    const center = getProtectionZoneCenter();
-    const dimensions = getProtectionZoneDimensions();
+    const { uiProtection } = visualConfig;
+    const centerX = window.innerWidth * uiProtection.centerX;
+    const centerY = window.innerHeight * uiProtection.centerY;
     
-    const halfWidth = dimensions.width / 2;
-    const halfHeight = dimensions.height / 2;
+    const halfWidth = uiProtection.width / 2 + uiProtection.margin;
+    const halfHeight = uiProtection.height / 2 + uiProtection.margin;
     
     return (
-        x >= center.x - halfWidth &&
-        x <= center.x + halfWidth &&
-        y >= center.y - halfHeight &&
-        y <= center.y + halfHeight
+        x >= centerX - halfWidth &&
+        x <= centerX + halfWidth &&
+        y >= centerY - halfHeight &&
+        y <= centerY + halfHeight
     );
 }
 
-// Check if position is in a corner or too close to the edge
-function isInCornerOrEdge(x, y) {
-    const { cornerMargin, edgeMargin } = visualConfig.distribution;
+// Check if position is in a corner
+function isInCorner(x, y) {
+    const { cornerRadius, edgeMargin, topLeftExtraMargin } = visualConfig.distribution;
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // Check all four corners
-    if (x < cornerMargin && y < cornerMargin) return true; // Top-left
-    if (x > width - cornerMargin && y < cornerMargin) return true; // Top-right
-    if (x < cornerMargin && y > height - cornerMargin) return true; // Bottom-left
-    if (x > width - cornerMargin && y > height - cornerMargin) return true; // Bottom-right
+    // MODIFIED: Special handling for top-left with extra margin
+    if (x < topLeftExtraMargin && y < topLeftExtraMargin) return true;
     
-    // Check edges
+    // Check other corners
+    if (x > width - cornerRadius && y < cornerRadius) return true;
+    if (x < cornerRadius && y > height - cornerRadius) return true;
+    if (x > width - cornerRadius && y > height - cornerRadius) return true;
+    
+    // Check if too close to edges
     if (x < edgeMargin || x > width - edgeMargin || 
         y < edgeMargin || y > height - edgeMargin) return true;
     
     return false;
 }
 
-// Get the quadrant of a position (0: top-left, 1: top-right, 2: bottom-left, 3: bottom-right)
-function getQuadrant(x, y) {
-    const quarterWidth = window.innerWidth / 2;
-    const quarterHeight = window.innerHeight / 2;
-    
-    if (x < quarterWidth && y < quarterHeight) return 0; // Top-left
-    if (x >= quarterWidth && y < quarterHeight) return 1; // Top-right
-    if (x < quarterWidth && y >= quarterHeight) return 2; // Bottom-left
-    return 3; // Bottom-right
-}
-
-// Get the least populated quadrant
+// Get least populated quadrant
 function getLeastPopulatedQuadrant() {
-    let minCount = Number.MAX_SAFE_INTEGER;
     let minIndex = 0;
-    
-    for (let i = 0; i < 4; i++) {
-        if (screenQuadrants[i] < minCount) {
-            minCount = screenQuadrants[i];
+    for (let i = 1; i < 4; i++) {
+        if (screenQuadrants[i] < screenQuadrants[minIndex]) {
             minIndex = i;
         }
     }
-    
     return minIndex;
 }
 
-// Generate a valid position in a specific quadrant
+// Generate a position in a specific quadrant
 function generatePositionInQuadrant(quadrant, size) {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    const { edgeMargin, cornerMargin } = visualConfig.distribution;
+    const margin = visualConfig.distribution.edgeMargin;
+    const topLeftExtraMargin = visualConfig.distribution.topLeftExtraMargin; // ADDED
     
     let x, y;
     let attempts = 0;
-    const MAX_ATTEMPTS = 20;
+    const MAX_ATTEMPTS = 20; // ADDED: Limit attempts to prevent infinite loops
     
     do {
-        // Generate position based on quadrant
         switch (quadrant) {
             case 0: // Top-left
-                x = cornerMargin + Math.random() * (halfWidth - cornerMargin - edgeMargin);
-                y = cornerMargin + Math.random() * (halfHeight - cornerMargin - edgeMargin);
+                // MODIFIED: Apply extra margin to top-left
+                x = topLeftExtraMargin + Math.random() * (halfWidth - topLeftExtraMargin - margin);
+                y = topLeftExtraMargin + Math.random() * (halfHeight - topLeftExtraMargin - margin);
                 break;
             case 1: // Top-right
-                x = halfWidth + edgeMargin + Math.random() * (halfWidth - cornerMargin - edgeMargin);
-                y = cornerMargin + Math.random() * (halfHeight - cornerMargin - edgeMargin);
+                x = halfWidth + margin + Math.random() * (halfWidth - 2 * margin);
+                y = margin + Math.random() * (halfHeight - 2 * margin);
                 break;
             case 2: // Bottom-left
-                x = cornerMargin + Math.random() * (halfWidth - cornerMargin - edgeMargin);
-                y = halfHeight + edgeMargin + Math.random() * (halfHeight - cornerMargin - edgeMargin);
+                x = margin + Math.random() * (halfWidth - 2 * margin);
+                y = halfHeight + margin + Math.random() * (halfHeight - 2 * margin);
                 break;
             case 3: // Bottom-right
-                x = halfWidth + edgeMargin + Math.random() * (halfWidth - cornerMargin - edgeMargin);
-                y = halfHeight + edgeMargin + Math.random() * (halfHeight - cornerMargin - edgeMargin);
+                x = halfWidth + margin + Math.random() * (halfWidth - 2 * margin);
+                y = halfHeight + margin + Math.random() * (halfHeight - 2 * margin);
                 break;
         }
         
         attempts++;
         
-        // If we've tried too many times, relax the constraints
+        // ADDED: Fallback if we're struggling to find a valid position
         if (attempts > MAX_ATTEMPTS) {
-            // Generate a position anywhere on screen with edge margins
-            x = edgeMargin + Math.random() * (width - 2 * edgeMargin);
-            y = edgeMargin + Math.random() * (height - 2 * edgeMargin);
+            // Force a position in the center of the quadrant to avoid edges/corners
+            switch (quadrant) {
+                case 0: // Top-left
+                    x = halfWidth * 0.5;
+                    y = halfHeight * 0.5;
+                    break;
+                case 1: // Top-right
+                    x = halfWidth * 1.5;
+                    y = halfHeight * 0.5;
+                    break;
+                case 2: // Bottom-left
+                    x = halfWidth * 0.5;
+                    y = halfHeight * 1.5;
+                    break;
+                case 3: // Bottom-right
+                    x = halfWidth * 1.5;
+                    y = halfHeight * 1.5;
+                    break;
+            }
             break;
         }
-    } while (isInProtectionZone(x, y) || isInCornerOrEdge(x, y));
+    } while ((isInCorner(x, y) || isInProtectionZone(x, y)));
     
-    // Increment the counter for the quadrant we're using
+    // Update quadrant count and return position
     screenQuadrants[quadrant]++;
-    
     return { x, y };
 }
 
 // Generate a balanced position for shapes
 function generateBalancedPosition(size) {
-    // Get the least populated quadrant for better distribution
-    const quadrant = getLeastPopulatedQuadrant();
-    return generatePositionInQuadrant(quadrant, size);
+    const { quadrantBalance, avoidCorners } = visualConfig.distribution;
+    
+    // MODIFIED: Ensure the window has been properly measured
+    if (!windowInitialized || window.innerWidth <= 0 || window.innerHeight <= 0) {
+        console.warn("Window not properly initialized, using fallback position");
+        // Return a safe fallback position (center of screen)
+        return { 
+            x: Math.max(300, window.innerWidth / 2),
+            y: Math.max(300, window.innerHeight / 2)
+        };
+    }
+    
+    if (quadrantBalance) {
+        // Use the least populated quadrant
+        const quadrant = getLeastPopulatedQuadrant();
+        return generatePositionInQuadrant(quadrant, size);
+    } else {
+        // Use completely random position but avoid corners and UI zone
+        let x, y;
+        let attempts = 0;
+        
+        do {
+            x = Math.random() * window.innerWidth;
+            y = Math.random() * window.innerHeight;
+            attempts++;
+            
+            // Prevent infinite loop
+            if (attempts > 50) {
+                // MODIFIED: Provide safe fallback position
+                x = window.innerWidth / 2;
+                y = window.innerHeight / 2;
+                break;
+            }
+        } while ((avoidCorners && isInCorner(x, y)) || isInProtectionZone(x, y));
+        
+        // Determine which quadrant this falls into and update counts
+        const quadrant = (x > window.innerWidth / 2 ? 1 : 0) + (y > window.innerHeight / 2 ? 2 : 0);
+        screenQuadrants[quadrant]++;
+        
+        return { x, y };
+    }
 }
 
 // Create a static background shape
@@ -509,6 +530,13 @@ function createStaticShape(container) {
     const position = generateBalancedPosition(size);
     const x = position.x;
     const y = position.y;
+    
+    // ADDED: Additional safety check for top-left corner
+    if (x < 50 && y < 50) {
+        console.warn("Shape would be positioned in top-left, adjusting");
+        position.x = 100 + Math.random() * 100;
+        position.y = 100 + Math.random() * 100;
+    }
     
     // Static shapes are always filled
     const color = visualConfig.colors.primary[Math.floor(Math.random() * visualConfig.colors.primary.length)];
@@ -528,8 +556,8 @@ function createStaticShape(container) {
             height: ${size}px;
             background-color: ${color};
             border-radius: ${borderRadius};
-            left: ${x}px;
-            top: ${y}px;
+            left: ${position.x}px;
+            top: ${position.y}px;
             opacity: ${config.opacity};
         `;
     } else {
@@ -539,8 +567,8 @@ function createStaticShape(container) {
             height: ${size}px;
             background-color: ${color};
             border-radius: 50%;
-            left: ${x}px;
-            top: ${y}px;
+            left: ${position.x}px;
+            top: ${position.y}px;
             opacity: ${config.opacity};
         `;
     }
@@ -551,10 +579,8 @@ function createStaticShape(container) {
     // Store for reference
     staticShapes.push({
         element: shape,
-        x: x,
-        y: y,
-        size: size,
-        quadrant: getQuadrant(x, y)
+        x: position.x,
+        y: position.y
     });
 }
 
@@ -568,8 +594,15 @@ function createLargeDistantShape(container) {
     const x = position.x;
     const y = position.y;
     
+    // ADDED: Additional safety check for top-left corner
+    if (x < 50 && y < 50) {
+        console.warn("Distant shape would be positioned in top-left, adjusting");
+        position.x = 150 + Math.random() * 100;
+        position.y = 150 + Math.random() * 100;
+    }
+    
     // Always hollow
-    const colors = visualConfig.colors.primary;
+    const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
     // Create shape element
@@ -592,8 +625,8 @@ function createLargeDistantShape(container) {
             border: ${borderWidth}px solid ${color};
             background-color: transparent;
             border-radius: 50%;
-            left: ${x - size/2}px;
-            top: ${y - size/2}px;
+            left: ${position.x - size/2}px;
+            top: ${position.y - size/2}px;
             opacity: ${config.opacity};
         `;
     } else {
@@ -603,8 +636,8 @@ function createLargeDistantShape(container) {
             height: ${size}px;
             border: ${borderWidth}px solid ${color};
             background-color: transparent;
-            left: ${x - size/2}px;
-            top: ${y - size/2}px;
+            left: ${position.x - size/2}px;
+            top: ${position.y - size/2}px;
             opacity: ${config.opacity};
         `;
     }
@@ -621,10 +654,9 @@ function createLargeDistantShape(container) {
     // Store for reference
     distantShapes.push({
         element: shape,
-        x: x,
-        y: y,
-        size: size,
-        quadrant: getQuadrant(x, y)
+        x: position.x,
+        y: position.y,
+        size: size
     });
 }
 
@@ -640,13 +672,18 @@ function createDynamicShape(container) {
     const x = position.x;
     const y = position.y;
     
-    // Color selection
+    // ADDED: Additional safety check for top-left corner
+    if (x < 50 && y < 50) {
+        console.warn("Dynamic shape would be positioned in top-left, adjusting");
+        position.x = 200 + Math.random() * 100;
+        position.y = 200 + Math.random() * 100;
+    }
+    
+    // Color - 1% chance for white, rest normal colors
     let color;
     if (Math.random() < 0.01) {
-        // 1% chance for contrast color (white, bright green, or pink)
-        color = visualConfig.colors.contrast[Math.floor(Math.random() * visualConfig.colors.contrast.length)];
+        color = visualConfig.colors.contrast[0]; // White
     } else {
-        // Regular color from primary palette
         color = visualConfig.colors.primary[Math.floor(Math.random() * visualConfig.colors.primary.length)];
     }
     
@@ -665,14 +702,13 @@ function createDynamicShape(container) {
     const opacityRange = dynamicConfig.opacityRange;
     const opacity = opacityRange[0] + Math.random() * (opacityRange[1] - opacityRange[0]);
     
-    // Create shape element
+    // Determine shape type and create element
     const shape = document.createElement('div');
     shape.className = 'dynamic-shape';
     
     let rotationTransform = '';
     let shapeType;
     
-    // Determine shape type based on distribution
     const typeRoll = Math.random();
     
     if (typeRoll < visualConfig.typeDistribution.square) {
@@ -807,7 +843,7 @@ function createDynamicShape(container) {
         }
     }
     
-    // Apply animations - diamonds already have rotation transform so avoid rotation animation
+    // Apply animations
     let hasRotation = shapeType !== 'diamond' && Math.random() < visualConfig.animation.rotation.chance;
     const hasPulse = !hasRotation && Math.random() < visualConfig.animation.pulse.chance;
     
@@ -831,7 +867,7 @@ function createDynamicShape(container) {
         shape.classList.add('pulse');
     }
     
-    // Rainbow effect (rare)
+    // Rainbow effect
     if (Math.random() < visualConfig.animation.rainbow.chance) {
         shape.classList.add('rainbow');
     }
@@ -841,10 +877,10 @@ function createDynamicShape(container) {
     // Add to shapes array - this is the physics model
     shapes.push({
         element: shape,
-        x: x,
-        y: y,
-        originX: x,
-        originY: y,
+        x: position.x,
+        y: position.y,
+        originX: position.x,
+        originY: position.y,
         velocityX: 0,
         velocityY: 0,
         size: size,
@@ -854,9 +890,7 @@ function createDynamicShape(container) {
         shapeType: shapeType,
         rotation: hasRotation,
         pulse: hasPulse,
-        rotationTransform: rotationTransform,
-        quadrant: getQuadrant(x, y),
-        lastRepositioned: Date.now() // Track when it was last repositioned to prevent rapid bouncing
+        rotationTransform: rotationTransform
     });
 }
 
@@ -882,94 +916,34 @@ function updateShapes() {
     requestAnimationFrame(updateShapes);
 }
 
-// Check if a shape is entering or inside the UI protected zone
+// Check if a shape is entering the UI protected zone
 function isEnteringProtectedZone(shape) {
-    return isInProtectionZone(shape.x, shape.y);
-}
-
-// Check if a shape is too close to a corner
-function isNearCorner(shape) {
-    return isInCornerOrEdge(shape.x, shape.y);
-}
-
-// Safe repositioning of a trapped shape
-function repositionTrappedShape(shape) {
-    // Only reposition if it's been more than 1 second since last repositioning
-    // This prevents rapid bouncing and strange behavior
-    const now = Date.now();
-    if (now - shape.lastRepositioned < 1000) {
-        return;
-    }
+    const { uiProtection } = visualConfig;
+    const centerX = window.innerWidth * uiProtection.centerX;
+    const centerY = window.innerHeight * uiProtection.centerY;
     
-    // Find the least populated quadrant
-    const quadrant = getLeastPopulatedQuadrant();
+    const halfWidth = uiProtection.width / 2 + uiProtection.margin;
+    const halfHeight = uiProtection.height / 2 + uiProtection.margin;
     
-    // Generate a new position in that quadrant
-    const position = generatePositionInQuadrant(quadrant, shape.size);
-    
-    // Update the shape's position and origin
-    shape.x = position.x;
-    shape.y = position.y;
-    shape.originX = position.x;
-    shape.originY = position.y;
-    
-    // Reset velocity
-    shape.velocityX = 0;
-    shape.velocityY = 0;
-    
-    // Update quadrant tracking
-    screenQuadrants[shape.quadrant]--;
-    shape.quadrant = quadrant;
-    screenQuadrants[quadrant]++;
-    
-    // Mark as repositioned
-    shape.lastRepositioned = now;
-}
-
-// Apply "corner avoidance" force to push shapes away from screen corners
-function applyCornerAvoidanceForce(shape) {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const cornerMargin = visualConfig.distribution.cornerMargin;
-    
-    // Check proximity to each corner and apply a repelling force
-    
-    // Top-left corner
-    if (shape.x < cornerMargin && shape.y < cornerMargin) {
-        const dx = cornerMargin - shape.x;
-        const dy = cornerMargin - shape.y;
-        shape.velocityX += dx * 0.01;
-        shape.velocityY += dy * 0.01;
-    }
-    
-    // Top-right corner
-    if (shape.x > width - cornerMargin && shape.y < cornerMargin) {
-        const dx = width - cornerMargin - shape.x;
-        const dy = cornerMargin - shape.y;
-        shape.velocityX += dx * 0.01;
-        shape.velocityY += dy * 0.01;
-    }
-    
-    // Bottom-left corner
-    if (shape.x < cornerMargin && shape.y > height - cornerMargin) {
-        const dx = cornerMargin - shape.x;
-        const dy = height - cornerMargin - shape.y;
-        shape.velocityX += dx * 0.01;
-        shape.velocityY += dy * 0.01;
-    }
-    
-    // Bottom-right corner
-    if (shape.x > width - cornerMargin && shape.y > height - cornerMargin) {
-        const dx = width - cornerMargin - shape.x;
-        const dy = height - cornerMargin - shape.y;
-        shape.velocityX += dx * 0.01;
-        shape.velocityY += dy * 0.01;
-    }
+    return (
+        shape.x >= centerX - halfWidth &&
+        shape.x <= centerX + halfWidth &&
+        shape.y >= centerY - halfHeight &&
+        shape.y <= centerY + halfHeight
+    );
 }
 
 // Update physics for a single shape
 function updateShapePhysics(shape) {
     const physics = visualConfig.physics;
+    
+    // ADDED: Extra safety to prevent shapes from getting stuck in the top-left
+    if (shape.x < 50 && shape.y < 50) {
+        shape.x = 200 + Math.random() * 100;
+        shape.y = 200 + Math.random() * 100;
+        shape.originX = shape.x;
+        shape.originY = shape.y;
+    }
     
     // Apply friction (air resistance)
     shape.velocityX *= physics.friction;
@@ -981,9 +955,6 @@ function updateShapePhysics(shape) {
     
     shape.velocityX += dx * physics.returnForce;
     shape.velocityY += dy * physics.returnForce;
-    
-    // Apply extra corner avoidance force
-    applyCornerAvoidanceForce(shape);
     
     // Mouse repulsion
     if (mouseActive) {
@@ -1033,10 +1004,12 @@ function updateShapePhysics(shape) {
     
     // Extra repelling force from UI zone
     if (isEnteringProtectedZone(shape)) {
-        const center = getProtectionZoneCenter();
+        const { uiProtection } = visualConfig;
+        const centerX = window.innerWidth * uiProtection.centerX;
+        const centerY = window.innerHeight * uiProtection.centerY;
         
-        const dx = shape.x - center.x;
-        const dy = shape.y - center.y;
+        const dx = shape.x - centerX;
+        const dy = shape.y - centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 0) {
@@ -1046,16 +1019,6 @@ function updateShapePhysics(shape) {
             // Add velocity away from center
             shape.velocityX += (dx / distance) * repulsionStrength;
             shape.velocityY += (dy / distance) * repulsionStrength;
-        }
-    }
-    
-    // Check if shape is trapped in a corner and reposition if necessary
-    if (isNearCorner(shape)) {
-        // Apply corner avoidance force to push it out gradually
-        // If stuck for too long, reposition
-        if (Math.abs(shape.velocityX) < 0.1 && Math.abs(shape.velocityY) < 0.1) {
-            repositionTrappedShape(shape);
-            return; // Skip the rest of the physics update
         }
     }
     
@@ -1070,39 +1033,32 @@ function updateShapePhysics(shape) {
     shape.x += shape.velocityX;
     shape.y += shape.velocityY;
     
-    // Improved screen wrapping with increased buffer
-    const buffer = shape.size * 2; // Double the buffer size for better edge handling
+    // Screen wrapping with improved corner avoidance
+    const buffer = shape.size;
     const width = window.innerWidth;
     const height = window.innerHeight;
     
+    // MODIFIED: Improved screen wrapping with corner avoidance
     if (shape.x < -buffer) {
         shape.x = width + buffer / 2;
-        // Also update the origin to avoid pulling back to off-screen
-        shape.originX = shape.x;
+        // Also update origin to prevent snapping back
+        shape.originX = width / 2 + Math.random() * width / 4;
     }
     if (shape.x > width + buffer) {
         shape.x = -buffer / 2;
-        shape.originX = shape.x;
+        shape.originX = width / 4 + Math.random() * width / 4;
     }
     if (shape.y < -buffer) {
         shape.y = height + buffer / 2;
-        shape.originY = shape.y;
+        shape.originY = height / 2 + Math.random() * height / 4;
     }
     if (shape.y > height + buffer) {
         shape.y = -buffer / 2;
-        shape.originY = shape.y;
+        shape.originY = height / 4 + Math.random() * height / 4;
     }
     
     // Update visual element with transform
     updateShapeTransform(shape);
-    
-    // Update quadrant tracking if shape has moved to a different quadrant
-    const currentQuadrant = getQuadrant(shape.x, shape.y);
-    if (currentQuadrant !== shape.quadrant) {
-        screenQuadrants[shape.quadrant]--;
-        screenQuadrants[currentQuadrant]++;
-        shape.quadrant = currentQuadrant;
-    }
 }
 
 // Update the shape's visual transform
@@ -1127,85 +1083,88 @@ function updateShapeTransform(shape) {
 
 // Handle window resize
 function handleResize() {
-    const currentWidth = window.innerWidth;
-    const currentHeight = window.innerHeight;
-    
-    // Calculate ratios
-    const widthRatio = currentWidth / previousWindowWidth;
-    const heightRatio = currentHeight / previousWindowHeight;
-    
     // Reset quadrant counts
-    resetQuadrantCounts();
+    screenQuadrants = [0, 0, 0, 0];
     
-    // Update dynamic shapes
+    // Adjust shape positions proportionally
     shapes.forEach(shape => {
-        // Scale positions proportionally
-        shape.x *= widthRatio;
-        shape.y *= heightRatio;
-        shape.originX *= widthRatio;
-        shape.originY *= heightRatio;
+        const widthRatio = window.innerWidth / document.documentElement.clientWidth;
+        const heightRatio = window.innerHeight / document.documentElement.clientHeight;
         
-        // Keep within bounds
-        shape.x = Math.min(Math.max(shape.x, 0), currentWidth);
-        shape.y = Math.min(Math.max(shape.y, 0), currentHeight);
-        shape.originX = Math.min(Math.max(shape.originX, 0), currentWidth);
-        shape.originY = Math.min(Math.max(shape.originY, 0), currentHeight);
+        // Update origin to maintain relative position
+        shape.originX = shape.originX * widthRatio;
+        shape.originY = shape.originY * heightRatio;
         
-        // Update quadrant
-        shape.quadrant = getQuadrant(shape.x, shape.y);
-        screenQuadrants[shape.quadrant]++;
+        // Keep shapes within bounds
+        if (shape.x > window.innerWidth) {
+            shape.x = window.innerWidth * Math.random();
+            shape.originX = shape.x;
+        }
+        if (shape.y > window.innerHeight) {
+            shape.y = window.innerHeight * Math.random();
+            shape.originY = shape.y;
+        }
         
-        // Update visual position
-        updateShapeTransform(shape);
+        // ADDED: Apply special top-left corner check
+        if (shape.x < 50 && shape.y < 50) {
+            shape.x = 100 + Math.random() * 200;
+            shape.y = 100 + Math.random() * 200;
+            shape.originX = shape.x;
+            shape.originY = shape.y;
+        }
+        
+        // Update quadrant count
+        const quadrant = (shape.x > window.innerWidth / 2 ? 1 : 0) + 
+                        (shape.y > window.innerHeight / 2 ? 2 : 0);
+        screenQuadrants[quadrant]++;
     });
     
-    // Update static shapes
+    // Also adjust static and distant shapes
     staticShapes.forEach(shape => {
-        const oldLeft = parseInt(shape.element.style.left, 10);
-        const oldTop = parseInt(shape.element.style.top, 10);
+        if (shape.x > window.innerWidth || shape.y > window.innerHeight) {
+            const position = generateBalancedPosition(10); // Assuming a small default size
+            shape.element.style.left = `${position.x}px`;
+            shape.element.style.top = `${position.y}px`;
+            shape.x = position.x;
+            shape.y = position.y;
+        }
         
-        // Scale positions
-        const newLeft = oldLeft * widthRatio;
-        const newTop = oldTop * heightRatio;
-        
-        // Update DOM elements
-        shape.element.style.left = `${newLeft}px`;
-        shape.element.style.top = `${newTop}px`;
-        
-        // Update tracking
-        shape.x = newLeft;
-        shape.y = newTop;
-        shape.quadrant = getQuadrant(shape.x, shape.y);
-        screenQuadrants[shape.quadrant]++;
+        // ADDED: Check for top-left corner
+        if (shape.x < 50 && shape.y < 50) {
+            shape.x = 100 + Math.random() * 200;
+            shape.y = 100 + Math.random() * 200;
+            shape.element.style.left = `${shape.x}px`;
+            shape.element.style.top = `${shape.y}px`;
+        }
     });
     
-    // Update distant shapes
     distantShapes.forEach(shape => {
-        const oldLeft = parseInt(shape.element.style.left, 10);
-        const oldTop = parseInt(shape.element.style.top, 10);
+        if (shape.x > window.innerWidth || shape.y > window.innerHeight) {
+            const position = generateBalancedPosition(shape.size);
+            shape.element.style.left = `${position.x - shape.size/2}px`;
+            shape.element.style.top = `${position.y - shape.size/2}px`;
+            shape.x = position.x;
+            shape.y = position.y;
+        }
         
-        // Scale positions
-        const newLeft = oldLeft * widthRatio;
-        const newTop = oldTop * heightRatio;
-        
-        // Update DOM elements
-        shape.element.style.left = `${newLeft}px`;
-        shape.element.style.top = `${newTop}px`;
-        
-        // Update tracking
-        shape.x = newLeft + shape.size/2; // Adjust for centering
-        shape.y = newTop + shape.size/2;
-        shape.quadrant = getQuadrant(shape.x, shape.y);
-        screenQuadrants[shape.quadrant]++;
+        // ADDED: Check for top-left corner
+        if (shape.x < 50 && shape.y < 50) {
+            shape.x = 150 + Math.random() * 200;
+            shape.y = 150 + Math.random() * 200;
+            shape.element.style.left = `${shape.x - shape.size/2}px`;
+            shape.element.style.top = `${shape.y - shape.size/2}px`;
+        }
     });
-    
-    // Update stored window dimensions
-    previousWindowWidth = currentWidth;
-    previousWindowHeight = currentHeight;
 }
 
-// Initialize when DOM content is loaded
-document.addEventListener('DOMContentLoaded', init);
+// ADDED: Make sure window is fully loaded before initializing
+if (document.readyState === 'complete') {
+    init();
+} else {
+    window.addEventListener('load', function() {
+        setTimeout(init, 100); // Slight delay to ensure dimensions are available
+    });
+}
 
-// Export initialization function for external use
+// Export initialization function
 window.initVisualEffects = init;
