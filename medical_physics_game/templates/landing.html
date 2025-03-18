@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical Physics Residency: The Roguelike Challenge</title>
     <link href="/static/css/main.css" rel="stylesheet">
 </head>
 <body>
@@ -12,9 +11,11 @@
         <div class="scanlines"></div>
         <div class="crt-effect"></div>
         
-        <!-- Game title -->
-        <h1 class="game-title">Medical Physics<br>Residency</h1>
-        <h2 class="subtitle">The Roguelike Challenge</h2>
+        <!-- Replace your current title/subtitle section with this -->
+        <div class="title-block">
+            <h1 class="game-title">ROGUE<br>RESIDENT</h1>
+            <p class="subtitle">THE ROGUELIKE STUDY TOOL</p>
+        </div>
         
         <!-- Main menu -->
         <div class="menu-container">
@@ -84,15 +85,15 @@
             // Clear existing decorations
             decorationContainer.innerHTML = '';
             
-            // Color palette based on the screenshot - primarily blues with some accent colors
+            // Color palette based exactly on the screenshot
             const colors = [
-                '#5b8dd9', // primary blue (brighter)
-                '#3a5d99', // medium blue
-                '#8be8e5', // cyan accent (for rare shapes)
-                '#a7a1db', // purple accent (for rare shapes)
+                '#5b8dd9', // primary blue 
+                '#8be8e5', // cyan
+                '#a7a1db', // light purple
+                '#ffffff', // white (for small dots)
             ];
             
-            // Create a grid background first if it doesn't exist
+            // Create a grid background
             if (!document.getElementById('grid-background')) {
                 const gridBg = document.createElement('div');
                 gridBg.id = 'grid-background';
@@ -101,33 +102,40 @@
                 gridBg.style.left = '0';
                 gridBg.style.width = '100%';
                 gridBg.style.height = '100%';
-                gridBg.style.backgroundImage = 'linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)';
+                gridBg.style.backgroundImage = 'linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px)';
                 gridBg.style.backgroundSize = '20px 20px';
                 gridBg.style.pointerEvents = 'none';
                 gridBg.style.zIndex = '-1';
                 document.querySelector('.pixel-container').insertBefore(gridBg, decorationContainer);
             }
             
-            // Create mostly outlined squares and circles as seen in the image
-            const shapeCount = 30; // Fewer, more deliberate shapes
+            // MASSIVELY increase shape count
+            const shapeCount = 250; // Much higher count as requested
             
             for (let i = 0; i < shapeCount; i++) {
                 const decoration = document.createElement('div');
                 decoration.classList.add('pixel-decoration');
                 
-                // More evenly distributed positions
-                const x = 5 + Math.random() * 90; // Keep away from extreme edges
-                const y = 5 + Math.random() * 90;
+                // Position across entire viewport
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
                 
-                // Size variations (slightly larger than before to match the image)
-                const size = 10 + Math.floor(Math.random() * 25);
+                // Varied sizes matching the screenshot (mostly small with some larger elements)
+                let size;
+                if (Math.random() > 0.85) {
+                    // Larger shapes (less common)
+                    size = 15 + Math.floor(Math.random() * 30);
+                } else {
+                    // Smaller shapes (more common)
+                    size = 2 + Math.floor(Math.random() * 12);
+                }
                 
-                // Colors from palette, with outline being more common
+                // Colors from palette
                 const colorIndex = Math.floor(Math.random() * colors.length);
                 const color = colors[colorIndex];
                 
-                // Almost all shapes should be outlines based on the image
-                const hasOutlineOnly = Math.random() > 0.15; // 85% chance of outline
+                // Outline vs filled (heavily favoring outlines as in the image)
+                const hasOutlineOnly = Math.random() > 0.1; // 90% outlines
                 
                 // Apply base styles
                 decoration.style.left = `${x}vw`;
@@ -141,39 +149,34 @@
                     decoration.style.boxShadow = `0 0 2px ${color}`;
                 } else {
                     decoration.style.backgroundColor = color;
-                    decoration.style.opacity = '0.3'; // Make filled shapes subtle
+                    decoration.style.opacity = '0.3';
                 }
                 
-                // Based on the image, mostly squares and circles
-                const shapeType = Math.random() > 0.3 ? 'square' : 'circle';
+                // Based on the screenshot: mostly squares and circles
+                const shapeType = Math.random() > 0.4 ? 'square' : 'circle';
                 
                 if (shapeType === 'circle') {
                     decoration.style.borderRadius = '50%';
                 }
                 
-                // Small dots (like stars in the background)
-                if (Math.random() > 0.7) {
-                    decoration.style.width = '2px';
-                    decoration.style.height = '2px';
+                // Add lots of tiny dots/stars
+                if (size <= 3) {
                     decoration.style.backgroundColor = '#ffffff';
                     decoration.style.border = 'none';
-                    decoration.style.opacity = '0.5';
+                    decoration.style.opacity = Math.random() * 0.5 + 0.1; // Varied opacity
                 }
                 
-                // Slow, subtle animations that match the floating feel in the image
+                // Subtle animations - not too fast to maintain the calm space-like feel
                 const animationType = Math.random();
                 
                 if (animationType < 0.4) {
-                    // Very slow floating
                     const floatDuration = 20 + Math.random() * 40;
                     decoration.style.animation = `pixel-float ${floatDuration}s infinite ease-in-out`;
                 } 
-                else if (animationType < 0.8) {
-                    // Slow rotation + subtle float for some squares
-                    decoration.style.animation = `slow-rotate ${30 + Math.random() * 60}s linear infinite, pixel-float ${35 + Math.random() * 25}s infinite ease-in-out`;
+                else if (animationType < 0.8 && shapeType === 'square') {
+                    decoration.style.animation = `slow-rotate ${40 + Math.random() * 80}s linear infinite, pixel-float ${35 + Math.random() * 25}s infinite ease-in-out`;
                 }
                 else {
-                    // Just stay in place with slight twinkle
                     decoration.style.animation = `pixel-twinkle ${15 + Math.random() * 25}s infinite ease-in-out`;
                 }
                 
@@ -181,8 +184,8 @@
             }
         }
 
-        // Refresh occasionally but not too often
-        setInterval(createPixelDecorations, 120000); // Every 2 minutes
+        // Refresh occasionally
+        setInterval(createPixelDecorations, 180000); // Every 3 minutes
     </script>
 </body>
 </html>
