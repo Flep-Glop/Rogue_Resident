@@ -8,22 +8,25 @@
 const visualConfig = {
     // Shape settings
     shapes: {
-        count: 40,             // Increased number of shapes
+        count: 32,             // Reduced count by 20% for better visual spacing
         minSize: 5,            // Minimum shape size
         maxSize: 60,           // Maximum shape size
-        colors: [              // Colors matching your game theme
-            '#5b8dd9',         // primary blue
-            '#56b886',         // secondary green
-            '#e67e73',         // danger red
-            '#f0c866',         // warning yellow
-            '#9c77db',         // purple
-            '#5bbcd9'          // cyan
+        colors: [              // Colors matching your game theme with balanced distribution
+            '#5b8dd9',         // primary blue (25%)
+            '#5b8dd9',         // duplicate to increase frequency
+            '#56b886',         // secondary green (20%)
+            '#56b886',         // duplicate to increase frequency
+            '#9c77db',         // purple (15%)
+            '#5bbcd9',         // cyan (15%)
+            '#e67e73',         // danger red (10%) - less to keep it calming
+            '#f0c866',         // warning yellow (15%)
+            '#f0c866'          // duplicate yellow/gold for better balance
         ],
         staticShapes: {
-            count: 60,         // Number of static background shapes
+            count: 45,         // Reduced static shapes to avoid overcrowding
             minSize: 2,        // Smaller size for background shapes
             maxSize: 15,       // Max size for background shapes
-            opacity: 0.2       // Lower opacity for background
+            opacity: 0.15      // Reduced opacity for more subtle background
         },
         rareShapes: {
             whiteChance: 0.05, // 5% chance for rare white shape
@@ -35,14 +38,35 @@ const visualConfig = {
             triangle: 0.1,     // 10% triangles
             diamond: 0.1       // 10% diamonds
         },
-        hollowShapesRatio: 0.6, // 60% of shapes will be hollow
-        friction: 0.98,        // Gentle friction for smooth movement
-        maxSpeed: 0.2,         // Speed limit for calmer movement
-        mouseInfluence: 0.02,  // Subtle mouse influence
+        hollowRules: {
+            largeSize: 30,     // Shapes larger than this are always hollow
+            smallSize: 20,     // Shapes smaller than this are always solid
+            // Between smallSize and largeSize, will be mixed
+            mediumHollowChance: 0.5 // 50% chance for medium shapes to be hollow
+        },
+        animations: {
+            rotation: {
+                chance: 0.3,   // 30% of shapes will rotate
+                durationMin: 20, // Minimum rotation duration in seconds
+                durationMax: 45 // Maximum rotation duration in seconds
+            },
+            pulse: {
+                chance: 0.15,  // 15% of shapes will pulse size
+                amount: 0.03,  // 3% size change
+                durationMin: 3, // Minimum pulse duration in seconds
+                durationMax: 7  // Maximum pulse duration in seconds
+            },
+            drift: {
+                amount: 0.15   // Reduced drift amount for gentler movement
+            }
+        },
+        friction: 0.985,       // Slightly increased friction for smoother, more stable movement
+        maxSpeed: 0.15,        // Reduced max speed for calmer movement
+        mouseInfluence: 0.015, // Slightly reduced mouse influence for subtler interaction
         mouseRadius: 150,      // How far the mouse influence reaches
-        springStrength: 0.005, // Gentle spring force to return to origin
-        springRadius: 100,     // How far shapes can drift from origin before spring force activates
-        jitter: 0.001,         // Very tiny amount of random movement to keep things alive
+        springStrength: 0.004, // Slightly reduced for gentler return to origin
+        springRadius: 100,     // How far shapes can drift before spring force activates
+        jitter: 0.0005,        // Reduced random movement by half for smoother appearance
         enabledPages: [        // Only enable shapes on these pages
             'landing',         // Landing page
             'character-select' // Character selection
@@ -81,6 +105,9 @@ function initBackgroundShapes() {
         return; // Don't create shapes on this page
     }
 
+    // Add animation styles
+    addAnimationStyles();
+
     // Create shape container if it doesn't exist
     let shapeContainer = document.getElementById('background-shapes');
     if (!shapeContainer) {
@@ -118,12 +145,16 @@ function initBackgroundShapes() {
         createShape(staticShapesContainer, true); // true = static shapes
     }
     
-    // Add style for rainbow shapes
-    addRainbowStyles();
-    
     // Create dynamic shapes
     for (let i = 0; i < visualConfig.shapes.count; i++) {
         createShape(shapeContainer, false); // false = dynamic shapes
+    }
+    
+    // Create a few extra special distant shapes for visual interest
+    // Add 1-3 very large distant hollow shapes with very low opacity
+    const numSpecialShapes = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < numSpecialShapes; i++) {
+        createDistantSpecialShape(staticShapesContainer);
     }
     
     // Track mouse position
@@ -137,14 +168,65 @@ function initBackgroundShapes() {
 }
 
 /**
- * Add CSS for rainbow shapes animation
+ * Creates a special very large but distant (low opacity) shape for visual depth
  */
-function addRainbowStyles() {
+function createDistantSpecialShape(container) {
+    const shape = document.createElement('div');
+    
+    // Very large size (80-150px)
+    const size = 80 + Math.random() * 70;
+    
+    // Always a hollow shape
+    const isHollow = true;
+    
+    // Color - either muted blue or purple
+    const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Very low opacity for distant effect
+    const baseOpacity = 0.03 + (Math.random() * 0.04);
+    
+    // Random position within viewport
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    
+    // Almost always circular
+    const borderRadius = Math.random() < 0.8 ? '50%' : '0';
+    
+    // Very thin border for distant appearance
+    const borderWidth = 1;
+    
+    // Very slow rotation
+    const rotationDuration = 40 + Math.random() * 30;
+    const direction = Math.random() > 0.5 ? 'normal' : 'reverse';
+    
+    shape.style.cssText = `
+        position: absolute;
+        width: ${size}px;
+        height: ${size}px;
+        background-color: transparent;
+        border: ${borderWidth}px solid ${color};
+        border-radius: ${borderRadius};
+        opacity: ${baseOpacity};
+        transform: translate(${x}px, ${y}px);
+        pointer-events: none;
+        will-change: transform;
+        animation: rotate ${rotationDuration}s infinite linear ${direction};
+    `;
+    
+    container.appendChild(shape);
+}
+
+/**
+ * Add CSS for animation styles
+ */
+function addAnimationStyles() {
     // Check if the style already exists
-    if (!document.getElementById('rainbow-style')) {
+    if (!document.getElementById('animation-styles')) {
         const style = document.createElement('style');
-        style.id = 'rainbow-style';
+        style.id = 'animation-styles';
         style.textContent = `
+            /* Rainbow animation */
             @keyframes rainbow-shift {
                 0% { border-color: #ff0000; filter: hue-rotate(0deg); }
                 16.6% { border-color: #ff7f00; filter: hue-rotate(30deg); }
@@ -155,6 +237,36 @@ function addRainbowStyles() {
                 100% { border-color: #9400d3; filter: hue-rotate(330deg); }
             }
             
+            /* Rotation animation */
+            @keyframes rotate {
+                from { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(0deg) scale(var(--scale, 1)); }
+                to { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(360deg) scale(var(--scale, 1)); }
+            }
+            
+            /* Pulse animation */
+            @keyframes pulse {
+                0% { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rotate, 0deg)) scale(1); }
+                50% { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rotate, 0deg)) scale(calc(1 + var(--pulse-amount, 0.03))); }
+                100% { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--rotate, 0deg)) scale(1); }
+            }
+            
+            /* Combined animation for special shapes */
+            @keyframes float-glow {
+                0% { 
+                    box-shadow: 0 0 5px currentColor;
+                    transform: translate(var(--x, 0px), var(--y, 0px)) scale(1); 
+                }
+                50% { 
+                    box-shadow: 0 0 10px currentColor;
+                    transform: translate(var(--x, 0px), var(--y, 0px)) scale(1.02); 
+                }
+                100% { 
+                    box-shadow: 0 0 5px currentColor;
+                    transform: translate(var(--x, 0px), var(--y, 0px)) scale(1); 
+                }
+            }
+            
+            /* Class for rainbow shapes */
             .rainbow-shape {
                 animation: rainbow-shift 3s linear infinite;
             }
@@ -290,8 +402,8 @@ function updateShapesWithMouseInteraction() {
         shape.speedX *= visualConfig.shapes.friction;
         shape.speedY *= visualConfig.shapes.friction;
         
-        // Add very tiny random movement to keep things alive
-        if (Math.random() < 0.05) { // Only 5% chance each frame to add jitter
+        // Add very tiny random movement to keep things alive - reduced chance for smoother appearance
+        if (Math.random() < 0.02) { // Only 2% chance each frame to add jitter (down from 5%)
             shape.speedX += (Math.random() - 0.5) * visualConfig.shapes.jitter;
             shape.speedY += (Math.random() - 0.5) * visualConfig.shapes.jitter;
         }
@@ -348,8 +460,28 @@ function updateShapesWithMouseInteraction() {
         if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
         if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
         
-        // Apply position update with hardware acceleration hint
-        shape.element.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0)`;
+        // Update CSS variables for animations if needed
+        if (shape.hasRotation || shape.hasPulse) {
+            // Using CSS variables instead of directly modifying transform
+            // This allows animations to work properly
+            shape.element.style.setProperty('--x', `${shape.x}px`);
+            shape.element.style.setProperty('--y', `${shape.y}px`);
+            
+            if (shape.hasRotation && shape.hasPulse) {
+                // Track current rotation for pulse animation
+                const currentTransform = shape.element.style.transform;
+                const rotateMatch = currentTransform.match(/rotate\(([^)]+)\)/);
+                if (rotateMatch && rotateMatch[1]) {
+                    shape.element.style.setProperty('--rotate', rotateMatch[1]);
+                }
+            } else {
+                // Apply position without changing animation
+                shape.element.style.transform = `translate(${shape.x}px, ${shape.y}px)`;
+            }
+        } else {
+            // No animations - just update transform directly
+            shape.element.style.transform = `translate(${shape.x}px, ${shape.y}px)`;
+        }
     });
     
     // Continue animation loop
