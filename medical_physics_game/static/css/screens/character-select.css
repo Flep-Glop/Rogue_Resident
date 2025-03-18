@@ -1,0 +1,470 @@
+/* character-select.css - Styling for character selection screen */
+/* Extracted from inline styles in character_select.html */
+
+/* ===== BASE CONTAINER STYLING ===== */
+
+.character-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  
+  /* ===== CAROUSEL STYLING ===== */
+  
+  /* Carousel container */
+  .carousel-container {
+    position: relative;
+    width: 100%;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+    perspective: 1000px;
+  }
+  
+  /* Make the carousel area wider */
+  #character-carousel {
+    position: relative;
+    width: 90%;
+    height: 450px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* ===== CHARACTER CARD STYLING ===== */
+  
+  /* Card base styling */
+  .character-card {
+    position: absolute;
+    width: 280px;
+    min-height: 450px;
+    height: auto;
+    background-color: var(--background-alt);
+    border: 4px solid var(--primary);
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.9) translateX(0);
+    z-index: 1;
+    left: 50%;
+    margin-left: -140px;
+  }
+  
+  /* Center active card */
+  .character-card.active {
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    z-index: 5;
+    border-color: var(--secondary);
+    box-shadow: 0 0 20px rgba(86, 184, 134, 0.3);
+  }
+  
+  /* Active card header */
+  .character-card.active .character-header {
+    background-color: var(--secondary);
+  }
+  
+  /* Left flanking card */
+  .character-card.left-flank {
+    visibility: visible;
+    opacity: 1.0;
+    transform: scale(0.95) translateX(-80%);
+    z-index: 2;
+    border-color: var(--primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+  
+  /* Right flanking card */
+  .character-card.right-flank {
+    visibility: visible;
+    opacity: 1.0;
+    transform: scale(0.95) translateX(80%);
+    z-index: 2;
+    border-color: var(--primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+  }
+  
+  /* Selected state is independent of position */
+  .character-card.selected {
+    border-color: var(--secondary);
+    background-color: rgba(86, 184, 134, 0.1);
+    animation: selected-pulse 2s infinite;
+    box-shadow: 
+      0 10px 25px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(86, 184, 134, 0.3);
+  }
+  
+  /* Flanking card headers */
+  .character-card.left-flank .character-header,
+  .character-card.right-flank .character-header {
+    background-color: var(--primary);
+  }
+  
+  /* ===== CARD HEADER ===== */
+  
+  .character-header {
+    background-color: var(--primary);
+    color: white;
+    padding: 12px 15px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .character-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+  
+  /* ===== CHARACTER AVATAR ===== */
+  
+  .character-avatar {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .character-card .character-avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px auto;
+    width: 120px;
+    height: 120px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+  }
+  
+  .character-card .pixel-character-img {
+    width: 72px;
+    height: 72px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    object-fit: contain;
+    animation: pixel-float 3s infinite ease-in-out;
+  }
+  
+  /* ===== CHARACTER DESCRIPTION ===== */
+  
+  .character-description {
+    padding: 0 15px 10px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text);
+    flex-grow: 0;
+    line-height: 1.4;
+  }
+  
+  /* ===== STATS DISPLAY ===== */
+  
+  .character-stats {
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top: 2px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+  }
+  
+  .stat-row {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .stat-label {
+    width: 80px;
+    font-size: 0.7rem;
+    color: var(--text);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  }
+  
+  .stat-bar-container {
+    flex-grow: 1;
+    height: 12px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .stat-value {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    font-size: 0.6rem;
+    color: white;
+    line-height: 12px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+  }
+  
+  .stat-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+  }
+  
+  .stat-bar.lives {
+    background-color: #e67e73; /* danger color */
+  }
+  
+  .stat-bar.insight {
+    background-color: #5b8dd9; /* primary color */
+  }
+  
+  .stat-bar.level {
+    background-color: #f0c866; /* warning color */
+  }
+  
+  /* ===== SPECIAL ABILITY SECTION ===== */
+  
+  .special-ability {
+    padding: 15px;
+    text-align: left;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+  }
+  
+  .ability-header {
+    font-size: 0.8rem;
+    color: var(--warning);
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+  }
+  
+  .ability-header span {
+    margin-left: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    border-radius: 3px;
+  }
+  
+  .ability-description {
+    font-size: 0.7rem;
+    color: var(--text);
+    line-height: 1.4;
+    border-left: 2px solid var(--warning);
+    padding-left: 10px;
+  }
+  
+  /* ===== CAROUSEL NAVIGATION ===== */
+  
+  /* Arrow navigation */
+  .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    background-color: var(--primary);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+  }
+  
+  .carousel-arrow.prev {
+    left: 50%;
+    margin-left: -400px;
+  }
+  
+  .carousel-arrow.next {
+    right: 50%;
+    margin-right: -400px;
+  }
+  
+  .carousel-arrow:hover {
+    background-color: var(--secondary);
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .carousel-arrow:active {
+    transform: translateY(-50%) scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Carousel indicators */
+  .carousel-indicators {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+    gap: 10px;
+    position: relative;
+    z-index: 20;
+  }
+  
+  .carousel-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--background-alt);
+    border: 2px solid var(--primary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .carousel-indicator.active {
+    background-color: var(--primary);
+    transform: scale(1.2);
+  }
+  
+  .carousel-indicator.selected {
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+    transform: scale(1.2);
+  }
+  
+  /* ===== BUTTON STYLING ===== */
+  
+  .start-btn {
+    margin-top: 30px;
+    padding: 15px 30px;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  
+  .start-btn:disabled {
+    opacity: 0.5;
+    transform: none;
+    cursor: not-allowed;
+  }
+  
+  .start-btn:not(:disabled)::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: rotate(45deg);
+    animation: button-shine 3s infinite;
+  }
+  
+  .back-btn {
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  
+  /* ===== SELECTION INDICATOR ===== */
+  
+  .select-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    background-color: var(--secondary);
+    border-bottom-left-radius: 8px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: white;
+  }
+  
+  .character-card.selected .select-indicator {
+    display: flex;
+  }
+  
+  /* ===== MISCELLANEOUS ===== */
+  
+  .character-counter {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    color: var(--text);
+  }
+  
+  /* Loading animation */
+  .loading-message {
+    font-size: 1rem;
+    color: var(--text);
+    text-align: center;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  
+  /* ===== RESPONSIVE STYLING ===== */
+  
+  @media (max-width: 1200px) {
+    .carousel-arrow.prev {
+      margin-left: -350px;
+    }
+    
+    .carousel-arrow.next {
+      margin-right: -350px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .carousel-arrow.prev {
+      margin-left: -300px;
+    }
+    
+    .carousel-arrow.next {
+      margin-right: -300px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .carousel-arrow.prev {
+      left: 5px;
+      margin-left: 0;
+    }
+    
+    .carousel-arrow.next {
+      right: 5px;
+      margin-right: 0;
+    }
+    
+    .character-card {
+      width: 240px;
+      margin-left: -120px;
+    }
+    
+    .character-card .character-avatar {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .character-card.left-flank,
+    .character-card.right-flank {
+      opacity: 0.8;
+    }
+  }

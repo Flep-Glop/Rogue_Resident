@@ -1,6 +1,8 @@
-/* boss.css - Core styling for the quantum exam boss component */
+/* boss.css - Comprehensive styling for the quantum exam boss component */
+/* Merges boss.css and boss_effects.css to reduce code duplication */
 
-/* Quantum Exam Panel */
+/* ===== QUANTUM EXAM PANEL ===== */
+
 .quantum-exam-panel {
   border-color: #d35db3;
   background-color: rgba(33, 35, 47, 0.95);
@@ -8,7 +10,8 @@
   overflow: hidden;
 }
 
-/* Header Styling */
+/* ===== HEADER STYLING ===== */
+
 .exam-header {
   display: flex;
   justify-content: space-between;
@@ -52,10 +55,12 @@
 
 .time-warning {
   color: #f0c866;
+  animation: pulse-warning 1.5s infinite;
 }
 
 .time-critical {
   color: #e67e73;
+  animation: pulse-danger 1.5s infinite;
 }
 
 .confidence-container {
@@ -82,7 +87,8 @@
   text-align: right;
 }
 
-/* Professor Styling */
+/* ===== PROFESSOR STYLING ===== */
+
 .professor-container {
   display: flex;
   background-color: rgba(0, 0, 0, 0.2);
@@ -140,7 +146,8 @@
   border-right: 8px solid rgba(0, 0, 0, 0.3);
 }
 
-/* Professor States */
+/* ===== PROFESSOR STATES ===== */
+
 .normal-state .professor-image {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23333" width="100" height="100"/><circle fill="%23777" cx="50" cy="35" r="20"/><rect fill="%23777" x="25" y="60" width="50" height="40"/></svg>');
 }
@@ -151,11 +158,16 @@
 
 .quantum-state .professor-image {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23335599" width="100" height="100"/><circle fill="%235b8dd9" cx="50" cy="35" r="20"/><rect fill="%235b8dd9" x="25" y="60" width="50" height="40"/><circle fill="%23ffffff" cx="42" cy="30" r="3"/><circle fill="%23ffffff" cx="58" cy="30" r="3"/></svg>');
+  animation: quantum-flicker 4s infinite;
 }
 
 .quantum-state .professor-glow {
   box-shadow: 0 0 15px rgba(91, 141, 217, 0.7) inset;
   opacity: 0.7;
+}
+
+.quantum-state .professor-dialogue {
+  animation: dialogue-shift 8s infinite;
 }
 
 .cosmic-state {
@@ -164,12 +176,19 @@
 
 .cosmic-state .professor-image {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23220033" width="100" height="100"/><circle fill="%23d35db3" cx="50" cy="35" r="20"/><rect fill="%23d35db3" x="25" y="60" width="50" height="40"/><circle fill="%23ffffff" cx="42" cy="30" r="4"/><circle fill="%23ffffff" cx="58" cy="30" r="4"/></svg>');
+  animation: cosmic-professor 4s infinite alternate;
 }
 
 .cosmic-state .professor-glow {
   box-shadow: 0 0 15px rgba(211, 93, 179, 0.7) inset, 0 0 30px rgba(211, 93, 179, 0.3);
   opacity: 1;
 }
+
+.cosmic-state .professor-dialogue {
+  animation: cosmic-dialogue 5s infinite alternate;
+}
+
+/* ===== QUANTUM VISUAL EFFECTS ===== */
 
 /* Quantum particles in professor portrait */
 .quantum-particles {
@@ -187,7 +206,108 @@
   opacity: 1;
 }
 
-/* Phase Styling */
+/* Quantum particle elements */
+.quantum-particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 10;
+  animation: float-particle 10s infinite ease-in-out;
+}
+
+/* Cosmic particle elements */
+.cosmic-particle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(211, 93, 179, 0.7);
+  box-shadow: 0 0 5px rgba(211, 93, 179, 0.7);
+  animation: cosmic-particle 5s infinite alternate;
+}
+
+/* Reality distortion effects */
+.reality-ripple {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(211, 93, 179, 0.3);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.cosmic-rift {
+  position: absolute;
+  width: 20px;
+  height: 5px;
+  background-color: rgba(211, 93, 179, 0.7);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px rgba(211, 93, 179, 0.7),
+    0 0 20px rgba(211, 93, 179, 0.5),
+    0 0 30px rgba(211, 93, 179, 0.3);
+  z-index: 100;
+  transform: rotate(30deg);
+  opacity: 0.7;
+}
+
+/* Glowing text effects */
+.cosmic-glow {
+  text-shadow: 0 0 5px #d35db3, 0 0 10px rgba(211, 93, 179, 0.5);
+  animation: pulse-glow 2s infinite;
+}
+
+.cosmic-text {
+  background: linear-gradient(
+    90deg,
+    #5b8dd9 0%,
+    #d35db3 50%,
+    #f0c866 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shift 5s infinite alternate;
+}
+
+.quantum-text {
+  animation: quantum-text 4s infinite alternate;
+}
+
+/* Hover effects */
+.cosmic-hover:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(91, 141, 217, 0.3) 0%,
+    rgba(211, 93, 179, 0.3) 100%
+  ) !important;
+  border-color: rgba(211, 93, 179, 0.5) !important;
+}
+
+/* Shimmer effect */
+.quantum-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.quantum-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 3s infinite;
+}
+
+/* ===== PHASE STYLING ===== */
+
 .exam-phase-container {
   margin-bottom: 20px;
   min-height: 200px;
@@ -225,7 +345,8 @@
   color: #f0c866;
 }
 
-/* Question Styling */
+/* ===== QUESTION STYLING ===== */
+
 .question-card {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -275,6 +396,10 @@
   border-color: rgba(230, 126, 115, 0.7);
 }
 
+.quantum-options .question-option {
+  animation: option-shift 8s infinite alternate;
+}
+
 /* Reality distortion meter */
 .reality-distortion-meter {
   height: 4px;
@@ -296,7 +421,19 @@
   transition: width 0.5s ease;
 }
 
-/* Results Styling */
+/* Quantum probability indicator */
+.quantum-probability {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  opacity: 0.7;
+  color: #5b8dd9;
+}
+
+/* ===== RESULTS STYLING ===== */
+
 .phase-results {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -382,21 +519,11 @@
   font-size: 0.8rem;
 }
 
-/* Quantum probability indicator */
-.quantum-probability {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.7rem;
-  opacity: 0.7;
-  color: #5b8dd9;
-}
-
 /* Results for different professor states */
 .quantum-results .score-circle {
   border-color: #5b8dd9;
   box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
+  animation: uncertainty 4s infinite;
 }
 
 .cosmic-results .score-circle {
@@ -409,9 +536,11 @@
   box-shadow: 
     0 0 10px rgba(211, 93, 179, 0.5),
     0 0 20px rgba(211, 93, 179, 0.3);
+  animation: cosmic-pulse 3s infinite alternate;
 }
 
-/* Exam completion styling */
+/* ===== EXAM COMPLETION STYLING ===== */
+
 .exam-complete {
   text-align: center;
   padding: 20px;
@@ -434,6 +563,10 @@
   );
   opacity: 0;
   z-index: -1;
+}
+
+.cosmic-seal.active {
+  animation: seal-activate 3s forwards;
 }
 
 .complete-title {
@@ -516,15 +649,52 @@
     rgba(91, 141, 217, 0.2) 0%,
     rgba(211, 93, 179, 0.2) 100%
   );
-  border: 1px solid rgba(211, 93, 179, 0.3);
+  border: 1px dashed rgba(211, 93, 179, 0.3);
+  animation: quantum-reward 3s infinite alternate;
 }
 
-/* Exam actions */
+/* ===== EXAM ACTIONS ===== */
+
 .exam-actions {
   margin-top: 20px;
 }
 
-/* Reality-related styling */
+.cosmic-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.cosmic-pulse::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    rgba(211, 93, 179, 0) 0%,
+    rgba(211, 93, 179, 0.1) 50%,
+    rgba(211, 93, 179, 0) 100%
+  );
+  transform: rotate(45deg);
+  animation: cosmic-button-pulse 3s infinite;
+}
+
+/* ===== REALITY WARPING EFFECTS ===== */
+
 .reality-warped {
   animation: reality-warp 10s infinite alternate;
+}
+
+.reality-collapsed .cosmic-rewards {
+  animation: reality-collapse 2s forwards;
+}
+
+.reality-unravel .cosmic-rewards {
+  animation: reality-unravel 10s infinite alternate;
+}
+
+.cosmic-collapse {
+  animation: space-distort 5s infinite alternate;
 }

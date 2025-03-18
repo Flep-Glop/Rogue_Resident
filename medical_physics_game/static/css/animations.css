@@ -1,5 +1,5 @@
-/* animations.css - Centralized animation system */
-/* This file replaces scattered animation definitions across multiple CSS files */
+/* animations.css - Comprehensive animation system for all game components */
+/* This file consolidates animations from multiple files to reduce duplication */
 
 /* ===== MOVEMENT ANIMATIONS ===== */
 
@@ -22,14 +22,13 @@
   100% { transform: translateY(0); }
 }
 
-/* Walking animation for character */
+/* Character animations */
 @keyframes walk-cycle {
   0% { transform: translateX(-2px); }
   50% { transform: translateX(2px); }
   100% { transform: translateX(-2px); }
 }
 
-/* Combined walking and bobbing for character */
 @keyframes character-move {
   0% { transform: translateY(0) translateX(-2px); }
   25% { transform: translateY(-3px) translateX(0); }
@@ -38,10 +37,48 @@
   100% { transform: translateY(0) translateX(-2px); }
 }
 
-/* Falling pixel animation - for the landing page effect */
+@keyframes bob {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-1deg); }
+  50% { transform: translateY(-3px) rotate(0deg); }
+  75% { transform: translateY(-2px) rotate(1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Particle animations */
 @keyframes pixel-fall {
   from { transform: translateY(-10vh); }
   to { transform: translateY(110vh); }
+}
+
+@keyframes pixel-float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pixel-twinkle {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.3; }
+}
+
+@keyframes pixel-diagonal {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(20px, -15px); }
+  50% { transform: translate(5px, -25px); }
+  75% { transform: translate(-15px, -10px); }
+  100% { transform: translate(-20px, -20px); }
+}
+
+@keyframes pixel-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(30px); }
+}
+
+@keyframes slow-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* ===== PULSE/GLOW ANIMATIONS ===== */
@@ -71,6 +108,13 @@
   100% { box-shadow: 0 0 3px var(--warning); }
 }
 
+/* Text glow pulsing */
+@keyframes pulse-glow {
+  0% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+  50% { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+  100% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+}
+
 /* Inner glow pulses */
 @keyframes pulse-inner-primary {
   0% { box-shadow: var(--glow-inner-primary); }
@@ -82,6 +126,19 @@
   0% { box-shadow: var(--glow-inner-secondary); }
   50% { box-shadow: inset 0 0 15px var(--secondary); }
   100% { box-shadow: var(--glow-inner-secondary); }
+}
+
+/* Border pulsing */
+@keyframes border-pulse {
+  0% { border-color: rgba(91, 141, 217, 0.5); }
+  50% { border-color: rgba(91, 141, 217, 0.8); }
+  100% { border-color: rgba(91, 141, 217, 0.5); }
+}
+
+@keyframes border-glow {
+  0% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
+  50% { box-shadow: 0 0 15px #5d9cff, 0 0 20px #5d9cff; }
+  100% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
 }
 
 /* Scale-based pulse animations */
@@ -97,7 +154,6 @@
   100% { transform: scale(1); }
 }
 
-/* Gentle pulse for title (alias for pulse-scale-subtle for semantic clarity) */
 @keyframes gentle-pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -131,6 +187,29 @@
   100% { opacity: 0.7; }
 }
 
+/* Button-specific animations */
+@keyframes button-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-attention {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cosmic-button-pulse {
+  0% { transform: rotate(45deg) translateX(-100%) translateY(-100%); }
+  100% { transform: rotate(45deg) translateX(100%) translateY(100%); }
+}
+
+@keyframes button-shine {
+  0% { left: -50%; top: -50%; }
+  100% { left: 150%; top: 150%; }
+}
+
 /* Combined rarity glow animations */
 @keyframes epic-item-pulse {
   0% { 
@@ -151,6 +230,17 @@
   0% { box-shadow: 0 0 5px var(--node-rest); }
   50% { box-shadow: 0 0 12px var(--node-rest); }
   100% { box-shadow: 0 0 5px var(--node-rest); }
+}
+
+@keyframes epic-pulse {
+  0% { box-shadow: 0 0 3px var(--secondary) inset; }
+  50% { box-shadow: 0 0 8px var(--secondary) inset; }
+  100% { box-shadow: 0 0 3px var(--secondary) inset; }
+}
+
+@keyframes epic-item-glow {
+  0% { box-shadow: 0 0 8px var(--secondary); }
+  100% { box-shadow: 0 0 18px var(--secondary); }
 }
 
 /* ===== TRANSITION ANIMATIONS ===== */
@@ -187,7 +277,7 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* Modal animations */
+/* Modal specific transitions */
 @keyframes modal-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -196,6 +286,18 @@
 @keyframes modal-slide-up {
   from { transform: translateY(30px); opacity: 0.5; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes modal-appear {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes floor-transition {
+  0% { transform: translateY(100%); opacity: 0; }
+  10% { transform: translateY(0); opacity: 1; }
+  90% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }
 
 /* ===== ATTENTION ANIMATIONS ===== */
@@ -220,10 +322,209 @@
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* Button animations */
-@keyframes button-shine {
-  0% { left: -50%; top: -50%; }
-  100% { left: 150%; top: 150%; }
+@keyframes modal-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ===== BOSS SPECIFIC ANIMATIONS ===== */
+
+/* Quantum and cosmic effects */
+@keyframes quantum-flicker {
+  0% { opacity: 1; }
+  5% { opacity: 0.7; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.8; }
+  20% { opacity: 1; }
+  25% { opacity: 0.7; }
+  30% { opacity: 0.9; }
+  35% { opacity: 1; }
+  40% { opacity: 0.8; }
+  45% { opacity: 1; }
+  75% { opacity: 0.9; }
+  80% { opacity: 1; }
+  85% { opacity: 0.8; }
+  90% { opacity: 1; }
+  95% { opacity: 0.9; }
+  100% { opacity: 1; }
+}
+
+@keyframes cosmic-professor {
+  0% { 
+    filter: hue-rotate(0deg); 
+    transform: scale(1);
+  }
+  100% { 
+    filter: hue-rotate(90deg); 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes quantum-text {
+  0% { 
+    opacity: 0.9;
+    letter-spacing: normal;
+  }
+  50% { 
+    opacity: 0.7;
+    letter-spacing: 1px;
+  }
+  100% { 
+    opacity: 0.9;
+    letter-spacing: normal;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+}
+
+@keyframes option-shift {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes reality-warp {
+  0% { 
+    transform: perspective(1000px) rotateX(0deg);
+    filter: hue-rotate(0deg);
+  }
+  50% { 
+    transform: perspective(1000px) rotateX(2deg);
+    filter: hue-rotate(15deg);
+  }
+  100% { 
+    transform: perspective(1000px) rotateX(0deg);
+    filter: hue-rotate(0deg);
+  }
+}
+
+@keyframes ripple {
+  0% { 
+    width: 10px;
+    height: 10px;
+    opacity: 0.7;
+  }
+  100% { 
+    width: 1000px;
+    height: 1000px;
+    opacity: 0;
+  }
+}
+
+@keyframes rift-expand {
+  0% { 
+    width: 20px;
+    height: 5px;
+    opacity: 0.7;
+  }
+  100% { 
+    width: 500px;
+    height: 100px;
+    opacity: 0.9;
+  }
+}
+
+@keyframes rift-collapse {
+  0% { 
+    width: 500px;
+    height: 100px;
+    opacity: 0.9;
+  }
+  100% { 
+    width: 5px;
+    height: 2px;
+    opacity: 0;
+  }
+}
+
+@keyframes space-distort {
+  0% { transform: none; }
+  25% { transform: skew(1deg, 0deg); }
+  75% { transform: skew(-1deg, 0.5deg); }
+  100% { transform: none; }
+}
+
+@keyframes dialogue-shift {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes cosmic-dialogue {
+  0% { 
+    background-position: 0% 0%;
+    box-shadow: 0 0 5px rgba(211, 93, 179, 0.3) inset;
+  }
+  100% { 
+    background-position: 100% 100%;
+    box-shadow: 0 0 15px rgba(211, 93, 179, 0.5) inset;
+  }
+}
+
+@keyframes uncertainty {
+  0% { transform: scale(1); opacity: 1; }
+  33% { transform: scale(1.05); opacity: 0.7; }
+  66% { transform: scale(0.97); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cosmic-pulse {
+  0% { 
+    box-shadow: 0 0 10px rgba(211, 93, 179, 0.5), 0 0 20px rgba(211, 93, 179, 0.3);
+    transform: rotate(0deg);
+  }
+  100% { 
+    box-shadow: 0 0 20px rgba(211, 93, 179, 0.7), 0 0 30px rgba(211, 93, 179, 0.5);
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes seal-activate {
+  0% { 
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  100% { 
+    width: 500px;
+    height: 500px;
+    opacity: 0.7;
+  }
+}
+
+@keyframes text-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes reality-collapse {
+  0% { transform: none; opacity: 1; }
+  50% { transform: perspective(500px) rotateX(10deg) scale(0.9); opacity: 0.8; }
+  100% { transform: perspective(500px) rotateX(0deg) scale(0.5); opacity: 0; }
+}
+
+@keyframes reality-unravel {
+  0% { transform: skew(0deg, 0deg); }
+  33% { transform: skew(2deg, 1deg); }
+  66% { transform: skew(-2deg, -1deg); }
+  100% { transform: skew(0deg, 0deg); }
+}
+
+@keyframes cosmic-particle {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+  100% { transform: scale(2) rotate(180deg); opacity: 0.3; }
+}
+
+@keyframes quantum-reward {
+  0% { border-color: rgba(91, 141, 217, 0.3); }
+  50% { border-color: rgba(211, 93, 179, 0.5); }
+  100% { border-color: rgba(91, 141, 217, 0.3); }
 }
 
 /* ===== SPECIAL EFFECT ANIMATIONS ===== */
@@ -256,17 +557,15 @@
   100% { background-position: 0 calc(var(--pixel-size) * 2); }
 }
 
-/* Pixel background animations */
-@keyframes pixel-pulse {
-  0% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
-  100% { opacity: 0.3; transform: scale(1); }
+@keyframes scanline-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 8px; }
 }
 
-@keyframes pixel-twinkle {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-  100% { opacity: 0.3; }
+/* Scan line for buttons */
+@keyframes scan-line {
+  0% { top: -100%; }
+  100% { top: 100%; }
 }
 
 /* ===== FEEDBACK ANIMATIONS ===== */
@@ -302,8 +601,6 @@
   100% { transform: translateX(100%); opacity: 0; }
 }
 
-/* ===== GAME-SPECIFIC ANIMATIONS ===== */
-
 /* Character ability usage */
 @keyframes ability-flash {
   0% { opacity: 1; }
@@ -318,10 +615,11 @@
   100% { box-shadow: 0 0 10px var(--secondary); }
 }
 
-/* Floor transition */
-@keyframes floor-transition {
-  0% { opacity: 0; transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1); }
+/* Character panel glow */
+@keyframes character-panel-glow {
+  0% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(91, 141, 217, 0.7); }
+  100% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
 }
 
 /* Map node hover */
@@ -330,21 +628,28 @@
   100% { transform: scale(1.1); }
 }
 
-/* Floor transition out */
-@keyframes floor-transition-out {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
-}
-
 /* Dice roll animation */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* The following are animation utility classes to easily apply these animations */
+/* Treasure animation */
+@keyframes treasure-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 
-/* === UTILITY ANIMATION CLASSES === */
+/* Cursor blink animation */
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ===== ANIMATION UTILITY CLASSES ===== */
+/* These classes can be applied directly to elements */
 
 /* Float animations */
 .anim-float { animation: float var(--animation-medium) infinite ease-in-out; }
@@ -379,225 +684,94 @@
     walk-cycle 1.5s steps(4) infinite;
 }
 
+/* Cosmic and quantum effects */
+.cosmic-glow {
+  text-shadow: 0 0 5px #d35db3, 0 0 10px rgba(211, 93, 179, 0.5);
+  animation: pulse-glow 2s infinite;
+}
+
+.cosmic-text {
+  background: linear-gradient(
+    90deg,
+    #5b8dd9 0%,
+    #d35db3 50%,
+    #f0c866 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shift 5s infinite alternate;
+}
+
+.quantum-text {
+  animation: quantum-text 4s infinite alternate;
+}
+
+.quantum-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.quantum-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shimmer 3s infinite;
+}
+
 /* Dice roll */
 .dice-roll {
   display: inline-block;
   animation: spin 1s ease-in-out infinite;
 }
 
-/* Add these new animations to your existing CSS */
-@keyframes pixel-diagonal {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(20px, -15px); }
-  50% { transform: translate(5px, -25px); }
-  75% { transform: translate(-15px, -10px); }
-  100% { transform: translate(-20px, -20px); }
+/* Special pixel decoration animations */
+.pixel-decoration:nth-child(3n) {
+  animation: pixel-float 8s infinite ease-in-out;
 }
 
-@keyframes pixel-drift {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(30px); }
+.pixel-decoration:nth-child(3n+1) {
+  animation: pixel-twinkle 6s infinite ease-in-out;
 }
 
-/* Update your pixel-decoration base style to support the new animations */
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  opacity: 0.8;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
-  pointer-events: none;
-  transform-origin: center center;
-}
-/* Updated animations and styles to match the screenshot */
-.pixel-container {
-  background-color: #292f5b; /* Dark blue background like in the image */
-  position: relative;
-  overflow: hidden;
+.pixel-decoration:nth-child(3n+2) {
+  animation: pixel-float 12s infinite ease-in-out reverse, 
+            pixel-twinkle 10s infinite ease-in-out;
 }
 
-@keyframes slow-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* Boss-specific animations */
+.reality-ripple {
+  animation: ripple 4s ease-out forwards;
 }
 
-@keyframes pixel-float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0); }
+.cosmic-rift.expanding {
+  animation: rift-expand 3s forwards;
 }
 
-@keyframes pixel-twinkle {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.2; }
+.cosmic-rift.collapsing {
+  animation: rift-collapse 2s forwards;
 }
 
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  transform-origin: center center;
+.cosmic-collapse {
+  animation: space-distort 5s infinite alternate;
 }
 
-/* Style the game title to match the image */
-.game-title {
-  text-transform: uppercase;
-  color: #8be8e5; /* Bright cyan like in the image */
-  text-shadow: 0 0 5px #5b8dd9;
-  letter-spacing: 2px;
+.reality-warped {
+  animation: reality-warp 10s infinite alternate;
 }
 
-.subtitle {
-  text-transform: uppercase;
-  color: #8be8e5;
-  letter-spacing: 1px;
-}
-
-/* Style menu buttons to match the image */
-.retro-btn {
-  text-transform: uppercase;
-  border: 2px solid #8be8e5;
-  background-color: #333;
-  color: #8be8e5;
-  margin-bottom: 10px;
-  text-shadow: none;
-  box-shadow: 0 0 5px #5b8dd9;
-}
-
-.retro-btn.start {
-  background-color: #5b8dd9;
-  color: white;
-}
-
-.footer {
-  color: #ffffff;
-  opacity: 0.7;
-}
-
-/* Enhanced styling to match the screenshot exactly */
-.pixel-container {
-  background-color: #292f5b; /* Dark blue background */
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Title block styling */
-.title-block {
-  background-color: #1a1a1a; /* Dark background */
-  border: 2px solid #5b8dd9; /* Blue border */
-  padding: 20px 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
-  text-align: center;
-  max-width: 500px;
-  width: 80%;
-}
-
-.game-title {
-  text-transform: uppercase;
-  color: #8be8e5; /* Bright cyan */
-  text-shadow: 0 0 5px #5b8dd9;
-  letter-spacing: 3px;
-  font-size: 2.5rem;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.subtitle {
-  text-transform: uppercase;
-  color: #8be8e5;
-  letter-spacing: 2px;
-  font-size: 1rem;
-  margin-top: 10px;
-}
-
-/* Button container to match the image */
-.menu-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px; /* Tighter gap between buttons */
-  margin-bottom: 40px;
-  width: 40%;
-  max-width: 300px;
-}
-
-/* Button styling to match exactly */
-.retro-btn {
-  text-transform: uppercase;
-  border: 2px solid #8be8e5;
-  background-color: #5b8dd9;
-  color: white;
-  padding: 10px;
-  text-shadow: none;
-  box-shadow: 0 0 5px #5b8dd9;
-  font-size: 0.8rem;
-}
-
-.retro-btn.options {
-  background-color: #a7a1db; /* Yellow button in the image */
-}
-
-.retro-btn.help {
-  background-color: #9c77db; /* Purple button in the image */
-}
-
-/* Animation keyframes */
-@keyframes slow-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pixel-float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 0.1; }
-}
-
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  transform-origin: center center;
-}
-
-/* Space bar prompt styling */
-.footer {
-  position: absolute;
-  bottom: 20px;
-  color: #ffffff;
-  opacity: 0.7;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
-/* Pixel decorations styling */
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;  /* Behind other elements */
-  opacity: 0.7;
-  pointer-events: none;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-}
-
-/* Animation keyframes */
-@keyframes pixel-float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.3; }
+/* Scanlines effect */
+.scanlines {
+  background-size: 100% 4px;
+  opacity: 0.2;
+  animation: scanline-move 10s linear infinite;
 }

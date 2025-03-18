@@ -1,27 +1,51 @@
 /* main.css - Main stylesheet that imports all other stylesheets */
+/* Optimized version with reduced duplication and organized imports */
 
-/* Import base styles first */
+/* ===== BASE STYLES ===== */
+/* These define the foundational styling for the application */
+
 @import url('/static/css/base/reset.css');
 @import url('/static/css/base/variables.css');
-@import url('/static/css/utilities.css'); /* Add this line */
 @import url('/static/css/base/layout.css');
 
+/* ===== ANIMATION SYSTEM ===== */
+/* Centralized animation system used throughout the application */
 
-/* Import component styles */
-@import url('/static/css/components.css'); /* Add this line */
-@import url('/static/css/components/character.css');
-@import url('/static/css/components/inventory.css');
-@import url('/static/css/components/map.css');
-@import url('/static/css/components/nodes.css');
-
-/* Import animations */
 @import url('/static/css/animations.css');
 
-/* Add these import lines */
-@import url('/static/css/components/boss.css');
-@import url('/static/css/components/boss_effects.css');
+/* ===== UTILITIES ===== */
+/* Reusable utility classes for layout, spacing, and styling */
 
-/* Import theme styles last to override component styles */
+@import url('/static/css/utilities.css');
+
+/* ===== CORE COMPONENT STYLES ===== */
+/* Reusable UI components used across multiple screens */
+
+@import url('/static/css/components.css');
+
+/* ===== SPECIFIC COMPONENT STYLES ===== */
+/* Styles for individual game components */
+
+@import url('/static/css/components/character.css');      /* Combined character styling */
+@import url('/static/css/components/inventory.css');
+@import url('/static/css/components/map.css');           /* Combined map styling */
+@import url('/static/css/components/nodes.css');
+@import url('/static/css/components/boss.css');          /* Combined boss styling */
+
+/* ===== SCREEN-SPECIFIC STYLES ===== */
+/* Styles unique to individual screens */
+
+@import url('/static/css/landing-page.css');           /* Extracted from landing.html */
+@import url('/static/css/character-select.css');       /* Extracted from character_select.html */
+@import url('/static/css/item_editor.css');
+
+/* ===== UI CONSISTENCY ===== */
+/* Global styling for consistent UI/UX across the application */
+
+@import url('/static/css/ui-consistency.css');         /* Merged UI consistency */
+@import url('/static/css/modern-layout.css');          /* Merged modern layout */
+
+/* ===== THEME ===== */
+/* Optional theme styling - applied last to override component styles */
+
 @import url('/static/css/themes/retro-theme.css');
-
-/* Any additional global styles can go here */

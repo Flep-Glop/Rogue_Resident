@@ -1,156 +1,187 @@
-/* map.css - Map-specific styling */
+/* map.css - Complete map styling with hexagonal node system */
+/* Combines map.css and enhanced-map-styles.css */
 
-/* Map container */
+/* ===== MAP CONTAINER STYLING ===== */
+
 .map-container {
-  background-color: var(--background-alt);
-  border: 3px solid var(--primary);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  background-color: #1a1f2e;
   position: relative;
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  image-rendering: pixelated;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Custom scrollbar for the map container */
-.map-container::-webkit-scrollbar {
-  width: 10px;
-}
-
-.map-container::-webkit-scrollbar-track {
-  background: var(--background-alt);
-  border-radius: 5px;
-}
-
-.map-container::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 5px;
-}
-
-.map-container::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
-}
-
-/* Scroll indicators */
-.scroll-indicator {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 15px;
-  text-align: center;
-  font-size: 14px;
-  color: var(--primary);
-  animation: pulse 1.5s infinite;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.scroll-indicator.top {
-  top: 10px;
-}
-
-.scroll-indicator.bottom {
-  bottom: 10px;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.3; }
-}
-
-/* Map wrapper to position canvas properly */
-.map-wrapper {
-  position: relative;
-  width: var(--map-width);
-  margin: 0 auto;
+  width: 100%;
+  height: 100vh;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  z-index: 1;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Canvas styling */
 #floor-map {
-  display: block;
+  display: block; 
+  width: 100% !important;
+  height: 100% !important;
   image-rendering: pixelated;
-}
-
-/* Map control buttons */
-.floor-button {
-  width: 100%;
-  margin-bottom: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  font-weight: bold;
-}
-
-/* Next floor button styling */
-#next-floor-btn {
+  image-rendering: crisp-edges;
   position: relative;
-  font-size: var(--font-size-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin: var(--spacing-md) auto;
-  display: none; /* Initially hidden */
+  z-index: 2;
+}
+
+/* Grid background */
+.map-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(#2a3040 1px, transparent 1px),
+    linear-gradient(90deg, #2a3040 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Add vignette effect to the edges */
+.map-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Floor title styling */
+.map-title {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 32px;
+  color: #5b8dd9;
+  text-transform: uppercase;
+  z-index: 10;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Remove unnecessary overflow indications */
+.scroll-indicator {
+  display: none;
+}
+
+/* ===== NODE STYLING ===== */
+
+/* Hexagonal node base styling */
+.map-node {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  width: 60px;
+  height: 60px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  transition: transform 0.2s ease;
+  z-index: 5;
+  cursor: pointer;
+}
+
+/* Node hover effect */
+.map-node:hover:not(.map-node--locked):not(.map-node--completed) {
+  transform: scale(1.15) translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5), 0 0 15px currentColor;
+}
+
+/* Node state styling */
+.map-node--current {
+  transform: scale(1.2);
+  border: 3px solid white;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.map-node--available {
+  box-shadow: 0 0 10px currentColor;
+}
+
+.map-node--completed {
+  filter: brightness(0.7);
+  opacity: 0.7;
+}
+
+.map-node--locked {
+  filter: brightness(0.4) grayscale(0.5);
+  border-color: #3a4050;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Node connection paths */
+.node-path {
+  height: 3px;
+  background-color: #3d5173;
+  z-index: 4;
+  position: absolute;
+  transform-origin: 0 0;
+}
+
+.node-path--active {
+  background-color: #5b8dd9 !important;
+  box-shadow: 0 0 8px var(--primary);
+}
+
+.node-path--locked {
+  opacity: 0.2;
+}
+
+.node-path--completed {
+  background-color: var(--secondary);
+  opacity: 0.6;
+}
+
+/* Node type colors */
+.node-start { background-color: #56b886; color: white; }
+.node-boss { background-color: #e67e73; color: white; }
+.node-question { background-color: #5b8dd9; color: white; }
+.node-elite { background-color: #d35db3; color: white; }
+.node-treasure { background-color: #f0c866; color: black; }
+.node-rest { background-color: #9c77db; color: white; }
+.node-shop { background-color: #5bbcd9; color: white; }
+.node-event { background-color: #e99c50; color: white; }
+.node-gamble { background-color: #b8d458; color: white; }
+.node-patient_case { background-color: #4acf8b; color: white; }
+
+/* ===== FLOOR BUTTON STYLING ===== */
+
+#next-floor-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  font-size: 0.8rem;
+  padding: 10px 20px;
   animation: pulse-attention 2s infinite;
+  display: none; /* Initially hidden */
   box-shadow: 
     0 var(--pixel-size) 0 0 var(--secondary-dark),
     0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5),
     0 0 15px var(--secondary);
 }
 
-/* Ensure map container is positioned for background overlay */
-#floor-map {
-  position: relative;
-  overflow: hidden;  /* Keep pixels contained */
-  z-index: 1;        /* Base z-index */
-}
+/* ===== FLOOR TRANSITION STYLING ===== */
 
-/* Ensure nodes are above pixel background */
-.map-node {
-  position: relative;
-  z-index: 2;  /* Higher than background */
-}
-
-/* Ensure paths between nodes are above background */
-.map-path {
-  position: relative; 
-  z-index: 1;  /* Above background but below nodes */
-}
-
-/* Ensure text and descriptions are visible */
-.node-title, .node-description {
-  position: relative;
-  z-index: 3;  /* Above everything */
-}
-
-#next-floor-btn::before {
-  content: "→";
-  margin-right: var(--spacing-sm);
-  font-size: 1.2em;
-}
-
-#next-floor-btn::after {
-  content: "→";
-  margin-left: var(--spacing-sm);
-  font-size: 1.2em;
-}
-
-@keyframes pulse-attention {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-/* Path visualization overlay */
-.path-visualization-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-/* Floor transition styling */
 .floor-transition-screen {
   position: fixed;
   top: 0;
@@ -188,40 +219,70 @@
   line-height: 1.5;
 }
 
-@keyframes floor-transition {
-  0% { transform: translateY(100%); opacity: 0; }
-  10% { transform: translateY(0); opacity: 1; }
-  90% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
-}
+/* ===== DEBUG CONTROLS ===== */
 
-/* Map debug buttons */
+/* Position the debug buttons in top right */
 .debug-buttons {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 100;
+  margin: 0;
   display: flex;
   gap: 5px;
-  margin-bottom: var(--spacing-sm);
 }
 
+/* Debug button styling */
 .debug-buttons button {
-  font-size: 0.7rem;
-  padding: 2px 8px;
+  font-size: 0.6rem;
+  padding: 5px 10px;
+  background-color: rgba(41, 43, 54, 0.8);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(91, 141, 217, 0.5);
+  color: var(--text);
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
   opacity: 0.7;
 }
 
-/* Responsive adjustments */
+.debug-buttons button:hover {
+  background-color: rgba(91, 141, 217, 0.3);
+  border-color: var(--primary);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 0 8px var(--primary);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 992px) {
+  .map-node {
+    width: 50px;
+    height: 50px;
+    font-size: 16px;
+  }
+  
+  .node-path {
+    height: 2px;
+  }
+  
+  .floor-title {
+    font-size: 36px;
+  }
+  
+  .floor-subtitle {
+    font-size: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .map-container {
     padding: var(--spacing-sm);
   }
 
-  .map-wrapper {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  #floor-map {
-    width: 100%;
-    height: auto;
+  .map-node {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
   }
 
   .floor-title {
@@ -230,5 +291,17 @@
 
   .floor-description {
     font-size: 14px;
+  }
+  
+  #next-floor-btn {
+    bottom: 140px;
+    right: 10px;
+    font-size: 0.7rem;
+    padding: 8px 15px;
+  }
+  
+  .debug-buttons {
+    top: 5px;
+    right: 5px;
   }
 }

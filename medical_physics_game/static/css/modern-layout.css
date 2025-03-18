@@ -1,4 +1,5 @@
-/* modern-layout.css - New immersive layout for Medical Physics Residency game */
+/* modern-layout.css - Comprehensive immersive layout for Medical Physics Residency game */
+/* Merges modern-layout.css and enhanced-modern-layout.css into a single file */
 
 /* ===== CORE LAYOUT ADJUSTMENTS ===== */
 
@@ -27,6 +28,11 @@
   position: relative;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--background);
 }
 
 /* Expand game container to fill viewport */
@@ -42,25 +48,33 @@
 /* Adjust game title to be smaller and positioned at the top */
 .game-title {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  margin: 0;
-  padding: 0.5rem;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
   text-align: center;
-  z-index: 50;
   pointer-events: none;
+  width: auto;
+  padding: 5px 20px;
+  background-color: rgba(41, 43, 54, 0.7);
+  backdrop-filter: blur(3px);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--primary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 15px rgba(91, 141, 217, 0.3);
+  margin: 0;
 }
 
 .game-title h1 {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   margin: 0;
+  color: var(--primary);
   text-shadow: 0 0 10px var(--primary);
 }
 
-.subtitle {
-  font-size: 0.8rem;
+.game-title .subtitle {
+  font-size: 0.6rem;
   margin: 0;
+  color: var(--secondary);
 }
 
 /* ===== MAP CONTAINER STYLES ===== */
@@ -102,12 +116,31 @@
 /* Position the debug buttons in top right */
 .debug-buttons {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
   z-index: 100;
   margin: 0;
   display: flex;
   gap: 5px;
+}
+
+/* Debug button styling */
+.debug-buttons button {
+  font-size: 0.6rem;
+  padding: 5px 10px;
+  background-color: rgba(41, 43, 54, 0.8);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(91, 141, 217, 0.5);
+  color: var(--text);
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.debug-buttons button:hover {
+  background-color: rgba(91, 141, 217, 0.3);
+  border-color: var(--primary);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 0 8px var(--primary);
 }
 
 /* Floor button positioning */
@@ -116,6 +149,13 @@
   bottom: 20px;
   right: 20px;
   z-index: 100;
+  font-size: 0.8rem;
+  padding: 10px 20px;
+  box-shadow: 
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5),
+    0 0 15px var(--secondary);
+  animation: pulse-attention 2s infinite;
 }
 
 /* ===== GRID BACKGROUND ===== */
@@ -157,43 +197,57 @@
 /* Core sidebar container */
 .game-sidebar {
   position: absolute;
-  top: 50px; /* Space for title */
+  top: 70px;
   left: 20px;
-  width: 280px;
-  z-index: 10;
+  width: 300px;
+  z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  pointer-events: none; /* Let clicks through to the map */
+  gap: 15px;
+  pointer-events: none;
 }
 
-/* Make all content within sidebar clickable */
 .game-sidebar > * {
   pointer-events: auto;
+  margin: 0;
 }
 
 /* ===== CHARACTER PANEL ===== */
 
 /* Character stats panel */
 .character-stats {
-  background-color: rgba(41, 43, 54, 0.8);
+  display: flex;
+  flex-wrap: wrap;
+  padding: 15px;
+  background: linear-gradient(
+    to bottom,
+    rgba(91, 141, 217, 0.15),
+    rgba(41, 43, 54, 0.85)
+  );
+  animation: pulse-primary 4s infinite ease-in-out;
   backdrop-filter: blur(3px);
-  border: 1px solid var(--primary);
+  border: 2px solid var(--primary);
   border-radius: var(--border-radius-md);
   box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
-  padding: var(--spacing-sm);
-  width: 100%;
-  margin: 0;
 }
 
-/* Character pixel art styling */
+/* Character avatar layout */
 .character-avatar-container {
   float: left;
-  margin-right: var(--spacing-sm);
+  width: 72px;
+  height: 72px;
+  margin-right: 15px;
   margin-bottom: 0;
-  width: auto;
-  height: auto;
-  max-width: 72px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+  padding: 5px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Character details positioning */
+.character-details {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Character details section */
@@ -211,20 +265,22 @@
   line-height: 1.3;
 }
 
-/* Life icons style */
+/* Lives display styling */
 #lives-container {
-  clear: both;
-  margin: var(--spacing-xs) 0;
-  padding: var(--spacing-xs);
+  width: 100%;
+  margin-top: 10px;
+  padding: 5px;
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: var(--border-radius-sm);
   text-align: center;
+  clear: both;
+  margin: var(--spacing-xs) 0;
 }
 
 /* ===== INVENTORY PANEL ===== */
 
 /* Inventory container */
-.inventory-container {
+.inventory-container, #inventory-container {
   background-color: rgba(41, 43, 54, 0.8);
   backdrop-filter: blur(3px);
   border: 1px solid var(--primary);
@@ -233,6 +289,12 @@
   padding: var(--spacing-sm);
   width: 100%;
   margin: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(41, 43, 54, 0.85),
+    rgba(41, 43, 54, 0.95)
+  );
+  padding: 15px;
 }
 
 /* Inventory title row */
@@ -241,6 +303,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-sm);
+  padding-bottom: 5px;
+  border-bottom: 2px dashed rgba(91, 141, 217, 0.3);
 }
 
 .inventory-title h3 {
@@ -252,24 +316,33 @@
   border: none;
 }
 
-/* Horizontal item bar */
+#inventory-count {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+  padding: 2px 5px;
+  font-size: var(--font-size-xs);
+}
+
+/* Inventory items grid layout */
 .inventory-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
 }
 
 /* Item slot styling */
 .inventory-item {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   margin: 0;
 }
 
 /* Empty slot styling */
-.inventory-item--empty {
+.inventory-item.empty, .inventory-item--empty {
   background-color: rgba(0, 0, 0, 0.2);
   border: 1px dashed rgba(255, 255, 255, 0.1);
+  opacity: 0.3;
+  cursor: default;
 }
 
 /* ===== NODE INTERACTION STYLES ===== */
@@ -281,24 +354,121 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  max-width: 600px;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
   z-index: 1000;
+  padding: 20px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(91, 141, 217, 0.4);
   background-color: rgba(41, 43, 54, 0.95);
   backdrop-filter: blur(5px);
   border: 2px solid var(--primary);
   border-radius: var(--border-radius-md);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
 }
 
 /* Enhanced modal styling */
 .node-modal-overlay {
   backdrop-filter: blur(5px);
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .node-modal-content {
   background-color: rgba(41, 43, 54, 0.95);
+  border-width: 3px;
   max-width: 800px;
   width: 90%;
+  padding: 25px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(91, 141, 217, 0.4);
+  animation: modal-appear 0.3s ease-out;
+}
+
+/* Node interaction headers */
+.interaction-container h3 {
+  font-size: var(--font-size-md);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary);
+  color: var(--text-light);
+}
+
+/* Enhanced option buttons */
+.option-btn, .event-option {
+  text-align: left;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  width: 100%;
+  background-color: rgba(41, 43, 54, 0.95);
+  color: var(--text);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.option-btn:hover:not(:disabled), .event-option:hover:not(:disabled) {
+  background-color: rgba(91, 141, 217, 0.2);
+  color: var(--text-light);
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 15px rgba(91, 141, 217, 0.3);
+}
+
+/* Continue buttons styling */
+#continue-btn,
+#treasure-continue-btn,
+#rest-continue-btn,
+#event-continue-btn,
+#shop-continue-btn,
+#gamble-continue-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  text-align: center;
+  background-color: var(--secondary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  box-shadow: 
+    0 var(--pixel-size) 0 0 var(--secondary-dark),
+    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
+  font-size: var(--font-size-md);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  animation: button-pulse 2s infinite;
+}
+
+/* Node type-specific styling for interactions */
+#question-container {
+  border-top: 4px solid var(--node-question);
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
+}
+
+#treasure-container {
+  border-top: 4px solid var(--node-treasure);
+  box-shadow: 0 0 15px rgba(240, 200, 102, 0.3);
+}
+
+#rest-container {
+  border-top: 4px solid var(--node-rest);
+  box-shadow: 0 0 15px rgba(156, 119, 219, 0.3);
+}
+
+#shop-container {
+  border-top: 4px solid var(--node-shop);
+  box-shadow: 0 0 15px rgba(91, 188, 217, 0.3);
+}
+
+#event-container {
+  border-top: 4px solid var(--node-event);
+  box-shadow: 0 0 15px rgba(233, 156, 80, 0.3);
+}
+
+#boss-container {
+  border-top: 4px solid var(--node-boss);
+  box-shadow: 0 0 15px rgba(230, 126, 115, 0.3);
 }
 
 /* ===== ROW STRUCTURE FIXES ===== */
@@ -318,85 +488,120 @@
   pointer-events: none;
 }
 
-/* ===== NODE IMPROVEMENTS ===== */
+/* ===== TOAST NOTIFICATIONS ===== */
 
-/* Larger nodes for better visibility */
-.map-node {
-  width: 50px;
-  height: 50px;
-  font-size: var(--font-size-md);
-  z-index: 5;
-}
-
-/* Enhanced hover effect */
-.map-node:not(.map-node--locked):not(.map-node--completed):hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 15px var(--primary);
-}
-
-/* Improved path visibility */
-.node-path {
-  height: 4px;
-  z-index: 4;
-}
-
-.node-path--active {
-  box-shadow: 0 0 10px var(--primary);
-}
-
-/* Bring map nodes above grid and vignette */
-#floor-map {
-  z-index: 4 !important;
-}
-
-/* ===== MISC FIXES ===== */
-/* Set explicit z-index for toast container */
+/* Toast container positioning */
 .toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   z-index: 2000;
 }
 
-/* Ensure debug buttons are properly visible and accessible */
-.debug-buttons {
-  z-index: 200;
+/* Toast notification styling */
+.toast {
+  margin-bottom: 10px;
+  background-color: rgba(41, 43, 54, 0.95);
+  backdrop-filter: blur(3px);
+  border-left: 4px solid var(--primary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  border-radius: var(--border-radius-sm);
+  max-width: 350px;
+  animation: toast-in 0.3s ease-out;
 }
 
-.debug-buttons button {
-  pointer-events: auto;
+/* ===== CONSISTENT UI FRAMES ===== */
+
+/* Add pixel corners to main game containers */
+.map-container,
+.character-stats,
+#inventory-container,
+.game-panel,
+.interaction-container,
+.node-modal-content {
+  position: relative;
+  background-color: rgba(41, 43, 54, 0.85);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(91, 141, 217, 0.2);
+  backdrop-filter: blur(3px);
+  overflow: hidden;
+}
+
+/* Add subtle top border glow to all containers */
+.map-container,
+.character-stats,
+#inventory-container,
+.game-panel,
+.interaction-container,
+.node-modal-content {
+  border-top-color: rgba(91, 141, 217, 0.8);
+  border-left-color: rgba(91, 141, 217, 0.5);
+  border-right-color: rgba(91, 141, 217, 0.3);
+  border-bottom-color: rgba(91, 141, 217, 0.3);
 }
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
-/* Tablet adjustments */
+
+/* Tablet layout */
 @media (max-width: 992px) {
   .game-sidebar {
-    width: 240px;
+    width: 250px;
   }
   
-  .inventory-item {
-    width: 35px;
-    height: 35px;
+  .inventory-items {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .character-avatar-container {
+    margin-right: 10px;
   }
 }
 
-/* Mobile adjustments */
+/* Mobile layout */
 @media (max-width: 768px) {
   .game-sidebar {
-    width: 100%;
-    left: 0;
-    bottom: 0;
     top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     flex-direction: row;
-    padding: 10px;
-    background-color: rgba(41, 43, 54, 0.8);
+    background-color: rgba(41, 43, 54, 0.85);
     backdrop-filter: blur(3px);
+    padding: 10px;
+    border-top: 2px solid var(--primary);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
   }
   
-  .character-stats, .inventory-container {
+  .character-stats,
+  #inventory-container {
     width: 50%;
     max-height: 120px;
     overflow-y: auto;
   }
   
+  .game-title {
+    top: 5px;
+  }
+  
+  .game-title h1 {
+    font-size: 1rem;
+  }
+  
+  .interaction-container {
+    width: 95%;
+    padding: 15px;
+  }
+  
   #next-floor-btn {
     bottom: 140px;
+    right: 10px;
+    font-size: 0.7rem;
+    padding: 8px 15px;
+  }
+  
+  .debug-buttons {
+    top: 5px;
+    right: 5px;
   }
 }

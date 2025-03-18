@@ -1,198 +1,483 @@
-/* ui-consistency.css - Minimal styles for cohesive UI framing across screens
- * Save this to: medical_physics_game/static/css/ui-consistency.css
- */
+/* ui-consistency.css - Comprehensive styling for cohesive UI across all screens */
+/* Combines ui-consistency.css and enhanced-ui-consistency.css */
+
+/* ===== GLOBAL BACKGROUND EFFECTS ===== */
+
+/* Apply consistent grid pattern across the entire interface */
+body, .pixel-container {
+  background-color: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Apply grid pattern to all main containers */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Add subtle vignette effect to entire viewport */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
 
 /* ===== SCREEN TRANSITIONS ===== */
 
 /* Transition screen container */
 #screen-transition-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(41, 47, 91, 0.95);
-    z-index: 9000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    pointer-events: none;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(41, 47, 91, 0.95);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
   
-  /* Transition text styles */
+/* Transition text styles */
+.transition-title {
+  font-size: 2.5rem;
+  color: #5b8dd9;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0px 0px 10px rgba(91, 141, 217, 0.6);
+}
+  
+.transition-subtitle {
+  font-size: 1.5rem;
+  color: #56b886;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+  
+.transition-description {
+  font-size: 1rem;
+  color: #d4dae0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+  
+/* Scanlines overlay for transition screens */
+.transition-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.05) 50%
+  );
+  background-size: 100% 4px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.3;
+  animation: scanline-move 10s linear infinite;
+}
+
+/* ===== UNIFIED CONTAINER STYLING ===== */
+
+/* Apply consistent styling to all main containers */
+.map-container,
+.character-stats,
+#inventory-container,
+.game-panel,
+.interaction-container,
+.node-modal-content {
+  background-color: rgba(41, 43, 54, 0.85);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(91, 141, 217, 0.2);
+  backdrop-filter: blur(3px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add subtle inner shadow to all containers for depth */
+.map-container,
+.character-stats,
+#inventory-container,
+.game-panel,
+.interaction-container,
+.node-modal-content {
+  box-shadow: 
+    inset 0 0 15px rgba(0, 0, 0, 0.3),
+    0 4px 15px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(91, 141, 217, 0.2);
+}
+
+/* Add pixel corner details to all containers */
+.map-container::before,
+.map-container::after,
+.character-stats::before,
+.character-stats::after,
+#inventory-container::before,
+#inventory-container::after,
+.game-panel::before,
+.game-panel::after,
+.interaction-container::before,
+.interaction-container::after,
+.node-modal-content::before,
+.node-modal-content::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--primary);
+  z-index: 1;
+}
+
+/* Top-left corners */
+.map-container::before,
+.character-stats::before,
+#inventory-container::before,
+.game-panel::before,
+.interaction-container::before,
+.node-modal-content::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+/* Bottom-right corners */
+.map-container::after,
+.character-stats::after,
+#inventory-container::after,
+.game-panel::after,
+.interaction-container::after,
+.node-modal-content::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* Add subtle top border glow to all containers */
+.map-container,
+.character-stats,
+#inventory-container,
+.game-panel,
+.interaction-container,
+.node-modal-content {
+  border-top-color: rgba(91, 141, 217, 0.8);
+  border-left-color: rgba(91, 141, 217, 0.5);
+  border-right-color: rgba(91, 141, 217, 0.3);
+  border-bottom-color: rgba(91, 141, 217, 0.3);
+}
+
+/* ===== CONSISTENT INTERACTIVE ELEMENTS ===== */
+
+/* Consistent hover effects for all interactive elements */
+.inventory-item:hover,
+.game-btn:hover,
+.option-btn:hover,
+.special-ability-btn:hover,
+.retro-btn:hover,
+.map-node:hover:not(.map-node--locked):not(.map-node--completed) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 10px var(--primary);
+  transition: all 0.2s ease;
+}
+
+/* Enhanced button styling for consistency */
+.game-btn, 
+.option-btn, 
+.event-option,
+.special-ability-btn, 
+.buy-item-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+/* Add subtle light reflection effect to buttons */
+.game-btn::after, 
+.option-btn::after,
+.special-ability-btn::after, 
+.buy-item-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+}
+
+.game-btn:hover::after, 
+.option-btn:hover::after,
+.special-ability-btn:hover::after, 
+.buy-item-btn:hover::after {
+  left: 100%;
+  top: 100%;
+}
+
+/* ===== MAP ENHANCEMENTS ===== */
+
+/* Make map canvas fill container nicely */
+#floor-map {
+  width: 100% !important; /* Override inline width */
+  height: 100% !important; /* Maintain aspect ratio */
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  position: relative;
+  z-index: 2;
+}
+
+/* Map grid background - subtle grid pattern */
+.map-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(#2a3040 1px, transparent 1px),
+    linear-gradient(90deg, #2a3040 1px, transparent 1px);
+  background-size: 30px 30px;
+  z-index: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Floor title styling */
+.map-title, h3.panel-title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 1.2rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced node styling */
+.map-node {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 10px currentColor;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 5;
+}
+
+.map-node:hover:not(.map-node--locked):not(.map-node--completed) {
+  transform: scale(1.15) translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5), 0 0 15px currentColor;
+}
+
+/* Enhanced path styling */
+.node-path {
+  height: 4px;
+  filter: drop-shadow(0 0 3px currentColor);
+  z-index: 4;
+}
+
+.node-path--active {
+  height: 5px;
+  filter: drop-shadow(0 0 8px var(--primary));
+  background-color: var(--primary) !important;
+}
+
+/* ===== TYPOGRAPHY CONSISTENCY ===== */
+
+/* Ensure all text uses the pixel font */
+body, button, input, select, textarea {
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Consistent heading styles */
+h1, h2, h3, h4, h5, h6,
+.game-title, .panel-title {
+  color: var(--primary);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(91, 141, 217, 0.5);
+}
+
+/* ===== INTERACTION CONTAINERS ===== */
+
+/* Node type-specific styling for interactions */
+#question-container {
+  border-top: 4px solid var(--node-question);
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
+}
+
+#treasure-container {
+  border-top: 4px solid var(--node-treasure);
+  box-shadow: 0 0 15px rgba(240, 200, 102, 0.3);
+}
+
+#rest-container {
+  border-top: 4px solid var(--node-rest);
+  box-shadow: 0 0 15px rgba(156, 119, 219, 0.3);
+}
+
+#shop-container {
+  border-top: 4px solid var(--node-shop);
+  box-shadow: 0 0 15px rgba(91, 188, 217, 0.3);
+}
+
+#event-container {
+  border-top: 4px solid var(--node-event);
+  box-shadow: 0 0 15px rgba(233, 156, 80, 0.3);
+}
+
+#boss-container {
+  border-top: 4px solid var(--node-boss);
+  box-shadow: 0 0 15px rgba(230, 126, 115, 0.3);
+}
+
+/* Consistent headers for interaction containers */
+.interaction-container h3 {
+  font-size: var(--font-size-md);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary);
+  color: var(--text-light);
+}
+
+/* ===== ENHANCED EFFECTS ===== */
+
+/* Add subtle pixel floating effect to character avatar */
+.character-avatar-container .pixel-character-img,
+.ascii-character {
+  animation: float-subtle 3s infinite ease-in-out;
+}
+
+/* Add scanlines effect for retro feel */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.05) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.1;
+  animation: scanline-scroll 10s linear infinite;
+}
+
+/* ===== OVERLAY ENHANCEMENTS ===== */
+
+/* Enhanced toast notifications */
+.toast {
+  background-color: rgba(41, 43, 54, 0.95);
+  backdrop-filter: blur(3px);
+  border-left: 4px solid var(--primary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 10px;
+  max-width: 350px;
+  animation: toast-in 0.3s ease-out;
+}
+
+.toast.toast-success {
+  border-left-color: var(--secondary);
+}
+
+.toast.toast-danger {
+  border-left-color: var(--danger);
+}
+
+.toast.toast-warning {
+  border-left-color: var(--warning);
+}
+
+.toast.toast-info {
+  border-left-color: var(--primary);
+}
+
+/* Dynamic game-over screen with better appearance */
+.game-over-screen {
+  background-color: rgba(41, 43, 54, 0.95);
+  backdrop-filter: blur(8px);
+  border: 3px solid var(--danger);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(230, 126, 115, 0.5);
+  text-align: center;
+  padding: 40px;
+  color: white;
+  border-radius: 10px;
+}
+
+.game-over-screen h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: var(--danger);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
   .transition-title {
-    font-size: 2.5rem;
-    color: #5b8dd9;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 0px 0px 10px rgba(91, 141, 217, 0.6);
+    font-size: 1.8rem;
   }
   
   .transition-subtitle {
-    font-size: 1.5rem;
-    color: #56b886;
-    margin-bottom: 1.5rem;
-    letter-spacing: 1px;
+    font-size: 1.2rem;
   }
   
-  .transition-description {
-    font-size: 1rem;
-    color: #d4dae0;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
-  /* Scanlines overlay for transition screens */
-  .transition-scanlines {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      transparent 50%,
-      rgba(0, 0, 0, 0.05) 50%
-    );
-    background-size: 100% 4px;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.3;
-    animation: scanline-move 10s linear infinite;
-  }
-  
-  /* ===== CONSISTENT UI FRAMES ===== */
-  
-  /* Add pixel corners to main game containers */
-  .map-container,
-  .character-stats,
-  #inventory-container,
-  .game-panel {
-    position: relative;
-    background-color: rgba(41, 43, 54, 0.9);
-    border: 2px solid #5b8dd9;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-  }
-  
-  /* Add corner details like in character select */
-  .map-container::before,
-  .map-container::after,
-  .character-stats::before,
-  .character-stats::after,
-  #inventory-container::before,
-  #inventory-container::after {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-color: #5b8dd9;
-    z-index: 1;
-  }
-  
-  /* Top-left corner */
-  .map-container::before,
-  .character-stats::before,
-  #inventory-container::before {
-    top: 0;
-    left: 0;
-    border-top: 2px solid;
-    border-left: 2px solid;
-  }
-  
-  /* Bottom-right corner */
-  .map-container::after,
-  .character-stats::after,
-  #inventory-container::after {
-    bottom: 0;
-    right: 0;
-    border-bottom: 2px solid;
-    border-right: 2px solid;
-  }
-  
-  /* Add pixel-style inner shadow to panels for depth */
-  .character-stats,
-  #inventory-container,
-  .map-container {
-    box-shadow: 
-      inset 0 0 10px rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Enhanced header styling for consistent look */
-  .map-container h3,
-  .inventory-title h3 {
-    padding: 0.5rem 1rem;
-    margin: -1px;
-    background-color: #3d4c60;
-    color: #5b8dd9;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    border-bottom: 2px solid rgba(91, 141, 217, 0.3);
-  }
-  
-  /* Subtle background glow to match character select */
-  .character-stats {
-    background: linear-gradient(
-      to bottom,
-      rgba(91, 141, 217, 0.05) 0%,
-      rgba(41, 43, 54, 0.8) 100%
-    );
-  }
-  
-  /* ===== MAP ENHANCEMENTS ===== */
-  
-  /* Make map canvas fill container nicely */
   #floor-map {
-    width: 100% !important; /* Override inline width */
-    height: auto !important; /* Maintain aspect ratio */
-    min-height: 400px; /* Ensure minimum height */
-    display: block;
-    margin: 0 auto;
-    padding: 1rem;
-    background-color: rgba(33, 35, 45, 0.6);
-    border-radius: 5px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    min-height: 350px;
   }
   
-  /* ===== ANIMATION KEYFRAMES ===== */
-  
-  /* Scanline movement animation */
-  @keyframes scanline-move {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 8px; }
+  /* Stack columns on small screens */
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
   
-  /* Character bobbing animation */
-  @keyframes bob {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-    100% { transform: translateY(0); }
+  /* Adjust container padding and spacing */
+  .interaction-container,
+  .node-modal-content {
+    padding: var(--spacing-sm);
   }
   
-  /* ===== RESPONSIVE ADJUSTMENTS ===== */
-  
-  @media (max-width: 768px) {
-    .transition-title {
-      font-size: 1.8rem;
-    }
-    
-    .transition-subtitle {
-      font-size: 1.2rem;
-    }
-    
-    #floor-map {
-      min-height: 350px;
-    }
-    
-    /* Stack columns on small screens */
-    .col-md-3, .col-md-9 {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
+  .game-over-screen h2 {
+    font-size: 28px;
   }
+}

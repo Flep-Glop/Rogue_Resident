@@ -5,17 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Physics Residency: The Roguelike Challenge</title>
     
-    <!-- Base CSS -->
+    <!-- Main CSS -->
     <link href="/static/css/main.css" rel="stylesheet">
-    <link href="/static/css/character_image_styles.css" rel="stylesheet">
-    
-    <!-- Enhanced UI CSS -->
-    <link href="/static/css/enhanced-ui-consistency.css" rel="stylesheet">
-    <link href="/static/css/enhanced-modern-layout.css" rel="stylesheet">
-    <link href="/static/css/enhanced-map-styles.css" rel="stylesheet">
-    
-    <!-- Editor link (if needed) -->
-    <a href="/item-editor" class="editor-link">Item Editor</a>
 </head>
 <body class="modern-layout">
     <div class="pixel-container">
@@ -101,10 +92,11 @@
         <div id="node-modal-content" class="node-modal-content"></div>
     </div>
     
-    <!-- Character assets manager (add before other scripts) -->
-    <script src="/static/js/character_assets.js"></script>
+    <!-- Editor link (if needed) -->
+    <a href="/item-editor" class="editor-link">Item Editor</a>
     
-    <!-- Load engine scripts -->
+    <!-- Load scripts in optimal order -->
+    <script src="/static/js/character_assets.js"></script>
     <script src="/static/js/engine/event_system.js"></script>
     <script src="/static/js/engine/state_manager.js"></script>
     <script src="/static/js/engine/progression.js"></script>
@@ -113,15 +105,11 @@
     <script src="/static/js/engine/node_system_integrator.js"></script>
     <script src="/static/js/engine/save_manager.js"></script>
     <script src="/static/js/engine/debug_tools.js"></script>
-
-    <!-- Add component utilities -->
     <script src="/static/js/engine/component-utils.js"></script>
-
-    <!-- Load API client -->
     <script src="/static/js/api-client.js"></script>
     <script src="/static/js/design-bridge.js"></script>
     
-    <!-- Load UI components -->
+    <!-- UI components -->
     <script src="/static/js/ui-utils.js"></script>
     <script src="/static/js/ui/map_renderer.js"></script>
     <script src="/static/js/ui/node_interaction.js"></script>
@@ -130,7 +118,7 @@
     <script src="/static/js/ui/feedback_system.js"></script>
     <script src="/static/js/ui/special_interactions.js"></script>
     
-    <!-- Load node components -->
+    <!-- Node components -->
     <script src="/static/js/components/question_component.js"></script>
     <script src="/static/js/components/treasure_component.js"></script>
     <script src="/static/js/components/event_component.js"></script>
@@ -149,100 +137,70 @@
     <!-- Visual enhancement scripts -->
     <script src="/static/js/screen-transition.js"></script>
     <script src="/static/js/game-background-effects.js"></script>
-    
-    <!-- Load hexagonal map renderer enhancements -->
     <script src="/static/js/enhanced-hexagonal-map-renderer.js"></script>
-    
-    <!-- Load error handler for reliability -->
     <script src="/static/js/error_handler.js"></script>
     
     <!-- Load game initialization last -->
     <script src="/static/js/game.js"></script>
     
-    <!-- Initialize enhanced visuals -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Initializing enhanced hexagonal map visuals...");
-            
-            // Add debug button event listeners
-            const debugSummaryBtn = document.getElementById('debug-summary-btn');
-            if (debugSummaryBtn) {
-                debugSummaryBtn.addEventListener('click', function() {
-                    if (typeof DebugTools !== 'undefined' && typeof DebugTools.generateStateSummary === 'function') {
-                        DebugTools.generateStateSummary();
-                    }
-                });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup debug buttons
+        document.getElementById('debug-summary-btn')?.addEventListener('click', function() {
+            if (typeof DebugTools !== 'undefined' && typeof DebugTools.generateStateSummary === 'function') {
+                DebugTools.generateStateSummary();
             }
-            
-            const forceNextFloorBtn = document.getElementById('force-next-floor-btn');
-            if (forceNextFloorBtn) {
-                forceNextFloorBtn.addEventListener('click', function() {
-                    if (typeof GameState !== 'undefined' && typeof GameState.goToNextFloor === 'function') {
-                        GameState.goToNextFloor();
-                    }
-                });
-            }
-            
-            const testBossBtn = document.getElementById('test-boss-btn');
-            if (testBossBtn) {
-                testBossBtn.addEventListener('click', function() {
-                    if (typeof NodeInteraction !== 'undefined') {
-                        NodeInteraction.visitNode('boss');
-                    }
-                });
-            }
-            
-            // Create "Press Start 2P" font check to ensure pixelated text
-            const fontCheck = document.createElement('span');
-            fontCheck.style.fontFamily = 'Press Start 2P, monospace';
-            fontCheck.style.visibility = 'hidden';
-            fontCheck.textContent = 'Font Check';
-            document.body.appendChild(fontCheck);
-            
-            // Wait for game systems to initialize
-            setTimeout(function() {
-                // Initialize screen transitions
-                if (typeof ScreenTransition !== 'undefined') {
-                    ScreenTransition.initialize();
-                    console.log("Screen transitions initialized");
-                }
-                
-                // Initialize background effects with lower intensity
-                if (typeof GameBackgroundEffects !== 'undefined') {
-                    GameBackgroundEffects.initialize({
-                        targetElement: document.body,
-                        pixelCount: 10, // Fewer particles
-                        opacity: 0.15   // Less visible
-                    });
-                    console.log("Background effects initialized");
-                }
-                
-                // Force map re-render with hexagonal style
-                if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
-                    // Ensure the hexagonalConfig is enabled
-                    if (MapRenderer.hexagonalConfig) {
-                        MapRenderer.hexagonalConfig.enabled = true;
-                    }
-                    
-                    setTimeout(() => {
-                        MapRenderer.renderMap();
-                        console.log("Hexagonal map rendered");
-                    }, 200);
-                }
-                
-                console.log("Enhanced hexagonal map styles applied successfully");
-            }, 800);
-            
-            // Handle window resize events better
-            window.addEventListener('resize', function() {
-                // Force map render on resize with slight delay
-                if (typeof MapRenderer !== 'undefined' && MapRenderer.handleResponsiveResize) {
-                    setTimeout(() => {
-                        MapRenderer.handleResponsiveResize();
-                    }, 200);
-                }
-            });
         });
+        
+        document.getElementById('force-next-floor-btn')?.addEventListener('click', function() {
+            if (typeof GameState !== 'undefined' && typeof GameState.goToNextFloor === 'function') {
+                GameState.goToNextFloor();
+            }
+        });
+        
+        document.getElementById('test-boss-btn')?.addEventListener('click', function() {
+            if (typeof NodeInteraction !== 'undefined') {
+                NodeInteraction.visitNode('boss');
+            }
+        });
+
+        // Initialize enhancements
+        setTimeout(function() {
+            // Initialize screen transitions
+            if (typeof ScreenTransition !== 'undefined') {
+                ScreenTransition.initialize();
+            }
+            
+            // Initialize background effects with lower intensity
+            if (typeof GameBackgroundEffects !== 'undefined') {
+                GameBackgroundEffects.initialize({
+                    targetElement: document.body,
+                    pixelCount: 10,
+                    opacity: 0.15
+                });
+            }
+            
+            // Force map re-render with hexagonal style
+            if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+                if (MapRenderer.hexagonalConfig) {
+                    MapRenderer.hexagonalConfig.enabled = true;
+                }
+                
+                setTimeout(() => {
+                    MapRenderer.renderMap();
+                }, 200);
+            }
+        }, 800);
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (typeof MapRenderer !== 'undefined' && MapRenderer.handleResponsiveResize) {
+                setTimeout(() => {
+                    MapRenderer.handleResponsiveResize();
+                }, 200);
+            }
+        });
+    });
     </script>
 </body>
 </html>
