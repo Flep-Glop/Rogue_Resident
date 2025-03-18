@@ -553,9 +553,10 @@ function visualizeGrid() {
     
     document.body.appendChild(gridVisualization);
     
-    // Add a toggle button to show/hide the grid
+    // Add a toggle button to show/hide the grid - FIXED VERSION WITH ID
     const toggleButton = document.createElement('button');
     toggleButton.textContent = 'Toggle Grid';
+    toggleButton.id = 'toggle-grid-button'; // Add ID for easy selection
     toggleButton.style.cssText = `
         position: fixed;
         bottom: 50px;
@@ -927,10 +928,29 @@ function cleanup() {
         if (element) element.remove();
     });
     
-    // Remove the toggle grid button
-    const toggleButton = document.querySelector('button:contains("Toggle Grid")');
-    if (toggleButton) toggleButton.remove();
+    // Fixed: Remove the toggle grid button (using standard DOM methods)
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        if (button.textContent === 'Toggle Grid') {
+            button.remove();
+        }
+    });
 }
+
+// A function to apply our fix when the page loads
+function applyVisualEffectsFix() {
+    // Wait for the original script to load
+    setTimeout(() => {
+        // Replace the problematic function with our fixed version
+        if (typeof cleanup !== 'undefined') {
+            cleanup = cleanupFixed;
+            console.log('Applied visual-effects.js patch: Fixed cleanup function');
+        }
+    }, 500);
+}
+
+// Apply our fix
+applyVisualEffectsFix();
 
 // Add CSS styles for animations
 function addAnimationStyles() {
