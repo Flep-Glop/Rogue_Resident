@@ -4,8 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rogue Resident: The Roguelike Study Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        /* Core variables */
+        :root {
+            /* Colors */
+            --primary: #5b8dd9;
+            --primary-dark: #4a70b0;
+            --secondary: #56b886;
+            --secondary-dark: #45966d;
+            --danger: #e67e73;
+            --danger-dark: #b66059;
+            --warning: #f0c866;
+            --warning-dark: #c9a955;
+            
+            /* Background */
+            --background: #1a1c2a;
+            --background-alt: #21232d;
+            --dark: #3d4c60;
+            --dark-alt: #2c3848;
+            
+            /* Text */
+            --text: #d4dae0;
+            --text-dark: #a7adb5;
+            --text-light: #ecf0f1;
+            
+            /* Transitions */
+            --transition-fast: 0.2s;
+            --transition-medium: 0.5s;
+            --animation-medium: 5s;
+            --pixel-size: 3px;
+        }
+        
+        /* Reset */
         * {
             margin: 0;
             padding: 0;
@@ -13,282 +43,78 @@
         }
         
         body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
             overflow: hidden;
-            font-family: 'Press Start 2P', cursive;
         }
         
-        /* Container with cyberpunk/synthwave inspired background */
+        /* Main container */
         .pixel-container {
-            background-color: #0f1631; /* Deeper blue for more drama */
-            background-image: linear-gradient(to bottom, #0f1631, #1a1c38);
-            position: relative;
-            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            position: relative;
+            background: linear-gradient(0deg, var(--background), var(--background-alt) 80%);
+            overflow: hidden;
         }
         
         /* Grid background */
-        #grid-background {
+        .grid-background {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            pointer-events: none;
+                linear-gradient(to right, rgba(91, 141, 217, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(91, 141, 217, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
             z-index: 0;
         }
         
-        /* SOLID Title block styling with glowing edge effect */
-        .title-block {
-            background-color: #141824; /* Solid dark background */
-            border: 2px solid #5d9cff; /* Brighter blue border */
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            box-shadow: 
-                0 0 10px rgba(93, 156, 255, 0.5),
-                inset 0 0 10px rgba(93, 156, 255, 0.2);
-            text-align: center;
-            max-width: 500px;
-            width: 80%;
-            position: relative;
-            z-index: 10;
-            animation: pulse-subtle 6s infinite ease-in-out;
-        }
-        
-        /* Title glow effect */
-        .title-block::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border: 2px solid transparent;
-            border-radius: 2px;
-            background: transparent;
-            pointer-events: none;
-            animation: border-glow 8s infinite ease-in-out;
-            opacity: 0.4;
-            z-index: -1;
-        }
-        
-        .game-title {
-            font-family: 'Press Start 2P', cursive;
-            text-transform: uppercase;
-            color: #5d9cff; /* Brighter blue */
-            letter-spacing: 3px;
-            font-size: 2.5rem;
-            margin: 0;
-            line-height: 1.2;
-            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(93, 156, 255, 0.8);
-        }
-        
-        .subtitle {
-            font-family: 'Press Start 2P', cursive;
-            text-transform: uppercase;
-            color: #50e794; /* Brighter green */
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            margin-top: 15px;
-            text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5), 0 0 8px rgba(80, 231, 148, 0.8);
-        }
-        
-        /* Button container with positioning */
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Slightly larger gap */
-            margin-bottom: 40px;
-            width: 280px; /* Slightly wider */
-            max-width: 80%;
-            position: relative;
-            z-index: 10;
-        }
-        
-        /* Enhanced button styling with glowing edges and hover effects */
-        .retro-btn {
-            font-family: 'Press Start 2P', cursive;
-            text-transform: uppercase;
-            border: none;
-            text-align: center;
-            padding: 14px; /* Slightly larger padding */
-            font-size: 0.9rem;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        /* Button hover effects with scan lines */
-        .retro-btn::before {
-            content: "";
+        /* Decorative pixels/shapes */
+        #pixel-decorations {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 0%;
-            background: linear-gradient(
-                transparent 0%,
-                rgba(255, 255, 255, 0.1) 50%,
-                transparent 100%
-            );
-            opacity: 0;
-            transition: all 0.3s;
-            pointer-events: none;
-        }
-        
-        .retro-btn:hover::before {
             height: 100%;
-            opacity: 1;
-            animation: scan-line 1.5s infinite linear;
-        }
-        
-        .retro-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
-        
-        .retro-btn.start {
-            background-color: #45e17c; /* Brighter green */
-            color: white;
-            box-shadow: 0 0 10px rgba(69, 225, 124, 0.5);
-        }
-        
-        .retro-btn#continue-game {
-            background-color: #5d9cff; /* Brighter blue */
-            color: white;
-            box-shadow: 0 0 10px rgba(93, 156, 255, 0.5);
-        }
-        
-        .retro-btn#options {
-            background-color: #ffcc55; /* Brighter gold */
-            color: #0f1631;
-            box-shadow: 0 0 10px rgba(255, 204, 85, 0.5);
-        }
-        
-        .retro-btn#help {
-            background-color: #5d6277; /* Slightly brighter gray */
-            color: white;
-            box-shadow: 0 0 10px rgba(93, 98, 119, 0.5);
-        }
-        
-        /* Version display with glowing text */
-        .footer {
-            position: absolute;
-            bottom: 20px;
-            color: #8b8fa9; /* Brighter gray */
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-family: 'Press Start 2P', cursive;
-            letter-spacing: 1px;
-            z-index: 10;
-            animation: pulse-opacity 4s infinite ease-in-out;
-        }
-        
-        /* Glitch effect for blinking cursor next to text */
-        .blinking-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background-color: #50e794;
-            margin-left: 5px;
-            vertical-align: middle;
-            animation: blink 1s infinite steps(2);
-        }
-        
-        /* Particle explosion effect */
-        .particles-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            z-index: 1;
             pointer-events: none;
-            z-index: 100;
         }
         
-        .particle {
+        .pixel-decoration {
             position: absolute;
-            background-color: white;
-            border-radius: 50%;
+            z-index: 1;
+            opacity: 0.6;
             pointer-events: none;
-            opacity: 0;
-        }
-
-        /* Animation Keyframes */
-        @keyframes pulse-subtle {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.01); }
-            100% { transform: scale(1); }
         }
         
-        @keyframes border-glow {
-            0% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
-            50% { box-shadow: 0 0 15px #5d9cff, 0 0 20px #5d9cff; }
-            100% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
-        }
-        
-        @keyframes scan-line {
-            0% { top: -100%; }
-            100% { top: 100%; }
-        }
-        
-        @keyframes pulse-opacity {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-        
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        
-        @keyframes slow-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
+        /* Animation keyframes */
         @keyframes pixel-float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0); }
-        }
-        
-        @keyframes pixel-drift {
-            0% { transform: translateX(0); }
-            33% { transform: translateX(15px); }
-            66% { transform: translateX(-15px); }
-            100% { transform: translateX(0); }
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
         
         @keyframes pixel-twinkle {
-            0% { opacity: 0.1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.1; }
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
         }
         
-        @keyframes circular-path {
-            0% { transform: rotate(0deg) translateX(15px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(15px) rotate(-360deg); }
+        @keyframes gentle-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
         
-        @keyframes diagonal-move {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(20px, -15px); }
-            50% { transform: translate(10px, -30px); }
-            75% { transform: translate(-15px, -10px); }
-            100% { transform: translate(-20px, -20px); }
-        }
-        
-        /* More intense scanlines effect */
+        /* CRT effects */
         .scanlines {
             position: fixed;
             top: 0;
@@ -297,404 +123,268 @@
             height: 100%;
             background: linear-gradient(
                 to bottom,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.03) 50%,
-                rgba(255, 255, 255, 0) 100%
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.02) 50%,
+                rgba(255,255,255,0) 100%
             );
-            background-size: 100% 4px;
-            z-index: 200;
+            background-size: 100% 6px;
+            z-index: 1000;
             pointer-events: none;
-            opacity: 0.3;
+            opacity: 0.15;
         }
         
-        /* Base shape styling */
-        .pixel-decoration {
-            position: absolute;
-            z-index: 1;
+        .crt-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(82, 39, 80, 0) 0%, rgba(25, 22, 22, 0.4) 100%);
             pointer-events: none;
-            transform-origin: center center;
-            will-change: transform, opacity;
+            z-index: 999;
+            opacity: 0.2;
+        }
+        
+        /* Title styling */
+        .game-title-container {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            margin-bottom: 2rem;
+            animation: gentle-pulse 3s infinite;
+        }
+        
+        .game-title {
+            font-family: 'Courier New', monospace;
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        /* Menu button container */
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 2rem;
+            width: 280px;
+            z-index: 10;
+        }
+        
+        /* Button styling */
+        .retro-btn {
+            font-family: 'Courier New', monospace;
+            padding: 12px;
+            font-size: 14px;
+            border: none;
+            text-align: center;
+            cursor: pointer;
+            text-transform: uppercase;
+            position: relative;
+            transition: all var(--transition-fast) ease;
+            letter-spacing: 1px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .new-game {
+            background-color: var(--secondary);
+        }
+        
+        .continue {
+            background-color: var(--primary);
+        }
+        
+        .options {
+            background-color: var(--warning);
+            color: #000;
+        }
+        
+        .help {
+            background-color: var(--dark);
+        }
+        
+        .retro-btn:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Title box with border */
+        .title-box {
+            padding: 20px;
+            background-color: #000;
+            border: 2px solid var(--primary);
+            margin-bottom: 40px;
         }
     </style>
 </head>
 <body>
     <div class="pixel-container">
-        <!-- Background elements -->
-        <div id="grid-background"></div>
-        <div id="pixel-decorations"></div>
-        <div class="scanlines"></div>
+        <!-- Grid background -->
+        <div class="grid-background"></div>
         
-        <!-- Solid Title block -->
-        <div class="title-block">
-            <h1 class="game-title">ROGUE<br>RESIDENT</h1>
-            <div id="subtitle-container">
-                <p class="subtitle">THE ROGUELIKE STUDY TOOL</p>
+        <!-- Decorative pixels/shapes -->
+        <div id="pixel-decorations"></div>
+        
+        <!-- CRT and scanline effects -->
+        <div class="scanlines"></div>
+        <div class="crt-effect"></div>
+        
+        <!-- Game title -->
+        <div class="title-box">
+            <div class="game-title-container">
+                <h1 class="game-title">Rogue<br>Resident</h1>
+                <h2 class="subtitle">The Roguelike Study Tool</h2>
             </div>
         </div>
         
-        <!-- Enhanced menu buttons -->
+        <!-- Main menu -->
         <div class="menu-container">
-            <button class="retro-btn start" id="start-game">NEW GAME</button>
-            <button class="retro-btn" id="continue-game">CONTINUE</button>
-            <button class="retro-btn options" id="options">OPTIONS</button>
-            <button class="retro-btn help" id="help">HELP</button>
+            <button class="retro-btn new-game" id="start-game">New Game</button>
+            <button class="retro-btn continue" id="continue-game">Continue</button>
+            <button class="retro-btn options" id="options">Options</button>
+            <button class="retro-btn help" id="help">Help</button>
         </div>
         
-        <!-- Footer with version and blinking cursor -->
+        <!-- Footer -->
         <div class="footer">
-            v0.1.0 | PRESS SPACE TO START<span class="blinking-cursor"></span>
+            <p>v0.1.0 | Press Space to Start</p>
         </div>
-        
-        <!-- Container for particle effects -->
-        <div class="particles-container"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Create pixel decorations
+            // Create geometric shapes for background
             createPixelDecorations();
             
-            // Type writer effect for subtitle
-            const subtitle = document.querySelector('.subtitle');
-            const subtitleText = subtitle.innerText;
-            subtitle.innerText = '';
-            let charIndex = 0;
-            
-            function typeWriter() {
-                if (charIndex < subtitleText.length) {
-                    subtitle.innerText += subtitleText.charAt(charIndex);
-                    charIndex++;
-                    setTimeout(typeWriter, 100);
-                }
-            }
-            
-            // Start typewriter after a short delay
-            setTimeout(typeWriter, 800);
-            
-            // Add mouse tracking for interactivity
-            let mouseX = 0;
-            let mouseY = 0;
-            const shapes = [];
-            
-            // Track mouse position
-            document.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                
-                // Update shapes that should follow or avoid the mouse
-                updateShapesWithMouseInteraction(mouseX, mouseY);
-                
-                // Update scanline intensity based on mouse movement
-                const scanlines = document.querySelector('.scanlines');
-                scanlines.style.opacity = Math.min(0.3 + Math.abs(e.movementX + e.movementY) * 0.001, 0.5);
-            });
-            
-            // Button sound effect and particle burst
+            // Button sound effect (placeholder for now)
             function playButtonSound() {
-                // When we add audio files, we'll uncomment this
+                // When audio files are added, this can be uncommented
                 // const sound = new Audio('/static/audio/click.mp3');
                 // sound.volume = 0.3;
                 // sound.play();
-                
-                // Create particle burst
-                createParticleBurst(event.clientX, event.clientY);
+                console.log('Button sound played');
             }
             
-            // Event listeners with particle effects
-            document.getElementById('start-game').addEventListener('click', function(event) {
+            // Set up button event listeners
+            document.getElementById('start-game').addEventListener('click', function() {
                 playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#45e17c');
-                setTimeout(() => window.location.href = '/character-select', 300);
+                window.location.href = '/character-select';
             });
             
-            document.getElementById('continue-game').addEventListener('click', function(event) {
+            document.getElementById('continue-game').addEventListener('click', function() {
                 playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#5d9cff');
-                setTimeout(() => window.location.href = '/game', 300);
+                window.location.href = '/game';
             });
             
-            document.getElementById('options').addEventListener('click', function(event) {
+            document.getElementById('options').addEventListener('click', function() {
                 playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#ffcc55');
                 alert('Options will be available in the next update!');
             });
             
-            document.getElementById('help').addEventListener('click', function(event) {
+            document.getElementById('help').addEventListener('click', function() {
                 playButtonSound();
-                createParticleBurst(event.clientX, event.clientY, '#5d6277');
-                alert('Welcome to Rogue Resident! Navigate through each challenge, answer questions correctly to gain knowledge, and avoid losing all your lives. Good luck!');
+                alert('Welcome to Rogue Resident! Navigate through each floor, answer questions correctly to gain insight, and avoid losing all your lives. Good luck!');
             });
             
-            // Space bar to start
+            // Keyboard controls
             document.addEventListener('keydown', function(event) {
                 if (event.code === 'Space') {
                     playButtonSound();
-                    createParticleBurst(window.innerWidth/2, window.innerHeight/2, '#ffffff');
-                    setTimeout(() => window.location.href = '/game', 300);
+                    window.location.href = '/character-select';
                 }
-                
-                // Easter egg: Konami code
-                // TODO: Implement Konami code detection
             });
             
-            // Function to create pixel decorations with more vibrant colors
-            function createPixelDecorations() {
-                const decorationContainer = document.getElementById('pixel-decorations');
-                if (!decorationContainer) return;
-                
-                // Clear existing decorations
-                decorationContainer.innerHTML = '';
-                shapes.length = 0;
-                
-                // Enhanced color palette - more vibrant cyberpunk/synthwave inspired
-                const colors = [
-                    '#5d9cff', // bright blue
-                    '#50e794', // bright green
-                    '#ff3d87', // hot pink (new)
-                    '#9d8cff', // lavender (new)
-                    '#ffcc55', // gold
-                    '#ff794d', // orange (new)
-                    '#ffffff', // white (for dots)
-                    '#33ccff', // cyan (new)
-                ];
-                
-                // Increase shape count
-                const shapeCount = 500;
-                
-                for (let i = 0; i < shapeCount; i++) {
-                    const decoration = document.createElement('div');
-                    decoration.classList.add('pixel-decoration');
-                    
-                    // Random position across screen
-                    const x = Math.random() * 100;
-                    const y = Math.random() * 100;
-                    
-                    // Varied sizes
-                    let size;
-                    if (Math.random() > 0.92) {
-                        // Larger shapes (less common)
-                        size = 15 + Math.floor(Math.random() * 30);
-                    } else if (Math.random() > 0.6) {
-                        // Medium shapes
-                        size = 5 + Math.floor(Math.random() * 10);
-                    } else {
-                        // Smaller shapes (most common)
-                        size = 1 + Math.floor(Math.random() * 4);
-                    }
-                    
-                    // Colors from expanded palette
-                    const colorIndex = Math.floor(Math.random() * colors.length);
-                    const color = colors[colorIndex];
-                    
-                    // Outline vs filled
-                    const hasOutlineOnly = Math.random() > 0.15;
-                    
-                    // Apply base styles
-                    decoration.style.left = `${x}vw`;
-                    decoration.style.top = `${y}vh`;
-                    decoration.style.width = `${size}px`;
-                    decoration.style.height = `${size}px`;
-                    
-                    if (hasOutlineOnly) {
-                        decoration.style.backgroundColor = 'transparent';
-                        decoration.style.border = `1px solid ${color}`;
-                        decoration.style.boxShadow = `0 0 3px ${color}`;
-                    } else {
-                        decoration.style.backgroundColor = color;
-                        decoration.style.opacity = Math.min(0.6, Math.random() * 0.7);
-                    }
-                    
-                    // Shape types - adding triangles
-                    const shapeTypeRand = Math.random();
-                    let shapeType = 'square';
-                    
-                    if (shapeTypeRand < 0.4) {
-                        shapeType = 'circle';
-                        decoration.style.borderRadius = '50%';
-                    } else if (shapeTypeRand < 0.5 && size > 5) {
-                        // Create triangles for some of the larger shapes
-                        shapeType = 'triangle';
-                        decoration.style.width = '0';
-                        decoration.style.height = '0';
-                        decoration.style.backgroundColor = 'transparent';
-                        
-                        if (hasOutlineOnly) {
-                            // Creating triangle outlines is complex - using a simpler approach
-                            decoration.style.border = `${size/2}px solid transparent`;
-                            decoration.style.borderBottomColor = color;
-                            decoration.style.boxShadow = `0 0 5px ${color}`;
-                        } else {
-                            decoration.style.border = `${size/2}px solid transparent`;
-                            decoration.style.borderBottomColor = color;
-                        }
-                    }
-                    
-                    // Add tiny dots/stars with brighter colors
-                    if (size <= 2) {
-                        decoration.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                        decoration.style.border = 'none';
-                        decoration.style.opacity = Math.random() * 0.7 + 0.3; // Brighter stars
-                        decoration.style.boxShadow = `0 0 ${1 + Math.random() * 2}px ${decoration.style.backgroundColor}`;
-                    }
-                    
-                    // Track interactive properties
-                    const shapeData = {
-                        element: decoration,
-                        x: x,
-                        y: y,
-                        size: size,
-                        initialX: x,
-                        initialY: y,
-                        interactionType: Math.random() > 0.7 ? 'avoid' : 'ignore',
-                        interactionStrength: 0.1 + Math.random() * 0.4,
-                        maxDistance: 100 + Math.random() * 200
-                    };
-                    
-                    shapes.push(shapeData);
-                    
-                    // ENHANCED ANIMATIONS
-                    const animationType = Math.random();
-                    
-                    if (animationType < 0.2) {
-                        // Slow floating with slight x drift
-                        const floatDuration = 20 + Math.random() * 40;
-                        const driftDuration = 30 + Math.random() * 60;
-                        decoration.style.animation = 
-                            `pixel-float ${floatDuration}s infinite ease-in-out, 
-                             pixel-drift ${driftDuration}s infinite alternate ease-in-out`;
-                    } 
-                    else if (animationType < 0.4 && (shapeType === 'square' || shapeType === 'triangle')) {
-                        // Rotation + float
-                        decoration.style.animation = 
-                            `slow-rotate ${40 + Math.random() * 80}s linear infinite, 
-                             pixel-float ${35 + Math.random() * 25}s infinite ease-in-out`;
-                    }
-                    else if (animationType < 0.6) {
-                        // Circular movement path - more pronounced
-                        const pathSize = 15 + Math.random() * 30;
-                        const pathDuration = 30 + Math.random() * 90;
-                        decoration.style.animation = `circular-path ${pathDuration}s infinite linear`;
-                        decoration.style.transformOrigin = `${pathSize}px ${pathSize}px`;
-                    }
-                    else if (animationType < 0.8) {
-                        // Diagonal movement - more dynamic
-                        decoration.style.animation = `diagonal-move ${25 + Math.random() * 30}s infinite alternate ease-in-out`;
-                    }
-                    else {
-                        // Twinkle animation - more pronounced
-                        decoration.style.animation = `pixel-twinkle ${10 + Math.random() * 15}s infinite ease-in-out`;
-                    }
-                    
-                    decorationContainer.appendChild(decoration);
-                }
-            }
-            
-            // Update shapes based on mouse position
-            function updateShapesWithMouseInteraction(mouseX, mouseY) {
-                shapes.forEach(shape => {
-                    if (shape.interactionType === 'ignore') return;
-                    
-                    // Calculate distance from shape to mouse
-                    const rect = shape.element.getBoundingClientRect();
-                    const shapeX = rect.left + rect.width/2;
-                    const shapeY = rect.top + rect.height/2;
-                    
-                    const deltaX = mouseX - shapeX;
-                    const deltaY = mouseY - shapeY;
-                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                    
-                    // Only interact if mouse is within the max distance
-                    if (distance < shape.maxDistance) {
-                        // Interaction factor based on distance
-                        const factor = shape.interactionStrength * (1 - distance / shape.maxDistance);
-                        
-                        if (shape.interactionType === 'avoid') {
-                            // Move away from mouse
-                            const repelX = -deltaX * factor;
-                            const repelY = -deltaY * factor;
-                            
-                            // Get vw/vh percentages
-                            const viewportWidth = window.innerWidth;
-                            const viewportHeight = window.innerHeight;
-                            
-                            const newX = shape.initialX + (repelX / viewportWidth * 100);
-                            const newY = shape.initialY + (repelY / viewportHeight * 100);
-                            
-                            // Update position
-                            shape.element.style.left = `${newX}vw`;
-                            shape.element.style.top = `${newY}vh`;
-                            
-                            // Add glow effect when interacting - enhanced glow
-                            shape.element.style.boxShadow = `0 0 ${5 + factor * 20}px ${factor * 10}px rgba(255, 255, 255, ${factor})`;
-                            shape.element.style.zIndex = '5';
-                            shape.element.style.transition = 'box-shadow 0.3s ease-out';
-                        }
-                    } else {
-                        // Reset to normal when mouse is far away
-                        if (shape.interactionType === 'avoid') {
-                            shape.element.style.left = `${shape.initialX}vw`;
-                            shape.element.style.top = `${shape.initialY}vh`;
-                            shape.element.style.boxShadow = '';
-                            shape.element.style.zIndex = '0';
-                        }
-                    }
-                });
-            }
-            
-            // Create particle burst effect on button clicks
-            function createParticleBurst(x, y, color = '#ffffff') {
-                const container = document.querySelector('.particles-container');
-                const particleCount = 30 + Math.floor(Math.random() * 20);
-                
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.classList.add('particle');
-                    
-                    // Random size between 2-6px
-                    const size = 2 + Math.random() * 4;
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    
-                    // Set color and starting position
-                    particle.style.backgroundColor = color;
-                    particle.style.left = `${x}px`;
-                    particle.style.top = `${y}px`;
-                    particle.style.opacity = '0';
-                    
-                    // Add to container
-                    container.appendChild(particle);
-                    
-                    // Animate the particle
-                    setTimeout(() => {
-                        // Random angle and distance
-                        const angle = Math.random() * Math.PI * 2;
-                        const distance = 20 + Math.random() * 80;
-                        
-                        const destX = x + Math.cos(angle) * distance;
-                        const destY = y + Math.sin(angle) * distance;
-                        
-                        // Set animation properties
-                        particle.style.transition = `all ${0.5 + Math.random() * 1}s ease-out`;
-                        particle.style.opacity = Math.random() * 0.7 + 0.3;
-                        particle.style.transform = `translate(${destX - x}px, ${destY - y}px)`;
-                        
-                        // Add glow effect
-                        particle.style.boxShadow = `0 0 ${2 + Math.random() * 4}px ${color}`;
-                        
-                        // Remove particle after animation
-                        setTimeout(() => {
-                            particle.style.opacity = '0';
-                            setTimeout(() => {
-                                container.removeChild(particle);
-                            }, 1000);
-                        }, 500);
-                    }, 10);
-                }
-            }
-            
-            // Periodically refresh shapes
-            setInterval(createPixelDecorations, 300000); // Every 5 minutes
+            // Refresh decorations occasionally
+            setInterval(createPixelDecorations, 60000); // Refresh every minute
         });
+        
+        // Create geometric shapes for the background
+        function createPixelDecorations() {
+            const decorationContainer = document.getElementById('pixel-decorations');
+            if (!decorationContainer) return;
+            
+            // Clear existing decorations
+            decorationContainer.innerHTML = '';
+            
+            // Create a color palette that matches our theme
+            const colors = [
+                '#5b8dd9', // primary blue
+                '#5bbcd9', // cyan
+                '#9c77db'  // purple
+            ];
+            
+            // Number of shapes to create
+            const shapeCount = 40;
+            
+            // Create various shapes (squares and circles)
+            for (let i = 0; i < shapeCount; i++) {
+                const decoration = document.createElement('div');
+                decoration.classList.add('pixel-decoration');
+                
+                // Randomize size between 4px and 25px
+                const size = 4 + Math.floor(Math.random() * 21);
+                
+                // Randomize position across entire screen
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random color from our palette
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Apply styles
+                decoration.style.left = `${x}vw`;
+                decoration.style.top = `${y}vh`;
+                decoration.style.width = `${size}px`;
+                decoration.style.height = `${size}px`;
+                decoration.style.backgroundColor = 'transparent';
+                decoration.style.border = `1px solid ${color}`;
+                
+                // 50% chance for circle, 50% chance for square
+                if (Math.random() > 0.5) {
+                    decoration.style.borderRadius = '50%';
+                }
+                
+                // Get a random animation duration between 10-30s
+                const duration = 10 + Math.random() * 20;
+                const delay = Math.random() * 5;
+                
+                // Assign animation based on which number shape it is
+                if (i % 3 === 0) {
+                    decoration.style.animation = `pixel-float ${duration}s infinite ease-in-out ${delay}s`;
+                } else if (i % 3 === 1) {
+                    decoration.style.animation = `pixel-twinkle ${duration}s infinite ease-in-out ${delay}s`;
+                } else {
+                    decoration.style.animation = `pixel-float ${duration}s infinite ease-in-out reverse ${delay}s, 
+                                                pixel-twinkle ${Math.floor(duration/2)}s infinite ease-in-out ${delay}s`;
+                }
+                
+                decorationContainer.appendChild(decoration);
+            }
+        }
     </script>
 </body>
 </html>
