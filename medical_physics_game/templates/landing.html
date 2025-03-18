@@ -49,11 +49,11 @@
         .title-block {
             background-color: #141824; /* Solid dark background */
             border: 2px solid #5d9cff; /* Brighter blue border */
-            padding: 20px 30px;
-            margin-bottom: 30px;
+            padding: 20px 25px;
+            margin-bottom: 15px; /* Reduced margin to match screenshot */
             box-shadow: 
-                0 0 10px rgba(93, 156, 255, 0.5),
-                inset 0 0 10px rgba(93, 156, 255, 0.2);
+                0 0 5px rgba(93, 156, 255, 0.4), /* Reduced glow as requested */
+                inset 0 0 5px rgba(93, 156, 255, 0.1);
             text-align: center;
             max-width: 500px;
             width: 80%;
@@ -84,9 +84,9 @@
             text-transform: uppercase;
             color: #5d9cff; /* Brighter blue */
             letter-spacing: 3px;
-            font-size: 2.5rem;
+            font-size: 2.2rem; /* Adjusted to match screenshot */
             margin: 0;
-            line-height: 1.2;
+            line-height: 1.1; /* Tighter line height to match screenshot */
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(93, 156, 255, 0.8);
         }
         
@@ -94,9 +94,9 @@
             font-family: 'Press Start 2P', cursive;
             text-transform: uppercase;
             color: #50e794; /* Brighter green */
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            margin-top: 15px;
+            letter-spacing: 1px; /* Tighter spacing */
+            font-size: 0.7rem; /* Smaller to match screenshot */
+            margin-top: 8px; /* Reduced space between title and subtitle */
             text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5), 0 0 8px rgba(80, 231, 148, 0.8);
         }
         
@@ -104,9 +104,9 @@
         .menu-container {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Slightly larger gap */
+            gap: 5px; /* Reduced gap between buttons to match screenshot */
             margin-bottom: 40px;
-            width: 280px; /* Slightly wider */
+            width: 240px; /* Slightly narrower to match screenshot */
             max-width: 80%;
             position: relative;
             z-index: 10;
@@ -118,11 +118,12 @@
             text-transform: uppercase;
             border: none;
             text-align: center;
-            padding: 14px; /* Slightly larger padding */
-            font-size: 0.9rem;
+            padding: 12px; /* Slightly smaller padding to match screenshot */
+            font-size: 0.85rem; /* Slightly smaller font to match screenshot */
             position: relative;
             cursor: pointer;
             transition: all 0.2s;
+            margin-bottom: 8px; /* Reduced spacing between buttons */
         }
         
         /* Button hover effects with scan lines */
@@ -173,9 +174,9 @@
         }
         
         .retro-btn#help {
-            background-color: #5d6277; /* Slightly brighter gray */
+            background-color: #9c77db; /* Purple to match the screenshot */
             color: white;
-            box-shadow: 0 0 10px rgba(93, 98, 119, 0.5);
+            box-shadow: 0 0 10px rgba(156, 119, 219, 0.5);
         }
         
         /* Version display with glowing text */

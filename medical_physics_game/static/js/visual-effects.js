@@ -8,17 +8,33 @@
 const visualConfig = {
     // Shape settings
     shapes: {
-        count: 30,             // Number of shapes
+        count: 40,             // Increased number of shapes
         minSize: 5,            // Minimum shape size
-        maxSize: 60,           // Maximum shape size (reduced for smoother performance)
+        maxSize: 60,           // Maximum shape size
         colors: [              // Colors matching your game theme
-            '#5b8dd9',         // primary
-            '#56b886',         // secondary
-            '#e67e73',         // danger
-            '#f0c866',         // warning
+            '#5b8dd9',         // primary blue
+            '#56b886',         // secondary green
+            '#e67e73',         // danger red
+            '#f0c866',         // warning yellow
             '#9c77db',         // purple
             '#5bbcd9'          // cyan
         ],
+        staticShapes: {
+            count: 60,         // Number of static background shapes
+            minSize: 2,        // Smaller size for background shapes
+            maxSize: 15,       // Max size for background shapes
+            opacity: 0.2       // Lower opacity for background
+        },
+        rareShapes: {
+            whiteChance: 0.05, // 5% chance for rare white shape
+            rainbowChance: 0.02, // 2% chance for super rare rainbow shape
+        },
+        typeDistribution: {
+            square: 0.55,      // 55% squares (majority)
+            circle: 0.25,      // 25% circles
+            triangle: 0.1,     // 10% triangles
+            diamond: 0.1       // 10% diamonds
+        },
         hollowShapesRatio: 0.6, // 60% of shapes will be hollow
         friction: 0.98,        // Gentle friction for smooth movement
         maxSpeed: 0.2,         // Speed limit for calmer movement
@@ -83,9 +99,31 @@ function initBackgroundShapes() {
         document.body.appendChild(shapeContainer);
     }
     
-    // Create shapes
+    // Create static background layer first
+    let staticShapesContainer = document.createElement('div');
+    staticShapesContainer.id = 'static-shapes';
+    staticShapesContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    `;
+    document.body.appendChild(staticShapesContainer);
+    
+    // Add static background shapes
+    for (let i = 0; i < visualConfig.shapes.staticShapes.count; i++) {
+        createShape(staticShapesContainer, true); // true = static shapes
+    }
+    
+    // Add style for rainbow shapes
+    addRainbowStyles();
+    
+    // Create dynamic shapes
     for (let i = 0; i < visualConfig.shapes.count; i++) {
-        createShape(shapeContainer);
+        createShape(shapeContainer, false); // false = dynamic shapes
     }
     
     // Track mouse position
@@ -96,6 +134,33 @@ function initBackgroundShapes() {
     
     // Start animation loop
     requestAnimationFrame(updateShapesWithMouseInteraction);
+}
+
+/**
+ * Add CSS for rainbow shapes animation
+ */
+function addRainbowStyles() {
+    // Check if the style already exists
+    if (!document.getElementById('rainbow-style')) {
+        const style = document.createElement('style');
+        style.id = 'rainbow-style';
+        style.textContent = `
+            @keyframes rainbow-shift {
+                0% { border-color: #ff0000; filter: hue-rotate(0deg); }
+                16.6% { border-color: #ff7f00; filter: hue-rotate(30deg); }
+                33.3% { border-color: #ffff00; filter: hue-rotate(60deg); }
+                50% { border-color: #00ff00; filter: hue-rotate(120deg); }
+                66.6% { border-color: #0000ff; filter: hue-rotate(240deg); }
+                83.3% { border-color: #4b0082; filter: hue-rotate(280deg); }
+                100% { border-color: #9400d3; filter: hue-rotate(330deg); }
+            }
+            
+            .rainbow-shape {
+                animation: rainbow-shift 3s linear infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 /**
