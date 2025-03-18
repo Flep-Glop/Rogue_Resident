@@ -20,10 +20,13 @@ const visualConfig = {
             '#5bbcd9'          // cyan
         ],
         hollowShapesRatio: 0.6, // 60% of shapes will be hollow
-        friction: 0.99,        // Very gentle friction for smooth movement
-        maxSpeed: 0.15,        // Lower max speed for calmer movement
-        mouseInfluence: 0.01,  // Very subtle mouse influence
+        friction: 0.98,        // Gentle friction for smooth movement
+        maxSpeed: 0.2,         // Speed limit for calmer movement
+        mouseInfluence: 0.02,  // Subtle mouse influence
         mouseRadius: 150,      // How far the mouse influence reaches
+        springStrength: 0.005, // Gentle spring force to return to origin
+        springRadius: 100,     // How far shapes can drift from origin before spring force activates
+        jitter: 0.001,         // Very tiny amount of random movement to keep things alive
         enabledPages: [        // Only enable shapes on these pages
             'landing',         // Landing page
             'character-select' // Character selection
@@ -176,6 +179,8 @@ function createShape(container) {
         element: shape,
         x: x,
         y: y,
+        originX: x,   // Store original position to return to
+        originY: y,   // Store original position to return to
         size: size,
         speedX: (Math.random() * 0.2 - 0.1) * speedMultiplier,
         speedY: (Math.random() * 0.2 - 0.1) * speedMultiplier,
@@ -185,7 +190,7 @@ function createShape(container) {
 }
 
 /**
- * Update shapes based on mouse position - simplified for smooth, calming movement
+ * Update shapes based on mouse position - with gentle spring return behavior
  */
 function updateShapesWithMouseInteraction() {
     if (shapes.length === 0) {
@@ -194,15 +199,35 @@ function updateShapesWithMouseInteraction() {
     }
 
     shapes.forEach(shape => {
-        // Apply very gentle friction to current movement
+        // Apply gentle friction to current movement
         shape.speedX *= visualConfig.shapes.friction;
         shape.speedY *= visualConfig.shapes.friction;
         
-        // Apply current movement
-        shape.x += shape.speedX;
-        shape.y += shape.speedY;
+        // Add very tiny random movement to keep things alive
+        if (Math.random() < 0.05) { // Only 5% chance each frame to add jitter
+            shape.speedX += (Math.random() - 0.5) * visualConfig.shapes.jitter;
+            shape.speedY += (Math.random() - 0.5) * visualConfig.shapes.jitter;
+        }
         
-        // Extremely gentle mouse interaction - with smooth falloff based on distance
+        // Calculate distance from original position
+        const dxOrigin = shape.originX - shape.x;
+        const dyOrigin = shape.originY - shape.y;
+        const distanceFromOrigin = Math.sqrt(dxOrigin * dxOrigin + dyOrigin * dyOrigin);
+        
+        // Apply springy return force, stronger the further from origin
+        // But only if beyond the spring radius
+        if (distanceFromOrigin > visualConfig.shapes.springRadius) {
+            // Calculate spring force that increases with distance
+            // Use a non-linear spring for a more natural, bouncy feel
+            const springFactor = visualConfig.shapes.springStrength * 
+                Math.pow((distanceFromOrigin - visualConfig.shapes.springRadius) / 100, 1.5);
+            
+            // Apply spring force toward origin
+            shape.speedX += dxOrigin * springFactor;
+            shape.speedY += dyOrigin * springFactor;
+        }
+        
+        // Apply mouse interaction - gentle repulsion
         const dx = mouseX - shape.x;
         const dy = mouseY - shape.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -225,7 +250,11 @@ function updateShapesWithMouseInteraction() {
             shape.speedY *= ratio;
         }
         
-        // Simple, gentle wrap-around at screen edges
+        // Apply current movement
+        shape.x += shape.speedX;
+        shape.y += shape.speedY;
+        
+        // Simple wrap-around at screen edges
         const buffer = shape.size;
         if (shape.x < -buffer) shape.x = window.innerWidth + buffer;
         if (shape.x > window.innerWidth + buffer) shape.x = -buffer;
