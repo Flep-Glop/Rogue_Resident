@@ -25,7 +25,6 @@
             align-items: center;
             justify-content: center;
             min-height: 450px; /* Ensure container has enough height */
-            perspective: 1000px; /* Add perspective for 3D effect */
         }
         
         /* Character card base styling modifications */
@@ -45,7 +44,7 @@
             /* Change default to hidden instead of none to maintain layout calculations */
             visibility: hidden;
             opacity: 0;
-            transform: scale(0.9) translateX(0);
+            transform: translateX(0);
             z-index: 1;
         }
         
@@ -53,7 +52,7 @@
         .character-card.active {
             visibility: visible;
             opacity: 1;
-            transform: scale(1) translateX(0);
+            transform: translateX(0);
             z-index: 5;
             border-color: var(--secondary);
         }
@@ -66,8 +65,8 @@
         /* Left flanking card */
         .character-card.left-flank {
             visibility: visible;
-            opacity: 0.9;
-            transform: scale(0.9) translateX(-85%) translateZ(-50px);
+            opacity: 1;
+            transform: translateX(-320px);
             z-index: 2;
             border-color: var(--primary);
         }
@@ -75,8 +74,8 @@
         /* Right flanking card */
         .character-card.right-flank {
             visibility: visible;
-            opacity: 0.9;
-            transform: scale(0.9) translateX(85%) translateZ(-50px);
+            opacity: 1;
+            transform: translateX(320px);
             z-index: 2;
             border-color: var(--primary);
         }
@@ -108,11 +107,24 @@
         
         /* Move the arrows outward */
         .carousel-arrow.prev {
-            left: 10px;
+            left: 150px;
+            z-index: 10;
         }
         
         .carousel-arrow.next {
-            right: 10px;
+            right: 150px;
+            z-index: 10;
+        }
+        
+        /* Optional: Add slight drop shadow to create depth without 3D transform */
+        .character-card.left-flank,
+        .character-card.right-flank {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Ensure all cards have the same height */
+        .character-card {
+            height: 400px;
         }
         
         @keyframes card-pulse {
@@ -626,7 +638,6 @@
             navigateToCharacter(newIndex);
         }
         
-        // Update the navigateToCharacter function
         function navigateToCharacter(index) {
             // Update current index
             currentCharacterIndex = index;
@@ -676,7 +687,7 @@
             playNavigationSound();
         }
         
-        // Set the active character
+        // Update the setActiveCharacter function to include flanking cards
         function setActiveCharacter(index) {
             // Calculate previous and next indices with wrapping
             const prevIndex = (index - 1 + characters.length) % characters.length;
