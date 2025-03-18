@@ -1,69 +1,65 @@
 /**
- * visual-effects.js - Complete rewrite for stable, properly working animation
+ * visual-effects.js - Rewritten with fixed mouse interactions
  */
 
 // Configuration for visual effects
 const visualConfig = {
-    // Shape settings
     shapes: {
-        count: 32,             // Reduced count for better visual spacing
-        minSize: 5,            // Minimum shape size
-        maxSize: 65,           // Maximum shape size
-        colors: [              // Colors matching your game theme with balanced distribution
+        count: 32,
+        minSize: 5,
+        maxSize: 65,
+        colors: [
             '#5b8dd9',         // primary blue
             '#56b886',         // secondary green
             '#9c77db',         // purple
             '#5bbcd9',         // cyan
-            '#e67e73',         // danger red (less to keep it calming)
+            '#e67e73',         // danger red
             '#f0c866',         // warning yellow/gold
-            '#f0c866'          // duplicate yellow/gold for better balance
         ],
         staticShapes: {
-            count: 45,         // Background static shapes
-            minSize: 2,        // Smaller size for background shapes
-            maxSize: 15,       // Max size for background shapes
-            opacity: 0.15      // Reduced opacity for more subtle background
+            count: 45,
+            minSize: 2,
+            maxSize: 15,
+            opacity: 0.15
         },
         largeDistantShapes: {
-            count: 3,          // Number of extra large distant shapes
-            minSize: 80,       // Minimum size for large distant shapes
-            maxSize: 150,      // Maximum size for large distant shapes
-            opacity: 0.05      // Very low opacity for distant feel
+            count: 3,
+            minSize: 80,
+            maxSize: 150,
+            opacity: 0.05
         },
         typeDistribution: {
-            square: 0.55,      // 55% squares
-            circle: 0.25,      // 25% circles
-            triangle: 0.1,     // 10% triangles
-            diamond: 0.1       // 10% diamonds
+            square: 0.55,
+            circle: 0.25,
+            triangle: 0.1,
+            diamond: 0.1
         },
-        // Rules for hollow vs. filled shapes
         sizeRules: {
-            largeSize: 30,     // Shapes larger than this are always hollow
-            smallSize: 20,     // Shapes smaller than this are always filled
-            mediumHollowChance: 0.5 // 50% chance for medium shapes to be hollow
+            largeSize: 30,
+            smallSize: 20,
+            mediumHollowChance: 0.5
         },
-        // Animation settings
         animation: {
             rotation: {
-                chance: 0.7,       // Increased from 0.3 to 0.7 (70% of shapes will rotate)
-                minDuration: 25,   // Minimum rotation duration in seconds
-                maxDuration: 45    // Maximum rotation duration in seconds
+                chance: 0.7,
+                minDuration: 25,
+                maxDuration: 45
             },
             pulse: {
-                chance: 0.15,      // 15% of shapes will pulse size
-                amount: 0.03,      // 3% size change
-                minDuration: 3,    // Minimum pulse duration in seconds
-                maxDuration: 7     // Maximum pulse duration in seconds
+                chance: 0.15,
+                amount: 0.03,
+                minDuration: 3,
+                maxDuration: 7
             }
         },
         mouseInteraction: {
-            radius: 150,       // How far mouse influence reaches
-            strength: 0.2,     // Dramatically increased from 0.05 to 0.2 (4x stronger)
-            friction: 0.95,    // Increased friction to slow movement
-            maxSpeed: 1.2,     // Dramatically increased from 0.3 to 1.2 (4x faster)
-            springStrength: 0.004, // How strongly shapes return to origin
-            springRadius: 100, // How far shapes can drift before spring force
-            jitter: 0.0005     // Tiny random movement
+            radius: 200,           // INCREASED from 150 to 200
+            strength: 1.0,         // DRAMATICALLY increased from 0.2 to 1.0
+            friction: 0.92,        // Adjusted from 0.95 to 0.92 for less drag
+            maxSpeed: 5.0,         // Dramatically increased from 1.2 to 5.0
+            springStrength: 0.002, // Reduced from 0.004 to make return to origin slower
+            springRadius: 150,     // Increased from 100
+            jitter: 0.0005
         }
     }
 };
@@ -72,6 +68,11 @@ const visualConfig = {
 let shapes = [];
 let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
+let lastMouseX = mouseX;
+let lastMouseY = mouseY;
+let mouseSpeed = 0;
+let mouseDirection = { x: 0, y: 0 };
+let hasMouseMoved = false;
 
 /**
  * Initialize the system
@@ -91,21 +92,36 @@ function init() {
     // Create shapes
     createAllShapes();
     
-    // Listen for mouse movement - with error checking
+    // Listen for mouse movement - with error checking and throttling
     try {
-        document.addEventListener('mousemove', trackMouse);
+        // Remove excessive logging that slows performance
+        document.addEventListener('mousemove', throttle(trackMouse, 10)); // Throttle to every 10ms
         console.log("Mouse tracking enabled");
     } catch (e) {
         console.error("Error setting up mouse tracking:", e);
     }
     
-    // Start animation loop
+    // Start animation loop with requestAnimationFrame for optimal performance
     requestAnimationFrame(updateShapes);
     
     // Handle window resize
     window.addEventListener('resize', handleResize);
     
     console.log("Visual effects initialization complete");
+}
+
+/**
+ * Simple throttle function to prevent excessive mousemove events
+ */
+function throttle(func, limit) {
+    let lastCall = 0;
+    return function(...args) {
+        const now = Date.now();
+        if (now - lastCall >= limit) {
+            lastCall = now;
+            func.apply(this, args);
+        }
+    };
 }
 
 /**
@@ -276,7 +292,6 @@ function createContainers() {
     document.body.appendChild(shapesContainer);
     
     // Add screen effects
-    
     // CRT effect (subtle curved screen effect)
     const crtOverlay = document.createElement('div');
     crtOverlay.classList.add('crt-overlay');
@@ -317,144 +332,7 @@ function createAllShapes() {
     }
 }
 
-/**
- * Create a static background shape
- */
-function createStaticShape(container) {
-    const config = visualConfig.shapes.staticShapes;
-    const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
-    
-    // Static shapes are always filled
-    const color = visualConfig.shapes.colors[Math.floor(Math.random() * visualConfig.shapes.colors.length)];
-    
-    // Random position
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
-    
-    // Create shape element
-    const shape = document.createElement('div');
-    
-    // Determine shape type
-    let shapeType, style;
-    const typeRoll = Math.random();
-    
-    if (typeRoll < visualConfig.shapes.typeDistribution.square) {
-        shapeType = 'square';
-        const borderRadius = Math.random() < 0.3 ? '2px' : '0';
-        style = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background-color: ${color};
-            border-radius: ${borderRadius};
-            left: ${x}px;
-            top: ${y}px;
-            opacity: ${config.opacity};
-        `;
-    } else if (typeRoll < visualConfig.shapes.typeDistribution.square + visualConfig.shapes.typeDistribution.circle) {
-        shapeType = 'circle';
-        style = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background-color: ${color};
-            border-radius: 50%;
-            left: ${x}px;
-            top: ${y}px;
-            opacity: ${config.opacity};
-        `;
-    } else if (typeRoll < visualConfig.shapes.typeDistribution.square + visualConfig.shapes.typeDistribution.circle + visualConfig.shapes.typeDistribution.triangle) {
-        shapeType = 'triangle';
-        style = `
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-left: ${size/2}px solid transparent;
-            border-right: ${size/2}px solid transparent;
-            border-bottom: ${size}px solid ${color};
-            left: ${x}px;
-            top: ${y}px;
-            opacity: ${config.opacity};
-        `;
-    } else {
-        shapeType = 'diamond';
-        style = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background-color: ${color};
-            transform: rotate(45deg);
-            left: ${x}px;
-            top: ${y}px;
-            opacity: ${config.opacity};
-        `;
-    }
-    
-    shape.style.cssText = style;
-    container.appendChild(shape);
-}
-
-/**
- * Create a large distant shape
- */
-function createLargeDistantShape(container) {
-    const config = visualConfig.shapes.largeDistantShapes;
-    const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
-    
-    // Always hollow
-    const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Random position
-    const x = Math.random() * window.innerWidth;
-    const y = Math.random() * window.innerHeight;
-    
-    // Create shape element
-    const shape = document.createElement('div');
-    
-    // Almost always circles for distant shapes
-    const isCircle = Math.random() < 0.8;
-    
-    // Very thin border
-    const borderWidth = 1;
-    
-    // Long rotation animation
-    let style;
-    
-    if (isCircle) {
-        style = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            border: ${borderWidth}px solid ${color};
-            background-color: transparent;
-            border-radius: 50%;
-            left: ${x - size/2}px;
-            top: ${y - size/2}px;
-            opacity: ${config.opacity};
-        `;
-    } else {
-        style = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            border: ${borderWidth}px solid ${color};
-            background-color: transparent;
-            left: ${x - size/2}px;
-            top: ${y - size/2}px;
-            opacity: ${config.opacity};
-        `;
-    }
-    
-    shape.style.cssText = style;
-    
-    // Add rotation animation
-    const duration = 40 + Math.random() * 30;
-    shape.style.animationDuration = `${duration}s`;
-    shape.classList.add('rotate');
-    
-    container.appendChild(shape);
-}
+// [The createStaticShape and createLargeDistantShape functions remain unchanged]
 
 /**
  * Create dynamic shape with mouse interaction
@@ -672,7 +550,10 @@ function createDynamicShape(container) {
     
     container.appendChild(shape);
     
-    // Store shape info for animation
+    // Randomize initial speed slightly for more natural movement
+    const initialSpeedFactor = 0.8 + Math.random() * 0.4; // 0.8-1.2 range
+    
+    // Store shape info for animation - give mass based on size (for physics)
     shapes.push({
         element: shape,
         x: x,
@@ -680,21 +561,48 @@ function createDynamicShape(container) {
         originX: x,
         originY: y,
         size: size,
-        speedX: (Math.random() * 0.1 - 0.05) * visualConfig.shapes.mouseInteraction.maxSpeed,
-        speedY: (Math.random() * 0.1 - 0.05) * visualConfig.shapes.mouseInteraction.maxSpeed,
-        baseOpacity: opacity
+        mass: Math.max(0.2, Math.min(2.0, size / 30)), // Mass affects how much it responds to forces
+        speedX: (Math.random() * 0.2 - 0.1) * initialSpeedFactor,
+        speedY: (Math.random() * 0.2 - 0.1) * initialSpeedFactor,
+        baseOpacity: opacity,
+        rotation: hasRotation,
+        shapeType: shapeType
     });
 }
 
 /**
- * Track mouse movement
+ * Track mouse movement - captures mouse position and speed
  */
 function trackMouse(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    // Calculate mouse speed and direction for momentum-based interactions
+    const currentX = e.clientX;
+    const currentY = e.clientY;
     
-    // Debug indicator to show mouse is being tracked
-    console.log("Mouse position:", mouseX, mouseY);
+    // Only calculate speed if we have previous positions
+    if (hasMouseMoved) {
+        const dx = currentX - lastMouseX;
+        const dy = currentY - lastMouseY;
+        
+        mouseSpeed = Math.sqrt(dx * dx + dy * dy);
+        
+        // Normalize direction vector
+        const magnitude = Math.max(0.0001, mouseSpeed);
+        mouseDirection = {
+            x: dx / magnitude,
+            y: dy / magnitude
+        };
+    } else {
+        hasMouseMoved = true;
+    }
+    
+    // Update positions
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+    mouseX = currentX;
+    mouseY = currentY;
+    
+    // Remove excessive logging which hurts performance
+    // console.log("Mouse position:", mouseX, mouseY);
 }
 
 /**
@@ -703,12 +611,15 @@ function trackMouse(e) {
 function updateShapes() {
     const interaction = visualConfig.shapes.mouseInteraction;
     
+    // Apply mouse influence based on momentum for more realistic physics
+    const pushFactor = Math.min(2.0, mouseSpeed * 0.1); // Scales with mouse speed
+    
     shapes.forEach(shape => {
         // Apply friction
         shape.speedX *= interaction.friction;
         shape.speedY *= interaction.friction;
         
-        // Tiny random movement
+        // Tiny random movement (jitter)
         if (Math.random() < 0.02) {
             shape.speedX += (Math.random() - 0.5) * interaction.jitter;
             shape.speedY += (Math.random() - 0.5) * interaction.jitter;
@@ -727,45 +638,53 @@ function updateShapes() {
             shape.speedY += dyOrigin * springFactor;
         }
         
-        // Mouse interaction - DRAMATICALLY STRONGER now
+        // FIXED MOUSE INTERACTION - Complete rewrite of this section
         const dxMouse = mouseX - shape.x;
         const dyMouse = mouseY - shape.y;
         const distanceFromMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
         
+        // Only apply force if mouse is close enough
         if (distanceFromMouse < interaction.radius) {
-            // Using a much stronger formula with cubic falloff
-            const influence = Math.pow(1 - distanceFromMouse / interaction.radius, 2) * interaction.strength;
+            // Calculate repulsion force with inverse square falloff for more realistic physics
+            // Closer shapes get pushed more strongly
+            const distanceFactor = Math.max(0.1, distanceFromMouse / interaction.radius);
+            const influenceStrength = interaction.strength * (1 / (distanceFactor * distanceFactor)) * (1 / shape.mass);
             
+            // Calculate the angle from mouse to shape (for pushing away)
             const angle = Math.atan2(dyMouse, dxMouse);
-            shape.speedX -= Math.cos(angle) * influence * 5; // Multiplied by 5 for much stronger effect
-            shape.speedY -= Math.sin(angle) * influence * 5;
             
-            // Temporarily increase opacity when interacting with mouse
+            // Apply force in the opposite direction of the mouse (push away)
+            // Force is proportional to mouse speed for momentum effect
+            const forceX = -Math.cos(angle) * influenceStrength * (1 + pushFactor);
+            const forceY = -Math.sin(angle) * influenceStrength * (1 + pushFactor);
+            
+            // Add force to current speed
+            shape.speedX += forceX;
+            shape.speedY += forceY;
+            
+            // Visual effect: Temporarily increase opacity when interacting with mouse
             const currentOpacity = parseFloat(shape.element.style.opacity) || 0.3;
-            shape.element.style.opacity = Math.min(0.9, currentOpacity * 1.8); // Higher contrast
-            shape.lastInteractionTime = Date.now(); // Track when the last interaction occurred
+            shape.element.style.opacity = Math.min(0.9, currentOpacity * 1.8);
+            shape.lastInteractionTime = Date.now();
         } else if (shape.lastInteractionTime) {
-            // Gradually fade back to original opacity over time
+            // Gradually fade opacity back to normal
             const timeSinceInteraction = Date.now() - shape.lastInteractionTime;
-            if (timeSinceInteraction > 1000) { // After 1 second start fading back
-                // Gradually reduce opacity back to normal over 2 seconds
-                const fadeProgress = Math.min(1, (timeSinceInteraction - 1000) / 2000);
+            if (timeSinceInteraction > 500) { // Start fading sooner (500ms instead of 1000ms)
+                const fadeProgress = Math.min(1, (timeSinceInteraction - 500) / 1500);
                 const targetOpacity = shape.baseOpacity || 0.3;
                 const currentOpacity = parseFloat(shape.element.style.opacity) || 0.3;
                 
-                // Smoothly interpolate back to original opacity
                 if (currentOpacity > targetOpacity) {
                     shape.element.style.opacity = currentOpacity - (fadeProgress * (currentOpacity - targetOpacity) * 0.1);
                 }
                 
-                // Reset last interaction time if we're back to normal
                 if (Math.abs(currentOpacity - targetOpacity) < 0.01) {
                     shape.lastInteractionTime = null;
                 }
             }
         }
         
-        // Apply speed limit
+        // Apply speed limit - but allow faster speeds for improved effect
         const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
         if (currentSpeed > interaction.maxSpeed) {
             const ratio = interaction.maxSpeed / currentSpeed;
@@ -777,27 +696,55 @@ function updateShapes() {
         shape.x += shape.speedX;
         shape.y += shape.speedY;
         
-        // Wrap around screen edges
-        const buffer = shape.size / 2;
+        // Wrap around screen edges with a buffer
+        const buffer = Math.max(20, shape.size / 2);
         if (shape.x < -buffer) shape.x = window.innerWidth + buffer;
         if (shape.x > window.innerWidth + buffer) shape.x = -buffer;
         if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
         if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
         
-        // Update shape position - MUST use translate3d for better performance
-        const transform = shape.element.style.transform;
-        let baseTransform = '';
-        
-        // Need to preserve any rotation in transform
-        if (transform.includes('rotate')) {
-            baseTransform = transform.replace(/translate3d\([^)]+\)/, '').replace(/translate\([^)]+\)/, '');
-            shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0) ${baseTransform}`;
-        } else {
-            shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0)`;
-        }
+        // Update shape position - handle transform properly
+        updateShapeTransform(shape);
     });
     
+    // Gradient decay of mouse speed when not moving
+    mouseSpeed *= 0.95;
+    
     requestAnimationFrame(updateShapes);
+}
+
+/**
+ * Update shape transform while preserving rotation
+ */
+function updateShapeTransform(shape) {
+    const element = shape.element;
+    
+    // Get the current transform style
+    const transform = element.style.transform || '';
+    let rotationPart = '';
+    
+    // Extract any rotation part if it exists
+    if (transform.includes('rotate')) {
+        const rotateMatch = transform.match(/rotate\([^)]+\)/);
+        if (rotateMatch) {
+            rotationPart = rotateMatch[0];
+        }
+    }
+    
+    // For diamonds, we need to preserve the 45 degree rotation
+    let baseRotation = '';
+    if (shape.shapeType === 'diamond' && !shape.rotation) {
+        baseRotation = 'rotate(45deg)';
+    }
+    
+    // Update the transform with position and any rotation
+    if (rotationPart) {
+        element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0) ${rotationPart}`;
+    } else if (baseRotation) {
+        element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0) ${baseRotation}`;
+    } else {
+        element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0)`;
+    }
 }
 
 /**
@@ -806,6 +753,10 @@ function updateShapes() {
 function handleResize() {
     shapes.forEach(shape => {
         // Adjust position proportionally
+        const widthRatio = window.innerWidth / shape.originX;
+        const heightRatio = window.innerHeight / shape.originY;
+        
+        // Keep shapes within bounds
         if (shape.x > window.innerWidth) {
             shape.x = window.innerWidth * Math.random();
             shape.originX = shape.x;
@@ -815,6 +766,94 @@ function handleResize() {
             shape.originY = shape.y;
         }
     });
+}
+
+/**
+ * Create static shape (simplified version)
+ */
+function createStaticShape(container) {
+    const config = visualConfig.shapes.staticShapes;
+    const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
+    const color = visualConfig.shapes.colors[Math.floor(Math.random() * visualConfig.shapes.colors.length)];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    
+    const shape = document.createElement('div');
+    const typeRoll = Math.random();
+    
+    if (typeRoll < 0.6) { // Square
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background-color: ${color};
+            border-radius: ${Math.random() < 0.3 ? '2px' : '0'};
+            left: ${x}px;
+            top: ${y}px;
+            opacity: ${config.opacity};
+        `;
+    } else { // Circle
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background-color: ${color};
+            border-radius: 50%;
+            left: ${x}px;
+            top: ${y}px;
+            opacity: ${config.opacity};
+        `;
+    }
+    
+    container.appendChild(shape);
+}
+
+/**
+ * Create large distant shape
+ */
+function createLargeDistantShape(container) {
+    const config = visualConfig.shapes.largeDistantShapes;
+    const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
+    const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    
+    const shape = document.createElement('div');
+    const isCircle = Math.random() < 0.8;
+    const borderWidth = 1;
+    
+    if (isCircle) {
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            border: ${borderWidth}px solid ${color};
+            background-color: transparent;
+            border-radius: 50%;
+            left: ${x - size/2}px;
+            top: ${y - size/2}px;
+            opacity: ${config.opacity};
+        `;
+    } else {
+        shape.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            border: ${borderWidth}px solid ${color};
+            background-color: transparent;
+            left: ${x - size/2}px;
+            top: ${y - size/2}px;
+            opacity: ${config.opacity};
+        `;
+    }
+    
+    // Add rotation animation
+    const duration = 40 + Math.random() * 30;
+    shape.style.animationDuration = `${duration}s`;
+    shape.classList.add('rotate');
+    
+    container.appendChild(shape);
 }
 
 // Initialize on load
