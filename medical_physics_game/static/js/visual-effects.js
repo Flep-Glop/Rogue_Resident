@@ -19,22 +19,30 @@ const visualConfig = {
             '#9c77db',         // purple
             '#5bbcd9'          // cyan
         ],
-        followSpeed: 0.05,     // How quickly shapes follow the mouse (0-1)
-        interactionDistance: 150  // How far shapes react to the mouse
+        followSpeed: 0.01,     // How quickly shapes follow the mouse (lowered for more independence)
+        interactionDistance: 150,  // How far shapes react to the mouse
+        enabledPages: [        // Only enable shapes on these pages
+            'landing',         // Landing page
+            'character-select' // Character selection
+            // 'game'          // Commented out to disable on game screen
+        ]
     },
     
     // Particle burst settings
     particles: {
-        count: 20,             // Particles per burst
+        count: 30,             // Increased particle count
         size: {
-            min: 3,            // Minimum particle size
-            max: 7             // Maximum particle size
+            min: 4,            // Slightly larger minimum
+            max: 10            // Larger maximum
         },
         speed: {
-            min: 2,            // Minimum speed
-            max: 5             // Maximum speed
+            min: 1,            // Slower minimum speed for longer trails
+            max: 4             // Slightly reduced maximum speed
         },
-        duration: 1000,        // How long particles last (ms)
+        duration: 2500,        // Much longer duration (2.5 seconds)
+        fadeStart: 0.6,        // When particles start to fade (proportion of duration)
+        trail: 0.3,            // Trail effect intensity (0-1)
+        gravity: 0.03,         // Reduced gravity for more floating effect
         colors: [              // Particle colors
             '#5b8dd9',         // primary
             '#56b886',         // secondary
@@ -42,7 +50,8 @@ const visualConfig = {
             '#f0c866',         // warning
             '#9c77db',         // purple
             '#5bbcd9'          // cyan
-        ]
+        ],
+        glow: true             // Add glow effect to particles
     }
 };
 
@@ -56,6 +65,11 @@ let mouseY = window.innerHeight / 2;
  * Initialize interactive background shapes
  */
 function initBackgroundShapes() {
+    // Check if we should enable shapes on this page
+    if (!shouldEnableShapesOnCurrentPage()) {
+        return; // Don't create shapes on this page
+    }
+
     // Create shape container if it doesn't exist
     let shapeContainer = document.getElementById('background-shapes');
     if (!shapeContainer) {
@@ -87,6 +101,22 @@ function initBackgroundShapes() {
     
     // Start animation loop
     requestAnimationFrame(updateShapesWithMouseInteraction);
+}
+
+/**
+ * Determine if shapes should be enabled on the current page
+ */
+function shouldEnableShapesOnCurrentPage() {
+    // Get the current path
+    const path = window.location.pathname;
+    
+    // Check against enabled pages
+    return visualConfig.shapes.enabledPages.some(page => {
+        if (page === 'landing' && (path === '/' || path.includes('landing'))) {
+            return true;
+        }
+        return path.includes(page);
+    });
 }
 
 /**
@@ -135,17 +165,36 @@ function createShape(container) {
  * This is the function that was undefined in your error
  */
 function updateShapesWithMouseInteraction() {
+    if (shapes.length === 0) {
+        requestAnimationFrame(updateShapesWithMouseInteraction);
+        return;
+    }
+
     shapes.forEach(shape => {
         // Calculate distance to mouse
         const dx = mouseX - shape.x;
         const dy = mouseY - shape.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Apply gentle movement
+        // Apply gentle independent movement
         shape.x += shape.speedX;
         shape.y += shape.speedY;
         
-        // Mouse interaction
+        // Occasionally change direction slightly for more organic movement
+        if (Math.random() < 0.01) {
+            shape.speedX += (Math.random() - 0.5) * 0.1;
+            shape.speedY += (Math.random() - 0.5) * 0.1;
+            
+            // Limit max speed
+            const maxSpeed = 0.5;
+            const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
+            if (currentSpeed > maxSpeed) {
+                shape.speedX = (shape.speedX / currentSpeed) * maxSpeed;
+                shape.speedY = (shape.speedY / currentSpeed) * maxSpeed;
+            }
+        }
+        
+        // Mouse interaction - only when mouse is close
         if (distance < visualConfig.shapes.interactionDistance) {
             // Move away from mouse
             const angle = Math.atan2(dy, dx);
@@ -161,10 +210,16 @@ function updateShapesWithMouseInteraction() {
             shape.element.style.opacity = Math.max(0.2, parseFloat(shape.element.style.opacity) - 0.01);
         }
         
-        // Gentle attraction to mouse for distant shapes
-        if (distance > visualConfig.shapes.interactionDistance * 2) {
-            shape.x += dx * 0.0005;
-            shape.y += dy * 0.0005;
+        // Much gentler attraction to center of screen for very distant shapes
+        // This prevents shapes from drifting too far away
+        if (distance > window.innerWidth / 2) {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const dxCenter = centerX - shape.x;
+            const dyCenter = centerY - shape.y;
+            
+            shape.x += dxCenter * 0.0001;
+            shape.y += dyCenter * 0.0001;
         }
         
         // Boundary check - wrap around screen
@@ -206,58 +261,108 @@ function createParticleBurst(x, y, color = null) {
         document.body.appendChild(particleContainer);
     }
     
-    // Use specified color or random color from config
-    const burstColor = color || visualConfig.particles.colors[Math.floor(Math.random() * visualConfig.particles.colors.length)];
+    // Create particles - use 2-3 colors for variety
+    const colorCount = 2 + Math.floor(Math.random() * 2);
+    const burstColors = [];
+    
+    for (let i = 0; i < colorCount; i++) {
+        burstColors.push(visualConfig.particles.colors[Math.floor(Math.random() * visualConfig.particles.colors.length)]);
+    }
     
     // Create particles
     for (let i = 0; i < visualConfig.particles.count; i++) {
         const particle = document.createElement('div');
         const size = Math.random() * (visualConfig.particles.size.max - visualConfig.particles.size.min) + visualConfig.particles.size.min;
         
-        // Generate random angle and speed
+        // Pick a random color from our generated colors
+        const particleColor = color || burstColors[i % burstColors.length];
+        
+        // Generate random angle and speed - vary speeds for more natural burst
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * (visualConfig.particles.speed.max - visualConfig.particles.speed.min) + visualConfig.particles.speed.min;
         
-        // Calculate velocity
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
+        // Add small variation to starting position for more natural burst
+        const startX = x + (Math.random() - 0.5) * 5;
+        const startY = y + (Math.random() - 0.5) * 5;
+        
+        // Calculate velocity with slight randomness
+        const vx = Math.cos(angle) * speed * (0.8 + Math.random() * 0.4);
+        const vy = Math.sin(angle) * speed * (0.8 + Math.random() * 0.4);
+        
+        // Add glow effect if enabled
+        const glowEffect = visualConfig.particles.glow ? 
+            `box-shadow: 0 0 ${size * 1.5}px ${particleColor}; filter: blur(${size/6}px);` : '';
         
         // Style the particle
         particle.style.cssText = `
             position: absolute;
             width: ${size}px;
             height: ${size}px;
-            background-color: ${burstColor};
+            background-color: ${particleColor};
             border-radius: 50%;
-            left: ${x}px;
-            top: ${y}px;
+            left: ${startX}px;
+            top: ${startY}px;
             pointer-events: none;
             z-index: 9999;
+            ${glowEffect}
+            transform-origin: center center;
         `;
         
         particleContainer.appendChild(particle);
         
         // Animate the particle
         let startTime = performance.now();
+        const duration = visualConfig.particles.duration * (0.8 + Math.random() * 0.4); // Vary duration
+        const fadeStartPoint = visualConfig.particles.fadeStart; // When to start fading
+        
+        // Individual particle gravity factor for varied paths
+        const gravity = visualConfig.particles.gravity * (0.7 + Math.random() * 0.6);
+        
+        // Track previous positions for trail effect
+        let prevX = startX;
+        let prevY = startY;
         
         function animateParticle(timestamp) {
             const elapsed = timestamp - startTime;
-            const progress = elapsed / visualConfig.particles.duration;
+            const progress = elapsed / duration;
             
             if (progress >= 1) {
                 particleContainer.removeChild(particle);
                 return;
             }
             
-            // Calculate current position with gravity effect
-            const currentX = x + vx * elapsed;
-            const currentY = y + vy * elapsed + 0.5 * 0.1 * elapsed * elapsed;
+            // Add "easing" to slow down particles at the end
+            const easedProgress = 1 - Math.pow(1 - progress, 2);
             
-            // Fade out near the end of animation
-            const opacity = progress > 0.7 ? 1 - ((progress - 0.7) / 0.3) : 1;
+            // Calculate current position with gentle gravity effect
+            const currentX = startX + vx * elapsed * (1 - progress * 0.3); // Slow down over time
+            const currentY = startY + vy * elapsed * (1 - progress * 0.3) + gravity * elapsed * elapsed;
             
-            // Update particle position and opacity
-            particle.style.transform = `translate(${currentX - x}px, ${currentY - y}px)`;
+            // Calculate movement delta for this frame
+            const deltaX = currentX - prevX;
+            const deltaY = currentY - prevY;
+            
+            // Store current position for next frame
+            prevX = currentX;
+            prevY = currentY;
+            
+            // Fade out gradually 
+            const opacity = progress > fadeStartPoint ? 
+                1 - ((progress - fadeStartPoint) / (1 - fadeStartPoint)) : 1;
+            
+            // Shrink slightly as it fades
+            const scale = 1 - (progress * 0.4);
+            
+            // Trail effect - stretch based on speed and direction
+            const trailFactor = visualConfig.particles.trail;
+            const speed = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const stretch = 1 + (speed * trailFactor);
+            const angle = Math.atan2(deltaY, deltaX);
+            
+            // Update particle position, opacity and scale with trail effect
+            particle.style.transform = `translate(${currentX - startX}px, ${currentY - startY}px) 
+                                        rotate(${angle}rad) 
+                                        scale(${stretch * scale}, ${scale})`;
             particle.style.opacity = opacity;
             
             requestAnimationFrame(animateParticle);
