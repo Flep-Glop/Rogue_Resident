@@ -2,312 +2,401 @@
 
 /* ===== CORE LAYOUT ADJUSTMENTS ===== */
 
+/* Apply CRT effects to the entire viewport */
+.scanlines, .crt-effect {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Adjust scanlines opacity and size */
+.scanlines {
+  background-size: 100% 4px !important;
+  opacity: 0.15 !important;
+}
+
+/* Set the pixel container to fill viewport */
+.pixel-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
 /* Expand game container to fill viewport */
 .container {
-    max-width: 100%;
-    width: 100%;
-    height: 100vh;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  /* Adjust game title to be smaller and positioned at the top */
-  .game-title {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0.5rem;
-    text-align: center;
-    z-index: 50;
-    pointer-events: none;
-  }
-  
-  .game-title h1 {
-    font-size: 1.5rem;
-    margin: 0;
-    text-shadow: 0 0 10px var(--primary);
-  }
-  
-  .subtitle {
-    font-size: 0.8rem;
-    margin: 0;
-  }
-  
-  /* Adjust row layout to be full screen */
-  .row {
-    display: flex;
-    height: 100vh;
-    margin: 0;
-  }
-  
-  /* ===== MAP CONTAINER STYLES ===== */
-  
-  /* Make map container fill the entire screen */
-  .map-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    background-color: var(--background-alt);
-    box-shadow: none;
-    overflow: hidden;
-    z-index: 1;
-  }
-  
-  /* Hide map container title since we have the game title */
-  .map-container h3 {
-    display: none;
-  }
-  
-  /* Make the canvas use full size */
-  #floor-map {
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0;
-    image-rendering: pixelated;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-  }
-  
-  /* Position the debug buttons in top right */
-  .debug-buttons {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 100;
-    margin: 0;
-    display: flex;
-    gap: 5px;
-  }
-  
-  /* Floor button positioning */
-  #next-floor-btn {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    z-index: 100;
-  }
-  
-  /* ===== SIDEBAR PANELS ===== */
-  
-  /* Core sidebar container */
+  max-width: 100%;
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Adjust game title to be smaller and positioned at the top */
+.game-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem;
+  text-align: center;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.game-title h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  text-shadow: 0 0 10px var(--primary);
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* ===== MAP CONTAINER STYLES ===== */
+
+/* Make map container fill the entire screen */
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background-color: var(--background-alt);
+  box-shadow: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Hide map container title since we have the game title */
+.map-container h3 {
+  display: none;
+}
+
+/* Make the canvas use full size */
+#floor-map {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0;
+  image-rendering: pixelated;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+/* Position the debug buttons in top right */
+.debug-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  margin: 0;
+  display: flex;
+  gap: 5px;
+}
+
+/* Floor button positioning */
+#next-floor-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+/* ===== GRID BACKGROUND ===== */
+/* Apply a grid background to the entire container */
+.map-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Add vignette effect to the edges */
+.map-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ===== SIDEBAR PANELS ===== */
+
+/* Core sidebar container */
+.game-sidebar {
+  position: absolute;
+  top: 50px; /* Space for title */
+  left: 20px;
+  width: 280px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* Let clicks through to the map */
+}
+
+/* Make all content within sidebar clickable */
+.game-sidebar > * {
+  pointer-events: auto;
+}
+
+/* ===== CHARACTER PANEL ===== */
+
+/* Character stats panel */
+.character-stats {
+  background-color: rgba(41, 43, 54, 0.8);
+  backdrop-filter: blur(3px);
+  border: 1px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
+  padding: var(--spacing-sm);
+  width: 100%;
+  margin: 0;
+}
+
+/* Character pixel art styling */
+.character-avatar-container {
+  float: left;
+  margin-right: var(--spacing-sm);
+  margin-bottom: 0;
+  width: auto;
+  height: auto;
+  max-width: 72px;
+}
+
+/* Character details section */
+.character-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 72px;
+}
+
+/* Compact character info */
+.character-details p {
+  margin: 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+/* Life icons style */
+#lives-container {
+  clear: both;
+  margin: var(--spacing-xs) 0;
+  padding: var(--spacing-xs);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+}
+
+/* ===== INVENTORY PANEL ===== */
+
+/* Inventory container */
+.inventory-container {
+  background-color: rgba(41, 43, 54, 0.8);
+  backdrop-filter: blur(3px);
+  border: 1px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
+  padding: var(--spacing-sm);
+  width: 100%;
+  margin: 0;
+}
+
+/* Inventory title row */
+.inventory-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.inventory-title h3 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--primary);
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+/* Horizontal item bar */
+.inventory-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+/* Item slot styling */
+.inventory-item {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+}
+
+/* Empty slot styling */
+.inventory-item--empty {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* ===== NODE INTERACTION STYLES ===== */
+
+/* Make interaction containers float over the map */
+.interaction-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  z-index: 1000;
+  background-color: rgba(41, 43, 54, 0.95);
+  backdrop-filter: blur(5px);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Enhanced modal styling */
+.node-modal-overlay {
+  backdrop-filter: blur(5px);
+}
+
+.node-modal-content {
+  background-color: rgba(41, 43, 54, 0.95);
+  max-width: 800px;
+  width: 90%;
+}
+
+/* ===== ROW STRUCTURE FIXES ===== */
+/* Fix for row display */
+.row {
+  display: flex;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.col-md-3, .col-md-9 {
+  pointer-events: none;
+}
+
+/* ===== NODE IMPROVEMENTS ===== */
+
+/* Larger nodes for better visibility */
+.map-node {
+  width: 50px;
+  height: 50px;
+  font-size: var(--font-size-md);
+  z-index: 5;
+}
+
+/* Enhanced hover effect */
+.map-node:not(.map-node--locked):not(.map-node--completed):hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px var(--primary);
+}
+
+/* Improved path visibility */
+.node-path {
+  height: 4px;
+  z-index: 4;
+}
+
+.node-path--active {
+  box-shadow: 0 0 10px var(--primary);
+}
+
+/* Bring map nodes above grid and vignette */
+#floor-map {
+  z-index: 4 !important;
+}
+
+/* ===== MISC FIXES ===== */
+/* Set explicit z-index for toast container */
+.toast-container {
+  z-index: 2000;
+}
+
+/* Ensure debug buttons are properly visible and accessible */
+.debug-buttons {
+  z-index: 200;
+}
+
+.debug-buttons button {
+  pointer-events: auto;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+/* Tablet adjustments */
+@media (max-width: 992px) {
   .game-sidebar {
-    position: absolute;
-    top: 50px; /* Space for title */
-    left: 20px;
-    width: 280px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none; /* Let clicks through to the map */
+    width: 240px;
   }
   
-  /* Make all content within sidebar clickable */
-  .game-sidebar > * {
-    pointer-events: auto;
-  }
-  
-  /* ===== CHARACTER PANEL ===== */
-  
-  /* Character stats panel */
-  .character-stats {
-    background-color: rgba(41, 43, 54, 0.8);
-    backdrop-filter: blur(3px);
-    border: 1px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
-    padding: var(--spacing-sm);
-    width: 100%;
-    margin: 0;
-  }
-  
-  /* Character pixel art styling */
-  .character-avatar-container {
-    float: left;
-    margin-right: var(--spacing-sm);
-    margin-bottom: 0;
-    width: auto;
-    height: auto;
-  }
-  
-  /* Character details section */
-  .character-details {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 72px;
-  }
-  
-  /* Compact character info */
-  .character-details p {
-    margin: 0;
-    padding: 0;
-    line-height: 1.3;
-  }
-  
-  /* Life icons style */
-  #lives-container {
-    clear: both;
-    margin: var(--spacing-xs) 0;
-    padding: var(--spacing-xs);
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radius-sm);
-    text-align: center;
-  }
-  
-  /* ===== INVENTORY PANEL ===== */
-  
-  /* Inventory container */
-  .inventory-container {
-    background-color: rgba(41, 43, 54, 0.8);
-    backdrop-filter: blur(3px);
-    border: 1px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
-    padding: var(--spacing-sm);
-    width: 100%;
-    margin: 0;
-  }
-  
-  /* Inventory title row */
-  .inventory-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .inventory-title h3 {
-    margin: 0;
-    font-size: var(--font-size-sm);
-    color: var(--primary);
-    background: none;
-    padding: 0;
-    border: none;
-  }
-  
-  /* Horizontal item bar */
-  .inventory-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-  
-  /* Item slot styling */
   .inventory-item {
-    width: 40px;
-    height: 40px;
-    margin: 0;
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .game-sidebar {
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    padding: 10px;
+    background-color: rgba(41, 43, 54, 0.8);
+    backdrop-filter: blur(3px);
   }
   
-  /* Empty slot styling */
-  .inventory-item--empty {
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
+  .character-stats, .inventory-container {
+    width: 50%;
+    max-height: 120px;
+    overflow-y: auto;
   }
   
-  /* ===== NODE INTERACTION STYLES ===== */
-  
-  /* Make interaction containers float over the map */
-  .interaction-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 600px;
-    z-index: 1000;
-    background-color: rgba(41, 43, 54, 0.95);
-    backdrop-filter: blur(5px);
-    border: 2px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  #next-floor-btn {
+    bottom: 140px;
   }
-  
-  /* Enhanced modal styling */
-  .node-modal-overlay {
-    backdrop-filter: blur(5px);
-  }
-  
-  .node-modal-content {
-    background-color: rgba(41, 43, 54, 0.95);
-    max-width: 800px;
-    width: 90%;
-  }
-  
-  /* ===== RESPONSIVE ADJUSTMENTS ===== */
-  
-  /* Tablet adjustments */
-  @media (max-width: 992px) {
-    .game-sidebar {
-      width: 240px;
-    }
-    
-    .inventory-item {
-      width: 35px;
-      height: 35px;
-    }
-  }
-  
-  /* Mobile adjustments */
-  @media (max-width: 768px) {
-    .game-sidebar {
-      width: 100%;
-      left: 0;
-      bottom: 0;
-      top: auto;
-      flex-direction: row;
-      padding: 10px;
-      background-color: rgba(41, 43, 54, 0.8);
-      backdrop-filter: blur(3px);
-    }
-    
-    .character-stats, .inventory-container {
-      width: 50%;
-      max-height: 120px;
-      overflow-y: auto;
-    }
-    
-    .character-avatar-container {
-      display: none;
-    }
-    
-    #next-floor-btn {
-      bottom: 140px;
-    }
-  }
-  
-  /* ===== NODE IMPROVEMENTS ===== */
-  
-  /* Larger nodes for better visibility */
-  .map-node {
-    width: 50px;
-    height: 50px;
-    font-size: var(--font-size-md);
-  }
-  
-  /* Enhanced hover effect */
-  .map-node:not(.map-node--locked):not(.map-node--completed):hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 15px var(--primary);
-  }
-  
-  /* Improved path visibility */
-  .node-path {
-    height: 4px;
-  }
-  
-  .node-path--active {
-    box-shadow: 0 0 10px var(--primary);
-  }
+}
