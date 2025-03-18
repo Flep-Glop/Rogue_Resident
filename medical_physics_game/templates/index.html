@@ -12,6 +12,7 @@
     <!-- Enhanced UI CSS -->
     <link href="/static/css/enhanced-ui-consistency.css" rel="stylesheet">
     <link href="/static/css/enhanced-modern-layout.css" rel="stylesheet">
+    <link href="/static/css/enhanced-map-styles.css" rel="stylesheet">
     
     <!-- Editor link (if needed) -->
     <a href="/item-editor" class="editor-link">Item Editor</a>
@@ -33,7 +34,7 @@
             <div id="game-board-container">
                 <!-- Map container with enhanced styling -->
                 <div class="map-container">
-                    <h3>Floor Map</h3>
+                    <h3 class="map-title">FLOOR MAP</h3>
                     <canvas id="floor-map" width="800" height="600"></canvas>
                     <button id="next-floor-btn" style="display: none;" class="btn game-btn--pixel game-btn--secondary">Go to Next Floor</button>
                 </div>
@@ -149,8 +150,8 @@
     <script src="/static/js/screen-transition.js"></script>
     <script src="/static/js/game-background-effects.js"></script>
     
-    <!-- Enhanced map renderer script -->
-    <script src="/static/js/map-renderer-enhancements.js"></script>
+    <!-- Load hexagonal map renderer enhancements -->
+    <script src="/static/js/enhanced-hexagonal-map-renderer.js"></script>
     
     <!-- Load error handler for reliability -->
     <script src="/static/js/error_handler.js"></script>
@@ -161,7 +162,7 @@
     <!-- Initialize enhanced visuals -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Initializing enhanced visuals...");
+            console.log("Initializing enhanced hexagonal map visuals...");
             
             // Add debug button event listeners
             const debugSummaryBtn = document.getElementById('debug-summary-btn');
@@ -191,91 +192,56 @@
                 });
             }
             
+            // Create "Press Start 2P" font check to ensure pixelated text
+            const fontCheck = document.createElement('span');
+            fontCheck.style.fontFamily = 'Press Start 2P, monospace';
+            fontCheck.style.visibility = 'hidden';
+            fontCheck.textContent = 'Font Check';
+            document.body.appendChild(fontCheck);
+            
             // Wait for game systems to initialize
             setTimeout(function() {
                 // Initialize screen transitions
                 if (typeof ScreenTransition !== 'undefined') {
                     ScreenTransition.initialize();
                     console.log("Screen transitions initialized");
-                    
-                    // Hook into next floor button
-                    const nextFloorBtn = document.getElementById('next-floor-btn');
-                    if (nextFloorBtn) {
-                        const originalClickHandler = nextFloorBtn.onclick;
-                        nextFloorBtn.onclick = function(e) {
-                            e.preventDefault();
-                            
-                            // Get floor data
-                            let floorNumber = 1;
-                            let floorName = "Unknown Floor";
-                            
-                            if (typeof GameState !== 'undefined' && GameState.data) {
-                                floorNumber = (GameState.data.currentFloor || 0) + 1;
-                                floorName = `Floor ${floorNumber}`;
-                            }
-                            
-                            // Show transition
-                            ScreenTransition.beginTransition({
-                                title: `Floor ${floorNumber}`,
-                                subtitle: floorName,
-                                description: "Proceeding to next floor...",
-                                onComplete: function() {
-                                    // Execute original handler after animation
-                                    if (typeof originalClickHandler === 'function') {
-                                        originalClickHandler.call(nextFloorBtn, e);
-                                    } else if (typeof GameState !== 'undefined' && 
-                                             typeof GameState.goToNextFloor === 'function') {
-                                        GameState.goToNextFloor();
-                                    }
-                                }
-                            });
-                            
-                            return false;
-                        };
-                    }
                 }
                 
-                // Initialize background effects
+                // Initialize background effects with lower intensity
                 if (typeof GameBackgroundEffects !== 'undefined') {
                     GameBackgroundEffects.initialize({
                         targetElement: document.body,
-                        pixelCount: 15,
-                        opacity: 0.2
+                        pixelCount: 10, // Fewer particles
+                        opacity: 0.15   // Less visible
                     });
                     console.log("Background effects initialized");
                 }
                 
-                // Listen for floor change event
-                if (typeof EventSystem !== 'undefined') {
-                    EventSystem.on('FLOOR_CHANGED', function(floorData) {
-                        // Update background effects for new floor
-                        if (typeof GameBackgroundEffects !== 'undefined') {
-                            // More particles on higher floors
-                            const baseParticles = 15;
-                            const floorNumber = floorData.floor_number || floorData.level || 1;
-                            const additionalParticles = Math.min(floorNumber * 2, 15);
-                            
-                            GameBackgroundEffects.updateConfig({
-                                pixelCount: baseParticles + additionalParticles
-                            });
-                        }
-                        
-                        // Force map re-render
-                        if (typeof MapRenderer !== 'undefined') {
-                            setTimeout(() => MapRenderer.renderMap(), 100);
-                        }
-                    });
-                }
-                
-                // Force map re-render after styling changes
+                // Force map re-render with hexagonal style
                 if (typeof MapRenderer !== 'undefined' && MapRenderer.renderMap) {
+                    // Ensure the hexagonalConfig is enabled
+                    if (MapRenderer.hexagonalConfig) {
+                        MapRenderer.hexagonalConfig.enabled = true;
+                    }
+                    
                     setTimeout(() => {
                         MapRenderer.renderMap();
+                        console.log("Hexagonal map rendered");
                     }, 200);
                 }
                 
-                console.log("Enhanced visual styles applied successfully");
+                console.log("Enhanced hexagonal map styles applied successfully");
             }, 800);
+            
+            // Handle window resize events better
+            window.addEventListener('resize', function() {
+                // Force map render on resize with slight delay
+                if (typeof MapRenderer !== 'undefined' && MapRenderer.handleResponsiveResize) {
+                    setTimeout(() => {
+                        MapRenderer.handleResponsiveResize();
+                    }, 200);
+                }
+            });
         });
     </script>
 </body>

@@ -1,0 +1,250 @@
+/* enhanced-map-styles.css - Improved styling for hexagonal map layout */
+
+/* ===== MAP CONTAINER STYLING ===== */
+
+/* Full-page map container */
+.map-container {
+    background-color: #1a1f2e; /* Darker blue background like in Image 3 */
+    border: none; /* Remove border for full-screen style */
+    border-radius: 0; /* Remove border radius */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    position: relative;
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: none !important; /* Remove max-height limitation */
+    overflow: hidden; /* Hide overflow */
+    box-shadow: none; /* Remove box shadow */
+  }
+  
+  /* Map canvas styling */
+  #floor-map {
+    display: block; 
+    width: 100% !important;
+    height: 100% !important;
+    image-rendering: pixelated; /* Crisp pixel rendering */
+    image-rendering: crisp-edges; /* Fallback */
+    position: relative;
+    z-index: 1; /* Ensure it's above the background */
+  }
+  
+  /* Map grid background */
+  .map-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(#2a3040 1px, transparent 1px),
+      linear-gradient(90deg, #2a3040 1px, transparent 1px);
+    background-size: 30px 30px; /* Match the grid size from JS */
+    z-index: 0; /* Behind the canvas */
+    opacity: 0.4; /* Subtle grid */
+    pointer-events: none;
+  }
+  
+  /* Remove overflow indication arrows */
+  .scroll-indicator {
+    display: none;
+  }
+  
+  /* ===== SIDEBAR POSITIONING ===== */
+  
+  /* Character panel positioning */
+  .character-stats {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 280px;
+    background-color: rgba(26, 31, 46, 0.85); /* Match map background */
+    border: 2px solid #5b8dd9; /* Blue border */
+    z-index: 100;
+  }
+  
+  /* Inventory panel positioning */
+  #inventory-container {
+    position: absolute;
+    top: 240px; /* Position below character stats */
+    left: 20px;
+    width: 280px;
+    background-color: rgba(26, 31, 46, 0.85); /* Match map background */
+    border: 2px solid #5b8dd9; /* Blue border */
+    z-index: 100;
+  }
+  
+  /* ===== FLOOR TITLE STYLING ===== */
+  
+  /* Title styling like in Image 3 */
+  .map-title {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-family: "Press Start 2P", monospace;
+    font-size: 32px;
+    color: #5b8dd9; /* Blue title */
+    text-transform: uppercase;
+    z-index: 10;
+  }
+  
+  /* ===== NODE STYLING ===== */
+  
+  /* Make nodes appear hexagonal */
+  .map-node {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    width: 60px !important; /* Larger nodes */
+    height: 60px !important;
+    font-family: "Press Start 2P", monospace;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  
+  /* Node hover effect */
+  .map-node:hover:not(.map-node--locked):not(.map-node--completed) {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px currentColor;
+  }
+  
+  /* Node state styling */
+  .map-node--current {
+    box-shadow: 0 0 15px #e67e73; /* Red glow for current */
+    border: 3px solid white;
+    animation: pulse-scale 2s infinite;
+  }
+  
+  .map-node--available {
+    box-shadow: 0 0 10px #5b8dd9; /* Blue glow for available */
+    animation: pulse-scale 3s infinite;
+  }
+  
+  .map-node--completed {
+    filter: brightness(0.7);
+    border-color: #56b886; /* Green border for completed */
+  }
+  
+  .map-node--locked {
+    filter: brightness(0.4) grayscale(0.5);
+    border-color: #3a4050; /* Dark border for locked */
+  }
+  
+  /* Enhanced connection paths */
+  .node-path {
+    height: 3px; /* Thicker paths */
+    z-index: 0; /* Behind nodes */
+  }
+  
+  .node-path--active {
+    background-color: #5b8dd9; /* Blue for active */
+    box-shadow: 0 0 8px #5b8dd9; /* Glow effect */
+  }
+  
+  .node-path--completed {
+    background-color: #56b886; /* Green for completed */
+  }
+  
+  /* Node type colors - enhanced with better contrast */
+  .node-start { background-color: #56b886; border-color: white; } /* Green */
+  .node-boss { background-color: #e67e73; border-color: white; } /* Red */
+  .node-question { background-color: #5b8dd9; border-color: white; } /* Blue */
+  .node-elite { background-color: #d35db3; border-color: white; } /* Pink */
+  .node-treasure { background-color: #f0c866; color: #1a1f2e; border-color: white; } /* Yellow with dark text */
+  .node-rest { background-color: #9c77db; border-color: white; } /* Purple */
+  .node-shop { background-color: #5bbcd9; border-color: white; } /* Cyan */
+  .node-event { background-color: #e99c50; border-color: white; } /* Orange */
+  .node-gamble { background-color: #b8d458; border-color: white; } /* Lime */
+  .node-patient_case { background-color: #4acf8b; border-color: white; } /* Bright green */
+  
+  /* ===== NEXT FLOOR BUTTON ===== */
+  
+  /* Position at bottom right */
+  #next-floor-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-family: "Press Start 2P", monospace;
+    z-index: 100;
+    background-color: #56b886; /* Green */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 0; /* Square corners for pixel look */
+    box-shadow: 
+      0 5px 0 #45966d, /* 3D button effect */
+      0 0 10px rgba(86, 184, 134, 0.5);
+    transition: all 0.2s ease;
+  }
+  
+  #next-floor-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 7px 0 #45966d,
+      0 0 15px rgba(86, 184, 134, 0.7);
+  }
+  
+  #next-floor-btn:active {
+    transform: translateY(3px);
+    box-shadow: 
+      0 2px 0 #45966d,
+      0 0 5px rgba(86, 184, 134, 0.7);
+  }
+  
+  /* ===== DEBUG BUTTONS ===== */
+  
+  /* Position at top right */
+  .debug-buttons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .debug-buttons button {
+    font-family: "Press Start 2P", monospace;
+    font-size: 8px;
+    background-color: rgba(26, 31, 46, 0.85);
+    border: 1px solid #5b8dd9;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 0; /* Square corners */
+    transition: all 0.2s ease;
+  }
+  
+  .debug-buttons button:hover {
+    background-color: #5b8dd9;
+    transform: translateY(-2px);
+  }
+  
+  /* ===== RESPONSIVE ADJUSTMENTS ===== */
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .character-stats {
+      width: 230px;
+    }
+    
+    #inventory-container {
+      width: 230px;
+      top: 220px;
+    }
+    
+    .map-node {
+      width: 50px !important;
+      height: 50px !important;
+      font-size: 16px;
+    }
+  }
+  
+  /* Animation for pulsing nodes */
+  @keyframes pulse-scale {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
