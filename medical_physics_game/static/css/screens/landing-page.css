@@ -1,12 +1,12 @@
 /* landing-page.css - Styling for the game landing page */
-/* Following updated CSS structure guidelines */
+/* Following new CSS structure guidelines while preserving original look */
 
 /* ===== CORE LAYOUT ===== */
 
-/* Core container styling with BEM naming */
+/* Core container styling */
 .pixel-container {
-  background-color: var(--background);
-  background-image: linear-gradient(to bottom, var(--background), var(--background-alt));
+  background-color: #0f1631;
+  background-image: linear-gradient(to bottom, #0f1631, #1a1c38);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -34,26 +34,21 @@
 
 /* ===== TITLE BLOCK ===== */
 
-/* Main title container */
+/* Main title container - framed look */
 .title-block {
-  background-color: var(--background-alt);
-  border: 2px solid var(--primary);
-  padding: var(--spacing-md) var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
+  background-color: #141824;
+  border: 2px solid #5d9cff;
+  padding: 20px 25px;
+  margin-bottom: 15px;
   box-shadow: 
-    0 0 5px var(--primary-30),
-    inset 0 0 5px var(--primary-10);
+    0 0 5px rgba(93, 156, 255, 0.4),
+    inset 0 0 5px rgba(93, 156, 255, 0.1);
   text-align: center;
   max-width: 500px;
   width: 80%;
   position: relative;
   z-index: var(--z-ui);
-  animation: pulse-subtle var(--animation-long) infinite ease-in-out;
-}
-
-/* Apply BEM methodology for title block elements */
-.title-block__inner {
-  position: relative;
+  animation: pulse-subtle 6s infinite ease-in-out;
 }
 
 /* Title glow effect */
@@ -68,32 +63,32 @@
   border-radius: 2px;
   background: transparent;
   pointer-events: none;
-  animation: border-glow var(--animation-long) infinite ease-in-out;
+  animation: border-glow 8s infinite ease-in-out;
   opacity: 0.4;
   z-index: -1;
 }
 
 /* Game title text */
 .game-title {
-  font-family: var(--font-pixel);
+  font-family: 'Press Start 2P', cursive;
   text-transform: uppercase;
-  color: var(--primary);
+  color: #5d9cff;
   letter-spacing: 3px;
-  font-size: var(--font-size-xxl);
+  font-size: 2.2rem;
   margin: 0;
   line-height: 1.1;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px var(--primary-70);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(93, 156, 255, 0.8);
 }
 
 /* Subtitle text */
 .subtitle {
-  font-family: var(--font-pixel);
+  font-family: 'Press Start 2P', cursive;
   text-transform: uppercase;
-  color: var(--secondary);
+  color: #50e794;
   letter-spacing: 1px;
-  font-size: var(--font-size-xs);
-  margin-top: var(--spacing-xs);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5), 0 0 8px var(--secondary-70);
+  font-size: 0.7rem;
+  margin-top: 8px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5), 0 0 8px rgba(80, 231, 148, 0.8);
 }
 
 /* ===== MENU BUTTONS ===== */
@@ -103,25 +98,25 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 40px;
   width: 240px;
   max-width: 80%;
   position: relative;
   z-index: var(--z-ui);
 }
 
-/* Button styling - leveraging component classes */
+/* Button styling */
 .retro-btn {
-  font-family: var(--font-pixel);
+  font-family: 'Press Start 2P', cursive;
   text-transform: uppercase;
   border: none;
   text-align: center;
-  padding: var(--spacing-sm);
-  font-size: var(--font-size-sm);
+  padding: 12px;
+  font-size: 0.85rem;
   position: relative;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  margin-bottom: var(--spacing-xs);
+  transition: all 0.2s;
+  margin-bottom: 8px;
 }
 
 /* Button hover effects with scan lines */
@@ -138,7 +133,7 @@
     transparent 100%
   );
   opacity: 0;
-  transition: all var(--transition-medium);
+  transition: all 0.3s;
   pointer-events: none;
 }
 
@@ -153,29 +148,29 @@
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
-/* Button color variants */
+/* Button color variants - matching original appearance */
 .retro-btn.start {
-  background-color: var(--secondary);
+  background-color: #45e17c;
   color: white;
-  box-shadow: var(--shadow-secondary-sm);
+  box-shadow: 0 0 10px rgba(69, 225, 124, 0.5);
 }
 
 .retro-btn#continue-game {
-  background-color: var(--primary);
+  background-color: #5d9cff;
   color: white;
-  box-shadow: var(--shadow-primary-sm);
+  box-shadow: 0 0 10px rgba(93, 156, 255, 0.5);
 }
 
 .retro-btn#options {
-  background-color: var(--warning);
-  color: var(--background);
-  box-shadow: var(--shadow-warning-sm);
+  background-color: #ffcc55;
+  color: #0f1631;
+  box-shadow: 0 0 10px rgba(255, 204, 85, 0.5);
 }
 
 .retro-btn#help {
-  background-color: var(--node-rest);
+  background-color: #9c77db;
   color: white;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 10px rgba(156, 119, 219, 0.5);
 }
 
 /* ===== FOOTER ===== */
@@ -183,14 +178,14 @@
 /* Version display with blinking cursor */
 .footer {
   position: absolute;
-  bottom: var(--spacing-md);
-  color: var(--text-dark);
-  font-size: var(--font-size-xs);
+  bottom: 20px;
+  color: #8b8fa9;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  font-family: var(--font-pixel);
+  font-family: 'Press Start 2P', cursive;
   letter-spacing: 1px;
   z-index: var(--z-ui);
-  animation: pulse-opacity var(--animation-medium) infinite ease-in-out;
+  animation: pulse-opacity 4s infinite ease-in-out;
 }
 
 /* Blinking cursor styling */
@@ -198,7 +193,7 @@
   display: inline-block;
   width: 8px;
   height: 15px;
-  background-color: var(--secondary);
+  background-color: #50e794;
   margin-left: 5px;
   vertical-align: middle;
   animation: blink 1s infinite steps(2);
@@ -214,12 +209,14 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: var(--z-background);
+  z-index: 1;
 }
 
 /* Pixel decoration styling */
 .pixel-decoration {
   position: absolute;
+  width: 6px;  /* Increased from 4px to match original */
+  height: 6px; /* Increased from 4px to match original */
   z-index: 0;
   opacity: 0.8;
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
@@ -241,54 +238,91 @@
     rgba(255, 255, 255, 0) 100%
   );
   background-size: 100% 4px;
-  z-index: var(--z-overlay);
+  z-index: 200;
   pointer-events: none;
   opacity: 0.3;
 }
 
-/* CRT effect */
-.crt-effect {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.3) 90%
-  );
-  z-index: var(--z-overlay);
-  pointer-events: none;
-  opacity: var(--crt-effect-strength, 0.4);
-  animation: gentle-flicker 8s infinite;
+/* Animations for pixel decorations */
+@keyframes pixel-float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pixel-twinkle {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.3; }
+}
+
+/* Apply different animations to different pixels */
+.anim-pixel-float {
+  animation: pixel-float 8s infinite ease-in-out;
+}
+
+.anim-pixel-twinkle {
+  animation: pixel-twinkle 6s infinite ease-in-out;
+}
+
+.anim-pixel-combined {
+  animation: 
+    pixel-float 12s infinite ease-in-out reverse, 
+    pixel-twinkle 10s infinite ease-in-out;
+}
+
+/* Animation for button scan line */
+@keyframes scan-line {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* Cursor blink animation */
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Subtle pulse for title block */
+@keyframes pulse-subtle {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+/* Border glow animation */
+@keyframes border-glow {
+  0% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
+  50% { box-shadow: 0 0 15px #5d9cff, 0 0 20px #5d9cff; }
+  100% { box-shadow: 0 0 5px #5d9cff, 0 0 10px #5d9cff; }
 }
 
 /* ===== RESPONSIVE STYLING ===== */
 
-@media (max-width: var(--breakpoint-md)) {
+@media (max-width: 768px) {
   .game-title {
-    font-size: var(--font-size-xl);
+    font-size: 1.8rem;
   }
   
   .subtitle {
-    font-size: var(--font-size-xs);
+    font-size: 0.6rem;
   }
   
   .retro-btn {
-    font-size: var(--font-size-xs);
-    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.75rem;
+    padding: 10px;
   }
   
   .title-block {
     width: 90%;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: 15px 20px;
   }
 }
 
-@media (max-width: var(--breakpoint-sm)) {
+@media (max-width: 480px) {
   .game-title {
-    font-size: var(--font-size-lg);
+    font-size: 1.5rem;
   }
   
   .menu-container {
