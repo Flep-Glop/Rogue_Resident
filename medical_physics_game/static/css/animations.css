@@ -38,6 +38,12 @@
   100% { transform: translateY(0) translateX(-2px); }
 }
 
+/* Falling pixel animation - for the landing page effect */
+@keyframes pixel-fall {
+  from { transform: translateY(-10vh); }
+  to { transform: translateY(110vh); }
+}
+
 /* ===== PULSE/GLOW ANIMATIONS ===== */
 
 /* Color-based pulse animations */
@@ -91,8 +97,35 @@
   100% { transform: scale(1); }
 }
 
+/* Gentle pulse for title (alias for pulse-scale-subtle for semantic clarity) */
+@keyframes gentle-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* Card specific pulse animations */
+@keyframes card-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes selected-pulse {
+  0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(86, 184, 134, 0.7); }
+  100% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
+}
+
 /* Opacity-based pulse animations */
 @keyframes pulse-opacity {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+/* Arrow pulse animation */
+@keyframes arrow-pulse {
   0% { opacity: 0.7; }
   50% { opacity: 1; }
   100% { opacity: 0.7; }
@@ -297,6 +330,18 @@
   100% { transform: scale(1.1); }
 }
 
+/* Floor transition out */
+@keyframes floor-transition-out {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Dice roll animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* The following are animation utility classes to easily apply these animations */
 
 /* === UTILITY ANIMATION CLASSES === */
@@ -334,18 +379,8 @@
     walk-cycle 1.5s steps(4) infinite;
 }
 
-/* Gamble Node */
+/* Dice roll */
 .dice-roll {
   display: inline-block;
   animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes floor-transition-out {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
 }

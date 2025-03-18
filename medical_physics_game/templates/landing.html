@@ -36,63 +36,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Create pixel decorations
-            const decorationContainer = document.getElementById('pixel-decorations');
-            if (!decorationContainer) return;
-            
-            // Clear existing decorations
-            decorationContainer.innerHTML = '';
-            
-            // Create a color palette that matches our theme
-            const colors = [
-                '#5b8dd9', // primary
-                '#56b886', // secondary
-                '#e67e73', // danger
-                '#f0c866', // warning
-                '#9c77db', // purple
-                '#5bbcd9'  // cyan
-            ];
-            
-            // Create a more organized, coherent pattern
-            // We'll create a cascade effect of pixels
-            const columnCount = 20;
-            const rowCount = 30;
-            
-            // Calculate optimal pixel size based on screen width
-            const pixelSize = Math.max(3, Math.floor(window.innerWidth / 100));
-            
-            // Create the animation delay pattern - this creates a "falling" effect
-            for (let col = 0; col < columnCount; col++) {
-                // Each column will have a different number of pixels
-                const pixelsInColumn = 5 + Math.floor(Math.random() * 10);
-                
-                for (let i = 0; i < pixelsInColumn; i++) {
-                    const decoration = document.createElement('div');
-                    decoration.classList.add('pixel-decoration');
-                    
-                    // Position - distribute across screen width with some randomness
-                    const x = (col / columnCount) * 100 + (Math.random() * 3 - 1.5);
-                    // Randomize initial position vertically
-                    const y = Math.random() * 100;
-                    
-                    // Random color from our palette
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    // Apply styles
-                    decoration.style.left = `${x}vw`;
-                    decoration.style.top = `${y}vh`;
-                    decoration.style.width = `${pixelSize}px`;
-                    decoration.style.height = `${pixelSize}px`;
-                    decoration.style.backgroundColor = color;
-                    
-                    // Create falling animation with varied speeds
-                    const duration = 10 + Math.random() * 20; // 10-30 seconds
-                    const delay = Math.random() * 15; // 0-15 seconds delay
-                    
-                    decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
-                    
-                    decorationContainer.appendChild(decoration);
-                }
-            }
+            createPixelDecorations();
             
             // Button sound effect
             function playButtonSound() {
@@ -133,41 +77,68 @@
             });
         });
         
-        // Pixel background animation for landing page
-        function createPixelBackground() {
-        const container = document.querySelector('.pixel-container');
-        if (!container) return;
-        
-        // Remove any existing pixels
-        document.querySelectorAll('.pixel-decoration').forEach(el => el.remove());
-        
-        // Create 150 pixel decorations
-        for (let i = 0; i < 150; i++) {
-            const pixel = document.createElement('div');
-            pixel.className = 'pixel-decoration';
+        // Function to create pixel decorations with the cascade effect
+        function createPixelDecorations() {
+            const decorationContainer = document.getElementById('pixel-decorations');
+            if (!decorationContainer) return;
             
-            // Random position
-            pixel.style.left = `${Math.random() * 100}%`;
-            pixel.style.top = `${Math.random() * 100}%`;
+            // Clear existing decorations
+            decorationContainer.innerHTML = '';
             
-            // Random color
-            const colors = ['#5b8dd9', '#56b886', '#e67e73', '#f0c866', '#ffffff'];
-            pixel.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            // Create a color palette that matches our theme
+            const colors = [
+                '#5b8dd9', // primary
+                '#56b886', // secondary
+                '#e67e73', // danger
+                '#f0c866', // warning
+                '#9c77db', // purple
+                '#5bbcd9'  // cyan
+            ];
             
-            // Random animation
-            const animationTypes = ['pixel-float', 'pixel-twinkle', 'pixel-float pixel-twinkle'];
-            const animationType = animationTypes[Math.floor(Math.random() * animationTypes.length)];
-            pixel.style.animation = `${animationType} ${5 + Math.random() * 10}s infinite ease-in-out`;
+            // Create a more organized, coherent pattern
+            // We'll create a cascade effect of pixels
+            const columnCount = 20;
             
-            container.appendChild(pixel);
+            // Calculate optimal pixel size based on screen width
+            const pixelSize = Math.max(3, Math.floor(window.innerWidth / 100));
+            
+            // Create the animation delay pattern - this creates a "falling" effect
+            for (let col = 0; col < columnCount; col++) {
+                // Each column will have a different number of pixels
+                const pixelsInColumn = 5 + Math.floor(Math.random() * 10);
+                
+                for (let i = 0; i < pixelsInColumn; i++) {
+                    const decoration = document.createElement('div');
+                    decoration.classList.add('pixel-decoration');
+                    
+                    // Position - distribute across screen width with some randomness
+                    const x = (col / columnCount) * 100 + (Math.random() * 3 - 1.5);
+                    // Randomize initial position vertically
+                    const y = Math.random() * 100;
+                    
+                    // Random color from our palette
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Apply styles
+                    decoration.style.left = `${x}vw`;
+                    decoration.style.top = `${y}vh`;
+                    decoration.style.width = `${pixelSize}px`;
+                    decoration.style.height = `${pixelSize}px`;
+                    decoration.style.backgroundColor = color;
+                    
+                    // Create falling animation with varied speeds
+                    const duration = 10 + Math.random() * 20; // 10-30 seconds
+                    const delay = Math.random() * 15; // 0-15 seconds delay
+                    
+                    decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
+                    
+                    decorationContainer.appendChild(decoration);
+                }
+            }
         }
-        }
-    
-        // Call when page loads
-        document.addEventListener('DOMContentLoaded', createPixelBackground);
         
         // Add periodic refresh to keep animation lively
-        setInterval(createPixelBackground, 30000); // Refresh every 30 seconds
+        setInterval(createPixelDecorations, 30000); // Refresh every 30 seconds
     </script>
 </body>
 </html>
