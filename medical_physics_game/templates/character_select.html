@@ -17,7 +17,7 @@
             margin: 0 auto;
         }
         
-        /* Carousel container */
+        /* Update the carousel container to allow for side cards */
         .carousel-container {
             position: relative;
             width: 100%;
@@ -25,11 +25,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 450px; /* Ensure container has enough height */
         }
         
-        /* Character card styling */
+        /* Character card base styling modifications */
         .character-card {
-            position: relative;
+            position: absolute;
             width: 320px;
             min-height: 400px;
             background-color: var(--background-alt);
@@ -41,17 +42,38 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            margin: 0 auto;
-            /* Hide cards initially */
-            display: none;
+            /* Change default to hidden instead of none to maintain layout calculations */
+            visibility: hidden;
+            opacity: 0;
+            transform: scale(0.8) translateX(0);
+            z-index: 1;
         }
         
-        /* Only show active card */
+        /* Center active card */
         .character-card.active {
-            display: flex;
-            animation: card-pulse 3s infinite;
+            visibility: visible;
+            opacity: 1;
+            transform: scale(1) translateX(0);
+            z-index: 5;
         }
         
+        /* Left flanking card */
+        .character-card.left-flank {
+            visibility: visible;
+            opacity: 0.6;
+            transform: scale(0.8) translateX(-80%);
+            z-index: 2;
+        }
+        
+        /* Right flanking card */
+        .character-card.right-flank {
+            visibility: visible;
+            opacity: 0.6;
+            transform: scale(0.8) translateX(80%);
+            z-index: 2;
+        }
+        
+        /* Selected state is independent of position */
         .character-card.selected {
             border-color: var(--secondary);
             background-color: rgba(86, 184, 134, 0.1);
@@ -572,7 +594,7 @@
             navigateToCharacter(newIndex);
         }
         
-        // Navigate to character implementation
+        // Update the navigateToCharacter function
         function navigateToCharacter(index) {
             // Update current index
             currentCharacterIndex = index;
@@ -580,21 +602,41 @@
             // Set the selected character to the current active one
             selectedCharacter = characters[index].id;
             
-            // Update active state
-            setActiveCharacter(index);
+            // Calculate previous and next indices with wrapping
+            const prevIndex = (index - 1 + characters.length) % characters.length;
+            const nextIndex = (index + 1) % characters.length;
             
-            // Update counter
-            const counter = document.getElementById('character-counter');
-            counter.textContent = `Character ${index + 1} of ${characters.length}`;
+            // Get all cards
+            const cards = document.querySelectorAll('.character-card');
             
-            // Add visual highlight to active card
-            document.querySelectorAll('.character-card').forEach(card => {
-                if (parseInt(card.dataset.index) === index) {
+            // Reset all cards first
+            cards.forEach(card => {
+                card.classList.remove('active', 'left-flank', 'right-flank');
+            });
+            
+            // Set appropriate classes for each card
+            cards.forEach(card => {
+                const cardIndex = parseInt(card.dataset.index);
+                
+                if (cardIndex === index) {
+                    card.classList.add('active');
+                } else if (cardIndex === prevIndex) {
+                    card.classList.add('left-flank');
+                } else if (cardIndex === nextIndex) {
+                    card.classList.add('right-flank');
+                }
+                
+                // Maintain selected state independently
+                if (cardIndex === index && selectedCharacter === characters[index].id) {
                     card.classList.add('selected');
                 } else {
                     card.classList.remove('selected');
                 }
             });
+            
+            // Update counter
+            const counter = document.getElementById('character-counter');
+            counter.textContent = `Character ${index + 1} of ${characters.length}`;
             
             // Update indicators
             document.querySelectorAll('.carousel-indicator').forEach(indicator => {
