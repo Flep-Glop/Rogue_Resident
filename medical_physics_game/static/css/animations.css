@@ -408,3 +408,68 @@
   pointer-events: none;
   transform-origin: center center;
 }
+/* Updated animations and styles to match the screenshot */
+.pixel-container {
+  background-color: #292f5b; /* Dark blue background like in the image */
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes slow-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pixel-float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pixel-twinkle {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.2; }
+}
+
+.pixel-decoration {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+/* Style the game title to match the image */
+.game-title {
+  text-transform: uppercase;
+  color: #8be8e5; /* Bright cyan like in the image */
+  text-shadow: 0 0 5px #5b8dd9;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  text-transform: uppercase;
+  color: #8be8e5;
+  letter-spacing: 1px;
+}
+
+/* Style menu buttons to match the image */
+.retro-btn {
+  text-transform: uppercase;
+  border: 2px solid #8be8e5;
+  background-color: #333;
+  color: #8be8e5;
+  margin-bottom: 10px;
+  text-shadow: none;
+  box-shadow: 0 0 5px #5b8dd9;
+}
+
+.retro-btn.start {
+  background-color: #5b8dd9;
+  color: white;
+}
+
+.footer {
+  color: #ffffff;
+  opacity: 0.7;
+}

@@ -84,39 +84,50 @@
             // Clear existing decorations
             decorationContainer.innerHTML = '';
             
-            // Color palette that matches the game theme
+            // Color palette based on the screenshot - primarily blues with some accent colors
             const colors = [
-                '#5b8dd9', // primary
-                '#56b886', // secondary
-                '#e67e73', // danger
-                '#f0c866', // warning
-                '#9c77db', // purple
-                '#5bbcd9'  // cyan
+                '#5b8dd9', // primary blue (brighter)
+                '#3a5d99', // medium blue
+                '#8be8e5', // cyan accent (for rare shapes)
+                '#a7a1db', // purple accent (for rare shapes)
             ];
             
-            // Different shape types
-            const shapeTypes = ['square', 'circle', 'triangle', 'diamond', 'plus'];
+            // Create a grid background first if it doesn't exist
+            if (!document.getElementById('grid-background')) {
+                const gridBg = document.createElement('div');
+                gridBg.id = 'grid-background';
+                gridBg.style.position = 'absolute';
+                gridBg.style.top = '0';
+                gridBg.style.left = '0';
+                gridBg.style.width = '100%';
+                gridBg.style.height = '100%';
+                gridBg.style.backgroundImage = 'linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)';
+                gridBg.style.backgroundSize = '20px 20px';
+                gridBg.style.pointerEvents = 'none';
+                gridBg.style.zIndex = '-1';
+                document.querySelector('.pixel-container').insertBefore(gridBg, decorationContainer);
+            }
             
-            // Create a variety of shapes with different behaviors
-            const shapeCount = 100; // Total number of shapes
+            // Create mostly outlined squares and circles as seen in the image
+            const shapeCount = 30; // Fewer, more deliberate shapes
             
             for (let i = 0; i < shapeCount; i++) {
                 const decoration = document.createElement('div');
                 decoration.classList.add('pixel-decoration');
                 
-                // Random position across the screen
-                const x = Math.random() * 100;
-                const y = Math.random() * 100;
+                // More evenly distributed positions
+                const x = 5 + Math.random() * 90; // Keep away from extreme edges
+                const y = 5 + Math.random() * 90;
                 
-                // Random size (keeping it pixel-like)
-                const size = 4 + Math.floor(Math.random() * 8);
+                // Size variations (slightly larger than before to match the image)
+                const size = 10 + Math.floor(Math.random() * 25);
                 
-                // Random color from our palette
+                // Colors from palette, with outline being more common
                 const colorIndex = Math.floor(Math.random() * colors.length);
                 const color = colors[colorIndex];
                 
-                // Randomly decide if this shape has fill or just outline
-                const hasOutlineOnly = Math.random() > 0.6;
+                // Almost all shapes should be outlines based on the image
+                const hasOutlineOnly = Math.random() > 0.15; // 85% chance of outline
                 
                 // Apply base styles
                 decoration.style.left = `${x}vw`;
@@ -126,90 +137,52 @@
                 
                 if (hasOutlineOnly) {
                     decoration.style.backgroundColor = 'transparent';
-                    decoration.style.border = `2px solid ${color}`;
+                    decoration.style.border = `1px solid ${color}`;
+                    decoration.style.boxShadow = `0 0 2px ${color}`;
                 } else {
                     decoration.style.backgroundColor = color;
+                    decoration.style.opacity = '0.3'; // Make filled shapes subtle
                 }
                 
-                // Choose a random shape type
-                const shapeType = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                // Based on the image, mostly squares and circles
+                const shapeType = Math.random() > 0.3 ? 'square' : 'circle';
                 
-                // Apply shape-specific styles
-                switch (shapeType) {
-                    case 'circle':
-                        decoration.style.borderRadius = '50%';
-                        break;
-                    case 'triangle':
-                        decoration.style.width = '0';
-                        decoration.style.height = '0';
-                        decoration.style.backgroundColor = 'transparent';
-                        decoration.style.border = hasOutlineOnly 
-                            ? `2px solid ${color}` 
-                            : `${size}px solid transparent`;
-                        decoration.style.borderBottomColor = hasOutlineOnly ? 'transparent' : color;
-                        decoration.style.borderLeftWidth = `${size}px`;
-                        decoration.style.borderRightWidth = `${size}px`;
-                        decoration.style.borderBottomWidth = `${size * 1.5}px`;
-                        break;
-                    case 'diamond':
-                        decoration.style.transform = 'rotate(45deg)';
-                        break;
-                    case 'plus':
-                        if (!hasOutlineOnly) {
-                            decoration.style.backgroundColor = 'transparent';
-                            decoration.style.position = 'relative';
-                            
-                            // Create the plus shape with pseudo elements
-                            decoration.style.overflow = 'visible';
-                            decoration.innerHTML = `
-                                <div style="position: absolute; background-color: ${color}; 
-                                            width: 100%; height: 40%; left: 0; top: 30%"></div>
-                                <div style="position: absolute; background-color: ${color}; 
-                                            width: 40%; height: 100%; left: 30%; top: 0"></div>
-                            `;
-                        }
-                        break;
+                if (shapeType === 'circle') {
+                    decoration.style.borderRadius = '50%';
                 }
                 
-                // Choose a random animation type
+                // Small dots (like stars in the background)
+                if (Math.random() > 0.7) {
+                    decoration.style.width = '2px';
+                    decoration.style.height = '2px';
+                    decoration.style.backgroundColor = '#ffffff';
+                    decoration.style.border = 'none';
+                    decoration.style.opacity = '0.5';
+                }
+                
+                // Slow, subtle animations that match the floating feel in the image
                 const animationType = Math.random();
                 
-                // Set different animation patterns
-                if (animationType < 0.25) {
-                    // Falling animation
-                    const duration = 15 + Math.random() * 20;
-                    const delay = Math.random() * 15;
-                    decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
-                } 
-                else if (animationType < 0.5) {
-                    // Floating animation
-                    const floatDuration = 8 + Math.random() * 12;
+                if (animationType < 0.4) {
+                    // Very slow floating
+                    const floatDuration = 20 + Math.random() * 40;
                     decoration.style.animation = `pixel-float ${floatDuration}s infinite ease-in-out`;
-                }
-                else if (animationType < 0.75) {
-                    // Twinkling in place
-                    const twinkleDuration = 4 + Math.random() * 8;
-                    decoration.style.animation = `pixel-twinkle ${twinkleDuration}s infinite ease-in-out`;
+                } 
+                else if (animationType < 0.8) {
+                    // Slow rotation + subtle float for some squares
+                    decoration.style.animation = `slow-rotate ${30 + Math.random() * 60}s linear infinite, pixel-float ${35 + Math.random() * 25}s infinite ease-in-out`;
                 }
                 else {
-                    // Diagonal floating animation (new)
-                    decoration.style.animation = `pixel-diagonal ${10 + Math.random() * 15}s infinite alternate`;
-                }
-                
-                // Add additional random horizontal drift to some elements
-                if (Math.random() > 0.7) {
-                    decoration.style.animationName += ', pixel-drift';
-                    decoration.style.animationDuration += `, ${20 + Math.random() * 20}s`;
-                    decoration.style.animationIterationCount += ', infinite';
-                    decoration.style.animationDirection += ', alternate';
+                    // Just stay in place with slight twinkle
+                    decoration.style.animation = `pixel-twinkle ${15 + Math.random() * 25}s infinite ease-in-out`;
                 }
                 
                 decorationContainer.appendChild(decoration);
             }
         }
 
-        // Add this to your setInterval to make the animation refresh periodically
-        setInterval(createPixelDecorations, 60000); // Refresh every 60 seconds
+        // Refresh occasionally but not too often
+        setInterval(createPixelDecorations, 120000); // Every 2 minutes
     </script>
 </body>
 </html>
