@@ -8,9 +8,10 @@
 const visualConfig = {
     // Shape settings
     shapes: {
-        count: 25,             // Increase this for more shapes
-        minSize: 8,            // Minimum shape size in pixels
-        maxSize: 20,           // Maximum shape size in pixels
+        count: 30,             // More shapes
+        minSize: 5,            // Smaller minimum for more variation
+        maxSize: 40,           // Much larger maximum size
+        sizeDistribution: 'varied', // 'uniform', 'varied', or 'extreme'
         colors: [              // Colors matching your game theme
             '#5b8dd9',         // primary
             '#56b886',         // secondary
@@ -19,41 +20,17 @@ const visualConfig = {
             '#9c77db',         // purple
             '#5bbcd9'          // cyan
         ],
-        followSpeed: 0.01,     // How quickly shapes follow the mouse (lowered for more independence)
-        interactionDistance: 150,  // How far shapes react to the mouse
+        followSpeed: 0.002,    // Drastically reduced follow speed
+        interactionDistance: 180, // Slightly increased interaction distance
+        interactionStrength: 0.6, // Reduced from default 2.0
         enabledPages: [        // Only enable shapes on these pages
             'landing',         // Landing page
             'character-select' // Character selection
             // 'game'          // Commented out to disable on game screen
         ]
-    },
-    
-    // Particle burst settings
-    particles: {
-        count: 30,             // Increased particle count
-        size: {
-            min: 4,            // Slightly larger minimum
-            max: 10            // Larger maximum
-        },
-        speed: {
-            min: 1,            // Slower minimum speed for longer trails
-            max: 4             // Slightly reduced maximum speed
-        },
-        duration: 2500,        // Much longer duration (2.5 seconds)
-        fadeStart: 0.6,        // When particles start to fade (proportion of duration)
-        trail: 0.3,            // Trail effect intensity (0-1)
-        gravity: 0.03,         // Reduced gravity for more floating effect
-        colors: [              // Particle colors
-            '#5b8dd9',         // primary
-            '#56b886',         // secondary
-            '#e67e73',         // danger
-            '#f0c866',         // warning
-            '#9c77db',         // purple
-            '#5bbcd9'          // cyan
-        ],
-        glow: true             // Add glow effect to particles
     }
-};
+}
+
 
 // Store for all active shapes
 let shapes = [];
@@ -124,12 +101,50 @@ function shouldEnableShapesOnCurrentPage() {
  */
 function createShape(container) {
     const shape = document.createElement('div');
-    const size = Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) + visualConfig.shapes.minSize;
+    
+    // Apply size distribution based on config
+    let size;
+    if (visualConfig.shapes.sizeDistribution === 'uniform') {
+        // Uniform distribution
+        size = Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) + visualConfig.shapes.minSize;
+    } else if (visualConfig.shapes.sizeDistribution === 'extreme') {
+        // More small and large shapes, fewer medium shapes
+        const r = Math.random();
+        if (r < 0.6) { // 60% small shapes
+            size = visualConfig.shapes.minSize + Math.random() * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) * 0.3;
+        } else { // 40% large shapes
+            size = visualConfig.shapes.minSize + (visualConfig.shapes.maxSize - visualConfig.shapes.minSize) * (0.7 + Math.random() * 0.3);
+        }
+    } else { // 'varied' - default
+        // More varied distribution with bias toward smaller shapes
+        const r = Math.pow(Math.random(), 1.5); // Power function creates more small shapes
+        size = visualConfig.shapes.minSize + r * (visualConfig.shapes.maxSize - visualConfig.shapes.minSize);
+    }
+    
     const color = visualConfig.shapes.colors[Math.floor(Math.random() * visualConfig.shapes.colors.length)];
     
     // Random position within viewport
     const x = Math.random() * window.innerWidth;
     const y = Math.random() * window.innerHeight;
+    
+    // Adjust opacity based on size for a depth effect
+    const sizeRatio = (size - visualConfig.shapes.minSize) / (visualConfig.shapes.maxSize - visualConfig.shapes.minSize);
+    const baseOpacity = 0.2 + (sizeRatio * 0.3); // Larger shapes are more opaque
+    
+    // Vary shape types
+    const shapeType = Math.random();
+    let borderRadius, rotation;
+    
+    if (shapeType < 0.6) { // 60% circles
+        borderRadius = '50%';
+        rotation = '0deg'; // Rotation doesn't matter for perfect circles
+    } else if (shapeType < 0.9) { // 30% rounded squares
+        borderRadius = Math.random() * 5 + 2 + 'px';
+        rotation = Math.random() * 360 + 'deg';
+    } else { // 10% diamond shapes
+        borderRadius = '2px';
+        rotation = '45deg';
+    }
     
     // Shape styling
     shape.style.cssText = `
@@ -137,15 +152,19 @@ function createShape(container) {
         width: ${size}px;
         height: ${size}px;
         background-color: ${color};
-        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-        opacity: ${Math.random() * 0.4 + 0.2};
-        transform: translate(${x}px, ${y}px) rotate(${Math.random() * 360}deg);
-        box-shadow: 0 0 ${size/2}px rgba(255,255,255,0.3);
+        border-radius: ${borderRadius};
+        opacity: ${baseOpacity};
+        transform: translate(${x}px, ${y}px) rotate(${rotation});
+        box-shadow: 0 0 ${size/3}px rgba(255,255,255,0.2);
         pointer-events: none;
-        transition: opacity 0.5s ease;
+        transition: opacity 0.8s ease;
+        will-change: transform, opacity;
     `;
     
     container.appendChild(shape);
+    
+    // Slower movement for larger shapes to create depth effect
+    const speedFactor = 1 - (sizeRatio * 0.8); // Larger shapes move slower
     
     // Store shape data for animation
     shapes.push({
@@ -154,9 +173,10 @@ function createShape(container) {
         y: y,
         size: size,
         angle: Math.random() * 360,
-        speedX: Math.random() * 0.5 - 0.25,
-        speedY: Math.random() * 0.5 - 0.25,
-        rotationSpeed: Math.random() * 0.5 - 0.25
+        speedX: (Math.random() * 0.4 - 0.2) * speedFactor,
+        speedY: (Math.random() * 0.4 - 0.2) * speedFactor,
+        rotationSpeed: (Math.random() * 0.4 - 0.2) * speedFactor,
+        baseOpacity: baseOpacity
     });
 }
 
@@ -181,12 +201,13 @@ function updateShapesWithMouseInteraction() {
         shape.y += shape.speedY;
         
         // Occasionally change direction slightly for more organic movement
-        if (Math.random() < 0.01) {
-            shape.speedX += (Math.random() - 0.5) * 0.1;
-            shape.speedY += (Math.random() - 0.5) * 0.1;
+        if (Math.random() < 0.005) {
+            // Smaller direction changes for more stable movement
+            shape.speedX += (Math.random() - 0.5) * 0.05;
+            shape.speedY += (Math.random() - 0.5) * 0.05;
             
-            // Limit max speed
-            const maxSpeed = 0.5;
+            // Limit max speed (lower for smoother movement)
+            const maxSpeed = 0.3;
             const currentSpeed = Math.sqrt(shape.speedX * shape.speedX + shape.speedY * shape.speedY);
             if (currentSpeed > maxSpeed) {
                 shape.speedX = (shape.speedX / currentSpeed) * maxSpeed;
@@ -196,21 +217,27 @@ function updateShapesWithMouseInteraction() {
         
         // Mouse interaction - only when mouse is close
         if (distance < visualConfig.shapes.interactionDistance) {
-            // Move away from mouse
+            // Move away from mouse with a MUCH more gentle force
             const angle = Math.atan2(dy, dx);
-            const repelForce = (1 - distance / visualConfig.shapes.interactionDistance) * 2;
             
+            // Use interaction strength from config - this is key to fixing the flying shapes
+            const repelForce = (1 - distance / visualConfig.shapes.interactionDistance) * visualConfig.shapes.interactionStrength;
+            
+            // Apply gentler repulsion
             shape.x -= Math.cos(angle) * repelForce;
             shape.y -= Math.sin(angle) * repelForce;
             
             // Increase opacity when interacting
-            shape.element.style.opacity = Math.min(0.8, parseFloat(shape.element.style.opacity) + 0.05);
+            const targetOpacity = Math.min(0.8, shape.baseOpacity * 1.5);
+            const currentOpacity = parseFloat(shape.element.style.opacity);
+            shape.element.style.opacity = currentOpacity + (targetOpacity - currentOpacity) * 0.1;
         } else {
             // Gradually return to normal opacity
-            shape.element.style.opacity = Math.max(0.2, parseFloat(shape.element.style.opacity) - 0.01);
+            const currentOpacity = parseFloat(shape.element.style.opacity);
+            shape.element.style.opacity = currentOpacity + (shape.baseOpacity - currentOpacity) * 0.05;
         }
         
-        // Much gentler attraction to center of screen for very distant shapes
+        // Very gentle attraction to center of screen for very distant shapes
         // This prevents shapes from drifting too far away
         if (distance > window.innerWidth / 2) {
             const centerX = window.innerWidth / 2;
@@ -218,21 +245,22 @@ function updateShapesWithMouseInteraction() {
             const dxCenter = centerX - shape.x;
             const dyCenter = centerY - shape.y;
             
-            shape.x += dxCenter * 0.0001;
-            shape.y += dyCenter * 0.0001;
+            shape.x += dxCenter * 0.00005;
+            shape.y += dyCenter * 0.00005;
         }
         
-        // Boundary check - wrap around screen
-        if (shape.x < -shape.size) shape.x = window.innerWidth + shape.size;
-        if (shape.x > window.innerWidth + shape.size) shape.x = -shape.size;
-        if (shape.y < -shape.size) shape.y = window.innerHeight + shape.size;
-        if (shape.y > window.innerHeight + shape.size) shape.y = -shape.size;
+        // Boundary check - wrap around screen with a buffer
+        const buffer = shape.size * 2;
+        if (shape.x < -buffer) shape.x = window.innerWidth + buffer;
+        if (shape.x > window.innerWidth + buffer) shape.x = -buffer;
+        if (shape.y < -buffer) shape.y = window.innerHeight + buffer;
+        if (shape.y > window.innerHeight + buffer) shape.y = -buffer;
         
-        // Update rotation
+        // Update rotation more gently
         shape.angle += shape.rotationSpeed;
         
-        // Apply position and rotation
-        shape.element.style.transform = `translate(${shape.x}px, ${shape.y}px) rotate(${shape.angle}deg)`;
+        // Apply position and rotation with hardware acceleration hint
+        shape.element.style.transform = `translate3d(${shape.x}px, ${shape.y}px, 0) rotate(${shape.angle}deg)`;
     });
     
     // Continue animation loop
@@ -377,15 +405,6 @@ function createParticleBurst(x, y, color = null) {
  * Replaces your existing playButtonSound function
  */
 function playButtonSound(e) {
-    // Create particle burst at click coordinates
-    if (e && e.clientX) {
-        createParticleBurst(e.clientX, e.clientY);
-    } else if (e && e.target) {
-        // If event but no coordinates, burst from target center
-        const rect = e.target.getBoundingClientRect();
-        createParticleBurst(rect.left + rect.width/2, rect.top + rect.height/2);
-    }
-    
     // When you add audio files, you can uncomment this
     // const sound = new Audio('/static/audio/click.mp3');
     // sound.volume = 0.3;
@@ -397,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize background shapes
     initBackgroundShapes();
     
-    // Replace button click handlers with enhanced version that includes particle effects
+    // Replace button click handlers with enhanced version that includes sound effects
     document.querySelectorAll('.retro-btn, .game-btn, .btn').forEach(button => {
         button.addEventListener('click', playButtonSound);
     });
@@ -414,5 +433,4 @@ window.addEventListener('resize', function() {
 
 // Export functions so they're available globally
 window.updateShapesWithMouseInteraction = updateShapesWithMouseInteraction;
-window.createParticleBurst = createParticleBurst;
 window.playButtonSound = playButtonSound;
