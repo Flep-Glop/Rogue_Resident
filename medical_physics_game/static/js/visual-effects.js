@@ -58,9 +58,9 @@ const visualConfig = {
         },
         mouseInteraction: {
             radius: 150,       // How far mouse influence reaches
-            strength: 0.05,    // Increased from 0.015 to 0.05 (over 3x stronger)
-            friction: 0.985,   // Friction to slow movement
-            maxSpeed: 0.3,     // Increased from 0.15 to 0.3 (faster movement)
+            strength: 0.2,     // Dramatically increased from 0.05 to 0.2 (4x stronger)
+            friction: 0.95,    // Increased friction to slow movement
+            maxSpeed: 1.2,     // Dramatically increased from 0.3 to 1.2 (4x faster)
             springStrength: 0.004, // How strongly shapes return to origin
             springRadius: 100, // How far shapes can drift before spring force
             jitter: 0.0005     // Tiny random movement
@@ -127,13 +127,14 @@ function clearExistingShapes() {
 }
 
 /**
- * Add CSS styles for animations
+ * Add CSS styles for animations and screen effects
  */
 function addAnimationStyles() {
     if (!document.getElementById('shape-animation-styles')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'shape-animation-styles';
         styleEl.textContent = `
+            /* Shape animations */
             @keyframes rotate {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
@@ -164,6 +165,63 @@ function addAnimationStyles() {
             
             .rainbow {
                 animation: rainbow 3s linear infinite;
+            }
+            
+            /* CRT and scanline effects */
+            .crt-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(ellipse at center, rgba(10, 15, 30, 0) 0%, rgba(10, 15, 30, 0.3) 100%);
+                pointer-events: none;
+                z-index: 9997;
+                mix-blend-mode: multiply;
+                opacity: 0.4;
+            }
+            
+            .scanlines {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.03) 50%,
+                    rgba(255, 255, 255, 0) 100%
+                );
+                background-size: 100% 2px;
+                z-index: 9998;
+                pointer-events: none;
+                opacity: 0.25;
+            }
+            
+            .vignette-effect {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.7);
+                pointer-events: none;
+                z-index: 9999;
+                opacity: 0.3;
+            }
+            
+            /* Subtle flicker animation */
+            @keyframes crt-flicker {
+                0% { opacity: 0.4; }
+                42% { opacity: 0.4; }
+                43% { opacity: 0.35; }
+                44% { opacity: 0.4; }
+                100% { opacity: 0.4; }
+            }
+            
+            .crt-overlay {
+                animation: crt-flicker 6s infinite;
             }
         `;
         document.head.appendChild(styleEl);
@@ -216,6 +274,23 @@ function createContainers() {
         overflow: hidden;
     `;
     document.body.appendChild(shapesContainer);
+    
+    // Add screen effects
+    
+    // CRT effect (subtle curved screen effect)
+    const crtOverlay = document.createElement('div');
+    crtOverlay.classList.add('crt-overlay');
+    document.body.appendChild(crtOverlay);
+    
+    // Scanlines effect
+    const scanlines = document.createElement('div');
+    scanlines.classList.add('scanlines');
+    document.body.appendChild(scanlines);
+    
+    // Vignette effect (darkened corners)
+    const vignette = document.createElement('div');
+    vignette.classList.add('vignette-effect');
+    document.body.appendChild(vignette);
 }
 
 /**
@@ -628,9 +703,6 @@ function trackMouse(e) {
 function updateShapes() {
     const interaction = visualConfig.shapes.mouseInteraction;
     
-    // Debug mouse position
-    // console.log("Current mouse:", mouseX, mouseY);
-    
     shapes.forEach(shape => {
         // Apply friction
         shape.speedX *= interaction.friction;
@@ -655,22 +727,42 @@ function updateShapes() {
             shape.speedY += dyOrigin * springFactor;
         }
         
-        // Mouse interaction - STRONGER and more visible
+        // Mouse interaction - DRAMATICALLY STRONGER now
         const dxMouse = mouseX - shape.x;
         const dyMouse = mouseY - shape.y;
         const distanceFromMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
         
         if (distanceFromMouse < interaction.radius) {
-            // Using a stronger formula for more noticeable effect
-            const influence = Math.pow(1 - distanceFromMouse / interaction.radius, 1.5) * interaction.strength;
+            // Using a much stronger formula with cubic falloff
+            const influence = Math.pow(1 - distanceFromMouse / interaction.radius, 2) * interaction.strength;
             
             const angle = Math.atan2(dyMouse, dxMouse);
-            shape.speedX -= Math.cos(angle) * influence;
-            shape.speedY -= Math.sin(angle) * influence;
+            shape.speedX -= Math.cos(angle) * influence * 5; // Multiplied by 5 for much stronger effect
+            shape.speedY -= Math.sin(angle) * influence * 5;
             
-            // Optional: temporarily increase opacity when interacting with mouse
+            // Temporarily increase opacity when interacting with mouse
             const currentOpacity = parseFloat(shape.element.style.opacity) || 0.3;
-            shape.element.style.opacity = Math.min(currentOpacity * 1.5, 0.8);
+            shape.element.style.opacity = Math.min(0.9, currentOpacity * 1.8); // Higher contrast
+            shape.lastInteractionTime = Date.now(); // Track when the last interaction occurred
+        } else if (shape.lastInteractionTime) {
+            // Gradually fade back to original opacity over time
+            const timeSinceInteraction = Date.now() - shape.lastInteractionTime;
+            if (timeSinceInteraction > 1000) { // After 1 second start fading back
+                // Gradually reduce opacity back to normal over 2 seconds
+                const fadeProgress = Math.min(1, (timeSinceInteraction - 1000) / 2000);
+                const targetOpacity = shape.baseOpacity || 0.3;
+                const currentOpacity = parseFloat(shape.element.style.opacity) || 0.3;
+                
+                // Smoothly interpolate back to original opacity
+                if (currentOpacity > targetOpacity) {
+                    shape.element.style.opacity = currentOpacity - (fadeProgress * (currentOpacity - targetOpacity) * 0.1);
+                }
+                
+                // Reset last interaction time if we're back to normal
+                if (Math.abs(currentOpacity - targetOpacity) < 0.01) {
+                    shape.lastInteractionTime = null;
+                }
+            }
         }
         
         // Apply speed limit
@@ -698,7 +790,7 @@ function updateShapes() {
         
         // Need to preserve any rotation in transform
         if (transform.includes('rotate')) {
-            baseTransform = transform.replace(/translate\([^)]+\)/, '');
+            baseTransform = transform.replace(/translate3d\([^)]+\)/, '').replace(/translate\([^)]+\)/, '');
             shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0) ${baseTransform}`;
         } else {
             shape.element.style.transform = `translate3d(${shape.x - shape.size/2}px, ${shape.y - shape.size/2}px, 0)`;
