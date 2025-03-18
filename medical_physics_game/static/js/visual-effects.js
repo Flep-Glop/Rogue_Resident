@@ -1,135 +1,17 @@
-// Create CRT and scanline effects
-function createCRTEffects() {
-    // Create CRT overlay
-    const crtOverlay = document.createElement('div');
-    crtOverlay.className = 'crt-overlay';
-    
-    // Create scanlines
-    const scanlines = document.createElement('div');
-    scanlines.className = 'scanlines';
-    
-    // Style the CRT overlay
-    Object.assign(crtOverlay.style, {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      zIndex: 3,
-      background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0.3) 90%)',
-      opacity: config.crtEffectStrength,
-      mixBlendMode: 'multiply'
-    });
-    
-    // Style the scanlines
-    Object.assign(scanlines.style, {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      zIndex: 4,
-      background: `linear-gradient(
-        to bottom,
-        transparent ${100 - config.scanlineSpacing}%,
-        rgba(0, 0, 0, ${config.scanlineOpacity}) ${100 - config.scanlineSpacing}%,
-        rgba(0, 0, 0, ${config.scanlineOpacity}) 100%
-      )`,
-      backgroundSize: `100% ${config.scanlineSpacing}px`,
-      opacity: config.scanlineOpacity * 2
-    });
-    
-    // Add flicker animation to CRT
-    crtOverlay.innerHTML = `
-      <style>
-        @keyframes crtFlicker {
-          0% { opacity: ${config.crtEffectStrength}; }
-          3% { opacity: ${config.crtEffectStrength * 0.8}; }
-          6% { opacity: ${config.crtEffectStrength}; }
-          92% { opacity: ${config.crtEffectStrength}; }
-          94% { opacity: ${config.crtEffectStrength * 0.8}; }
-          96% { opacity: ${config.crtEffectStrength}; }
-        }
-        .crt-overlay {
-          animation: crtFlicker 10s infinite;
-        }
-        
-        @keyframes scanlineScroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 ${config.scanlineSpacing * 2}px; }
-        }
-        .scanlines {
-          animation: scanlineScroll 1s linear infinite;
-        }
-      </style>
-    `;
-    
-    // Add to container
-    container.appendChild(crtOverlay);
-    container.appendChild(scanlines);
-  }/**
+/**
  * visual-effects.js - Dynamic background effects for Rogue Resident
  * This script creates an interactive, multi-layered background with various geometric shapes
  * that respond to mouse movements and create a visually engaging experience.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Check if pixel-container exists, which is the main container in the landing page
-  const container = document.querySelector('.pixel-container');
-  if (!container) {
-    console.warn('Pixel container not found, background effects disabled');
-    return;
-  }
-  
-  // Create and initialize canvas element
-  const canvas = document.createElement('canvas');
-  canvas.id = 'background-canvas';
-  
-  // Apply styles to position canvas behind all content but above the grid background
-  Object.assign(canvas.style, {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 0,
-    pointerEvents: 'none', // Allow clicks to pass through
-    imageRendering: 'pixelated' // Keep the retro pixel aesthetic
-  });
-  
-  // Insert canvas into the pixel-container before other elements
-  container.insertBefore(canvas, container.firstChild);
-  
-  const ctx = canvas.getContext('2d');
-  
-  // Set canvas dimensions to window size
-  function setCanvasSize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    // Set canvas background to match the dark blue from the screenshot
-    canvas.style.backgroundColor = '#0f1631';
-  }
-  setCanvasSize();
-  
-  // Track mouse position
-  let mouse = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    moving: false,
-    lastMove: Date.now()
-  };
-  
-  // Configuration variables for the visual effects
-  const config = {
+// Define core configuration and variables in the global scope
+const config = {
     // UI area to protect (center of screen where game content is)
     uiBox: {
-      get x() { return canvas.width * 0.3; },
-      get y() { return canvas.height * 0.2; },
-      get width() { return canvas.width * 0.4; },
-      get height() { return canvas.height * 0.6; }
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
     },
     colors: {
       primary: '#8be8e5',    // Bright cyan (matches the image)
@@ -137,12 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
       accent1: '#f0c866',    // Yellow
       accent2: '#d35db3',    // Pink/purple
       accent3: '#9c77db',    // Purple
-      dark: '#0f1631'        // Dark blue background (matches your screenshot)
+      dark: '#0f1631'        // Dark blue background
     },
     // Increased number and size of shapes
-    maxDynamicShapes: window.innerWidth < 768 ? 10 : 20,
-    maxStaticShapes: window.innerWidth < 768 ? 15 : 25,
-    maxDistantShapes: window.innerWidth < 768 ? 5 : 10,
+    maxDynamicShapes: 20,
+    maxStaticShapes: 25,
+    maxDistantShapes: 10,
     // Mouse influence distance and force
     mouseInfluenceRadius: 150,
     mouseForce: 0.8,
@@ -156,7 +38,20 @@ document.addEventListener('DOMContentLoaded', function() {
     scanlineSpacing: 3,      // Space between scan lines
     scanlineOpacity: 0.2     // How visible scan lines are
   };
-  });
+  
+  // Initialize mouse tracking
+  let mouse = {
+    x: 0,
+    y: 0,
+    moving: false,
+    lastMove: Date.now()
+  };
+  
+  // Store canvas context and shapes globally
+  let canvas, ctx;
+  let dynamicShapes = [];
+  let staticShapes = [];
+  let distantShapes = [];
   
   /**
    * Shape Classes
@@ -409,17 +304,114 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Create shape collections for each layer
-  let dynamicShapes = [];
-  let staticShapes = [];
-  let distantShapes = [];
+  // Set canvas dimensions to window size
+  function setCanvasSize() {
+    if (!canvas) return;
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Update UI box dimensions based on new canvas size
+    config.uiBox = {
+      x: canvas.width * 0.3,
+      y: canvas.height * 0.2,
+      width: canvas.width * 0.4,
+      height: canvas.height * 0.6
+    };
+    
+    // Set canvas background to match the dark blue
+    canvas.style.backgroundColor = '#0f1631';
+  }
+  
+  // Create CRT and scanline effects
+  function createCRTEffects(container) {
+    if (!container) return;
+    
+    // Create CRT overlay
+    const crtOverlay = document.createElement('div');
+    crtOverlay.className = 'crt-overlay';
+    
+    // Create scanlines
+    const scanlines = document.createElement('div');
+    scanlines.className = 'scanlines';
+    
+    // Style the CRT overlay
+    Object.assign(crtOverlay.style, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 3,
+      background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0.3) 90%)',
+      opacity: config.crtEffectStrength,
+      mixBlendMode: 'multiply'
+    });
+    
+    // Style the scanlines
+    Object.assign(scanlines.style, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      pointerEvents: 'none',
+      zIndex: 4,
+      background: `linear-gradient(
+        to bottom,
+        transparent ${100 - config.scanlineSpacing}%,
+        rgba(0, 0, 0, ${config.scanlineOpacity}) ${100 - config.scanlineSpacing}%,
+        rgba(0, 0, 0, ${config.scanlineOpacity}) 100%
+      )`,
+      backgroundSize: `100% ${config.scanlineSpacing}px`,
+      opacity: config.scanlineOpacity * 2
+    });
+    
+    // Add flicker animation to CRT
+    crtOverlay.innerHTML = `
+      <style>
+        @keyframes crtFlicker {
+          0% { opacity: ${config.crtEffectStrength}; }
+          3% { opacity: ${config.crtEffectStrength * 0.8}; }
+          6% { opacity: ${config.crtEffectStrength}; }
+          92% { opacity: ${config.crtEffectStrength}; }
+          94% { opacity: ${config.crtEffectStrength * 0.8}; }
+          96% { opacity: ${config.crtEffectStrength}; }
+        }
+        .crt-overlay {
+          animation: crtFlicker 10s infinite;
+        }
+        
+        @keyframes scanlineScroll {
+          0% { background-position: 0 0; }
+          100% { background-position: 0 ${config.scanlineSpacing * 2}px; }
+        }
+        .scanlines {
+          animation: scanlineScroll 1s linear infinite;
+        }
+      </style>
+    `;
+    
+    // Add to container
+    container.appendChild(crtOverlay);
+    container.appendChild(scanlines);
+  }
   
   // Initialize shapes with good distribution
   function initShapes() {
+    // Ensure we have a canvas context before proceeding
+    if (!canvas || !ctx) return;
+    
     // Clear existing shapes
     dynamicShapes = [];
     staticShapes = [];
     distantShapes = [];
+    
+    // Update max shapes based on window size
+    config.maxDynamicShapes = window.innerWidth < 768 ? 10 : 20;
+    config.maxStaticShapes = window.innerWidth < 768 ? 15 : 25;
+    config.maxDistantShapes = window.innerWidth < 768 ? 5 : 10;
     
     // Create distant background shapes
     for (let i = 0; i < config.maxDistantShapes; i++) {
@@ -439,6 +431,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Create shapes with distribution across quadrants
   function createDynamicShape() {
+    if (!canvas) return;
+    
     // Determine which quadrant to place the shape in to ensure better distribution
     const quadrant = dynamicShapes.length % 4;
     let x, y;
@@ -502,6 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Create static middle-layer shapes
   function createStaticShape() {
+    if (!canvas) return;
+    
     // Use similar distribution as dynamic shapes but different settings
     const quadrant = staticShapes.length % 4;
     let x, y;
@@ -576,6 +572,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Create distant background shapes
   function createDistantShape() {
+    if (!canvas) return;
+    
     // Distribute evenly
     const index = distantShapes.length;
     const totalShapes = config.maxDistantShapes;
@@ -610,8 +608,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 150);
   }
   
+  // Function to draw the grid pattern as seen in the screenshot
+  function drawGridPattern() {
+    if (!ctx || !canvas) return;
+    
+    // Set grid line colors and opacity
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    
+    // Define grid size (match the existing grid in your screenshot)
+    const gridSize = 20;
+    
+    // Draw vertical lines
+    for (let x = 0; x <= canvas.width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    
+    // Draw horizontal lines
+    for (let y = 0; y <= canvas.height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+  }
+  
   // Main animation loop
   function animate() {
+    if (!ctx || !canvas) return;
+    
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -659,125 +687,137 @@ document.addEventListener('DOMContentLoaded', function() {
     requestAnimationFrame(animate);
   }
   
-  // Function to draw the grid pattern as seen in the screenshot
-  function drawGridPattern() {
-    // Set grid line colors and opacity
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    
-    // Define grid size (match the existing grid in your screenshot)
-    const gridSize = 20;
-    
-    // Draw vertical lines
-    for (let x = 0; x <= canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
+  // Initialize the visual effects when the DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if pixel-container exists, which is the main container in the landing page
+    const container = document.querySelector('.pixel-container');
+    if (!container) {
+      console.warn('Pixel container not found, background effects disabled');
+      return;
     }
     
-    // Draw horizontal lines
-    for (let y = 0; y <= canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-  }
-  
-  // Event listeners
-  window.addEventListener('mousemove', trackMouse);
-  window.addEventListener('touchmove', e => {
-    trackMouse({
-      clientX: e.touches[0].clientX,
-      clientY: e.touches[0].clientY
+    // Create and initialize canvas element
+    canvas = document.createElement('canvas');
+    canvas.id = 'background-canvas';
+    
+    // Apply styles to position canvas behind all content but above the grid background
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      zIndex: 0,
+      pointerEvents: 'none', // Allow clicks to pass through
+      imageRendering: 'pixelated' // Keep the retro pixel aesthetic
     });
-  });
-  
-  // Handle window resize
-  window.addEventListener('resize', () => {
+    
+    // Insert canvas into the pixel-container before other elements
+    container.insertBefore(canvas, container.firstChild);
+    
+    ctx = canvas.getContext('2d');
+    
+    // Set initial canvas dimensions
     setCanvasSize();
+    
+    // Create CRT effects
+    createCRTEffects(container);
+    
+    // Initialize shapes
     initShapes();
-  });
-  
-  // Initialize and start animation
-  initShapes();
-  animate();
-  
-  // Add occasional new shape creation to keep things interesting
-  setInterval(() => {
-    // Randomly add a new shape or replace an old one
-    if (dynamicShapes.length < config.maxDynamicShapes) {
-      createDynamicShape();
-    } else if (Math.random() > 0.7) {
-      // Replace a random shape
-      const index = Math.floor(Math.random() * dynamicShapes.length);
-      dynamicShapes.splice(index, 1);
-      createDynamicShape();
-    }
-  }, 3000);
-  
-  // Add debug message to console to confirm script is running
-  console.log('Rogue Resident background effects initialized');
-  
-  // Add a special floating pixel effect when a button is hovered
-  const buttons = document.querySelectorAll('.retro-btn');
-  buttons.forEach(button => {
-    button.addEventListener('mouseenter', function() {
-      // Create 5 particles when hovering over buttons
-      for (let i = 0; i < 5; i++) {
-        const x = button.getBoundingClientRect().left + Math.random() * button.offsetWidth;
-        const y = button.getBoundingClientRect().top + Math.random() * button.offsetHeight;
-        
-        // Use button's background color for particles
-        const computedStyle = window.getComputedStyle(button);
-        const color = computedStyle.backgroundColor;
-        
-        // Create a small shape at button position
-        const size = Math.random() * 6 + 4;
-        const options = {
-          x, 
-          y,
-          size,
-          vx: (Math.random() - 0.5) * 2,
-          vy: -Math.random() * 2 - 1, // Float upward
-          alpha: 0.7,
-          color: button.style.backgroundColor || '#5b8dd9'
-        };
-        
-        // Add shape based on random type
-        const shapeType = Math.floor(Math.random() * 4);
-        let shape;
-        
-        switch(shapeType) {
-          case 0: shape = new Circle(options); break;
-          case 1: shape = new Square(options); break;
-          case 2: shape = new Triangle(options); break;
-          case 3: shape = new Diamond(options); break;
-        }
-        
-        // Add to dynamic shapes array
-        dynamicShapes.push(shape);
-        
-        // Remove after animation
-        setTimeout(() => {
-          const index = dynamicShapes.indexOf(shape);
-          if (index > -1) {
-            dynamicShapes.splice(index, 1);
-          }
-        }, 2000);
-      }
+    
+    // Start animation loop
+    animate();
+    
+    // Add event listeners for mouse tracking
+    window.addEventListener('mousemove', trackMouse);
+    window.addEventListener('touchmove', e => {
+      trackMouse({
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY
+      });
     });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      setCanvasSize();
+      initShapes();
+    });
+    
+    // Add occasional new shape creation to keep things interesting
+    setInterval(() => {
+      // Randomly add a new shape or replace an old one
+      if (dynamicShapes.length < config.maxDynamicShapes) {
+        createDynamicShape();
+      } else if (Math.random() > 0.7) {
+        // Replace a random shape
+        const index = Math.floor(Math.random() * dynamicShapes.length);
+        dynamicShapes.splice(index, 1);
+        createDynamicShape();
+      }
+    }, 3000);
+    
+    // Add special floating pixel effect when a button is hovered
+    const buttons = document.querySelectorAll('.retro-btn');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        // Create 5 particles when hovering over buttons
+        for (let i = 0; i < 5; i++) {
+          const x = button.getBoundingClientRect().left + Math.random() * button.offsetWidth;
+          const y = button.getBoundingClientRect().top + Math.random() * button.offsetHeight;
+          
+          // Use button's background color for particles
+          const computedStyle = window.getComputedStyle(button);
+          const color = computedStyle.backgroundColor;
+          
+          // Create a small shape at button position
+          const size = Math.random() * 6 + 4;
+          const options = {
+            x, 
+            y,
+            size,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -Math.random() * 2 - 1, // Float upward
+            alpha: 0.7,
+            color: button.style.backgroundColor || '#5b8dd9'
+          };
+          
+          // Add shape based on random type
+          const shapeType = Math.floor(Math.random() * 4);
+          let shape;
+          
+          switch(shapeType) {
+            case 0: shape = new Circle(options); break;
+            case 1: shape = new Square(options); break;
+            case 2: shape = new Triangle(options); break;
+            case 3: shape = new Diamond(options); break;
+          }
+          
+          // Add to dynamic shapes array
+          dynamicShapes.push(shape);
+          
+          // Remove after animation
+          setTimeout(() => {
+            const index = dynamicShapes.indexOf(shape);
+            if (index > -1) {
+              dynamicShapes.splice(index, 1);
+            }
+          }, 2000);
+        }
+      });
+    });
+    
+    // For debugging and development
+    window.bgEffects = {
+      config,
+      shapes: {
+        dynamic: dynamicShapes,
+        static: staticShapes,
+        distant: distantShapes
+      },
+      // Export functions for external control
+      reinitialize: initShapes
+    };
+    
+    console.log('Rogue Resident background effects initialized');
   });
-  
-  // For debugging and development
-  window.bgEffects = {
-    config,
-    shapes: {
-      dynamic: dynamicShapes,
-      static: staticShapes,
-      distant: distantShapes
-    },
-    // Export functions for external control
-    reinitialize: initShapes
-  };
