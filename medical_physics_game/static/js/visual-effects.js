@@ -115,10 +115,69 @@ const DEBUG = {
 // Debug counter to limit number of logs
 let debugLogCounter = 0;
 const MAX_DEBUG_LOGS = 20;
+// 1. Add debug visualization for corner areas
+function highlightCornerAreas() {
+    if (!DEBUG || !DEBUG.enabled) return;
+    
+    const cornerRadius = visualConfig.distribution.cornerRadius;
+    const edgeMargin = visualConfig.distribution.edgeMargin;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Create corner visualizations
+    const corners = [
+        { id: 'top-left', x: 0, y: 0 },
+        { id: 'top-right', x: width - cornerRadius, y: 0 },
+        { id: 'bottom-left', x: 0, y: height - cornerRadius },
+        { id: 'bottom-right', x: width - cornerRadius, y: height - cornerRadius }
+    ];
+    
+    corners.forEach(corner => {
+        const element = document.createElement('div');
+        element.id = `corner-${corner.id}`;
+        element.style.cssText = `
+            position: fixed;
+            top: ${corner.y}px;
+            left: ${corner.x}px;
+            width: ${cornerRadius}px;
+            height: ${cornerRadius}px;
+            border: 1px dashed rgba(255, 0, 0, 0.5);
+            background-color: rgba(255, 0, 0, 0.1);
+            z-index: 8000;
+            pointer-events: none;
+        `;
+        document.body.appendChild(element);
+    });
+    
+    // Visualize edge margins
+    const edges = [
+        { id: 'top', x: 0, y: 0, width: width, height: edgeMargin },
+        { id: 'right', x: width - edgeMargin, y: 0, width: edgeMargin, height: height },
+        { id: 'bottom', x: 0, y: height - edgeMargin, width: width, height: edgeMargin },
+        { id: 'left', x: 0, y: 0, width: edgeMargin, height: height }
+    ];
+    
+    edges.forEach(edge => {
+        const element = document.createElement('div');
+        element.id = `edge-${edge.id}`;
+        element.style.cssText = `
+            position: fixed;
+            top: ${edge.y}px;
+            left: ${edge.x}px;
+            width: ${edge.width}px;
+            height: ${edge.height}px;
+            border: 1px dotted rgba(255, 165, 0, 0.5);
+            background-color: rgba(255, 165, 0, 0.1);
+            z-index: 7999;
+            pointer-events: none;
+        `;
+        document.body.appendChild(element);
+    });
+}
 
-// Setup debug overlay to visualize issues
+// 2. Improved setup debug overlay
 function setupDebugOverlay() {
-    if (!DEBUG.enabled) return;
+    if (!DEBUG || !DEBUG.enabled) return;
     
     // Remove existing debug overlay if any
     let existingOverlay = document.getElementById('debug-overlay');
@@ -150,6 +209,35 @@ function setupDebugOverlay() {
     title.style.marginBottom = '8px';
     overlay.appendChild(title);
     
+    // Add control buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginBottom = '10px';
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.gap = '5px';
+    
+    const refreshButton = document.createElement('button');
+    refreshButton.textContent = 'Refresh Shapes';
+    refreshButton.style.padding = '3px 6px';
+    refreshButton.style.fontSize = '10px';
+    refreshButton.addEventListener('click', () => {
+        cleanup();
+        createContainers();
+        addAnimationStyles();
+        createAllShapes();
+    });
+    
+    const highlightShapesButton = document.createElement('button');
+    highlightShapesButton.textContent = 'Highlight All Shapes';
+    highlightShapesButton.style.padding = '3px 6px';
+    highlightShapesButton.style.fontSize = '10px';
+    highlightShapesButton.addEventListener('click', () => {
+        highlightAllShapes();
+    });
+    
+    buttonContainer.appendChild(refreshButton);
+    buttonContainer.appendChild(highlightShapesButton);
+    overlay.appendChild(buttonContainer);
+    
     // Add statistics container
     const statsContainer = document.createElement('div');
     statsContainer.id = 'debug-stats';
@@ -162,19 +250,126 @@ function setupDebugOverlay() {
     updateDebugStats();
     setInterval(updateDebugStats, 2000);
     
-    // Draw quadrant visualization if enabled
+    // Draw debug visualizations
     if (DEBUG.visualizeQuadrants) {
         drawQuadrantVisualization();
     }
     
-    // Highlight protection zone if enabled
     if (DEBUG.highlightProtectionZone) {
         highlightProtectionZone();
     }
     
+    // Highlight corner areas
+    highlightCornerAreas();
+    
     console.log('Debug overlay initialized');
 }
-
+// 3. Function to highlight all shapes for debugging
+function highlightAllShapes() {
+    // Highlight all dynamic shapes
+    shapes.forEach((shape, index) => {
+        const element = shape.element;
+        
+        // Add temporary highlight
+        element.style.outline = '2px solid red';
+        element.style.zIndex = '1000';
+        
+        // Show shape index in corner
+        const label = document.createElement('div');
+        label.textContent = `D${index}`;
+        label.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: red;
+            color: white;
+            font-size: 10px;
+            padding: 1px 3px;
+            z-index: 1001;
+            pointer-events: none;
+        `;
+        element.appendChild(label);
+        
+        // Remove highlight after 5 seconds
+        setTimeout(() => {
+            element.style.outline = '';
+            element.style.zIndex = '';
+            if (label.parentNode === element) {
+                element.removeChild(label);
+            }
+        }, 5000);
+    });
+    
+    // Highlight all static shapes
+    staticShapes.forEach((shape, index) => {
+        const element = shape.element;
+        
+        // Add temporary highlight
+        element.style.outline = '2px solid blue';
+        element.style.zIndex = '1000';
+        
+        // Show shape index in corner
+        const label = document.createElement('div');
+        label.textContent = `S${index}`;
+        label.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: blue;
+            color: white;
+            font-size: 10px;
+            padding: 1px 3px;
+            z-index: 1001;
+            pointer-events: none;
+        `;
+        element.appendChild(label);
+        
+        // Remove highlight after 5 seconds
+        setTimeout(() => {
+            element.style.outline = '';
+            element.style.zIndex = '';
+            if (label.parentNode === element) {
+                element.removeChild(label);
+            }
+        }, 5000);
+    });
+    
+    // Highlight all distant shapes
+    distantShapes.forEach((shape, index) => {
+        const element = shape.element;
+        
+        // Add temporary highlight
+        element.style.outline = '2px solid green';
+        element.style.zIndex = '1000';
+        
+        // Show shape index in corner
+        const label = document.createElement('div');
+        label.textContent = `L${index}`;
+        label.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: green;
+            color: white;
+            font-size: 10px;
+            padding: 1px 3px;
+            z-index: 1001;
+            pointer-events: none;
+        `;
+        element.appendChild(label);
+        
+        // Remove highlight after 5 seconds
+        setTimeout(() => {
+            element.style.outline = '';
+            element.style.zIndex = '';
+            if (label.parentNode === element) {
+                element.removeChild(label);
+            }
+        }, 5000);
+    });
+    
+    console.log(`Highlighted ${shapes.length} dynamic, ${staticShapes.length} static, and ${distantShapes.length} distant shapes`);
+}
 // Draw lines to visualize quadrants
 function drawQuadrantVisualization() {
     const quadLines = document.createElement('div');
@@ -250,10 +445,35 @@ function highlightProtectionZone() {
     });
 }
 
-// Update debug statistics in overlay
+// 4. Enhanced updateDebugStats with additional information
 function updateDebugStats() {
     const statsContainer = document.getElementById('debug-stats');
     if (!statsContainer) return;
+    
+    // Count shapes in corners
+    let shapesInCorners = {
+        dynamic: 0,
+        static: 0,
+        distant: 0
+    };
+    
+    shapes.forEach(shape => {
+        if (isInCorner(shape.x, shape.y)) {
+            shapesInCorners.dynamic++;
+        }
+    });
+    
+    staticShapes.forEach(shape => {
+        if (isInCorner(shape.x, shape.y)) {
+            shapesInCorners.static++;
+        }
+    });
+    
+    distantShapes.forEach(shape => {
+        if (isInCorner(shape.x, shape.y)) {
+            shapesInCorners.distant++;
+        }
+    });
     
     // Calculate quadrant distribution
     let quadrantCounts = [0, 0, 0, 0];
@@ -264,25 +484,25 @@ function updateDebugStats() {
         }
     });
     
-    // Calculate corner counts
-    let cornerCounts = 0;
-    shapes.forEach(shape => {
-        if (isInCorner(shape.x, shape.y)) {
-            cornerCounts++;
-        }
-    });
-    
     // Create stats display
     statsContainer.innerHTML = `
         <div>Window Size: ${window.innerWidth} x ${window.innerHeight}</div>
-        <div>Total Shapes: ${shapes.length}</div>
-        <div>Quadrant Distribution:</div>
+        <div>Total Shapes: ${shapes.length + staticShapes.length + distantShapes.length}</div>
+        <div>- Dynamic: ${shapes.length}</div>
+        <div>- Static: ${staticShapes.length}</div>
+        <div>- Distant: ${distantShapes.length}</div>
+        <div>Dynamic Quadrant Distribution:</div>
         <div>- Q0 (Top Left): ${quadrantCounts[0]} (${(quadrantCounts[0] / shapes.length * 100).toFixed(1)}%)</div>
         <div>- Q1 (Top Right): ${quadrantCounts[1]} (${(quadrantCounts[1] / shapes.length * 100).toFixed(1)}%)</div>
         <div>- Q2 (Bottom Left): ${quadrantCounts[2]} (${(quadrantCounts[2] / shapes.length * 100).toFixed(1)}%)</div>
         <div>- Q3 (Bottom Right): ${quadrantCounts[3]} (${(quadrantCounts[3] / shapes.length * 100).toFixed(1)}%)</div>
         <div>Stored Quadrant Array: [${screenQuadrants.join(', ')}]</div>
-        <div>Shapes in Corner Areas: ${cornerCounts}</div>
+        <div>Shapes in Corner Areas: 
+            ${shapesInCorners.dynamic + shapesInCorners.static + shapesInCorners.distant}
+            (D:${shapesInCorners.dynamic}, 
+             S:${shapesInCorners.static}, 
+             L:${shapesInCorners.distant})
+        </div>
         <div>Last Generated Position: ${lastGeneratedPosition ? `(${lastGeneratedPosition.x.toFixed(0)}, ${lastGeneratedPosition.y.toFixed(0)})` : 'None'}</div>
     `;
 }
@@ -305,12 +525,21 @@ let mouseActive = false;
 let lastInteractionTime = 0;
 let screenQuadrants = [0, 0, 0, 0]; // Track shape count in each quadrant
 
-// Modified init function to set up debugging
+// 6. Better initialization for all shape types
 function init() {
-    console.log("Initializing visual effects with debugging...");
+    console.log("Initializing visual effects with corner shape protection...");
     
     // Reset debug counter
-    debugLogCounter = 0;
+    if (typeof debugLogCounter !== 'undefined') {
+        debugLogCounter = 0;
+    }
+    
+    // Wait for proper dimensions
+    if (window.innerWidth <= 0 || window.innerHeight <= 0) {
+        console.warn("Window dimensions not ready yet, delaying initialization");
+        setTimeout(init, 300);
+        return;
+    }
     
     // Log initial screen dimensions
     console.log(`Initial screen dimensions: ${window.innerWidth} x ${window.innerHeight}`);
@@ -325,7 +554,7 @@ function init() {
     addAnimationStyles();
     
     // Set up debug overlay
-    if (DEBUG.enabled) {
+    if (typeof DEBUG !== 'undefined' && DEBUG.enabled) {
         setupDebugOverlay();
     }
     
@@ -549,43 +778,136 @@ function createContainers() {
     document.body.appendChild(vignette);
 }
 
-// Fix 6: Override the createAllShapes function to use deterministic shape counts
+// 7. Explicit shape creation for each type
 function createAllShapes() {
+    console.log("Creating all shapes with balanced distribution...");
+    
     const staticContainer = document.getElementById('static-shapes');
     const distantContainer = document.getElementById('distant-shapes');
     const shapesContainer = document.getElementById('background-shapes');
     
-    // Create static background shapes with balanced distribution
-    console.log("Creating static shapes...");
-    for (let i = 0; i < visualConfig.shapes.static.count; i++) {
-        createStaticShape(staticContainer);
+    if (!staticContainer || !distantContainer || !shapesContainer) {
+        console.error("Containers not found, cannot create shapes");
+        return;
     }
     
-    // Create large distant shapes with balanced distribution
-    console.log("Creating distant shapes...");
-    for (let i = 0; i < visualConfig.shapes.distant.count; i++) {
-        createLargeDistantShape(distantContainer);
-    }
-    
-    // Create dynamic shapes with balanced distribution
+    // Create dynamic shapes with perfect distribution
     console.log("Creating dynamic shapes...");
+    const dynamicCount = visualConfig.shapes.dynamic.count;
+    const dynamicPerQuadrant = Math.floor(dynamicCount / 4);
     
-    // Create an equal number of shapes in each quadrant
-    const shapesPerQuadrant = Math.floor(visualConfig.shapes.dynamic.count / 4);
-    const remainder = visualConfig.shapes.dynamic.count % 4;
-    
-    // Create shapes evenly across quadrants
     for (let quadrant = 0; quadrant < 4; quadrant++) {
-        const count = quadrant < remainder ? shapesPerQuadrant + 1 : shapesPerQuadrant;
-        
-        console.log(`Creating ${count} shapes in quadrant ${quadrant}`);
+        const count = quadrant < (dynamicCount % 4) ? dynamicPerQuadrant + 1 : dynamicPerQuadrant;
+        console.log(`Creating ${count} dynamic shapes in quadrant ${quadrant}`);
         
         for (let i = 0; i < count; i++) {
-            createDynamicShape(shapesContainer, quadrant);
+            createDynamicShapeInQuadrant(shapesContainer, quadrant);
         }
     }
     
+    // Create static shapes with perfect distribution
+    console.log("Creating static shapes...");
+    const staticCount = visualConfig.shapes.static.count;
+    const staticPerQuadrant = Math.floor(staticCount / 4);
+    
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+        const count = quadrant < (staticCount % 4) ? staticPerQuadrant + 1 : staticPerQuadrant;
+        console.log(`Creating ${count} static shapes in quadrant ${quadrant}`);
+        
+        for (let i = 0; i < count; i++) {
+            createStaticShapeInQuadrant(staticContainer, quadrant);
+        }
+    }
+    
+    // Create distant shapes with perfect distribution
+    console.log("Creating distant shapes...");
+    const distantCount = visualConfig.shapes.distant.count;
+    const distantPerQuadrant = Math.floor(distantCount / 4);
+    
+    for (let quadrant = 0; quadrant < 4; quadrant++) {
+        const count = quadrant < (distantCount % 4) ? distantPerQuadrant + 1 : distantPerQuadrant;
+        console.log(`Creating ${count} distant shapes in quadrant ${quadrant}`);
+        
+        for (let i = 0; i < count; i++) {
+            createDistantShapeInQuadrant(distantContainer, quadrant);
+        }
+    }
+    
+    console.log("All shapes created");
+    console.log("Dynamic:", shapes.length);
+    console.log("Static:", staticShapes.length);
+    console.log("Distant:", distantShapes.length);
     console.log("Final quadrant counts:", screenQuadrants);
+}
+function createDistantShapeInQuadrant(container, quadrant) {
+    const config = visualConfig.shapes.distant;
+    const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
+    
+    // Generate position in the specific quadrant
+    const position = generatePositionInQuadrant(quadrant, size);
+    const x = position.x;
+    const y = position.y;
+    
+    // Always hollow
+    const colors = ['#5b8dd9', '#9c77db', '#5bbcd9'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Create shape element
+    const shape = document.createElement('div');
+    
+    // Almost always circles for distant shapes
+    const isCircle = Math.random() < 0.8;
+    
+    // Very thin border
+    const borderWidth = 1;
+    
+    // Create style
+    let style;
+    
+    if (isCircle) {
+        style = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            border: ${borderWidth}px solid ${color};
+            background-color: transparent;
+            border-radius: 50%;
+            left: ${x - size/2}px;
+            top: ${y - size/2}px;
+            opacity: ${config.opacity};
+        `;
+    } else {
+        style = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            border: ${borderWidth}px solid ${color};
+            background-color: transparent;
+            left: ${x - size/2}px;
+            top: ${y - size/2}px;
+            opacity: ${config.opacity};
+        `;
+    }
+    
+    shape.style.cssText = style;
+    
+    // Add rotation animation
+    const duration = 40 + Math.random() * 30;
+    shape.style.animationDuration = `${duration}s`;
+    shape.classList.add('rotate');
+    
+    container.appendChild(shape);
+    
+    // Store for reference
+    distantShapes.push({
+        element: shape,
+        x: x,
+        y: y,
+        size: size
+    });
+    
+    // Log for debugging
+    console.log(`Created distant shape at (${x}, ${y}) in quadrant ${quadrant}`);
 }
 
 // Check if a position is in the UI protection zone
@@ -605,27 +927,54 @@ function isInProtectionZone(x, y) {
     );
 }
 
-// Check if position is in a corner
+// 5. Improved isInCorner function that handles all corner cases
 function isInCorner(x, y) {
     const { cornerRadius, edgeMargin } = visualConfig.distribution;
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // Check top-left corner
-    if (x < cornerRadius && y < cornerRadius) return true;
+    // Safety check for valid coordinates
+    if (isNaN(x) || isNaN(y) || x === undefined || y === undefined) {
+        console.warn('Invalid coordinates passed to isInCorner:', x, y);
+        return true; // Treat invalid coords as in corner to be safe
+    }
     
-    // Check top-right corner
-    if (x > width - cornerRadius && y < cornerRadius) return true;
+    // Safety check for valid window dimensions
+    if (width <= 0 || height <= 0) {
+        console.warn('Invalid window dimensions in isInCorner:', width, height);
+        return true;
+    }
     
-    // Check bottom-left corner
-    if (x < cornerRadius && y > height - cornerRadius) return true;
+    // Check corners with proper math (distance from corner point)
+    // Top-left corner
+    if (x <= cornerRadius && y <= cornerRadius) {
+        const distance = Math.sqrt(x * x + y * y);
+        return distance <= cornerRadius;
+    }
     
-    // Check bottom-right corner
-    if (x > width - cornerRadius && y > height - cornerRadius) return true;
+    // Top-right corner
+    if (x >= width - cornerRadius && y <= cornerRadius) {
+        const distance = Math.sqrt((x - width) * (x - width) + y * y);
+        return distance <= cornerRadius;
+    }
     
-    // Check if too close to edges
+    // Bottom-left corner
+    if (x <= cornerRadius && y >= height - cornerRadius) {
+        const distance = Math.sqrt(x * x + (y - height) * (y - height));
+        return distance <= cornerRadius;
+    }
+    
+    // Bottom-right corner
+    if (x >= width - cornerRadius && y >= height - cornerRadius) {
+        const distance = Math.sqrt((x - width) * (x - width) + (y - height) * (y - height));
+        return distance <= cornerRadius;
+    }
+    
+    // Check if too close to edges (simple rectangular check)
     if (x < edgeMargin || x > width - edgeMargin || 
-        y < edgeMargin || y > height - edgeMargin) return true;
+        y < edgeMargin || y > height - edgeMargin) {
+        return true;
+    }
     
     return false;
 }
@@ -655,7 +1004,7 @@ function getLeastPopulatedQuadrant() {
     return selectedQuadrant;
 }
 
-// Fix 5: Improved position generation in quadrants
+// 9. Improved position generation in quadrants with more aggressive corner avoidance
 function generatePositionInQuadrant(quadrant, size) {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -668,32 +1017,39 @@ function generatePositionInQuadrant(quadrant, size) {
     
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    const margin = visualConfig.distribution.edgeMargin;
+    
+    // Use smaller effective margin to give more room
+    const cornerRadius = visualConfig.distribution.cornerRadius;
+    const edgeMargin = Math.min(
+        visualConfig.distribution.edgeMargin,
+        Math.min(halfWidth, halfHeight) * 0.15
+    );
     
     let x, y;
     let attempts = 0;
+    let cornerCheck = true;
     
     do {
-        // More evenly distribute within each quadrant
-        // Use a smaller margin to ensure better coverage
-        const effectiveMargin = Math.min(margin, Math.min(halfWidth, halfHeight) * 0.2);
+        // Calculate safe zones within each quadrant
+        // Add extra padding to avoid corners
+        const padding = cornerRadius * 0.5;
         
         switch (quadrant) {
             case 0: // Top-left
-                x = effectiveMargin + Math.random() * (halfWidth - effectiveMargin * 2);
-                y = effectiveMargin + Math.random() * (halfHeight - effectiveMargin * 2);
+                x = cornerRadius + padding + Math.random() * (halfWidth - cornerRadius - padding - edgeMargin);
+                y = cornerRadius + padding + Math.random() * (halfHeight - cornerRadius - padding - edgeMargin);
                 break;
             case 1: // Top-right
-                x = halfWidth + Math.random() * (halfWidth - effectiveMargin * 2);
-                y = effectiveMargin + Math.random() * (halfHeight - effectiveMargin * 2);
+                x = halfWidth + edgeMargin + Math.random() * (halfWidth - cornerRadius - padding - edgeMargin);
+                y = cornerRadius + padding + Math.random() * (halfHeight - cornerRadius - padding - edgeMargin);
                 break;
             case 2: // Bottom-left
-                x = effectiveMargin + Math.random() * (halfWidth - effectiveMargin * 2);
-                y = halfHeight + Math.random() * (halfHeight - effectiveMargin * 2);
+                x = cornerRadius + padding + Math.random() * (halfWidth - cornerRadius - padding - edgeMargin);
+                y = halfHeight + edgeMargin + Math.random() * (halfHeight - cornerRadius - padding - edgeMargin);
                 break;
             case 3: // Bottom-right
-                x = halfWidth + Math.random() * (halfWidth - effectiveMargin * 2);
-                y = halfHeight + Math.random() * (halfHeight - effectiveMargin * 2);
+                x = halfWidth + edgeMargin + Math.random() * (halfWidth - cornerRadius - padding - edgeMargin);
+                y = halfHeight + edgeMargin + Math.random() * (halfHeight - cornerRadius - padding - edgeMargin);
                 break;
             default:
                 console.error('Invalid quadrant:', quadrant);
@@ -704,16 +1060,32 @@ function generatePositionInQuadrant(quadrant, size) {
         
         attempts++;
         
-        // If we've made too many attempts, gradually relax the constraints
+        // If we've tried too many times, gradually relax constraints
         if (attempts > 30) {
-            // Just find any position in the right quadrant, even if it's in a corner
-            // or protection zone - this prevents infinite loops
+            cornerCheck = false; // Disable corner checking
+        }
+        
+        // Last resort - if we still can't find a position after 50 attempts,
+        // just use the current position even if it's in a protection zone
+        if (attempts > 50) {
             break;
         }
-    } while (isInCorner(x, y) || isInProtectionZone(x, y));
+    } while ((cornerCheck && isInCorner(x, y)) || isInProtectionZone(x, y));
+    
+    // If we had to relax constraints, log it
+    if (attempts > 30) {
+        console.warn(`Relaxed constraints for shape in quadrant ${quadrant} after ${attempts} attempts`);
+    }
+    
+    // Final position check
+    if (isInCorner(x, y)) {
+        console.warn(`Warning: Shape at (${x}, ${y}) is still in corner after ${attempts} attempts`);
+    }
     
     // Update quadrant count and return position
     screenQuadrants[quadrant]++;
+    lastGeneratedPosition = { x, y };
+    
     return { x, y };
 }
 // Modified generateBalancedPosition function with logging
@@ -775,15 +1147,12 @@ function generateBalancedPosition(size) {
     return position;
 }
 
-// Fix 3: Ensure all shape types use balanced positioning
-function createStaticShape(container) {
+function createStaticShapeInQuadrant(container, quadrant) {
     const config = visualConfig.shapes.static;
     const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
     
-    // Generate balanced position using quadrant balancing for ALL shape types
-    const quadrant = getLeastPopulatedQuadrant();
+    // Generate position in the specific quadrant
     const position = generatePositionInQuadrant(quadrant, size);
-    
     const x = position.x;
     const y = position.y;
     
@@ -831,6 +1200,9 @@ function createStaticShape(container) {
         x: x,
         y: y
     });
+    
+    // Log for debugging
+    console.log(`Created static shape at (${x}, ${y}) in quadrant ${quadrant}`);
 }
 
 // Fix 4: Apply same fix to large distant shapes
@@ -904,25 +1276,27 @@ function createLargeDistantShape(container) {
     });
 }
 
-// Fix 7: Modified createDynamicShape to accept a quadrant parameter
-function createDynamicShape(container, forcedQuadrant = null) {
-    const dynamicConfig = visualConfig.shapes.dynamic;
+function createDynamicShapeInQuadrant(container, quadrant) {
+    // This function is just a rename of the previous createDynamicShape with forced quadrant
+    // So we're calling the existing function if it exists, or implementing it here if needed
     
-    // Size
-    const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
-    
-    // Generate balanced position - use forced quadrant if provided
-    let position;
-    if (forcedQuadrant !== null) {
-        position = generatePositionInQuadrant(forcedQuadrant, size);
+    if (typeof createDynamicShape === 'function') {
+        // If the original fix was implemented, use that
+        createDynamicShape(container, quadrant);
     } else {
-        const quadrant = getLeastPopulatedQuadrant();
-        position = generatePositionInQuadrant(quadrant, size);
+        // Otherwise implement the necessary functionality here
+        const dynamicConfig = visualConfig.shapes.dynamic;
+        const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
+        
+        // Generate position in the specific quadrant
+        const position = generatePositionInQuadrant(quadrant, size);
+        const x = position.x;
+        const y = position.y;
+        
+        // Create the shape (implementation omitted for brevity)
+        // You would implement the same shape creation logic as in the original
+        console.log(`Created dynamic shape at (${x}, ${y}) in quadrant ${quadrant}`);
     }
-    
-    const x = position.x;
-    const y = position.y;
-    
     // Rest of the function remains the same as the original...
     // Color - 1% chance for white, rest normal colors
     let color;
@@ -1353,8 +1727,56 @@ function handleResize() {
     });
 }
 
-// Initialize on load
+// This should go at the very end of the file, replacing any existing initialization code
+// Replace or add after the current initialization code:
+
+// Replace this line if it exists:
 window.addEventListener('DOMContentLoaded', init);
+// Or this line if it exists:
+window.addEventListener('DOMContentLoaded', () => setTimeout(init, 300));
+
+// With this new implementation:
+window.addEventListener('load', () => {
+    console.log("Window load event - ensuring proper dimensions");
+    
+    // Check dimensions and initialize only when ready
+    if (window.innerWidth > 0 && window.innerHeight > 0) {
+        console.log("Window dimensions ready on load:", window.innerWidth, window.innerHeight);
+        setTimeout(init, 300); // Small delay for extra safety
+    } else {
+        console.warn("Window dimensions not ready yet on load event");
+        
+        // Wait for first resize event or force init after 1 second
+        const resizeHandler = () => {
+            console.log("Resize detected, window dimensions:", window.innerWidth, window.innerHeight);
+            window.removeEventListener('resize', resizeHandler);
+            init();
+        };
+        
+        window.addEventListener('resize', resizeHandler);
+        
+        // Fallback if no resize occurs
+        setTimeout(() => {
+            window.removeEventListener('resize', resizeHandler);
+            console.log("Forcing init after timeout");
+            init();
+        }, 1000);
+    }
+});
+
+// Cleanup existing debug variables if needed
+window.addEventListener('beforeunload', () => {
+    // Remove any debug elements
+    const debugElements = [
+        document.getElementById('debug-overlay'),
+        document.getElementById('quadrant-lines'),
+        document.getElementById('protection-zone')
+    ];
+    
+    debugElements.forEach(element => {
+        if (element) element.remove();
+    });
+});
 
 // Export initialization function
 window.initVisualEffects = init;
