@@ -77,7 +77,6 @@
             });
         });
         
-        // Function to create pixel decorations with the cascade effect
         function createPixelDecorations() {
             const decorationContainer = document.getElementById('pixel-decorations');
             if (!decorationContainer) return;
@@ -85,7 +84,7 @@
             // Clear existing decorations
             decorationContainer.innerHTML = '';
             
-            // Create a color palette that matches our theme
+            // Color palette that matches the game theme
             const colors = [
                 '#5b8dd9', // primary
                 '#56b886', // secondary
@@ -95,50 +94,122 @@
                 '#5bbcd9'  // cyan
             ];
             
-            // Create a more organized, coherent pattern
-            // We'll create a cascade effect of pixels
-            const columnCount = 20;
+            // Different shape types
+            const shapeTypes = ['square', 'circle', 'triangle', 'diamond', 'plus'];
             
-            // Calculate optimal pixel size based on screen width
-            const pixelSize = Math.max(3, Math.floor(window.innerWidth / 100));
+            // Create a variety of shapes with different behaviors
+            const shapeCount = 100; // Total number of shapes
             
-            // Create the animation delay pattern - this creates a "falling" effect
-            for (let col = 0; col < columnCount; col++) {
-                // Each column will have a different number of pixels
-                const pixelsInColumn = 5 + Math.floor(Math.random() * 10);
+            for (let i = 0; i < shapeCount; i++) {
+                const decoration = document.createElement('div');
+                decoration.classList.add('pixel-decoration');
                 
-                for (let i = 0; i < pixelsInColumn; i++) {
-                    const decoration = document.createElement('div');
-                    decoration.classList.add('pixel-decoration');
-                    
-                    // Position - distribute across screen width with some randomness
-                    const x = (col / columnCount) * 100 + (Math.random() * 3 - 1.5);
-                    // Randomize initial position vertically
-                    const y = Math.random() * 100;
-                    
-                    // Random color from our palette
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    // Apply styles
-                    decoration.style.left = `${x}vw`;
-                    decoration.style.top = `${y}vh`;
-                    decoration.style.width = `${pixelSize}px`;
-                    decoration.style.height = `${pixelSize}px`;
+                // Random position across the screen
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // Random size (keeping it pixel-like)
+                const size = 4 + Math.floor(Math.random() * 8);
+                
+                // Random color from our palette
+                const colorIndex = Math.floor(Math.random() * colors.length);
+                const color = colors[colorIndex];
+                
+                // Randomly decide if this shape has fill or just outline
+                const hasOutlineOnly = Math.random() > 0.6;
+                
+                // Apply base styles
+                decoration.style.left = `${x}vw`;
+                decoration.style.top = `${y}vh`;
+                decoration.style.width = `${size}px`;
+                decoration.style.height = `${size}px`;
+                
+                if (hasOutlineOnly) {
+                    decoration.style.backgroundColor = 'transparent';
+                    decoration.style.border = `2px solid ${color}`;
+                } else {
                     decoration.style.backgroundColor = color;
-                    
-                    // Create falling animation with varied speeds
-                    const duration = 10 + Math.random() * 20; // 10-30 seconds
-                    const delay = Math.random() * 15; // 0-15 seconds delay
-                    
-                    decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
-                    
-                    decorationContainer.appendChild(decoration);
                 }
+                
+                // Choose a random shape type
+                const shapeType = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                
+                // Apply shape-specific styles
+                switch (shapeType) {
+                    case 'circle':
+                        decoration.style.borderRadius = '50%';
+                        break;
+                    case 'triangle':
+                        decoration.style.width = '0';
+                        decoration.style.height = '0';
+                        decoration.style.backgroundColor = 'transparent';
+                        decoration.style.border = hasOutlineOnly 
+                            ? `2px solid ${color}` 
+                            : `${size}px solid transparent`;
+                        decoration.style.borderBottomColor = hasOutlineOnly ? 'transparent' : color;
+                        decoration.style.borderLeftWidth = `${size}px`;
+                        decoration.style.borderRightWidth = `${size}px`;
+                        decoration.style.borderBottomWidth = `${size * 1.5}px`;
+                        break;
+                    case 'diamond':
+                        decoration.style.transform = 'rotate(45deg)';
+                        break;
+                    case 'plus':
+                        if (!hasOutlineOnly) {
+                            decoration.style.backgroundColor = 'transparent';
+                            decoration.style.position = 'relative';
+                            
+                            // Create the plus shape with pseudo elements
+                            decoration.style.overflow = 'visible';
+                            decoration.innerHTML = `
+                                <div style="position: absolute; background-color: ${color}; 
+                                            width: 100%; height: 40%; left: 0; top: 30%"></div>
+                                <div style="position: absolute; background-color: ${color}; 
+                                            width: 40%; height: 100%; left: 30%; top: 0"></div>
+                            `;
+                        }
+                        break;
+                }
+                
+                // Choose a random animation type
+                const animationType = Math.random();
+                
+                // Set different animation patterns
+                if (animationType < 0.25) {
+                    // Falling animation
+                    const duration = 15 + Math.random() * 20;
+                    const delay = Math.random() * 15;
+                    decoration.style.animation = `pixel-fall ${duration}s linear ${delay}s infinite`;
+                } 
+                else if (animationType < 0.5) {
+                    // Floating animation
+                    const floatDuration = 8 + Math.random() * 12;
+                    decoration.style.animation = `pixel-float ${floatDuration}s infinite ease-in-out`;
+                }
+                else if (animationType < 0.75) {
+                    // Twinkling in place
+                    const twinkleDuration = 4 + Math.random() * 8;
+                    decoration.style.animation = `pixel-twinkle ${twinkleDuration}s infinite ease-in-out`;
+                }
+                else {
+                    // Diagonal floating animation (new)
+                    decoration.style.animation = `pixel-diagonal ${10 + Math.random() * 15}s infinite alternate`;
+                }
+                
+                // Add additional random horizontal drift to some elements
+                if (Math.random() > 0.7) {
+                    decoration.style.animationName += ', pixel-drift';
+                    decoration.style.animationDuration += `, ${20 + Math.random() * 20}s`;
+                    decoration.style.animationIterationCount += ', infinite';
+                    decoration.style.animationDirection += ', alternate';
+                }
+                
+                decorationContainer.appendChild(decoration);
             }
         }
-        
-        // Add periodic refresh to keep animation lively
-        setInterval(createPixelDecorations, 30000); // Refresh every 30 seconds
+
+        // Add this to your setInterval to make the animation refresh periodically
+        setInterval(createPixelDecorations, 60000); // Refresh every 60 seconds
     </script>
 </body>
 </html>
