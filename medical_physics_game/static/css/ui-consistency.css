@@ -1,4 +1,4 @@
-/* ui-consistency.css - Styles for cohesive UI framing across screens
+/* ui-consistency.css - Minimal styles for cohesive UI framing across screens
  * Save this to: medical_physics_game/static/css/ui-consistency.css
  */
 
@@ -20,19 +20,10 @@
     pointer-events: none;
   }
   
-  /* Transition content */
-  .screen-transition-content {
-    padding: 3rem;
-    text-align: center;
-    color: var(--text);
-    opacity: 0;
-    animation: fade-in 0.5s forwards 0.2s;
-  }
-  
   /* Transition text styles */
   .transition-title {
     font-size: 2.5rem;
-    color: var(--primary);
+    color: #5b8dd9;
     margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -41,14 +32,14 @@
   
   .transition-subtitle {
     font-size: 1.5rem;
-    color: var(--secondary);
+    color: #56b886;
     margin-bottom: 1.5rem;
     letter-spacing: 1px;
   }
   
   .transition-description {
     font-size: 1rem;
-    color: var(--text);
+    color: #d4dae0;
     max-width: 600px;
     margin: 0 auto;
   }
@@ -72,40 +63,6 @@
     animation: scanline-move 10s linear infinite;
   }
   
-  /* ===== ENTRY ANIMATIONS ===== */
-  
-  /* Slide in from left animation */
-  .slide-in-left {
-    animation: slide-in-left 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-  }
-  
-  @keyframes slide-in-left {
-    from {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  /* Fade in and scale up animation */
-  .fade-in-scale {
-    animation: fade-in-scale 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-  }
-  
-  @keyframes fade-in-scale {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-  
   /* ===== CONSISTENT UI FRAMES ===== */
   
   /* Add pixel corners to main game containers */
@@ -114,10 +71,10 @@
   #inventory-container,
   .game-panel {
     position: relative;
-    background-color: var(--background-alt);
-    border: 2px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-md);
+    background-color: rgba(41, 43, 54, 0.9);
+    border: 2px solid #5b8dd9;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     overflow: hidden;
   }
   
@@ -130,9 +87,9 @@
   #inventory-container::after {
     content: '';
     position: absolute;
-    width: 10px;
-    height: 10px;
-    border-color: var(--primary);
+    width: 8px;
+    height: 8px;
+    border-color: #5b8dd9;
     z-index: 1;
   }
   
@@ -170,9 +127,9 @@
   .inventory-title h3 {
     padding: 0.5rem 1rem;
     margin: -1px;
-    background-color: var(--dark);
-    color: var(--primary);
-    font-size: var(--font-size-md);
+    background-color: #3d4c60;
+    color: #5b8dd9;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     position: relative;
@@ -188,124 +145,34 @@
     );
   }
   
-  /* ===== MAP SCALING & ENHANCEMENT ===== */
+  /* ===== MAP ENHANCEMENTS ===== */
   
   /* Make map canvas fill container nicely */
   #floor-map {
     width: 100% !important; /* Override inline width */
     height: auto !important; /* Maintain aspect ratio */
-    min-height: 500px; /* Ensure minimum height */
+    min-height: 400px; /* Ensure minimum height */
     display: block;
     margin: 0 auto;
     padding: 1rem;
     background-color: rgba(33, 35, 45, 0.6);
-    border-radius: var(--border-radius-sm);
+    border-radius: 5px;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
   }
   
-  /* Enhancement for nodes to match character select aesthetic */
-  .map-node {
-    transition: transform 0.3s, box-shadow 0.3s;
+  /* ===== ANIMATION KEYFRAMES ===== */
+  
+  /* Scanline movement animation */
+  @keyframes scanline-move {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 8px; }
   }
   
-  .map-node--available {
-    box-shadow: 
-      0 0 10px rgba(255, 255, 255, 0.3),
-      0 0 20px currentColor;
-  }
-  
-  .map-node--current {
-    box-shadow: 
-      0 0 15px rgba(255, 255, 255, 0.5),
-      0 0 30px currentColor;
-  }
-  
-  /* Make paths more visible */
-  .node-path {
-    height: 4px !important;
-    opacity: 0.8 !important;
-    box-shadow: 0 0 5px currentColor;
-  }
-  
-  .node-path--active {
-    animation: path-pulse 2s infinite;
-  }
-  
-  @keyframes path-pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-  }
-  
-  /* ===== SMOOTH HOVER EFFECTS ===== */
-  
-  /* Consistent hover effects across UI elements */
-  .game-btn,
-  .game-option,
-  .inventory-item {
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-  }
-  
-  .game-btn:hover,
-  .game-option:hover,
-  .inventory-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* ===== CHARACTER PANEL ENHANCEMENTS ===== */
-  
-  /* Character avatar glow effect similar to selection screen */
-  .character-avatar-container {
-    position: relative;
-  }
-  
-  .character-avatar-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(
-      circle,
-      rgba(91, 141, 217, 0.2) 0%,
-      transparent 70%
-    );
-    z-index: -1;
-  }
-  
-  /* Make ASCII or pixel character more prominent */
-  .ascii-character, 
-  .pixel-character-img {
-    transform: scale(1.2);
-    animation: character-float 3s ease-in-out infinite;
-  }
-  
-  @keyframes character-float {
-    0% { transform: scale(1.2) translateY(0); }
-    50% { transform: scale(1.2) translateY(-4px); }
-    100% { transform: scale(1.2) translateY(0); }
-  }
-  
-  /* Make heart/life icons match the character selection screen */
-  .life-icon {
-    transition: transform 0.3s, filter 0.3s;
-  }
-  
-  .life-icon.active {
-    filter: drop-shadow(0 0 5px rgba(231, 76, 60, 0.7));
-    transform: scale(1.1);
-  }
-  
-  /* Game panel title enhancement */
-  .game-panel__title {
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--primary);
-    text-shadow: 0 0 5px rgba(91, 141, 217, 0.5);
+  /* Character bobbing animation */
+  @keyframes bob {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
   }
   
   /* ===== RESPONSIVE ADJUSTMENTS ===== */

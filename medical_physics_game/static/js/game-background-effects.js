@@ -1,17 +1,13 @@
-// game-background-effects.js - Consistent background elements for all game screens
+// game-background-effects.js - Simple background particles for visual consistency
 // Save this to: medical_physics_game/static/js/game-background-effects.js
 
-/**
- * GameBackgroundEffects - Creates and manages background particles/shapes
- * that match the aesthetic of the landing page but are subtle enough for gameplay
- */
 const GameBackgroundEffects = {
     // Configuration
     config: {
-      pixelCount: 30,          // Default number of particles (fewer than landing page)
+      pixelCount: 20,          // Default number of particles
       pixelMinSize: 4,         // Minimum particle size
-      pixelMaxSize: 12,        // Maximum particle size (smaller than landing page)
-      opacity: 0.3,            // Default opacity (more subtle than landing page)
+      pixelMaxSize: 12,        // Maximum particle size
+      opacity: 0.3,            // Default opacity
       colors: [                // Color palette matching the game theme
         '#5b8dd9',            // Primary blue
         '#56b886',            // Secondary green
@@ -21,7 +17,6 @@ const GameBackgroundEffects = {
       ],
       targetElement: null,     // Where to render the background
       speedMultiplier: 0.4,    // Slower movement for less distraction
-      gameMode: true,          // Reduced intensity for gameplay vs menu screens
       useGrid: true,           // Whether to draw the grid background
       gridSize: 20,            // Size of grid cells
       gridOpacity: 0.05        // Grid line opacity 
@@ -51,33 +46,30 @@ const GameBackgroundEffects = {
         targetContainer = this.config.targetElement;
       }
       
+      // Fallback to body if target not found
       if (!targetContainer) {
-        console.warn('GameBackgroundEffects: Target element not found');
-        return false;
+        console.warn("GameBackgroundEffects: Target element not found, using body instead");
+        targetContainer = document.body;
       }
       
-      // Create a canvas for the background if needed
-      if (targetContainer.tagName.toLowerCase() !== 'canvas') {
-        // Container is not a canvas, so create one and add it
-        const parentElement = targetContainer.parentElement || document.body;
-        
-        this.canvas = document.createElement('canvas');
-        this.canvas.className = 'game-background-canvas';
-        
-        // Position the canvas behind the target
-        this.canvas.style.position = 'absolute';
-        this.canvas.style.top = '0';
-        this.canvas.style.left = '0';
-        this.canvas.style.width = '100%';
-        this.canvas.style.height = '100%';
-        this.canvas.style.zIndex = '0';
-        this.canvas.style.pointerEvents = 'none';
-        
-        // Insert canvas
-        parentElement.insertBefore(this.canvas, targetContainer);
+      // Create a canvas for the background
+      this.canvas = document.createElement('canvas');
+      this.canvas.className = 'game-background-canvas';
+      
+      // Position the canvas behind everything
+      this.canvas.style.position = 'fixed';
+      this.canvas.style.top = '0';
+      this.canvas.style.left = '0';
+      this.canvas.style.width = '100%';
+      this.canvas.style.height = '100%';
+      this.canvas.style.zIndex = '-1';
+      this.canvas.style.pointerEvents = 'none';
+      
+      // Insert at the beginning of target container
+      if (targetContainer.firstChild) {
+        targetContainer.insertBefore(this.canvas, targetContainer.firstChild);
       } else {
-        // Target is already a canvas
-        this.canvas = targetContainer;
+        targetContainer.appendChild(this.canvas);
       }
       
       // Set up canvas context
@@ -95,29 +87,21 @@ const GameBackgroundEffects = {
       // Listen for resize events
       window.addEventListener('resize', this.resizeCanvas.bind(this));
       
-      console.log('GameBackgroundEffects initialized with', this.particles.length, 'particles');
+      console.log("GameBackgroundEffects initialized with", this.particles.length, "particles");
       this.isInitialized = true;
       
       return true;
     },
     
     /**
-     * Resize canvas to match window or parent size
+     * Resize canvas to match window size
      */
     resizeCanvas: function() {
       if (!this.canvas) return;
       
-      // If canvas is absolute positioned, use parent dimensions
-      if (this.canvas.style.position === 'absolute') {
-        const parent = this.canvas.parentElement;
-        this.canvas.width = parent.offsetWidth;
-        this.canvas.height = parent.offsetHeight;
-      } else {
-        // Otherwise use its own size
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width;
-        this.canvas.height = rect.height;
-      }
+      // Set canvas size to window size
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
       
       // Recreate particles for new dimensions
       if (this.particles.length > 0) {
@@ -201,10 +185,10 @@ const GameBackgroundEffects = {
         // Choose fill or stroke for variety
         const hollow = Math.random() > 0.6;
         if (hollow) {
-          this.ctx.strokeStyle = this.hexToRgba(p.color, p.alpha);
+          this.ctx.strokeStyle = p.color;
           this.ctx.lineWidth = 2;
         } else {
-          this.ctx.fillStyle = this.hexToRgba(p.color, p.alpha);
+          this.ctx.fillStyle = p.color;
         }
         
         // Draw the appropriate shape
@@ -289,16 +273,6 @@ const GameBackgroundEffects = {
     },
     
     /**
-     * Convert hex color to rgba
-     */
-    hexToRgba: function(hex, alpha) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    },
-    
-    /**
      * Stop animations and clean up
      */
     dispose: function() {
@@ -312,7 +286,7 @@ const GameBackgroundEffects = {
       // Remove event listeners
       window.removeEventListener('resize', this.resizeCanvas.bind(this));
       
-      console.log('GameBackgroundEffects disposed');
+      console.log("GameBackgroundEffects disposed");
     },
     
     /**
@@ -331,17 +305,15 @@ const GameBackgroundEffects = {
     setMenuMode: function(isMenu) {
       if (isMenu) {
         this.updateConfig({
-          pixelCount: 50,
+          pixelCount: 40,
           opacity: 0.6,
-          speedMultiplier: 0.8,
-          gameMode: false
+          speedMultiplier: 0.7
         });
       } else {
         this.updateConfig({
-          pixelCount: 30,
+          pixelCount: 20,
           opacity: 0.3,
-          speedMultiplier: 0.4,
-          gameMode: true
+          speedMultiplier: 0.4
         });
       }
     }

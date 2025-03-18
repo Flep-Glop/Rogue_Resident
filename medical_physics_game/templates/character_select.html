@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Your Character</title>
+    <!-- Base CSS -->
     <link href="/static/css/main.css" rel="stylesheet">
     <link href="/static/css/character_image_styles.css" rel="stylesheet">
+    <!-- UI Consistency Styles -->
+    <link href="/static/css/ui-consistency.css" rel="stylesheet">
     <style>
         /* Base container styling */
         .character-selection {
@@ -160,12 +163,6 @@
             animation: pixel-float 3s infinite ease-in-out;
         }
         
-        @keyframes pixel-float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-            100% { transform: translateY(0); }
-        }
-        
         /* Character description area */
         .character-description {
             padding: 0 15px 10px;
@@ -309,24 +306,6 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        @keyframes arrow-pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-
-        .carousel-arrow:hover {
-            background-color: rgba(86, 184, 134, 0.9);
-            transform: translateY(-50%) scale(1.1);
-            animation: none;
-            opacity: 1;
-        }
-
-        .carousel-arrow:active {
-            transform: translateY(-50%) translateX(3px) translateY(3px);
-            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
-        }
-
         /* Carousel indicators */
         .carousel-indicators {
             display: flex;
@@ -393,17 +372,6 @@
             animation: button-shine 3s infinite;
         }
         
-        @keyframes button-shine {
-            0% {
-                left: -50%;
-                top: -50%;
-            }
-            100% {
-                left: 150%;
-                top: 150%;
-            }
-        }
-        
         /* Selection indicator */
         .select-indicator {
             position: absolute;
@@ -439,11 +407,18 @@
             color: var(--text);
         }
         
-        /* Pulse animation for selected card */
-        @keyframes selected-pulse {
-            0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
-            50% { box-shadow: 0 0 15px rgba(86, 184, 134, 0.7); }
-            100% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
+        /* Loading animation */
+        .loading-message {
+            font-size: 1rem;
+            color: var(--text);
+            text-align: center;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -464,22 +439,6 @@
                 </div>
                 
                 <button class="carousel-arrow next" id="next-character">▶</button>
-                
-                <style>
-                    /* Add a loading animation */
-                    .loading-message {
-                        font-size: 1rem;
-                        color: var(--text);
-                        text-align: center;
-                        animation: pulse 1.5s infinite ease-in-out;
-                    }
-                    
-                    @keyframes pulse {
-                        0% { opacity: 0.5; }
-                        50% { opacity: 1; }
-                        100% { opacity: 0.5; }
-                    }
-                </style>
             </div>
             
             <div class="carousel-indicators" id="carousel-indicators">
@@ -496,10 +455,15 @@
         </div>
     </div>
 
-    <!-- Add the character assets manager script -->
+    <!-- Screen transition container -->
+    <div id="screen-transition-container" style="display: none;"></div>
+
+    <!-- Scripts -->
     <script src="/static/js/character_assets.js"></script>
     <script src="/static/js/visual-effects.js"></script>
-
+    <!-- New scripts for visual enhancements -->
+    <script src="/static/js/screen-transition.js"></script>
+    <script src="/static/js/game-background-effects.js"></script>
     
     <script>
         // Character selection logic with carousel functionality
@@ -508,6 +472,10 @@
         let currentCharacterIndex = 0;
         
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize visual enhancements
+            initializeVisualEnhancements();
+            
+            // Fetch characters
             fetchCharacters();
             
             // Set up carousel navigation
@@ -519,9 +487,27 @@
                 navigateCarousel(1);
             });
             
-            // Set up start button
-            document.getElementById('start-game-btn').addEventListener('click', function() {
-                if (selectedCharacter) {
+            // Set up start button with transition
+            const startBtn = document.getElementById('start-game-btn');
+            startBtn.addEventListener('click', function(e) {
+                // Prevent default navigation
+                e.preventDefault();
+                
+                if (!selectedCharacter) return;
+                
+                // Show transition
+                if (typeof ScreenTransition !== 'undefined') {
+                    ScreenTransition.beginTransition({
+                        title: "Floor 1",
+                        subtitle: "Hospital Wing",
+                        description: "Your residency begins...",
+                        onComplete: function() {
+                            // Actually start the game after transition
+                            startNewGame(selectedCharacter);
+                        }
+                    });
+                } else {
+                    // Fallback if transition system not available
                     startNewGame(selectedCharacter);
                 }
             });
@@ -533,10 +519,29 @@
                 } else if (e.key === 'ArrowRight') {
                     navigateCarousel(1);
                 } else if (e.key === 'Enter' && selectedCharacter) {
-                    startNewGame(selectedCharacter);
+                    startBtn.click();
                 }
             });
         });
+        
+        // Initialize our visual enhancement systems
+        function initializeVisualEnhancements() {
+            // Initialize screen transitions
+            if (typeof ScreenTransition !== 'undefined') {
+                ScreenTransition.initialize();
+                console.log("Screen transitions initialized");
+            }
+            
+            // Initialize background effects with more particles for menu
+            if (typeof GameBackgroundEffects !== 'undefined') {
+                GameBackgroundEffects.initialize({
+                    targetElement: document.body,
+                    pixelCount: 40,  // More particles for menu screens
+                    opacity: 0.5     // More visible
+                });
+                console.log("Background effects initialized");
+            }
+        }
         
         function fetchCharacters() {
             fetch('/api/characters')

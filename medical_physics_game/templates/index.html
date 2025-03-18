@@ -6,9 +6,8 @@
     <title>Medical Physics Residency: The Roguelike Challenge</title>
     <!-- Base CSS -->
     <link href="/static/css/main.css" rel="stylesheet">
-    <!-- Character image styles -->
     <link href="/static/css/character_image_styles.css" rel="stylesheet">
-    <!-- Add UI consistency styles -->
+    <!-- UI Consistency Styles -->
     <link href="/static/css/ui-consistency.css" rel="stylesheet">
     <!-- Link to editor (if needed) -->
     <a href="/item-editor" class="editor-link">Item Editor</a>
@@ -31,7 +30,7 @@
                 <div class="row">
                     <!-- Character panel -->
                     <div class="col-md-3">
-                        <!-- Character stats panel -->
+                        <!-- Character stats panel with pixel corners -->
                         <div class="character-stats pixel-corners">
                             <!-- Character info directly at the top without the separate avatar box -->
                             <div id="character-info">
@@ -45,7 +44,7 @@
                             </div>
                         </div>
                         
-                        <!-- Inventory panel -->
+                        <!-- Inventory panel with pixel corners -->
                         <div id="inventory-container" class="inventory-container pixel-corners">
                             <div class="inventory-title">
                                 <h3>Inventory</h3>
@@ -59,7 +58,7 @@
                     
                     <!-- Game map and interaction area -->
                     <div class="col-md-9">
-                        <!-- Map container with pixel corners for consistency -->
+                        <!-- Map container with pixel corners -->
                         <div class="map-container pixel-corners">
                             <h3>Floor Map</h3>
                             <canvas id="floor-map" width="800" height="600"></canvas>
@@ -81,6 +80,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- Screen transition container for smooth transitions -->
+    <div id="screen-transition-container" style="display: none;"></div>
     
     <!-- Character assets manager (add before other scripts) -->
     <script src="/static/js/character_assets.js"></script>
@@ -129,13 +131,9 @@
     <script src="/static/js/components/boss_professor.js"></script>
     <script src="/static/js/components/boss_component.js"></script>
 
-    <!-- Load visual enhancement components -->
+    <!-- Visual enhancement scripts -->
     <script src="/static/js/screen-transition.js"></script>
     <script src="/static/js/game-background-effects.js"></script>
-    <script src="/static/js/ui/map-scaling.js"></script>
-    
-    <!-- Integration manager for cohesive look and feel -->
-    <script src="/static/js/integration.js"></script>
 
     <!-- Load error handler for reliability -->
     <script src="/static/js/error_handler.js"></script>
@@ -151,9 +149,103 @@
         <div id="node-modal-content" class="node-modal-content pixel-corners"></div>
     </div>
     
-    <!-- Screen transition container for smooth screen changes -->
-    <div id="screen-transition-container" style="display: none;">
-        <!-- Content will be dynamically generated -->
-    </div>
+    <!-- Initialize visual enhancements -->
+    <script>
+        // Initialize visual enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Initializing visual enhancements...");
+            
+            // Wait for game to initialize
+            setTimeout(function() {
+                // Initialize screen transitions
+                if (typeof ScreenTransition !== 'undefined') {
+                    ScreenTransition.initialize();
+                    console.log("Screen transitions initialized");
+                    
+                    // Hook into next floor button
+                    const nextFloorBtn = document.getElementById('next-floor-btn');
+                    if (nextFloorBtn) {
+                        const originalClickHandler = nextFloorBtn.onclick;
+                        nextFloorBtn.onclick = function(e) {
+                            // Prevent default action
+                            e.preventDefault();
+                            
+                            // Get floor data from game state
+                            let floorNumber = 1;
+                            let floorName = "Unknown Floor";
+                            
+                            if (typeof GameState !== 'undefined' && GameState.data) {
+                                // Try to get floor info
+                                floorNumber = (GameState.data.floor || 0) + 1;
+                                floorName = `Floor ${floorNumber}`;
+                            }
+                            
+                            // Show transition
+                            ScreenTransition.beginTransition({
+                                title: `Floor ${floorNumber}`,
+                                subtitle: floorName,
+                                description: "Proceeding to next floor...",
+                                onComplete: function() {
+                                    // Execute original handler after animation
+                                    if (typeof originalClickHandler === 'function') {
+                                        originalClickHandler.call(nextFloorBtn, e);
+                                    } else if (typeof GameState !== 'undefined' && 
+                                             typeof GameState.goToNextFloor === 'function') {
+                                        GameState.goToNextFloor();
+                                    }
+                                }
+                            });
+                            
+                            return false;
+                        };
+                    }
+                }
+                
+                // Initialize background effects
+                if (typeof GameBackgroundEffects !== 'undefined') {
+                    // Always use body as target for maximum reliability
+                    GameBackgroundEffects.initialize({
+                        targetElement: document.body,
+                        pixelCount: 20,    // Fewer particles for gameplay
+                        opacity: 0.3       // Subtle effect
+                    });
+                    console.log("Background effects initialized");
+                }
+                
+                // Listen for floor change event
+                if (typeof EventSystem !== 'undefined') {
+                    EventSystem.on('FLOOR_CHANGED', function(floorData) {
+                        // Update background effects for new floor
+                        if (typeof GameBackgroundEffects !== 'undefined') {
+                            // More particles on higher floors
+                            const baseParticles = 20;
+                            const floorNumber = floorData.floor_number || floorData.level || 1;
+                            const additionalParticles = Math.min(floorNumber * 2, 20);
+                            
+                            GameBackgroundEffects.updateConfig({
+                                pixelCount: baseParticles + additionalParticles
+                            });
+                        }
+                    });
+                }
+            }, 1000); // Wait 1 second after DOM loads
+        });
+        
+        // Function to force a floor transition (can be called from console for testing)
+        function testFloorTransition(floorNumber = 2, floorName = "Test Floor", description = "Testing floor transition") {
+            if (typeof ScreenTransition !== 'undefined') {
+                ScreenTransition.beginTransition({
+                    title: `Floor ${floorNumber}`,
+                    subtitle: floorName,
+                    description: description,
+                    onComplete: function() {
+                        console.log("Test transition complete");
+                    }
+                });
+            } else {
+                console.error("ScreenTransition not available");
+            }
+        }
+    </script>
 </body>
 </html>
