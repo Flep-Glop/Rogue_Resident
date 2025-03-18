@@ -1276,28 +1276,25 @@ function createLargeDistantShape(container) {
     });
 }
 
+// Fixed implementation of createDynamicShapeInQuadrant
 function createDynamicShapeInQuadrant(container, quadrant) {
     // This function is just a rename of the previous createDynamicShape with forced quadrant
-    // So we're calling the existing function if it exists, or implementing it here if needed
     
+    // If the original createDynamicShape function exists, use that and return
     if (typeof createDynamicShape === 'function') {
-        // If the original fix was implemented, use that
         createDynamicShape(container, quadrant);
-    } else {
-        // Otherwise implement the necessary functionality here
-        const dynamicConfig = visualConfig.shapes.dynamic;
-        const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
-        
-        // Generate position in the specific quadrant
-        const position = generatePositionInQuadrant(quadrant, size);
-        const x = position.x;
-        const y = position.y;
-        
-        // Create the shape (implementation omitted for brevity)
-        // You would implement the same shape creation logic as in the original
-        console.log(`Created dynamic shape at (${x}, ${y}) in quadrant ${quadrant}`);
+        return; // Important: return here to avoid continuing with the rest of the function
     }
-    // Rest of the function remains the same as the original...
+    
+    // Otherwise implement our own version
+    const dynamicConfig = visualConfig.shapes.dynamic;
+    const size = dynamicConfig.minSize + Math.random() * (dynamicConfig.maxSize - dynamicConfig.minSize);
+    
+    // Generate position in the specific quadrant
+    const position = generatePositionInQuadrant(quadrant, size);
+    const x = position.x;
+    const y = position.y;
+    
     // Color - 1% chance for white, rest normal colors
     let color;
     if (Math.random() < 0.01) {
@@ -1511,6 +1508,8 @@ function createDynamicShapeInQuadrant(container, quadrant) {
         pulse: hasPulse,
         rotationTransform: rotationTransform
     });
+    
+    console.log(`Created dynamic shape at (${x}, ${y}) in quadrant ${quadrant}`);
 }
 
 // Track mouse movement
