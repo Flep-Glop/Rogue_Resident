@@ -17,7 +17,6 @@
             margin: 0 auto;
         }
         
-        /* Update the carousel container to allow for side cards */
         .carousel-container {
             position: relative;
             width: 100%;
@@ -26,26 +25,27 @@
             align-items: center;
             justify-content: center;
             min-height: 450px; /* Ensure container has enough height */
+            perspective: 1000px; /* Add perspective for 3D effect */
         }
         
         /* Character card base styling modifications */
         .character-card {
             position: absolute;
-            width: 320px;
+            width: 280px;
             min-height: 400px;
             background-color: var(--background-alt);
             border: 4px solid var(--primary);
             border-radius: 8px;
             padding: 0;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             /* Change default to hidden instead of none to maintain layout calculations */
             visibility: hidden;
             opacity: 0;
-            transform: scale(0.8) translateX(0);
+            transform: scale(0.9) translateX(0);
             z-index: 1;
         }
         
@@ -55,22 +55,30 @@
             opacity: 1;
             transform: scale(1) translateX(0);
             z-index: 5;
+            border-color: var(--secondary);
+        }
+        
+        /* Active card header */
+        .character-card.active .character-header {
+            background-color: var(--secondary);
         }
         
         /* Left flanking card */
         .character-card.left-flank {
             visibility: visible;
-            opacity: 0.6;
-            transform: scale(0.8) translateX(-80%);
+            opacity: 0.9;
+            transform: scale(0.9) translateX(-85%) translateZ(-50px);
             z-index: 2;
+            border-color: var(--primary);
         }
         
         /* Right flanking card */
         .character-card.right-flank {
             visibility: visible;
-            opacity: 0.6;
-            transform: scale(0.8) translateX(80%);
+            opacity: 0.9;
+            transform: scale(0.9) translateX(85%) translateZ(-50px);
             z-index: 2;
+            border-color: var(--primary);
         }
         
         /* Selected state is independent of position */
@@ -81,6 +89,30 @@
             box-shadow: 
                 0 10px 25px rgba(0, 0, 0, 0.3),
                 0 0 15px rgba(86, 184, 134, 0.3);
+        }
+        
+        /* Additional styles to match the design in the screenshots */
+        /* Ensure the flanking cards have blue headers even when active */
+        .character-card.left-flank .character-header,
+        .character-card.right-flank .character-header {
+            background-color: var(--primary);
+        }
+        
+        /* Make the carousel area wider to accommodate the cards */
+        #character-carousel {
+            position: relative;
+            width: 90%;
+            height: 450px;
+            margin: 0 auto;
+        }
+        
+        /* Move the arrows outward */
+        .carousel-arrow.prev {
+            left: 10px;
+        }
+        
+        .carousel-arrow.next {
+            right: 10px;
         }
         
         @keyframes card-pulse {
@@ -625,13 +657,6 @@
                 } else if (cardIndex === nextIndex) {
                     card.classList.add('right-flank');
                 }
-                
-                // Maintain selected state independently
-                if (cardIndex === index && selectedCharacter === characters[index].id) {
-                    card.classList.add('selected');
-                } else {
-                    card.classList.remove('selected');
-                }
             });
             
             // Update counter
@@ -640,10 +665,10 @@
             
             // Update indicators
             document.querySelectorAll('.carousel-indicator').forEach(indicator => {
+                indicator.classList.remove('active', 'selected');
                 if (parseInt(indicator.dataset.index) === index) {
+                    indicator.classList.add('active');
                     indicator.classList.add('selected');
-                } else {
-                    indicator.classList.remove('selected');
                 }
             });
             
@@ -653,11 +678,21 @@
         
         // Set the active character
         function setActiveCharacter(index) {
+            // Calculate previous and next indices with wrapping
+            const prevIndex = (index - 1 + characters.length) % characters.length;
+            const nextIndex = (index + 1) % characters.length;
+            
             // Update cards
             document.querySelectorAll('.character-card').forEach(card => {
-                card.classList.remove('active');
-                if (parseInt(card.dataset.index) === index) {
+                const cardIndex = parseInt(card.dataset.index);
+                card.classList.remove('active', 'left-flank', 'right-flank');
+                
+                if (cardIndex === index) {
                     card.classList.add('active');
+                } else if (cardIndex === prevIndex) {
+                    card.classList.add('left-flank');
+                } else if (cardIndex === nextIndex) {
+                    card.classList.add('right-flank');
                 }
             });
             
@@ -669,7 +704,6 @@
                 }
             });
         }
-        
         // Select a character
         function selectCharacter(characterId, index) {
             selectedCharacter = characterId;
