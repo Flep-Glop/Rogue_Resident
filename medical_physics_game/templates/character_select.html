@@ -44,9 +44,8 @@
         .character-card {
             position: absolute;
             width: 280px;
-            min-height: 450px; /* Increased height to show all content */
+            min-height: 450px; /* Minimum height to show all content */
             height: auto; /* Allow natural height based on content */
-            max-height: 470px; /* Add maximum height to prevent excessive expansion */
             background-color: var(--background-alt);
             border: 4px solid var(--primary);
             border-radius: 8px;
@@ -82,7 +81,7 @@
         /* Left flanking card */
         .character-card.left-flank {
             visibility: visible;
-            opacity: 0.95;
+            opacity: 1.0; /* Full opacity for flanking cards */
             transform: scale(0.95) translateX(-80%);
             z-index: 2;
             border-color: var(--primary);
@@ -93,7 +92,7 @@
         /* Right flanking card */
         .character-card.right-flank {
             visibility: visible;
-            opacity: 0.95;
+            opacity: 1.0; /* Full opacity for flanking cards */
             transform: scale(0.95) translateX(80%);
             z-index: 2;
             border-color: var(--primary);
