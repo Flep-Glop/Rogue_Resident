@@ -1,0 +1,157 @@
+/* critical.css - Critical path CSS for immediate rendering */
+/* Include this inline in the <head> of your HTML documents */
+
+/* Essential resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: #292b36;
+  color: #d4dae0;
+  font-family: 'Press Start 2P', cursive, system-ui, sans-serif;
+  line-height: 1.5;
+  text-rendering: optimizeSpeed;
+}
+
+/* Critical variables */
+:root {
+  --primary: #5b8dd9;
+  --secondary: #56b886;
+  --danger: #e67e73;
+  --warning: #f0c866;
+  --background: #292b36;
+  --background-alt: #21232d;
+  --text: #d4dae0;
+  --spacing-sm: 10px;
+  --spacing-md: 15px;
+  --border-radius-sm: 3px;
+}
+
+/* Critical layout */
+.pixel-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(41, 43, 54, 0.9);
+  z-index: 9999;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(91, 141, 217, 0.3);
+  border-radius: 50%;
+  border-top-color: #5b8dd9;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Critical scanlines for initial visual effect */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 1000;
+}
+
+/* Critical buttons */
+.game-btn, .retro-btn {
+  display: inline-block;
+  padding: 10px 15px;
+  font-family: 'Press Start 2P', cursive;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+}
+
+/* Critical heading styles */
+.game-title h1 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--primary);
+}
+
+.subtitle {
+  font-size: 0.7rem;
+  margin: 5px 0 0;
+  color: var(--secondary);
+}
+
+/* Critical modal styling */
+.node-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+}
+
+/* Critical media query for small screens */
+@media (max-width: 768px) {
+  .game-title h1 {
+    font-size: 1rem;
+  }
+  
+  .subtitle {
+    font-size: 0.6rem;
+  }
+  
+  .game-btn, .retro-btn {
+    padding: 8px 12px;
+    font-size: 0.7rem;
+  }
+}

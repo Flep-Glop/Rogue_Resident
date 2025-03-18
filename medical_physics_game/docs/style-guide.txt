@@ -1,0 +1,256 @@
+# Medical Physics Game CSS Style Guide
+
+## Table of Contents
+1. [File Organization](#file-organization)
+2. [Naming Conventions](#naming-conventions)
+3. [CSS Variables](#css-variables)
+4. [Component Structure](#component-structure)
+5. [Animations](#animations)
+6. [Responsive Design](#responsive-design)
+7. [Accessibility](#accessibility)
+8. [Best Practices](#best-practices)
+
+## File Organization
+
+### Core Files
+```
+/static/css/
+  /base/
+    reset.css        - Browser reset styles
+    variables.css    - Design tokens and CSS variables
+    layout.css       - Core layout grid and containers
+  animations.css     - Parameterized animation system
+  utilities.css      - Utility classes
+  components.css     - Base component styles
+  /components/       - Component-specific styles
+  /screens/          - Screen-specific styles
+  responsive.css     - Consolidated media queries
+  critical.css       - Critical rendering path CSS
+  main.css           - Import manifest
+```
+
+### Import Order
+Always maintain the following import order in main.css:
+1. Base styles (reset, variables, layout)
+2. Critical CSS
+3. Animation system
+4. Utilities
+5. Core components
+6. Specific components
+7. Screen-specific styles
+8. Responsive styles
+9. Themes
+
+## Naming Conventions
+
+### BEM Methodology
+We use the Block, Element, Modifier methodology:
+
+```css
+/* Block component */
+.block {}
+
+/* Element that depends on the block */
+.block__element {}
+
+/* Modifier that changes the style of the block */
+.block--modifier {}
+```
+
+#### Examples:
+```css
+/* Component */
+.game-card {}
+
+/* Component element */
+.game-card__header {}
+.game-card__title {}
+
+/* Component modifier */
+.game-card--epic {}
+```
+
+### Animation Classes
+Animation classes use the `anim-*` prefix:
+
+```css
+.anim-float {}
+.anim-pulse-primary {}
+.anim-fade-in {}
+```
+
+Customize animations with CSS variables rather than creating new keyframes:
+
+```css
+.custom-float {
+  --float-distance: -10px; /* Override default of -5px */
+  --float-duration: 8s;    /* Override default of 5s */
+}
+```
+
+### State Classes
+For temporary states, use descriptive modifiers:
+
+```css
+.game-btn--disabled {}
+.map-node--current {}
+.map-node--completed {}
+```
+
+## CSS Variables
+
+### Variable Naming
+- Use kebab-case for variable names
+- Group related variables with consistent prefixes
+- Include measurement units in variable names when appropriate
+
+### Variable Categories
+- **Colors**: `--primary`, `--primary-dark`, `--primary-50` (50% opacity)
+- **Spacing**: `--spacing-sm`, `--spacing-md`, etc.
+- **Typography**: `--font-size-sm`, `--font-size-md`, etc.
+- **Animation**: `--transition-fast`, `--animation-medium`, etc.
+- **Borders**: `--border-radius-sm`, `--border-primary`, etc.
+
+### Usage Example
+```css
+.component {
+  background-color: var(--background-alt);
+  color: var(--text);
+  border: var(--border-primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast);
+}
+```
+
+## Component Structure
+
+### Basic Structure
+```css
+/* Base component */
+.component-name {
+  /* Base styling */
+}
+
+/* Component variations */
+.component-name--variation {
+  /* Variation-specific styles */
+}
+
+/* Component parts */
+.component-name__part {
+  /* Part-specific styles */
+}
+
+/* Responsive adjustments (reference responsive.css) */
+```
+
+### Component Documentation
+Include a brief comment at the top of each component:
+
+```css
+/* component-name.css - Brief description of purpose
+ * This component is used for [purpose].
+ * Use modifiers to [provide examples].
+ */
+```
+
+## Animations
+
+### Parameterized System
+Use the parameterized animation system for all animations:
+
+```css
+/* Define once in animations.css */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(var(--float-distance, -5px)); }
+  100% { transform: translateY(0); }
+}
+
+/* Use with custom parameters */
+.custom-element {
+  --float-distance: -8px;
+  --float-duration: 6s;
+  animation: float var(--float-duration) infinite ease-in-out;
+}
+```
+
+### Performance Guidelines
+- Animate only `transform` and `opacity` properties when possible
+- Use `will-change` sparingly and only for complex animations
+- Set explicit animation durations using CSS variables
+- Respect user preferences for reduced motion
+
+## Responsive Design
+
+### Breakpoint System
+Use standard breakpoints from variables.css:
+- Extra small: < 576px (`--breakpoint-xs`)
+- Small: < 768px (`--breakpoint-sm`)
+- Medium: < 992px (`--breakpoint-md`)
+- Large: < 1200px (`--breakpoint-lg`)
+
+### Media Queries
+All media queries should be defined in responsive.css, organized by breakpoint.
+
+### Mobile-First Approach
+Default styles target mobile, with media queries adjusting for larger screens.
+
+## Accessibility
+
+### Motion Sensitivity
+Always respect user preferences:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .animated-element {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+```
+
+### Color Contrast
+- Ensure sufficient contrast between text and background
+- Don't rely solely on color to convey information
+- Test with high contrast mode
+
+```css
+@media (prefers-contrast: high) {
+  /* Enhance contrast for accessibility */
+}
+```
+
+## Best Practices
+
+### Selectors
+- Avoid deep nesting (max 3 levels)
+- Avoid overly specific selectors
+- Use classes instead of IDs for styling
+- Avoid using `!important` (except in utilities)
+
+### Properties
+- Group related properties together
+- Use shorthand properties when appropriate
+- Use CSS variables for any repeated values
+- Order properties consistently:
+  1. Positioning (`position`, `top`, etc.)
+  2. Box model (`display`, `width`, etc.)
+  3. Typography (`font`, `text-align`, etc.)
+  4. Visual (`background`, `border`, etc.)
+  5. Misc
+
+### Comments
+- Use comments to explain non-obvious code
+- Document complex selectors or calculations
+- Group related styles with comment headers
+
+```css
+/* ===== HEADER SECTION ===== */
+```
+
+### File Size
+- Keep individual CSS files under 500 lines when possible
+- Split large components into logical sub-components
+- Use utilities for common patterns

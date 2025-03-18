@@ -1,0 +1,395 @@
+/* responsive.css - Consolidated media queries */
+/* This file centralizes all responsive breakpoints for easier maintenance */
+
+/* 
+ * RESPONSIVE SYSTEM ARCHITECTURE
+ * -----------------------------
+ * 1. Media queries are organized by breakpoint (not by component)
+ * 2. Components are grouped within each breakpoint section
+ * 3. Custom breakpoints are handled with mobile-first approach
+ * 4. Motion preferences are respected for accessibility
+ */
+
+/* ===== EXTRA SMALL DEVICES (phones, up to 576px) ===== */
+@media (max-width: 576px) {
+  /* === TYPOGRAPHY === */
+  .game-title h1 {
+    font-size: 1rem;
+  }
+  
+  .subtitle {
+    font-size: 0.5rem;
+  }
+  
+  /* === LAYOUT === */
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .game-sidebar {
+    padding: 5px;
+  }
+  
+  /* === COMPONENTS === */
+  /* Buttons */
+  .game-btn {
+    font-size: calc(var(--font-size-xs) - 1px);
+    padding: 5px 8px;
+  }
+  
+  .retro-btn {
+    font-size: 0.7rem;
+    padding: 8px;
+  }
+  
+  /* Cards */
+  .game-card__header {
+    padding: 5px 8px;
+  }
+  
+  .game-card__body {
+    padding: 8px;
+  }
+  
+  /* Inventory */
+  .inventory-items {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .inventory-item {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .item-inner {
+    width: 36px;
+    height: 36px;
+  }
+  
+  /* Character */
+  .character__avatar {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .character__avatar-img {
+    width: 56px;
+    height: 56px;
+  }
+  
+  /* Map */
+  .map-node {
+    width: 35px;
+    height: 35px;
+    font-size: 10px;
+  }
+}
+
+/* ===== SMALL DEVICES (tablets, up to 768px) ===== */
+@media (max-width: 768px) {
+  /* === LAYOUT === */
+  .container {
+    padding: var(--spacing-sm);
+  }
+  
+  .col-md-3, .col-md-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Game sidebar mobile layout */
+  .game-sidebar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    flex-direction: row;
+    background-color: var(--background-80);
+    backdrop-filter: blur(3px);
+    padding: 10px;
+    border-top: 2px solid var(--primary);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
+  }
+  
+  .character-stats,
+  #inventory-container {
+    width: 50%;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  
+  /* === TYPOGRAPHY === */
+  .game-title h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 0.6rem;
+  }
+  
+  /* === COMPONENTS === */
+  /* Character stats */
+  .character-stats {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm);
+  }
+  
+  .character__details p strong {
+    font-size: var(--font-size-sm);
+  }
+  
+  .character__ability-btn {
+    font-size: calc(var(--font-size-xs) - 1px);
+  }
+  
+  /* Inventory */
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 5px;
+  }
+  
+  .inventory-item {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .item-inner {
+    width: 38px;
+    height: 38px;
+  }
+  
+  /* Button styling */
+  .game-btn {
+    font-size: calc(var(--font-size-sm) - 1px);
+    padding: calc(var(--spacing-sm) - 2px) var(--spacing-sm);
+  }
+  
+  .game-option {
+    font-size: calc(var(--font-size-xs) - 1px);
+    padding: var(--spacing-sm);
+  }
+  
+  .option-btn, .event-option {
+    font-size: calc(var(--font-size-xs) - 1px);
+    padding: var(--spacing-sm);
+  }
+  
+  /* Dialog containers */
+  .interaction-container {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  /* Floor button positioning */
+  #next-floor-btn {
+    bottom: 140px;
+    right: 10px;
+    font-size: 0.7rem;
+    padding: 8px 15px;
+  }
+  
+  /* Debug buttons */
+  .debug-buttons {
+    top: 5px;
+    right: 5px;
+  }
+  
+  /* Modals */
+  .node-modal-content {
+    padding: var(--spacing-md);
+  }
+  
+  /* Character selection */
+  .character-card {
+    width: 240px;
+    min-height: 350px;
+  }
+  
+  .character-card .character-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .carousel-arrow {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+  
+  .carousel-arrow.prev {
+    left: 5px;
+    margin-left: 0;
+  }
+  
+  .carousel-arrow.next {
+    right: 5px;
+    margin-right: 0;
+  }
+  
+  /* Toast notifications */
+  .toast-container {
+    width: 90%;
+    right: 5%;
+  }
+}
+
+/* ===== MEDIUM DEVICES (desktops, up to 992px) ===== */
+@media (max-width: 992px) {
+  /* === LAYOUT === */
+  .game-sidebar {
+    width: 250px;
+  }
+  
+  /* === COMPONENTS === */
+  /* Inventory */
+  .inventory-items {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  /* Character avatar */
+  .character__avatar-container {
+    margin-right: 10px;
+  }
+  
+  /* Map nodes */
+  .map-node {
+    width: 50px;
+    height: 50px;
+    font-size: 16px;
+  }
+  
+  .node-path {
+    height: 2px;
+  }
+  
+  /* Floor transitions */
+  .floor-title {
+    font-size: 36px;
+  }
+  
+  .floor-subtitle {
+    font-size: 20px;
+  }
+  
+  /* Character selection */
+  .carousel-arrow.prev {
+    margin-left: -300px;
+  }
+  
+  .carousel-arrow.next {
+    margin-right: -300px;
+  }
+}
+
+/* ===== LARGE DEVICES (large desktops, up to 1200px) ===== */
+@media (max-width: 1200px) {
+  /* Character selection */
+  .carousel-arrow.prev {
+    margin-left: -350px;
+  }
+  
+  .carousel-arrow.next {
+    margin-right: -350px;
+  }
+}
+
+/* ===== ORIENTATION: LANDSCAPE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Handle special cases for landscape orientation on mobile */
+  .game-sidebar {
+    position: relative;
+    top: 0;
+    bottom: auto;
+    flex-direction: row;
+    width: 100%;
+    border-top: none;
+    border-bottom: 2px solid var(--primary);
+    padding: 5px;
+  }
+  
+  .character-stats,
+  #inventory-container {
+    max-height: 80px;
+  }
+  
+  .character__avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .character__avatar-img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* Ensure critical game UI is visible */
+  .map-container {
+    height: calc(100vh - 100px);
+    top: 100px;
+  }
+}
+
+/* ===== PREFERS-REDUCED-MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Specifically target our animation classes */
+  [class*="anim-"] {
+    animation: none !important;
+  }
+  
+  /* Keep minimal animations for critical UI feedback */
+  .game-btn:hover,
+  .game-option:hover,
+  .toast,
+  .modal-content {
+    transition: opacity 0.3s ease !important;
+  }
+}
+
+/* ===== PREFERS-COLOR-SCHEME ===== */
+/* Optional: Add dark/light mode variations if needed in the future */
+@media (prefers-color-scheme: dark) {
+  /* Game is already dark-themed, but could add variations */
+}
+
+@media (prefers-color-scheme: light) {
+  /* Could add a light theme variation here if desired */
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  /* Enhance contrast for accessibility */
+  :root {
+    --primary: #0078d7;
+    --secondary: #00a651;
+    --danger: #e81123;
+    --warning: #ff8c00;
+    --text: #ffffff;
+    --background: #000000;
+    --background-alt: #0d0d0d;
+  }
+  
+  /* Increase border widths */
+  .game-btn,
+  .game-option,
+  .game-card,
+  .inventory-item,
+  .character-stats {
+    border-width: 2px !important;
+  }
+  
+  /* Enhance text contrast */
+  .game-card__title,
+  .game-panel__title,
+  h1, h2, h3, h4, h5, h6,
+  .character__details p strong {
+    text-shadow: none !important;
+  }
+}

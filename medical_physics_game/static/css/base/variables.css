@@ -1,10 +1,10 @@
 /* variables.css - Central location for all CSS variables */
-/* Comprehensive version with standardized systems */
+/* Enhanced version with transparency variants and improved organization */
 
 :root {
   /* ===== COLOR SYSTEM ===== */
   
-  /* Core Brand Colors */
+  /* Core Brand Colors - Solid */
   --primary: #5b8dd9;      /* Blue */
   --primary-dark: #4a70b0; /* Dark blue for shadows */
   --secondary: #56b886;    /* Green */
@@ -14,18 +14,57 @@
   --warning: #f0c866;      /* Yellow */
   --warning-dark: #c9a955; /* Dark yellow for shadows */
   
+  /* Color Transparency Variants */
+  --primary-05: rgba(91, 141, 217, 0.05);
+  --primary-10: rgba(91, 141, 217, 0.1);
+  --primary-20: rgba(91, 141, 217, 0.2);
+  --primary-30: rgba(91, 141, 217, 0.3);
+  --primary-50: rgba(91, 141, 217, 0.5);
+  --primary-70: rgba(91, 141, 217, 0.7);
+  --primary-90: rgba(91, 141, 217, 0.9);
+  
+  --secondary-05: rgba(86, 184, 134, 0.05);
+  --secondary-10: rgba(86, 184, 134, 0.1);
+  --secondary-20: rgba(86, 184, 134, 0.2);
+  --secondary-30: rgba(86, 184, 134, 0.3);
+  --secondary-50: rgba(86, 184, 134, 0.5);
+  --secondary-70: rgba(86, 184, 134, 0.7);
+  --secondary-90: rgba(86, 184, 134, 0.9);
+  
+  --danger-05: rgba(230, 126, 115, 0.05);
+  --danger-10: rgba(230, 126, 115, 0.1);
+  --danger-20: rgba(230, 126, 115, 0.2);
+  --danger-30: rgba(230, 126, 115, 0.3);
+  --danger-50: rgba(230, 126, 115, 0.5);
+  --danger-70: rgba(230, 126, 115, 0.7);
+  --danger-90: rgba(230, 126, 115, 0.9);
+  
+  --warning-05: rgba(240, 200, 102, 0.05);
+  --warning-10: rgba(240, 200, 102, 0.1);
+  --warning-20: rgba(240, 200, 102, 0.2);
+  --warning-30: rgba(240, 200, 102, 0.3);
+  --warning-50: rgba(240, 200, 102, 0.5);
+  --warning-70: rgba(240, 200, 102, 0.7);
+  --warning-90: rgba(240, 200, 102, 0.9);
+  
   /* Background Colors */
   --background: #292b36;   /* Dark background with slight blue tint */
   --background-alt: #21232d; /* Slightly darker for contrast */
   --dark: #3d4c60;         /* Dark blue-gray */
   --dark-alt: #2c3848;     /* Darker shade for contrast */
   
+  /* Background Transparency Variants */
+  --background-60: rgba(41, 43, 54, 0.6);
+  --background-80: rgba(41, 43, 54, 0.8);
+  --background-90: rgba(41, 43, 54, 0.9);
+  --background-95: rgba(41, 43, 54, 0.95);
+  
   /* Text Colors */
   --text: #d4dae0;         /* Soft white-gray for text */
   --text-dark: #a7adb5;    /* Darker text for less emphasis */
   --text-light: #ecf0f1;   /* Lighter text for emphasis */
   
-  /* Node Type Colors - Using BEM-like naming */
+  /* Node Type Colors */
   --node-start: var(--secondary);
   --node-boss: var(--danger);
   --node-question: var(--primary);
@@ -42,6 +81,15 @@
   --node-gamble-dark: #94ab47; /* Dark lime for shadows */
   --node-patient-case: #4acf8b; /* Bright green */
   --node-patient-case-dark: #3aaf7a; /* Dark bright green for shadows */
+  
+  /* Node Transparency Variants */
+  --node-elite-20: rgba(211, 93, 179, 0.2);
+  --node-elite-30: rgba(211, 93, 179, 0.3);
+  --node-elite-50: rgba(211, 93, 179, 0.5);
+  
+  --node-rest-20: rgba(156, 119, 219, 0.2);
+  --node-rest-30: rgba(156, 119, 219, 0.3);
+  --node-rest-50: rgba(156, 119, 219, 0.5);
   
   /* Rarity Colors */
   --rarity-common: #aaaaaa;
@@ -99,11 +147,28 @@
   --shadow-inner-md: inset 0 0 8px rgba(0, 0, 0, 0.3);
   --shadow-inner-lg: inset 0 0 16px rgba(0, 0, 0, 0.4);
   
+  /* Colored Shadows */
+  --shadow-primary-sm: 0 0 5px var(--primary-30);
+  --shadow-primary-md: 0 0 10px var(--primary-50);
+  --shadow-primary-lg: 0 0 15px var(--primary-70);
+  
+  --shadow-secondary-sm: 0 0 5px var(--secondary-30);
+  --shadow-secondary-md: 0 0 10px var(--secondary-50);
+  --shadow-secondary-lg: 0 0 15px var(--secondary-70);
+  
+  --shadow-danger-sm: 0 0 5px var(--danger-30);
+  --shadow-danger-md: 0 0 10px var(--danger-50);
+  --shadow-danger-lg: 0 0 15px var(--danger-70);
+  
+  --shadow-warning-sm: 0 0 5px var(--warning-30);
+  --shadow-warning-md: 0 0 10px var(--warning-50);
+  --shadow-warning-lg: 0 0 15px var(--warning-70);
+  
   /* Pixel Shadows (for retro buttons) */
   --shadow-pixel-primary: 
     0 var(--pixel-size) 0 0 var(--primary-dark),
     0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
-  
+    
   --shadow-pixel-secondary: 
     0 var(--pixel-size) 0 0 var(--secondary-dark),
     0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
@@ -119,16 +184,16 @@
   /* ===== GLOW EFFECTS ===== */
   
   /* Basic Glows */
-  --glow-primary: 0 0 8px var(--primary);
-  --glow-secondary: 0 0 8px var(--secondary);
-  --glow-danger: 0 0 8px var(--danger);
-  --glow-warning: 0 0 8px var(--warning);
+  --glow-primary: var(--shadow-primary-md);
+  --glow-secondary: var(--shadow-secondary-md);
+  --glow-danger: var(--shadow-danger-md);
+  --glow-warning: var(--shadow-warning-md);
   
   /* Intensity Variations */
-  --glow-primary-strong: 0 0 15px var(--primary);
-  --glow-secondary-strong: 0 0 15px var(--secondary);
-  --glow-danger-strong: 0 0 15px var(--danger);
-  --glow-warning-strong: 0 0 15px var(--warning);
+  --glow-primary-strong: var(--shadow-primary-lg);
+  --glow-secondary-strong: var(--shadow-secondary-lg);
+  --glow-danger-strong: var(--shadow-danger-lg);
+  --glow-warning-strong: var(--shadow-warning-lg);
   
   /* Inner Glows */
   --glow-inner-primary: inset 0 0 8px var(--primary);
@@ -154,6 +219,12 @@
   --border-secondary: 2px solid var(--secondary);
   --border-danger: 2px solid var(--danger);
   --border-warning: 2px solid var(--warning);
+  
+  /* Colored Border with Opacity */
+  --border-primary-light: 2px solid var(--primary-50);
+  --border-secondary-light: 2px solid var(--secondary-50);
+  --border-danger-light: 2px solid var(--danger-50);
+  --border-warning-light: 2px solid var(--warning-50);
   
   /* Rarity Borders */
   --border-left-common: 4px solid var(--rarity-common);
@@ -188,4 +259,10 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
+  
+  /* ===== FONT STACKS ===== */
+  
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-system: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 }
