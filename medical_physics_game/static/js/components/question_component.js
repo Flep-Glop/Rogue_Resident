@@ -436,17 +436,38 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       itemDiv.className = 'p-sm mb-sm bg-dark-alt rounded-sm';
       itemDiv.style.border = '1px solid rgba(255,255,255,0.1)';
       itemDiv.style.marginBottom = '10px';
+      itemDiv.style.display = 'flex';
+      itemDiv.style.alignItems = 'center';
+      
+      // Add item icon
+      const iconDiv = document.createElement('div');
+      iconDiv.style.width = '48px';
+      iconDiv.style.height = '48px';
+      iconDiv.style.backgroundColor = 'rgba(0,0,0,0.3)';
+      iconDiv.style.borderRadius = '4px';
+      iconDiv.style.marginRight = '10px';
+      iconDiv.style.display = 'flex';
+      iconDiv.style.justifyContent = 'center';
+      iconDiv.style.alignItems = 'center';
+      
+      // Get icon HTML
+      iconDiv.innerHTML = this.getItemIcon(item);
+      itemDiv.appendChild(iconDiv);
+      
+      // Content container
+      const contentDiv = document.createElement('div');
+      contentDiv.style.flex = '1';
       
       // Add item name and description
       const itemHeader = document.createElement('div');
       itemHeader.className = 'mb-xs';
       itemHeader.innerHTML = `<strong>${item.name}</strong> <span class="badge badge-${item.rarity || 'common'}">${item.rarity || 'common'}</span>`;
-      itemDiv.appendChild(itemHeader);
+      contentDiv.appendChild(itemHeader);
       
       const itemDesc = document.createElement('p');
       itemDesc.className = 'text-sm mb-sm';
       itemDesc.textContent = item.description;
-      itemDiv.appendChild(itemDesc);
+      contentDiv.appendChild(itemDesc);
       
       // Add a clear, distinct button
       const useBtn = document.createElement('button');
@@ -472,26 +493,24 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
         self.useItem({ item: item });
       });
       
-      itemDiv.appendChild(useBtn);
+      contentDiv.appendChild(useBtn);
+      itemDiv.appendChild(contentDiv);
       container.appendChild(itemDiv);
     });
   },
   
-  // Get icon for an item
+  // Improved item icon rendering
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="inventory-item__icon pixelated">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;">`;
     }
     
-    // Use design bridge for colors if available
-    const iconColor = window.DesignBridge?.colors?.primary || "#5b8dd9";
-    
-    // Map common item types to icons
+    // Map common item types to icons with inline styling for better visibility
     const itemName = (item.name || '').toLowerCase();
     let iconClass = "box";
     
-    if (itemName.includes('book') || itemName.includes('manual')) {
+    if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
       iconClass = "book";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
       iconClass = "flask";
@@ -501,9 +520,11 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       iconClass = "id-badge";
     }
     
-    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};" class="inventory-item__icon"></i>`;
+    // Use inline styling to ensure visibility
+    return `<i class="fas fa-${iconClass}" style="color: #5b8dd9; font-size: 24px;"></i>`;
   },
   
+  // Fixed useItem function that properly removes the item and saves state
   useItem: function(data) {
     console.log("useItem called with data:", data);
     
@@ -524,8 +545,16 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       const inventory = window.GameState.data.inventory;
       const itemIndex = inventory.findIndex(i => i.id === item.id);
       if (itemIndex !== -1) {
+        // Remove the item
         inventory.splice(itemIndex, 1);
-        console.log(`Removed item ${item.id} from inventory`);
+        console.log(`Removed item ${item.id} from inventory, new inventory size: ${inventory.length}`);
+        
+        // Save the inventory change via API if available
+        if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
+          ApiClient.saveInventory({ inventory: inventory })
+            .then(() => console.log("Inventory saved successfully"))
+            .catch(err => console.error("Failed to save inventory:", err));
+        }
       }
     }
     
@@ -538,6 +567,9 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     } else {
       alert(`Used ${item.name}!`);
     }
+    
+    // Force inventory update on next toggle
+    this.setUiState('inventoryLoaded', false);
   },
   
   applyItemEffectToQuestion: function(item) {

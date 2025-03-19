@@ -164,6 +164,14 @@ window.ApiClient = {
   getAllRelics: async function() {
     return this.request('/api/relic/all');
   },
+
+  // Add this method to ApiClient if it doesn't exist
+  saveInventory: function(data) {
+    return this.request('/api/save-inventory', {
+      method: 'POST',
+      body: data
+    });
+  },
   
   // ===== QUESTION ENDPOINTS =====
   
