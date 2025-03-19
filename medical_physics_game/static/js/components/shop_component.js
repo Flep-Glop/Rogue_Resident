@@ -1,141 +1,54 @@
-// shop_component.js - Simple implementation with no syntax errors
+// shop_component.js - Improved version with reliable node completion and condensed UI
 
-const ShopComponent = {
+const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
   initialize: function() {
-    console.log("Initializing shop component");
+    console.log("Initializing improved shop component");
     this.itemsLoaded = false;
     this.shopItems = [];
   },
   
-  // Render the shop to exactly match your screenshot
+  // Render the shop with improved UI
   render: function(nodeData, container) {
     console.log("Rendering shop component", nodeData);
     
-    // Create shop structure to match your screenshot
+    // Create simplified shop structure
     container.innerHTML = `
-      <div class="shop-panel">
+      <div class="game-panel anim-fade-in">
         <div class="shop-header">
-          <h3>Department Store</h3>
-          <div class="insight-bar">
-            <span>Available Insight:</span>
-            <span id="shop-currency" style="color: #f0c866; font-weight: bold;">${this.getPlayerInsight()}</span>
+          <h3 class="game-panel__title">Department Store</h3>
+          <div class="insight-display">
+            <span>Insight:</span>
+            <span class="insight-value" id="shop-currency">${this.getPlayerInsight()}</span>
           </div>
         </div>
         
-        <p style="color: #b8c7e0; margin-bottom: 15px;">Browse and purchase items using your insight points.</p>
+        <p class="shop-description">Browse and purchase items using your insight points.</p>
         
-        <div id="shop-items-container">
-          <div style="text-align: center; padding: 20px;">
-            Loading items...
+        <div id="shop-items-grid" class="shop-items-grid">
+          <div class="loading-indicator">
+            <p>Loading items...</p>
           </div>
         </div>
         
-        <button id="shop-continue-btn" style="background-color: #56b886; color: white; border: none; width: 100%; padding: 12px; font-size: 16px; letter-spacing: 1px; cursor: pointer; margin-top: 15px; font-weight: bold;">
+        <button id="shop-continue-btn" class="game-btn game-btn--secondary game-btn--block mt-md">
           LEAVE SHOP
         </button>
       </div>
     `;
     
-    // Add basic styles
-    this.addStyles();
-    
-    // Add continue button event listener
-    const continueBtn = document.getElementById('shop-continue-btn');
-    if (continueBtn) {
-      continueBtn.addEventListener('click', () => {
-        this.completeNode(nodeData);
-      });
-    }
+    // Bind action using ComponentUtils for reliability
+    this.bindAction('shop-continue-btn', 'click', 'continue', { nodeData });
     
     // Load items
     this.loadItems();
   },
   
-  // Add dedicated styles for shop component
-  addStyles: function() {
-    if (document.getElementById('shop-styles')) return;
-    
-    const styleEl = document.createElement('style');
-    styleEl.id = 'shop-styles';
-    styleEl.textContent = `
-      /* Main shop styling to match your screenshot */
-      .shop-panel {
-        background-color: #1a1c2e;
-        border: 2px solid #5b8dd9;
-        padding: 15px;
-        color: #fff;
-      }
-      
-      .shop-header {
-        margin-bottom: 15px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .shop-header h3 {
-        color: #5b8dd9;
-        font-size: 24px;
-        margin: 0;
-        font-weight: bold;
-      }
-      
-      /* Insight display in top right */
-      .insight-bar {
-        color: #ffffff;
-        font-weight: bold;
-      }
-      
-      #shop-currency {
-        color: #f0c866;
-        font-weight: bold;
-      }
-      
-      /* Shop description */
-      .shop-description {
-        margin-bottom: 20px;
-        color: #b8c7e0;
-        text-align: center;
-      }
-      
-      /* Section titles for consumables and relics */
-      .section-title {
-        color: #f0c866;
-        font-size: 18px;
-        margin: 15px 0 10px 0;
-        font-weight: bold;
-      }
-      
-      /* Leave shop button */
-      #shop-continue-btn {
-        background-color: #56b886;
-        color: white;
-        border: none;
-        padding: 12px;
-        font-size: 16px;
-        font-weight: bold;
-        letter-spacing: 1px;
-        cursor: pointer;
-        text-align: center;
-        margin-top: 15px;
-      }
-      
-      #shop-continue-btn:hover {
-        background-color: #48a375;
-      }
-    `;
-    
-    document.head.appendChild(styleEl);
-  },
-  
-  // Load items with guaranteed relics
+  // Load shop items
   loadItems: function() {
-    console.log("Loading shop items (with aggressive forced relic)");
+    console.log("Loading shop items");
     
-    // Static items guaranteed to work
+    // Create static items guaranteed to work
     const items = [
       {
         id: "medical_textbook",
@@ -169,143 +82,244 @@ const ShopComponent = {
       }
     ];
     
-    console.log("Created shop items:", items);
-    
-    // ENSURE relic filtering works
-    const relics = items.filter(item => item.type === 'relic' || item.itemType === 'relic');
-    console.log("Filtered relics:", relics);
-    
-    // Ensure we definitely have at least one relic
-    if (relics.length === 0) {
-      console.warn("NO RELICS FOUND - ADDING FORCED RELIC!");
-      
-      // Add a guaranteed relic
-      const forcedRelic = {
-        id: "forced_goggles",
-        name: "FORCED RELIC - Quantum Goggles",
-        description: "This is a forced relic to ensure visibility",
-        price: 80,
-        rarity: "epic",
-        iconPath: "3D Glasses.png",
-        type: "relic",
-        itemType: "relic"
-      };
-      
-      items.push(forcedRelic);
-      console.log("Added forced relic:", forcedRelic);
-    }
-    
     this.shopItems = items;
     this.itemsLoaded = true;
     this.renderItems();
-    
-    // Force re-render after a short delay as a last resort
-    setTimeout(() => {
-      console.log("FORCED RE-RENDER AFTER DELAY");
-      this.renderItems();
-    }, 100);
   },
   
-  // Render items with a forced visible approach
+  // Render items with condensed UI
   renderItems: function() {
-    const container = document.getElementById('shop-items-container');
+    const container = document.getElementById('shop-items-grid');
     if (!container) return;
     
-    // Start fresh
+    // Clear container
     container.innerHTML = '';
     
-    // Using a single-container approach 
-    const allItemsHtml = [];
-    
-    // Add super obvious consumables header
-    allItemsHtml.push(`
-      <div style="background-color: #2a2a36; color: #f0c866; font-size: 18px; margin-bottom: 10px; padding: 8px; text-align: left; border-left: 4px solid #f0c866;">
-        Consumable Items
-      </div>
-    `);
-    
-    // Filter consumables and add them
+    // Group items by type
     const consumables = this.shopItems.filter(item => 
       item.type === 'consumable' || item.itemType === 'consumable');
     
-    consumables.forEach(item => {
-      const canAfford = this.getPlayerInsight() >= item.price;
-      const nameColor = item.rarity === 'rare' ? '#9c77db' : 
-                        item.rarity === 'epic' ? '#f0c866' : 
-                        item.rarity === 'uncommon' ? '#5b8dd9' : '#ffffff';
-      
-      allItemsHtml.push(`
-        <div style="background-color: #1e2032; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
-          <div style="text-align: center; margin-bottom: 15px; color: ${nameColor}; font-weight: bold;">
-            ${item.name}
-          </div>
-          <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px;">
-            <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 48px; max-height: 48px; image-rendering: pixelated;">
-          </div>
-          <button data-id="${item.id}" style="width: 100%; padding: 8px; background-color: ${canAfford ? '#56b886' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold;">
-            ${item.price} INSIGHT
-          </button>
-        </div>
-      `);
-    });
-    
-    // Add super obvious relics header
-    allItemsHtml.push(`
-      <div style="background-color: #2a2a36; color: #f0c866; font-size: 18px; margin: 20px 0 10px 0; padding: 8px; text-align: left; border-left: 4px solid #f0c866;">
-        Rare Relics
-      </div>
-    `);
-    
-    // Filter relics and add them - with very distinct styling
     const relics = this.shopItems.filter(item => 
       item.type === 'relic' || item.itemType === 'relic');
     
-    console.log("RELICS TO RENDER:", relics);
-    
-    if (relics.length > 0) {
-      relics.forEach(item => {
-        const canAfford = this.getPlayerInsight() >= item.price;
-        
-        allItemsHtml.push(`
-          <div style="background-color: #1e2032; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: 2px solid #9c77db;">
-            <div style="text-align: center; margin-bottom: 15px; color: #f0c866; font-weight: bold; font-size: 18px;">
-              ${item.name}
-            </div>
-            <div style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px; border: 2px solid #9c77db;">
-              <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 64px; max-height: 64px; image-rendering: pixelated;">
-            </div>
-            <div style="text-align: center; margin-bottom: 10px; color: #b8c7e0; font-size: 14px;">
-              ${item.description}
-            </div>
-            <button data-id="${item.id}" style="width: 100%; padding: 10px; background-color: ${canAfford ? '#9c77db' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold; margin-top: 5px;">
-              ${item.price} INSIGHT
-            </button>
-          </div>
-        `);
-      });
-    } else {
-      // No relics message
-      allItemsHtml.push(`
-        <div style="text-align: center; padding: 15px; color: #9c77db; background-color: #1e2032; border-radius: 5px;">
-          No relics available at this time
-        </div>
-      `);
+    // Display consumables first
+    if (consumables.length > 0) {
+      const consumablesHeader = document.createElement('div');
+      consumablesHeader.className = 'shop-category-header';
+      consumablesHeader.textContent = 'Consumable Items';
+      container.appendChild(consumablesHeader);
+      
+      this.renderItemGroup(container, consumables);
     }
     
-    // Set all content at once
-    container.innerHTML = allItemsHtml.join('');
-    
-    // Add click handlers for all buttons
-    container.querySelectorAll('button[data-id]').forEach(button => {
-      const itemId = button.getAttribute('data-id');
-      const item = this.shopItems.find(i => i.id === itemId);
+    // Display relics
+    if (relics.length > 0) {
+      const relicsHeader = document.createElement('div');
+      relicsHeader.className = 'shop-category-header';
+      relicsHeader.textContent = 'Permanent Relics';
+      container.appendChild(relicsHeader);
       
-      if (item && this.getPlayerInsight() >= item.price) {
-        button.addEventListener('click', () => {
-          this.purchaseItem(item);
-        });
-      }
+      this.renderItemGroup(container, relics);
+    }
+    
+    // If no items at all
+    if (this.shopItems.length === 0) {
+      container.innerHTML = `
+        <div class="empty-shop-message">
+          <p>No items available for purchase at this time.</p>
+        </div>
+      `;
+    }
+    
+    // Add simple styles
+    this.addStyles();
+  },
+  
+  // Render a group of items
+  renderItemGroup: function(container, items) {
+    const itemsGrid = document.createElement('div');
+    itemsGrid.className = 'shop-items-container';
+    
+    items.forEach(item => {
+      const canAfford = this.getPlayerInsight() >= item.price;
+      
+      const itemElement = document.createElement('div');
+      itemElement.className = `shop-item rarity-${item.rarity || 'common'}`;
+      
+      // Simplified item display
+      itemElement.innerHTML = `
+        <div class="shop-item-header">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price ${!canAfford ? 'cannot-afford' : ''}">${item.price}</div>
+        </div>
+        <div class="shop-item-body">
+          <div class="item-rarity ${item.rarity || 'common'}">${item.rarity || 'common'}</div>
+          <div class="item-description">${item.description}</div>
+          <div class="item-effect">${this.getEffectText(item)}</div>
+        </div>
+        <div class="shop-item-footer">
+          <button class="purchase-btn ${!canAfford ? 'cannot-afford' : ''}" 
+                  data-id="${item.id}" 
+                  ${!canAfford ? 'disabled' : ''}>
+            ${canAfford ? 'Purchase' : 'Not enough insight'}
+          </button>
+        </div>
+      `;
+      
+      itemsGrid.appendChild(itemElement);
     });
+    
+    container.appendChild(itemsGrid);
+    
+    // Add purchase event listeners
+    itemsGrid.querySelectorAll('.purchase-btn:not([disabled])').forEach(button => {
+      const itemId = button.getAttribute('data-id');
+      
+      // Directly bind purchase to avoid issues
+      button.addEventListener('click', () => {
+        const item = this.shopItems.find(i => i.id === itemId);
+        if (item) this.purchaseItem(item);
+      });
+    });
+  },
+  
+  // Get formatted effect text
+  getEffectText: function(item) {
+    if (item.type === 'relic' || item.itemType === 'relic') {
+      return `Passive: ${item.description}`;
+    } else {
+      return `Effect: ${item.description}`;
+    }
+  },
+  
+  // Add condensed styles
+  addStyles: function() {
+    if (document.getElementById('improved-shop-styles')) return;
+    
+    const styleEl = document.createElement('style');
+    styleEl.id = 'improved-shop-styles';
+    styleEl.textContent = `
+      /* Condensed shop styles */
+      .shop-category-header {
+        background-color: #2a2a36;
+        padding: 8px 12px;
+        margin: 15px 0 10px 0;
+        color: #f0c866;
+        font-weight: bold;
+        border-left: 3px solid #f0c866;
+      }
+      
+      .shop-items-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      
+      .shop-item {
+        background-color: #1e2032;
+        border-radius: 5px;
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+      
+      .shop-item:hover {
+        transform: translateY(-3px);
+      }
+      
+      .shop-item-header {
+        background-color: rgba(0,0,0,0.2);
+        padding: 8px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .item-name {
+        font-weight: bold;
+        color: white;
+      }
+      
+      .item-price {
+        background-color: #5b8dd9;
+        padding: 3px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+      
+      .item-price.cannot-afford {
+        background-color: #e67e73;
+        text-decoration: line-through;
+      }
+      
+      .shop-item-body {
+        padding: 10px;
+      }
+      
+      .item-rarity {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        text-transform: capitalize;
+        margin-bottom: 8px;
+        background-color: rgba(0,0,0,0.2);
+      }
+      
+      .item-rarity.common { color: #aaa; }
+      .item-rarity.uncommon { color: #5b8dd9; }
+      .item-rarity.rare { color: #9c77db; }
+      .item-rarity.epic { color: #f0c866; }
+      
+      .item-description {
+        font-size: 12px;
+        margin-bottom: 8px;
+        line-height: 1.4;
+      }
+      
+      .item-effect {
+        font-size: 12px;
+        background-color: rgba(0,0,0,0.2);
+        padding: 6px;
+        border-radius: 3px;
+        color: #5b8dd9;
+      }
+      
+      .shop-item-footer {
+        padding: 10px;
+        background-color: rgba(0,0,0,0.2);
+      }
+      
+      .purchase-btn {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        background-color: #5b8dd9;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 13px;
+      }
+      
+      .purchase-btn:hover {
+        background-color: #4a7cc7;
+      }
+      
+      .purchase-btn.cannot-afford {
+        background-color: #e67e73;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      
+      .empty-shop-message {
+        text-align: center;
+        padding: 20px;
+        color: #888;
+        font-style: italic;
+      }
+    `;
+    
+    document.head.appendChild(styleEl);
   },
   
   // Get player insight
@@ -313,42 +327,55 @@ const ShopComponent = {
     return window.GameState?.data?.character?.insight || 0;
   },
   
-  // Purchase item
+  // Purchase item with improved reliability
   purchaseItem: function(item) {
     const insight = this.getPlayerInsight();
     
     if (insight < item.price) {
-      alert("Not enough insight!");
+      this.showToast("Not enough insight to purchase this item", "warning");
       return;
     }
     
     // Deduct insight
     if (window.GameState && GameState.data && GameState.data.character) {
-      GameState.data.character.insight -= item.price;
-      
-      // Add item to inventory
-      if (!GameState.data.inventory) {
-        GameState.data.inventory = [];
-      }
-      
       // Create full item object
       const fullItem = {
         id: item.id,
         name: item.name,
         description: item.description,
         rarity: item.rarity,
-        itemType: item.type,
+        itemType: item.type || item.itemType,
         iconPath: item.iconPath,
         effect: {
-          type: item.id === "medical_textbook" ? "eliminateOption" : 
-                item.id === "radiation_badge" ? "heal" : "second_chance",
+          type: this.getEffectType(item),
           value: item.description,
-          duration: item.type === "relic" ? "permanent" : "instant"
+          duration: (item.type === "relic" || item.itemType === "relic") ? "permanent" : "instant"
         }
       };
       
-      // Add to inventory
-      GameState.data.inventory.push(fullItem);
+      // First add to inventory to ensure it works
+      if (window.InventorySystem && typeof InventorySystem.addItem === 'function') {
+        const added = InventorySystem.addItem(fullItem);
+        
+        if (!added) {
+          this.showToast("Failed to add item to inventory. It may be full.", "warning");
+          return;
+        }
+      } else {
+        // Fallback to direct inventory manipulation
+        if (!GameState.data.inventory) {
+          GameState.data.inventory = [];
+        }
+        GameState.data.inventory.push(fullItem);
+        
+        // Save inventory
+        if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
+          ApiClient.saveInventory({ inventory: GameState.data.inventory });
+        }
+      }
+      
+      // Now deduct the insight after successful addition
+      GameState.data.character.insight -= item.price;
       
       // Update display
       const currencyElement = document.getElementById('shop-currency');
@@ -356,28 +383,109 @@ const ShopComponent = {
         currencyElement.textContent = this.getPlayerInsight();
       }
       
-      alert(`Purchased ${item.name}!`);
+      // Show feedback
+      this.showToast(`Purchased ${item.name}!`, "success");
       
       // Refresh display
       this.renderItems();
+      
+      // Emit events to update UI
+      if (window.EventSystem) {
+        EventSystem.emit(GAME_EVENTS.INSIGHT_CHANGED, GameState.data.character.insight);
+        EventSystem.emit(GAME_EVENTS.ITEM_ADDED_SUCCESS, fullItem);
+      }
     }
   },
   
-  // Complete the node
+  // Get effect type based on item ID
+  getEffectType: function(item) {
+    const id = item.id.toLowerCase();
+    
+    if (id.includes('textbook')) return "eliminateOption";
+    if (id.includes('badge') || id.includes('heal')) return "heal";
+    if (id.includes('goggles') || id.includes('spectacles')) return "second_chance";
+    if (id.includes('insight')) return "insight_gain";
+    
+    // Default fallback
+    return "special";
+  },
+  
+  // Show toast message
+  showToast: function(message, type) {
+    if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+      UiUtils.showToast(message, type);
+    } else {
+      alert(message);
+    }
+  },
+  
+  // Handle component actions
+  handleAction: function(nodeData, action, data) {
+    console.log(`Shop component handling action: ${action}`, data);
+    
+    switch (action) {
+      case 'continue':
+        this.completeNode(nodeData);
+        break;
+        
+      default:
+        console.warn(`Unknown action: ${action}`);
+    }
+  },
+  
+  // Complete the node with improved reliability
   completeNode: function(nodeData) {
-    // Mark node as visited
+    console.log("Completing shop node", nodeData);
+    
+    // Mark node as visited - try multiple approaches for reliability
     if (window.NodeInteraction && typeof NodeInteraction.completeNode === 'function') {
       NodeInteraction.completeNode(nodeData);
     } else if (window.ApiClient && typeof ApiClient.markNodeVisited === 'function') {
-      ApiClient.markNodeVisited(nodeData.id);
+      ApiClient.markNodeVisited(nodeData.id)
+        .then(() => {
+          console.log("Node marked as visited via API");
+          // Ensure we return to map view
+          this.showMapView();
+        })
+        .catch(err => {
+          console.error("Error marking node as visited:", err);
+          // Try to show map anyway
+          this.showMapView();
+        });
+    } else {
+      console.warn("No method found to mark node as visited");
+      // Try to show map anyway
+      this.showMapView();
     }
+  },
+  
+  // Show map view with multiple fallbacks for reliability
+  showMapView: function() {
+    console.log("Attempting to show map view");
     
-    // Show the map
+    // Try multiple methods to ensure we can return to the map
     if (window.UI && typeof UI.showMapView === 'function') {
       UI.showMapView();
+    } else {
+      // Try to find the map container and show it directly
+      const mapContainer = document.querySelector('.map-container');
+      if (mapContainer) {
+        mapContainer.style.display = 'block';
+      }
+      
+      // Hide modal if present
+      const modal = document.getElementById('node-modal-overlay');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      
+      // Hide all interaction containers
+      document.querySelectorAll('.interaction-container').forEach(el => {
+        el.style.display = 'none';
+      });
     }
   }
-};
+});
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
