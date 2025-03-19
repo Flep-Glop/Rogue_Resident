@@ -281,7 +281,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     });
   },
   
-  // Main question UI rendering
+  // Modify the renderQuestionUI function in question_component.js
   renderQuestionUI: function(nodeData, container) {
     // Get colors from design bridge
     const questionColor = window.DesignBridge?.colors?.nodeQuestion || '#5b8dd9';
@@ -295,42 +295,35 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     const panelClass = isElite ? 'game-panel--warning' : 
                       isBoss ? 'game-panel--danger' : 'game-panel--primary';
     
-    // Create question UI
+    // Create question UI with side-by-side layout
     container.innerHTML = `
-      <div class="game-panel ${panelClass} anim-fade-in">
-        <div class="game-panel__title flex justify-between items-center">
-          <div>${this.getQuestionTitle(nodeData)}</div>
-          <div>${this.getDifficultyBadge(nodeData.question.difficulty)}</div>
-        </div>
-        
-        <div class="p-sm mb-md bg-dark-alt rounded-md">
-          <p id="question-text" class="text-light">${nodeData.question?.text || 'No question text available'}</p>
-          ${this.getCategoryTag(nodeData.question)}
-        </div>
-        
-        <div class="item-button-container">
-          <button id="show-inventory-btn" class="game-btn game-btn--secondary mb-sm">
-            <i class="fas fa-backpack mr-xs"></i> Use Item
+      <div class="question-with-inventory-container">
+        <div class="game-panel question-panel ${panelClass} anim-fade-in">
+          <div class="game-panel__title flex justify-between items-center">
+            <div>${this.getQuestionTitle(nodeData)}</div>
+            <div>${this.getDifficultyBadge(nodeData.question.difficulty)}</div>
+          </div>
+          
+          <div class="p-sm mb-md bg-dark-alt rounded-md">
+            <p id="question-text" class="text-light">${nodeData.question?.text || 'No question text available'}</p>
+            ${this.getCategoryTag(nodeData.question)}
+          </div>
+          
+          <div id="options-container" class="mb-lg"></div>
+          
+          <div id="question-result" class="alert mb-md" style="display: none;"></div>
+          
+          <button id="continue-btn" class="game-btn game-btn--primary w-full anim-pulse-scale" style="display: none;">
+            Continue
           </button>
         </div>
         
-        <div id="question-inventory-panel" class="inventory-panel mb-md" style="display: none;">
-          <div class="inventory-panel__header">
-            <h4>Select an item to use</h4>
-            <button id="close-inventory-btn" class="close-btn">&times;</button>
-          </div>
-          <div id="question-inventory-items" class="inventory-panel__items">
+        <div id="question-inventory-sidebar" class="question-inventory-sidebar">
+          <h4 class="inventory-sidebar-title">Inventory</h4>
+          <div id="question-inventory-items" class="inventory-sidebar-items">
             <p class="text-center">Loading items...</p>
           </div>
         </div>
-        
-        <div id="options-container" class="mb-lg"></div>
-        
-        <div id="question-result" class="alert mb-md" style="display: none;"></div>
-        
-        <button id="continue-btn" class="game-btn game-btn--primary w-full anim-pulse-scale" style="display: none;">
-          Continue
-        </button>
       </div>
     `;
     
@@ -340,9 +333,8 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       this.renderOptions(optionsContainer, nodeData.question.options, nodeData);
     }
     
-    // Bind inventory toggle buttons
-    this.bindAction('show-inventory-btn', 'click', 'toggleInventory');
-    this.bindAction('close-inventory-btn', 'click', 'toggleInventory');
+    // Load inventory items immediately
+    this.renderInventoryItems();
     
     // If question was already answered in this session, show the result
     if (this.getUiState('questionAnswered') && 
@@ -363,15 +355,6 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       if (continueBtn) {
         continueBtn.style.display = 'block';
         this.bindAction('continue-btn', 'click', 'continue', { nodeData });
-      }
-    }
-    
-    // If inventory was visible, show it
-    if (this.getUiState('inventoryVisible')) {
-      const inventoryPanel = document.getElementById('question-inventory-panel');
-      if (inventoryPanel) {
-        inventoryPanel.style.display = 'block';
-        this.renderInventoryItems();
       }
     }
     
@@ -411,14 +394,13 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
+  // Replace the renderInventoryItems function to render directly in the sidebar
   renderInventoryItems: function() {
-    console.log("renderInventoryItems called");
     const container = document.getElementById('question-inventory-items');
     if (!container) return;
     
     // Get inventory from game state
     const inventory = window.GameState?.data?.inventory || [];
-    console.log("Inventory items:", inventory.length);
     
     // Clear container and show message if no items
     if (!inventory || inventory.length === 0) {
@@ -426,79 +408,63 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       return;
     }
     
-    // Use a simpler list layout instead of a grid
+    // Filter to only show consumable items (not relics)
+    const consumableItems = inventory.filter(item => 
+      item.itemType !== 'relic' || !item.itemType
+    );
+    
+    if (consumableItems.length === 0) {
+      container.innerHTML = '<p class="text-center p-md">No usable items</p>';
+      return;
+    }
+    
+    // Create a simple grid layout for the items
     container.innerHTML = '';
     
-    // Create a simple list of items with clear buttons
-    inventory.forEach(item => {
-      // Create a container for each item
+    // Create a grid container
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'inventory-sidebar-grid';
+    container.appendChild(gridDiv);
+    
+    // Add each item
+    consumableItems.forEach(item => {
+      // Create item element
       const itemDiv = document.createElement('div');
-      itemDiv.className = 'p-sm mb-sm bg-dark-alt rounded-sm';
-      itemDiv.style.border = '1px solid rgba(255,255,255,0.1)';
-      itemDiv.style.marginBottom = '10px';
-      itemDiv.style.display = 'flex';
-      itemDiv.style.alignItems = 'center';
+      itemDiv.className = `inventory-sidebar-item ${item.rarity || 'common'}`;
       
-      // Add item icon
-      const iconDiv = document.createElement('div');
-      iconDiv.style.width = '48px';
-      iconDiv.style.height = '48px';
-      iconDiv.style.backgroundColor = 'rgba(0,0,0,0.3)';
-      iconDiv.style.borderRadius = '4px';
-      iconDiv.style.marginRight = '10px';
-      iconDiv.style.display = 'flex';
-      iconDiv.style.justifyContent = 'center';
-      iconDiv.style.alignItems = 'center';
+      // Add item icon with appropriate styling based on rarity
+      const itemInner = document.createElement('div');
+      itemInner.className = 'inventory-sidebar-item-inner';
       
       // Get icon HTML
-      iconDiv.innerHTML = this.getItemIcon(item);
-      itemDiv.appendChild(iconDiv);
+      itemInner.innerHTML = this.getItemIcon(item);
       
-      // Content container
-      const contentDiv = document.createElement('div');
-      contentDiv.style.flex = '1';
+      // Add to item div
+      itemDiv.appendChild(itemInner);
       
-      // Add item name and description
-      const itemHeader = document.createElement('div');
-      itemHeader.className = 'mb-xs';
-      itemHeader.innerHTML = `<strong>${item.name}</strong> <span class="badge badge-${item.rarity || 'common'}">${item.rarity || 'common'}</span>`;
-      contentDiv.appendChild(itemHeader);
+      // Setup data for tooltip and functionality
+      itemDiv.dataset.itemId = item.id;
+      itemDiv.dataset.itemName = item.name;
+      itemDiv.dataset.itemRarity = item.rarity || 'common';
       
-      const itemDesc = document.createElement('p');
-      itemDesc.className = 'text-sm mb-sm';
-      itemDesc.textContent = item.description;
-      contentDiv.appendChild(itemDesc);
+      // Apply tooltips
+      if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+        TooltipSystem.registerTooltip(itemDiv, item);
+      } else if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+        UnifiedTooltipSystem.applyTooltip(itemDiv, item);
+      }
       
-      // Add a clear, distinct button
-      const useBtn = document.createElement('button');
-      useBtn.className = 'game-btn';
-      useBtn.style.backgroundColor = '#5b8dd9';
-      useBtn.style.color = 'white';
-      useBtn.style.padding = '8px 16px';
-      useBtn.style.borderRadius = '4px';
-      useBtn.style.border = 'none';
-      useBtn.style.cursor = 'pointer';
-      useBtn.style.width = '100%';
-      useBtn.style.fontFamily = "'Press Start 2P', cursive";
-      useBtn.style.fontSize = '12px';
-      useBtn.textContent = 'Use Item';
-      useBtn.dataset.itemId = item.id;
-      
-      // Store component reference
+      // Add click event
       const self = this;
-      
-      // Add click event directly
-      useBtn.addEventListener('click', function() {
-        console.log(`Button clicked for item: ${item.id}`);
+      itemDiv.addEventListener('click', function() {
         self.useItem({ item: item });
       });
       
-      contentDiv.appendChild(useBtn);
-      itemDiv.appendChild(contentDiv);
-      container.appendChild(itemDiv);
+      // Add to grid
+      gridDiv.appendChild(itemDiv);
     });
   },
-  
+
   // Improved item icon rendering
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
