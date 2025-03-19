@@ -1,0 +1,15 @@
+/* Brute force tooltip fix */
+.tooltip-trigger:hover .unified-tooltip,
+[class*="shop-item"]:hover .unified-tooltip,
+[class*="inventory-item"]:hover .unified-tooltip,
+.simplified-shop-item:hover .unified-tooltip {
+  visibility: visible !important;
+  display: block !important;
+  opacity: 1 !important;
+  z-index: 999999 !important;
+}
+
+.unified-tooltip {
+  position: fixed !important;
+  z-index: 999999 !important;
+}
