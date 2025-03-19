@@ -418,84 +418,62 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     // Get inventory from game state
     const inventory = window.GameState?.data?.inventory || [];
-    console.log("Inventory items:", inventory);
+    console.log("Inventory items:", inventory.length);
     
     // Clear container and show message if no items
     if (!inventory || inventory.length === 0) {
-      container.innerHTML = '<p class="text-center text-muted">No items in inventory</p>';
+      container.innerHTML = '<p class="text-center p-md">No items in inventory</p>';
       return;
     }
     
-    // Generate HTML for items
-    let html = '<div class="inventory-grid">';
+    // Use a simpler list layout instead of a grid
+    container.innerHTML = '';
     
+    // Create a simple list of items with clear buttons
     inventory.forEach(item => {
-      const rarity = item.rarity || 'common';
+      // Create a container for each item
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'p-sm mb-sm bg-dark-alt rounded-sm';
+      itemDiv.style.border = '1px solid rgba(255,255,255,0.1)';
+      itemDiv.style.marginBottom = '10px';
       
-      // Simpler, more reliable button structure
-      html += `
-        <div class="inventory-item inventory-item--${rarity}" data-item-id="${item.id}">
-          <div class="inventory-item__inner">
-            ${this.getItemIcon(item)}
-          </div>
-          <div class="item-info">
-            <strong>${item.name}</strong>
-            <p>${item.description}</p>
-            <button class="game-btn game-btn--primary use-item-btn" 
-                    style="z-index: 100; position: relative; cursor: pointer;" 
-                    data-item-id="${item.id}">
-              Use Item
-            </button>
-          </div>
-        </div>
-      `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-    
-    // Store component reference for click handlers
-    const componentRef = this;
-    
-    // Add direct click handlers using a more reliable method
-    const useButtons = container.querySelectorAll('.use-item-btn');
-    console.log("Found use buttons:", useButtons.length);
-    
-    useButtons.forEach(button => {
-      const itemId = button.getAttribute('data-item-id');
-      console.log("Setting up click handler for item:", itemId);
+      // Add item name and description
+      const itemHeader = document.createElement('div');
+      itemHeader.className = 'mb-xs';
+      itemHeader.innerHTML = `<strong>${item.name}</strong> <span class="badge badge-${item.rarity || 'common'}">${item.rarity || 'common'}</span>`;
+      itemDiv.appendChild(itemHeader);
       
-      // Remove existing click handlers to avoid duplicates
-      button.removeEventListener('click', button.clickHandler);
+      const itemDesc = document.createElement('p');
+      itemDesc.className = 'text-sm mb-sm';
+      itemDesc.textContent = item.description;
+      itemDiv.appendChild(itemDesc);
       
-      // Create new click handler with correct context
-      button.clickHandler = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log("BUTTON CLICKED for item:", itemId);
-        
-        // Find the item in inventory
-        const item = inventory.find(i => i.id === itemId);
-        if (item) {
-          console.log("Found item in inventory, using it:", item);
-          // Call useItem with the correct context
-          componentRef.useItem({ item: item });
-        } else {
-          console.error("Item not found in inventory:", itemId);
-        }
-      };
+      // Add a clear, distinct button
+      const useBtn = document.createElement('button');
+      useBtn.className = 'game-btn';
+      useBtn.style.backgroundColor = '#5b8dd9';
+      useBtn.style.color = 'white';
+      useBtn.style.padding = '8px 16px';
+      useBtn.style.borderRadius = '4px';
+      useBtn.style.border = 'none';
+      useBtn.style.cursor = 'pointer';
+      useBtn.style.width = '100%';
+      useBtn.style.fontFamily = "'Press Start 2P', cursive";
+      useBtn.style.fontSize = '12px';
+      useBtn.textContent = 'Use Item';
+      useBtn.dataset.itemId = item.id;
       
-      // Add the new click handler
-      button.addEventListener('click', button.clickHandler);
+      // Store component reference
+      const self = this;
       
-      // Make sure button is styled to be obvious
-      button.style.backgroundColor = "#5b8dd9";
-      button.style.color = "white";
-      button.style.padding = "8px";
-      button.style.margin = "5px 0";
-      button.style.border = "none";
-      button.style.borderRadius = "4px";
-      button.style.cursor = "pointer";
+      // Add click event directly
+      useBtn.addEventListener('click', function() {
+        console.log(`Button clicked for item: ${item.id}`);
+        self.useItem({ item: item });
+      });
+      
+      itemDiv.appendChild(useBtn);
+      container.appendChild(itemDiv);
     });
   },
   
@@ -537,10 +515,11 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     const item = data.item;
     console.log(`Using item: ${item.id} - ${item.name}`);
     
-    // Apply the item effect directly without relying on ItemManager
+    // Apply the item effect directly
+    console.log("Applying item effect directly");
     this.applyItemEffectToQuestion(item);
     
-    // Remove the item from inventory (simplified approach)
+    // Remove the item from inventory
     if (window.GameState && window.GameState.data && window.GameState.data.inventory) {
       const inventory = window.GameState.data.inventory;
       const itemIndex = inventory.findIndex(i => i.id === item.id);
@@ -551,18 +530,14 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
     
     // Hide inventory panel
-    const panel = document.getElementById('question-inventory-panel');
-    if (panel) panel.style.display = 'none';
-    this.setUiState('inventoryVisible', false);
+    this.toggleInventory();
     
-    // Show feedback
+    // Show success message
     if (typeof this.showToast === 'function') {
       this.showToast(`Used ${item.name}!`, "success");
     } else {
-      console.log(`Used ${item.name}!`);
+      alert(`Used ${item.name}!`);
     }
-    
-    console.log("Item use complete!");
   },
   
   applyItemEffectToQuestion: function(item) {
