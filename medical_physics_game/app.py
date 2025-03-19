@@ -255,9 +255,9 @@ def update_floors_config():
             "node_count": {"min": 4, "max": 6},
             "node_types": {
                 "question": {"weight": 60, "difficulty_range": [1, 1]},
-                "rest": {"weight": 20},
-                "treasure": {"weight": 20},
-                "patient_case": { "weight": 15 }
+                "rest": {"weight": 0},
+                "treasure": {"weight": 0},
+                "patient_case": { "weight": 0 }
             },
             "boss": None
         })
@@ -271,10 +271,10 @@ def update_floors_config():
                 "node_count": {"min": 5, "max": 7},
                 "node_types": {
                     "question": {"weight": 50, "difficulty_range": [1, min(i, 3)]},
-                    "elite": {"weight": 15, "difficulty_range": [2, min(i, 3)]},
-                    "rest": {"weight": 15},
-                    "treasure": {"weight": 20},
-            "patient_case": { "weight": 15 }
+                    "elite": {"weight": 0, "difficulty_range": [2, min(i, 3)]},
+                    "rest": {"weight": 0},
+                    "treasure": {"weight": 0},
+                "patient_case": { "weight": 0 }
                 },
                 "boss": None
             })
@@ -287,10 +287,10 @@ def update_floors_config():
             "node_count": {"min": 6, "max": 8},
             "node_types": {
                 "question": {"weight": 40, "difficulty_range": [2, 3]},
-                "elite": {"weight": 30, "difficulty_range": [2, 3]},
-                "rest": {"weight": 15},
-                "treasure": {"weight": 15},
-                "patient_case": { "weight": 15 }
+                "elite": {"weight": 0, "difficulty_range": [2, 3]},
+                "rest": {"weight": 0},
+                "treasure": {"weight": 0},
+                "patient_case": { "weight": 0 }
             },
             "boss": {
                 "name": "Chief Medical Physicist",
@@ -330,9 +330,9 @@ def generate_floor_map():
             "node_count": {"min": 5, "max": 8},
             "node_types": {
                 "question": {"weight": 50, "difficulty_range": [1, min(floor_number, 3)]},
-                "rest": {"weight": 20},
-                "treasure": {"weight": 15},
-                "elite": {"weight": 15 if floor_number > 1 else 0, "difficulty_range": [2, 3]}
+                "rest": {"weight": 0},
+                "treasure": {"weight": 0},
+                "elite": {"weight": 0 if floor_number > 1 else 0, "difficulty_range": [2, 3]}
             },
             "boss": {
                 "name": "Chief Medical Physicist",
