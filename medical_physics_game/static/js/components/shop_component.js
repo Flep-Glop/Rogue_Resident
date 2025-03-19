@@ -131,9 +131,11 @@ const ShopComponent = {
     document.head.appendChild(styleEl);
   },
   
-  // Load items
+  // Load items with guaranteed relics
   loadItems: function() {
-    // Create static items
+    console.log("Loading shop items (with aggressive forced relic)");
+    
+    // Static items guaranteed to work
     const items = [
       {
         id: "medical_textbook",
@@ -143,7 +145,7 @@ const ShopComponent = {
         rarity: "uncommon",
         iconPath: "Notebook.png",
         type: "consumable",
-        itemType: "consumable" // Added for compatibility
+        itemType: "consumable"
       },
       {
         id: "radiation_badge",
@@ -153,7 +155,7 @@ const ShopComponent = {
         rarity: "rare",
         iconPath: "Nametag.png",
         type: "consumable",
-        itemType: "consumable" // Added for compatibility
+        itemType: "consumable"
       },
       {
         id: "quantum_goggles",
@@ -163,114 +165,147 @@ const ShopComponent = {
         rarity: "epic",
         iconPath: "3D Glasses.png",
         type: "relic",
-        itemType: "relic" // Added for compatibility
+        itemType: "relic"
       }
     ];
     
     console.log("Created shop items:", items);
-    // Debug check for relics
+    
+    // ENSURE relic filtering works
     const relics = items.filter(item => item.type === 'relic' || item.itemType === 'relic');
     console.log("Filtered relics:", relics);
+    
+    // Ensure we definitely have at least one relic
+    if (relics.length === 0) {
+      console.warn("NO RELICS FOUND - ADDING FORCED RELIC!");
+      
+      // Add a guaranteed relic
+      const forcedRelic = {
+        id: "forced_goggles",
+        name: "FORCED RELIC - Quantum Goggles",
+        description: "This is a forced relic to ensure visibility",
+        price: 80,
+        rarity: "epic",
+        iconPath: "3D Glasses.png",
+        type: "relic",
+        itemType: "relic"
+      };
+      
+      items.push(forcedRelic);
+      console.log("Added forced relic:", forcedRelic);
+    }
     
     this.shopItems = items;
     this.itemsLoaded = true;
     this.renderItems();
+    
+    // Force re-render after a short delay as a last resort
+    setTimeout(() => {
+      console.log("FORCED RE-RENDER AFTER DELAY");
+      this.renderItems();
+    }, 100);
   },
   
-  // Render items
+  // Render items with a forced visible approach
   renderItems: function() {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
     
+    // Start fresh
     container.innerHTML = '';
     
-    // Create sections with styled headers matching your UI
-    container.innerHTML = `
-      <div style="color: #f0c866; font-size: 18px; margin-bottom: 10px;">Consumable Items</div>
-      <div id="consumables-container"></div>
-      <div style="color: #f0c866; font-size: 18px; margin: 15px 0 10px 0;">Rare Relics</div>
-      <div id="relics-container" style="margin-bottom: 15px;"></div>
-    `;
+    // Using a single-container approach 
+    const allItemsHtml = [];
     
-    const consumablesContainer = document.getElementById('consumables-container');
-    const relicsContainer = document.getElementById('relics-container');
+    // Add super obvious consumables header
+    allItemsHtml.push(`
+      <div style="background-color: #2a2a36; color: #f0c866; font-size: 18px; margin-bottom: 10px; padding: 8px; text-align: left; border-left: 4px solid #f0c866;">
+        Consumable Items
+      </div>
+    `);
     
-    // Debug check
-    console.log("Rendering items, containers:", {
-      consumablesContainer: !!consumablesContainer,
-      relicsContainer: !!relicsContainer
+    // Filter consumables and add them
+    const consumables = this.shopItems.filter(item => 
+      item.type === 'consumable' || item.itemType === 'consumable');
+    
+    consumables.forEach(item => {
+      const canAfford = this.getPlayerInsight() >= item.price;
+      const nameColor = item.rarity === 'rare' ? '#9c77db' : 
+                        item.rarity === 'epic' ? '#f0c866' : 
+                        item.rarity === 'uncommon' ? '#5b8dd9' : '#ffffff';
+      
+      allItemsHtml.push(`
+        <div style="background-color: #1e2032; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 15px; color: ${nameColor}; font-weight: bold;">
+            ${item.name}
+          </div>
+          <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px;">
+            <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 48px; max-height: 48px; image-rendering: pixelated;">
+          </div>
+          <button data-id="${item.id}" style="width: 100%; padding: 8px; background-color: ${canAfford ? '#56b886' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold;">
+            ${item.price} INSIGHT
+          </button>
+        </div>
+      `);
     });
     
-    let consumableCount = 0;
-    let relicCount = 0;
+    // Add super obvious relics header
+    allItemsHtml.push(`
+      <div style="background-color: #2a2a36; color: #f0c866; font-size: 18px; margin: 20px 0 10px 0; padding: 8px; text-align: left; border-left: 4px solid #f0c866;">
+        Rare Relics
+      </div>
+    `);
     
-    // Render each item
-    this.shopItems.forEach(item => {
-      // Determine if item is a relic (checking both properties for compatibility)
-      const isRelic = item.type === 'relic' || item.itemType === 'relic';
-      console.log(`Processing item: ${item.name}, isRelic: ${isRelic}`);
-      
-      const itemEl = document.createElement('div');
-      itemEl.className = 'shop-item';
-      itemEl.style.backgroundColor = '#1e2032';
-      itemEl.style.padding = '15px';
-      itemEl.style.marginBottom = '10px';
-      itemEl.style.borderRadius = '5px';
-      
-      const canAfford = this.getPlayerInsight() >= item.price;
-      
-      // Change color based on rarity
-      let nameColor = '#ffffff';
-      if (item.rarity === 'uncommon') nameColor = '#5b8dd9';
-      if (item.rarity === 'rare') nameColor = '#9c77db';
-      if (item.rarity === 'epic') nameColor = '#f0c866';
-      
-      itemEl.innerHTML = `
-        <div style="text-align: center; margin-bottom: 15px; color: ${nameColor}; font-weight: bold;">${item.name}</div>
-        <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px;">
-          <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 48px; max-height: 48px; image-rendering: pixelated;">
+    // Filter relics and add them - with very distinct styling
+    const relics = this.shopItems.filter(item => 
+      item.type === 'relic' || item.itemType === 'relic');
+    
+    console.log("RELICS TO RENDER:", relics);
+    
+    if (relics.length > 0) {
+      relics.forEach(item => {
+        const canAfford = this.getPlayerInsight() >= item.price;
+        
+        allItemsHtml.push(`
+          <div style="background-color: #1e2032; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: 2px solid #9c77db;">
+            <div style="text-align: center; margin-bottom: 15px; color: #f0c866; font-weight: bold; font-size: 18px;">
+              ${item.name}
+            </div>
+            <div style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px; border: 2px solid #9c77db;">
+              <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 64px; max-height: 64px; image-rendering: pixelated;">
+            </div>
+            <div style="text-align: center; margin-bottom: 10px; color: #b8c7e0; font-size: 14px;">
+              ${item.description}
+            </div>
+            <button data-id="${item.id}" style="width: 100%; padding: 10px; background-color: ${canAfford ? '#9c77db' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold; margin-top: 5px;">
+              ${item.price} INSIGHT
+            </button>
+          </div>
+        `);
+      });
+    } else {
+      // No relics message
+      allItemsHtml.push(`
+        <div style="text-align: center; padding: 15px; color: #9c77db; background-color: #1e2032; border-radius: 5px;">
+          No relics available at this time
         </div>
-        <button style="width: 100%; padding: 8px; background-color: ${canAfford ? '#56b886' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold;">
-          ${item.price} INSIGHT
-        </button>
-      `;
+      `);
+    }
+    
+    // Set all content at once
+    container.innerHTML = allItemsHtml.join('');
+    
+    // Add click handlers for all buttons
+    container.querySelectorAll('button[data-id]').forEach(button => {
+      const itemId = button.getAttribute('data-id');
+      const item = this.shopItems.find(i => i.id === itemId);
       
-      // Add purchase button event
-      const purchaseBtn = itemEl.querySelector('button');
-      if (purchaseBtn && canAfford) {
-        purchaseBtn.addEventListener('click', () => {
+      if (item && this.getPlayerInsight() >= item.price) {
+        button.addEventListener('click', () => {
           this.purchaseItem(item);
         });
       }
-      
-      // Add to appropriate container based on type
-      if (isRelic) {
-        if (relicsContainer) {
-          relicsContainer.appendChild(itemEl);
-          relicCount++;
-        } else {
-          console.error("Relics container not found");
-        }
-      } else {
-        if (consumablesContainer) {
-          consumablesContainer.appendChild(itemEl);
-          consumableCount++;
-        } else {
-          console.error("Consumables container not found");
-        }
-      }
     });
-    
-    console.log(`Rendered ${consumableCount} consumables and ${relicCount} relics`);
-    
-    // Add message if no relics are shown
-    if (relicCount === 0 && relicsContainer) {
-      relicsContainer.innerHTML = `
-        <div style="text-align: center; padding: 15px; color: #9c77db;">
-          No relics available at this time
-        </div>
-      `;
-    }
   },
   
   // Get player insight
