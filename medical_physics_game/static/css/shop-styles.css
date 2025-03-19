@@ -1,11 +1,17 @@
-/* Shop Component Styles */
+/* Shop Component Styles - Compact Version */
 
 /* Shop layout */
 .shop-items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
-  margin-bottom: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Compact grid */
+.shop-items-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
 }
 
 /* Shop header */
@@ -13,28 +19,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .shop-description {
-  margin-bottom: 20px;
-  font-size: 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .insight-display {
   background-color: #2a2a36;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .insight-value {
   color: #f0c866; /* Gold color for currency */
   font-weight: bold;
   margin-left: 5px;
+}
+
+/* Section headers */
+.shop-section-header {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 12px 0 6px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f0c866;
 }
 
 /* Item card styling */
@@ -46,16 +62,22 @@
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
 }
 
 .shop-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Special styling for relics */
+.shop-item.shop-relic .item-icon-container {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15) inset;
 }
 
 .shop-item-header {
   background-color: rgba(0, 0, 0, 0.2);
-  padding: 8px 10px;
+  padding: 6px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -64,13 +86,18 @@
 .item-name {
   font-weight: bold;
   color: white;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
 }
 
 .item-price {
   background-color: #5b8dd9;
-  padding: 3px 6px;
+  padding: 2px 4px;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .item-price.cannot-afford {
@@ -79,26 +106,39 @@
 }
 
 .shop-item-body {
-  padding: 10px;
+  padding: 8px;
   flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.item-content {
+  flex: 1;
+  padding-left: 8px;
 }
 
 /* Item icon container */
 .item-icon-container {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 10px;
+  width: 42px;
+  height: 42px;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.item-icon-container.relic-icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .pixel-item-icon-img {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   image-rendering: pixelated;
 }
@@ -106,11 +146,11 @@
 /* Rarity badge */
 .rarity-badge {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 11px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
   text-transform: capitalize;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .rarity-badge.common {
@@ -135,30 +175,42 @@
 
 /* Item description */
 .item-description {
-  font-size: 12px;
-  margin-bottom: 8px;
-  line-height: 1.4;
+  font-size: 10px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  max-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .item-effect {
-  font-size: 12px;
+  font-size: 10px;
   background-color: rgba(0, 0, 0, 0.2);
-  padding: 6px;
-  border-radius: 3px;
+  padding: 4px;
+  border-radius: 2px;
   color: #5b8dd9;
-  margin-top: 8px;
+  margin-top: 4px;
+}
+
+.passive-label {
+  color: #56b886;
+  font-weight: bold;
+  font-size: 9px;
 }
 
 /* Purchase button */
 .purchase-btn {
   width: 100%;
-  padding: 8px;
+  padding: 5px;
   border: none;
   background-color: #5b8dd9;
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
-  font-size: 13px;
+  font-size: 11px;
   margin-top: auto;
 }
 
@@ -178,30 +230,65 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 15px;
+}
+
+.loading-indicator p {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* Spinner border */
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 0.2em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+  100% { transform: rotate(360deg); }
 }
 
 /* Rarity border styling */
 .shop-item.common {
-  border-left: 4px solid #6c757d;
+  border-left: 3px solid #6c757d;
 }
 
 .shop-item.uncommon {
-  border-left: 4px solid #5b8dd9;
+  border-left: 3px solid #5b8dd9;
 }
 
 .shop-item.rare {
-  border-left: 4px solid #9c77db;
+  border-left: 3px solid #9c77db;
 }
 
 .shop-item.epic {
-  border-left: 4px solid #f0c866;
-  box-shadow: 0 0 8px rgba(240, 200, 102, 0.3);
+  border-left: 3px solid #f0c866;
+  box-shadow: 0 0 6px rgba(240, 200, 102, 0.3);
+}
+
+/* Relic specific styling */
+.shop-relic.rare, .shop-relic.epic {
+  box-shadow: 0 0 8px rgba(156, 119, 219, 0.2);
 }
 
 /* Responsive styling */
 @media (max-width: 768px) {
   .shop-items-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .shop-items-grid.compact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .shop-items-grid, .shop-items-grid.compact {
     grid-template-columns: 1fr;
   }
 }

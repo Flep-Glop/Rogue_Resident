@@ -55,40 +55,64 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       return;
     }
     
-    // Fetch items from API
-    fetch('/api/item/random?count=3')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(items => {
-        // Add price to each item based on rarity
-        items.forEach(item => {
-          item.price = this.getItemBasePrice(item.rarity || 'common');
-        });
-        
-        // Save items in UI state
-        this.setUiState('itemsLoaded', true);
-        this.setUiState('shopItems', items);
-        
-        // Render items
-        this.renderShopItems(items);
-      })
-      .catch(error => {
-        console.error("Failed to load shop items:", error);
-        
-        // Show error message
-        const container = document.getElementById('shop-items-container');
-        if (container) {
-          container.innerHTML = `
-            <div class="alert alert-danger w-full">
-              <p>Failed to load shop items. Please try again later.</p>
-            </div>
-          `;
-        }
+    // Show loading state
+    const container = document.getElementById('shop-items-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="loading-indicator">
+          <div class="spinner-border"></div>
+          <p>Loading shop inventory...</p>
+        </div>
+      `;
+    }
+    
+    // Load both items and relics
+    Promise.all([
+      // Fetch regular items
+      fetch('/api/item/random?count=2')
+        .then(response => response.ok ? response.json() : []),
+      
+      // Fetch relics
+      fetch('/api/relic/random?count=1')
+        .then(response => response.ok ? response.json() : [])
+    ])
+    .then(([items, relics]) => {
+      // Add item type if missing
+      items.forEach(item => {
+        if (!item.itemType) item.itemType = 'consumable';
+        item.price = this.getItemBasePrice(item.rarity || 'common');
       });
+      
+      // Add item type for relics if missing
+      relics.forEach(relic => {
+        if (!relic.itemType) relic.itemType = 'relic';
+        // Relics are more expensive
+        relic.price = this.getItemBasePrice(relic.rarity || 'uncommon') * 1.5;
+      });
+      
+      // Combine items and relics
+      const allItems = [...items, ...relics];
+      
+      // Save items in UI state
+      this.setUiState('itemsLoaded', true);
+      this.setUiState('shopItems', allItems);
+      
+      // Render items
+      this.renderShopItems(allItems);
+    })
+    .catch(error => {
+      console.error("Failed to load shop items:", error);
+      
+      // Show error message
+      const container = document.getElementById('shop-items-container');
+      if (container) {
+        container.innerHTML = `
+          <div class="alert alert-danger w-full">
+            <p>Failed to load shop items. Please try again later.</p>
+          </div>
+        `;
+      }
+    });
   },
   
   // Render shop items with consistent icon handling
@@ -105,27 +129,51 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       return;
     }
     
-    // Render each item
-    items.forEach(item => {
+    // Group items by type
+    const consumables = items.filter(item => item.itemType === 'consumable');
+    const relics = items.filter(item => item.itemType === 'relic');
+    
+    // Add section headers if both types exist
+    if (consumables.length > 0 && relics.length > 0) {
+      container.innerHTML = `
+        <div class="shop-section-header">Consumable Items</div>
+        <div id="consumables-container" class="shop-items-grid compact"></div>
+        <div class="shop-section-header">Rare Relics</div>
+        <div id="relics-container" class="shop-items-grid compact"></div>
+      `;
+    } else {
+      // If only one type, don't show headers
+      container.innerHTML = `<div class="shop-items-grid compact"></div>`;
+    }
+    
+    // Function to render an item
+    const renderItem = (item, targetContainer) => {
       const playerCanAfford = this.getPlayerInsight() >= item.price;
       const rarity = item.rarity || 'common';
+      const isRelic = item.itemType === 'relic';
       
       const itemElement = document.createElement('div');
-      itemElement.className = `shop-item rarity-${rarity}`;
+      itemElement.className = `shop-item ${isRelic ? 'shop-relic' : ''} rarity-${rarity}`;
       
       itemElement.innerHTML = `
         <div class="shop-item-header">
           <span class="item-name">${item.name}</span>
-          <span class="item-price ${playerCanAfford ? '' : 'cannot-afford'}">${item.price} Insight</span>
+          <span class="item-price ${playerCanAfford ? '' : 'cannot-afford'}">${Math.round(item.price)} Insight</span>
         </div>
         
         <div class="shop-item-body">
-          <div class="item-icon-container">
+          <div class="item-icon-container ${isRelic ? 'relic-icon' : ''}">
             ${this.getItemIcon(item)}
           </div>
-          <div class="rarity-badge ${rarity}">${rarity}</div>
-          <p class="item-description">${item.description}</p>
-          <div class="item-effect">${item.effect?.value || 'No effect'}</div>
+          
+          <div class="item-content">
+            <div class="rarity-badge ${rarity}">${rarity}</div>
+            <p class="item-description">${item.description}</p>
+            <div class="item-effect">
+              ${isRelic ? '<span class="passive-label">Passive:</span> ' : ''}
+              ${isRelic ? (item.passiveText || item.effect?.value || 'No effect') : (item.effect?.value || 'No effect')}
+            </div>
+          </div>
         </div>
         
         <button class="purchase-btn ${playerCanAfford ? 'can-afford' : 'cannot-afford'}" 
@@ -134,14 +182,27 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         </button>
       `;
       
-      container.appendChild(itemElement);
+      targetContainer.appendChild(itemElement);
       
       // Add click handler for purchase button
       const buyBtn = itemElement.querySelector('.purchase-btn');
       if (buyBtn && playerCanAfford) {
         this.bindAction(buyBtn, 'click', 'purchaseItem', { item });
       }
-    });
+    };
+    
+    // Render consumables and relics in their respective containers
+    if (consumables.length > 0 && relics.length > 0) {
+      const consumablesContainer = document.getElementById('consumables-container');
+      const relicsContainer = document.getElementById('relics-container');
+      
+      consumables.forEach(item => renderItem(item, consumablesContainer));
+      relics.forEach(item => renderItem(item, relicsContainer));
+    } else {
+      // Render all items in the single container
+      const targetContainer = container.querySelector('.shop-items-grid');
+      items.forEach(item => renderItem(item, targetContainer));
+    }
   },
   
   // Get consistent item icon (matching inventory system)
