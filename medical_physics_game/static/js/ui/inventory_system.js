@@ -1,4 +1,4 @@
-// inventory_system.js - Manages game inventory with fixes for duplicate items and item usage
+// inventory_system.js - Enhanced inventory management with consistent item/relic display
 
 // InventorySystem singleton - handles inventory display and functionality
 const InventorySystem = {
@@ -34,12 +34,16 @@ const InventorySystem = {
       }
     }
     // Subscribe to inventory events
-    EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.addItem.bind(this));
-    EventSystem.on(GAME_EVENTS.ITEM_USED, this.useItem.bind(this));
-    EventSystem.on(GAME_EVENTS.ITEM_REMOVED, this.removeItem.bind(this));
+    if (window.EventSystem) {
+      EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.addItem.bind(this));
+      EventSystem.on(GAME_EVENTS.ITEM_USED, this.useItem.bind(this));
+      EventSystem.on(GAME_EVENTS.ITEM_REMOVED, this.removeItem.bind(this));
+    } else {
+      console.warn("EventSystem not available for inventory event subscription");
+    }
     
     // Calculate initial max size based on character level
-    if (GameState.data.character) {
+    if (window.GameState && GameState.data && GameState.data.character) {
       this.maxSize = 4 + Math.floor(GameState.data.character.level / 2);
     }
     
@@ -84,6 +88,21 @@ const InventorySystem = {
     // Render sections
     this.renderItems();
     this.renderRelics();
+    
+    // Update inventory count
+    this.updateInventoryCount();
+  },
+  
+  // Update inventory count display
+  updateInventoryCount: function() {
+    const countElement = document.getElementById('inventory-count');
+    if (countElement && window.GameState && GameState.data) {
+      const itemCount = GameState.data.inventory ? GameState.data.inventory.filter(
+        item => item.itemType === 'consumable' || !item.itemType
+      ).length : 0;
+      
+      countElement.textContent = `${itemCount}/${this.maxSize}`;
+    }
   },
   
   // Render consumable items
@@ -92,16 +111,23 @@ const InventorySystem = {
     if (!itemsContainer) return;
     
     // Filter inventory to only show consumable items
-    const items = GameState.data.inventory.filter(item => 
-      item.itemType === 'consumable' || !item.itemType);
+    const items = window.GameState && GameState.data && GameState.data.inventory ? 
+      GameState.data.inventory.filter(item => 
+        item.itemType === 'consumable' || !item.itemType) : [];
     
     if (items.length === 0) {
       itemsContainer.innerHTML = '<div class="empty-inventory">No consumable items</div>';
       return;
     }
     
-    // Create grid
-    const gridHtml = '<div class="inventory-grid"></div>';
+    // Create title and grid
+    const gridHtml = `
+      <div class="inventory-title">
+        <h3>Items</h3>
+        <span id="inventory-count">${items.length}/${this.maxSize}</span>
+      </div>
+      <div class="inventory-grid"></div>
+    `;
     itemsContainer.innerHTML = gridHtml;
     
     const grid = itemsContainer.querySelector('.inventory-grid');
@@ -131,6 +157,7 @@ const InventorySystem = {
           <div class="tooltip-body">
             <p class="tooltip-desc">${item.description}</p>
             <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
+            <div class="tooltip-usage">Click to use</div>
           </div>
         </div>
       `;
@@ -149,48 +176,60 @@ const InventorySystem = {
     });
   },
 
-  // Render relics
+  // Render relics - now matches items display style
   renderRelics: function() {
     const relicsContainer = document.getElementById('relics-container');
     if (!relicsContainer) return;
     
     // Filter inventory to only show relics
-    const relics = GameState.data.inventory.filter(item => 
-      item.itemType === 'relic');
+    const relics = window.GameState && GameState.data && GameState.data.inventory ? 
+      GameState.data.inventory.filter(item => 
+      item.itemType === 'relic') : [];
     
     if (relics.length === 0) {
       relicsContainer.innerHTML = '<div class="empty-inventory">No relics found</div>';
       return;
     }
     
-    // Create grid
-    const gridHtml = '<div class="relic-grid"></div>';
+    // Create title and grid - using the same grid class for consistency
+    const gridHtml = `
+      <div class="inventory-title">
+        <h3>Relics</h3>
+        <span id="relics-count">${relics.length}</span>
+      </div>
+      <div class="inventory-grid"></div>
+    `;
     relicsContainer.innerHTML = gridHtml;
     
-    const grid = relicsContainer.querySelector('.relic-grid');
+    const grid = relicsContainer.querySelector('.inventory-grid');
     
-    // Add each relic
+    // Add each relic using the same format as items
     relics.forEach((relic, index) => {
       const relicElement = document.createElement('div');
-      relicElement.className = `relic-item ${relic.rarity || 'common'}`;
+      relicElement.className = `inventory-item ${relic.rarity || 'common'}`;
       relicElement.dataset.index = index;
       
       relicElement.innerHTML = `
-        <div class="relic-card">
-          <div class="relic-header">
-            <h4 class="relic-name">${relic.name}</h4>
-            <span class="relic-rarity">${relic.rarity || 'common'}</span>
+        <div class="item-inner">
+          <div class="item-icon">${this.getItemIcon(relic)}</div>
+          <div class="item-glow"></div>
+        </div>
+        <div class="pixel-border ${relic.rarity || 'common'}">
+          <div class="pixel-corner top-left"></div>
+          <div class="pixel-corner top-right"></div>
+          <div class="pixel-corner bottom-left"></div>
+          <div class="pixel-corner bottom-right"></div>
+        </div>
+        <div class="item-tooltip">
+          <div class="tooltip-header ${relic.rarity || 'common'}">
+            <span class="tooltip-title">${relic.name}</span>
+            <span class="tooltip-rarity">${relic.rarity || 'common'}</span>
           </div>
-          <div class="relic-icon">
-            <div class="item-inner">
-              <div class="item-icon">${this.getItemIcon(relic)}</div>
-              <div class="item-glow"></div>
+          <div class="tooltip-body">
+            <p class="tooltip-desc">${relic.description}</p>
+            <div class="tooltip-effect">
+              <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
             </div>
-          </div>
-          <p class="relic-desc">${relic.description}</p>
-          <div class="relic-effect">
-            <span class="effect-label">Effect:</span>
-            <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
           </div>
         </div>
       `;
@@ -199,7 +238,7 @@ const InventorySystem = {
     });
   },
 
-  // Use an item
+  // Use an item with improved error handling
   useItem: function(itemId) {
     let item;
     
@@ -209,7 +248,9 @@ const InventorySystem = {
       itemId = item.id;
     } else {
       // Find the item by ID in the inventory
-      item = GameState.data.inventory.find(i => i.id === itemId);
+      if (window.GameState && GameState.data && GameState.data.inventory) {
+        item = GameState.data.inventory.find(i => i.id === itemId);
+      }
     }
     
     if (!item) {
@@ -217,43 +258,41 @@ const InventorySystem = {
       return false;
     }
     
-    // FIX: Check if ItemManager exists before using it
-    if (typeof window.ItemManager === 'undefined') {
-      console.error("ItemManager not available, using fallback item usage");
-      
-      // Fallback implementation if ItemManager doesn't exist
-      const success = this.fallbackUseItem(item);
+    // Use ItemManager if available
+    if (typeof window.ItemManager !== 'undefined' && typeof ItemManager.useItem === 'function') {
+      const success = ItemManager.useItem(itemId);
       
       if (success) {
         this.renderInventory(); // Refresh the display
         
         // Show visual feedback
-        if (window.UiUtils) {
+        if (window.UiUtils && typeof UiUtils.showFloatingText === 'function') {
           UiUtils.showFloatingText(`Used ${item.name}!`, 'success');
-        } else {
-          console.log(`Used ${item.name}!`);
         }
-      } else {
-        if (window.UiUtils) {
-          UiUtils.showToast("Cannot use this item", "warning");
-        } else {
-          console.log("Cannot use this item");
-        }
+      } else if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+        UiUtils.showToast("Cannot use this item", "warning");
       }
       
       return success;
     }
     
-    // Use ItemManager if available
-    const success = ItemManager.useItem(itemId);
+    // Fallback implementation if ItemManager doesn't exist
+    console.log("ItemManager not available, using fallback item usage");
+    const success = this.fallbackUseItem(item);
     
     if (success) {
       this.renderInventory(); // Refresh the display
       
       // Show visual feedback
-      UiUtils.showFloatingText(`Used ${item.name}!`, 'success');
-    } else {
+      if (window.UiUtils && typeof UiUtils.showFloatingText === 'function') {
+        UiUtils.showFloatingText(`Used ${item.name}!`, 'success');
+      } else {
+        console.log(`Used ${item.name}!`);
+      }
+    } else if (window.UiUtils && typeof UiUtils.showToast === 'function') {
       UiUtils.showToast("Cannot use this item", "warning");
+    } else {
+      console.log("Cannot use this item");
     }
     
     return success;
@@ -265,6 +304,12 @@ const InventorySystem = {
     
     if (!item || !item.effect) {
       console.error("Item has no effect");
+      return false;
+    }
+    
+    // Don't allow using relics directly
+    if (item.itemType === 'relic') {
+      console.warn("Cannot use relics directly");
       return false;
     }
     
@@ -339,22 +384,26 @@ const InventorySystem = {
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+      // Handle both paths with and without the /static/ prefix
+      const iconPath = item.iconPath.startsWith('/static/') ? 
+        item.iconPath : `/static/img/items/${item.iconPath}`;
+      
+      return `<img src="${iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
     }
     
     // Fallback: Use item name to determine a default icon
-    const itemName = item.name.toLowerCase();
-    let iconFile = "default.png";
+    const itemName = (item.name || '').toLowerCase();
+    let iconFile = "Yellow Sticky Note.png";
     
     // Map common item types to default icons
-    if (itemName.includes('book') || itemName.includes('manual')) {
-      iconFile = "book.png";
+    if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
+      iconFile = "Textbook.png";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconFile = "potion.png";
-    } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconFile = "shield.png";
-    } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
-      iconFile = "detector.png";
+      iconFile = "Flask.png";
+    } else if (itemName.includes('badge') || itemName.includes('dosimeter')) {
+      iconFile = "Nametag.png";
+    } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
+      iconFile = "3D Glasses.png";
     }
     
     return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
@@ -365,40 +414,89 @@ const InventorySystem = {
     if (!effect) return 'No effect';
     
     switch (effect.type) {
-      case 'insight_boost': return `+${effect.value} Insight`;
-      case 'restore_life': return `Restore ${effect.value} Life`;
-      case 'question_hint': return effect.value;
+      case 'insight_boost': return `+${effect.value}% Insight`;
+      case 'restore_life': 
+      case 'heal': 
+        return `Restore ${effect.value} Life`;
+      case 'eliminateOption': 
+      case 'question_hint': 
+        return effect.value;
       case 'category_boost': return effect.value;
       case 'extra_life': return effect.value;
+      case 'second_chance': return "Second chance on questions";
       default: return effect.value || 'Unknown effect';
     }
   },
   
-  // Add an item to inventory
+  // Add an item to inventory with improved duplicate prevention
   addItem: function(item) {
     console.log("Adding item to inventory:", item);
     
-    // FIX: Check for duplicate items using a unique ID
-    const itemKey = `${item.id}-${item.name}`;
-    if (this.addedItems.has(itemKey)) {
-      console.warn(`Item ${item.name} (${item.id}) already exists in inventory. Not adding duplicate.`);
+    // Prevent null items
+    if (!item || !item.id) {
+      console.error("Attempted to add invalid item to inventory");
       return false;
     }
     
-    // Check if inventory is full
-    if (GameState.data.inventory.length >= this.maxSize) {
-      this.showInventoryFullDialog(item);
+    // Check if GameState is available
+    if (!window.GameState || !GameState.data) {
+      console.error("GameState not available for inventory operations");
       return false;
     }
     
-    // Mark this item as added to prevent duplicates
-    this.addedItems.add(itemKey);
+    // Initialize inventory array if needed
+    if (!GameState.data.inventory) {
+      GameState.data.inventory = [];
+    }
+    
+    // Check if it's a relic and already exists
+    if (item.itemType === 'relic' || item.type === 'relic') {
+      const existingRelic = GameState.data.inventory.find(i => i.id === item.id);
+      if (existingRelic) {
+        console.warn(`Relic ${item.name} (${item.id}) already exists in inventory. Not adding duplicate.`);
+        if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+          UiUtils.showToast(`You already have the ${item.name} relic.`, "warning");
+        }
+        return false;
+      }
+    }
+    
+    // For consumables, also track using a unique key to prevent duplicates
+    if (item.itemType === 'consumable' || item.type === 'consumable' || (!item.itemType && !item.type)) {
+      const itemKey = `${item.id}-${item.name}`;
+      if (this.addedItems.has(itemKey)) {
+        // For consumables, we'll check if it's actually in the inventory
+        const existingItem = GameState.data.inventory.find(i => i.id === item.id && i.name === item.name);
+        if (existingItem) {
+          console.warn(`Item ${item.name} (${item.id}) already exists in inventory. Not adding duplicate.`);
+          return false;
+        } else {
+          // If it's in our tracking but not in inventory, allow adding it
+          this.addedItems.delete(itemKey);
+        }
+      }
+      
+      // Check if inventory is full for consumable items
+      const consumableCount = GameState.data.inventory.filter(i => 
+        i.itemType === 'consumable' || (!i.itemType && i.type !== 'relic')
+      ).length;
+      
+      if (consumableCount >= this.maxSize) {
+        this.showInventoryFullDialog(item);
+        return false;
+      }
+      
+      // Mark this item as added to prevent duplicates
+      this.addedItems.add(itemKey);
+    }
     
     // Add the item
     GameState.data.inventory.push(item);
     
     // Show feedback
-    UiUtils.showFloatingText(`Added ${item.name} to inventory!`, 'success');
+    if (window.UiUtils && typeof UiUtils.showFloatingText === 'function') {
+      UiUtils.showFloatingText(`Added ${item.name} to inventory!`, 'success');
+    }
     
     // Update inventory display
     this.renderInventory();
@@ -407,25 +505,43 @@ const InventorySystem = {
     this.saveInventory();
     
     // Emit item added success event
-    EventSystem.emit(GAME_EVENTS.ITEM_ADDED_SUCCESS, item);
+    if (window.EventSystem) {
+      EventSystem.emit(GAME_EVENTS.ITEM_ADDED_SUCCESS, item);
+    }
     
     return true;
   },
   
   // Remove an item from inventory
   removeItem: function(index) {
+    // Handle both item object and index
     if (typeof index === 'object') {
       // If passed an item instead of index, find its index
       const itemObj = index;
+      
+      if (!window.GameState || !GameState.data || !GameState.data.inventory) {
+        console.error("GameState or inventory not available");
+        return false;
+      }
+      
       index = GameState.data.inventory.findIndex(item => 
         item.id === itemObj.id && item.name === itemObj.name
       );
     }
     
-    if (index < 0 || index >= GameState.data.inventory.length) return;
+    if (index < 0 || !window.GameState || !GameState.data || !GameState.data.inventory || 
+        index >= GameState.data.inventory.length) {
+      console.error("Invalid index or inventory for item removal");
+      return false;
+    }
     
     // Remove the item
     const removedItem = GameState.data.inventory.splice(index, 1)[0];
+    
+    if (!removedItem) {
+      console.error("Failed to remove item at index", index);
+      return false;
+    }
     
     // Remove from tracking Set to allow it to be added again
     const itemKey = `${removedItem.id}-${removedItem.name}`;
@@ -438,24 +554,28 @@ const InventorySystem = {
     this.saveInventory();
     
     // Emit item removed event
-    EventSystem.emit(GAME_EVENTS.ITEM_REMOVED, removedItem);
+    if (window.EventSystem) {
+      EventSystem.emit(GAME_EVENTS.ITEM_REMOVED, removedItem);
+    }
+    
+    return true;
   },
   
   // Show dialog for full inventory
   showInventoryFullDialog: function(newItem) {
     // Create a modal dialog for inventory management
-    const dialogHTML = `
-      <div id="inventory-full-modal" class="game-modal" style="display:flex;">
-        <div class="modal-content">
-          <div class="modal-header">
+    const dialogHtml = `
+      <div id="inventory-full-modal" class="game-modal-overlay" style="display:flex;">
+        <div class="game-modal-content">
+          <div class="game-modal__header">
             <h3>Inventory Full!</h3>
-            <button class="close-modal" id="close-inv-modal">&times;</button>
+            <button class="game-modal-close" id="close-inv-modal">&times;</button>
           </div>
-          <div class="modal-body">
+          <div class="game-modal__body">
             <p>Your inventory is full. Would you like to discard an item to make room for ${newItem.name}?</p>
             <div id="current-items-list" class="mt-3"></div>
             <div class="mt-3">
-              <button id="cancel-new-item" class="btn btn-secondary">Cancel</button>
+              <button id="cancel-new-item" class="game-btn game-btn--danger">Cancel</button>
             </div>
           </div>
         </div>
@@ -463,43 +583,77 @@ const InventorySystem = {
     `;
     
     // Add to DOM
-    document.body.insertAdjacentHTML('beforeend', dialogHTML);
+    const modalElement = document.createElement('div');
+    modalElement.innerHTML = dialogHtml;
+    document.body.appendChild(modalElement.firstElementChild);
+    
+    // Get the modal element
+    const modal = document.getElementById('inventory-full-modal');
     
     // Display current inventory items
     const itemsList = document.getElementById('current-items-list');
-    GameState.data.inventory.forEach((item, index) => {
-      const itemBtn = document.createElement('button');
-      itemBtn.className = 'btn btn-outline-primary mb-2 w-100 text-start';
-      itemBtn.innerHTML = `
-        <strong>${item.name}</strong> (${item.rarity || 'common'}) 
-        <br><small>${this.getEffectDescription(item.effect)}</small>
-      `;
+    
+    if (itemsList && window.GameState && GameState.data && GameState.data.inventory) {
+      // Only show consumable items
+      const consumables = GameState.data.inventory.filter(item => 
+        item.itemType === 'consumable' || (!item.itemType && item.type !== 'relic')
+      );
       
-      // Add click event to replace this item
-      itemBtn.addEventListener('click', () => {
-        this.removeItem(index);
-        this.addItem(newItem);
-        document.getElementById('inventory-full-modal').remove();
+      consumables.forEach((item, index) => {
+        const itemBtn = document.createElement('button');
+        itemBtn.className = 'game-btn game-btn--primary game-btn--block mb-2';
+        itemBtn.innerHTML = `
+          <strong>${item.name}</strong> (${item.rarity || 'common'}) 
+          <br><small>${this.getEffectDescription(item.effect)}</small>
+        `;
+        
+        // Add click event to replace this item
+        itemBtn.addEventListener('click', () => {
+          // Find the real index in the full inventory
+          const realIndex = GameState.data.inventory.findIndex(i => 
+            i.id === item.id && i.name === item.name
+          );
+          
+          if (realIndex >= 0) {
+            this.removeItem(realIndex);
+            this.addItem(newItem);
+          }
+          
+          // Close the modal
+          modal.remove();
+        });
+        
+        itemsList.appendChild(itemBtn);
       });
-      
-      itemsList.appendChild(itemBtn);
-    });
+    }
     
     // Add cancel button event
-    document.getElementById('cancel-new-item').addEventListener('click', () => {
-      document.getElementById('inventory-full-modal').remove();
-    });
+    const cancelButton = document.getElementById('cancel-new-item');
+    if (cancelButton) {
+      cancelButton.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
     
     // Add close button event
-    document.getElementById('close-inv-modal').addEventListener('click', () => {
-      document.getElementById('inventory-full-modal').remove();
-    });
+    const closeButton = document.getElementById('close-inv-modal');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
   },
   
   // Save inventory to server
   saveInventory: function() {
-    if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-      ApiClient.saveGame().catch(err => console.error("Failed to save inventory:", err));
+    if (typeof ApiClient !== 'undefined') {
+      if (typeof ApiClient.saveInventory === 'function' && window.GameState && GameState.data) {
+        ApiClient.saveInventory({ inventory: GameState.data.inventory })
+          .catch(err => console.error("Failed to save inventory:", err));
+      } else if (typeof ApiClient.saveGame === 'function') {
+        ApiClient.saveGame()
+          .catch(err => console.error("Failed to save game state:", err));
+      }
     }
   },
   
