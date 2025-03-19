@@ -696,7 +696,13 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
   handleAction: function(nodeData, action, data) {
     console.log(`Question component handling action: ${action}`, data);
     
-    // Find the best node data available
+    // Special case for toggleInventory which doesn't need node data
+    if (action === 'toggleInventory') {
+      this.toggleInventory();
+      return;
+    }
+    
+    // Find the best node data available for other actions
     const bestNodeData = data?.nodeData || nodeData || this.getUiState('currentNodeData');
     
     if (!bestNodeData || !bestNodeData.id) {
@@ -721,10 +727,6 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
         
       case 'continue':
         this.completeNode(bestNodeData);
-        break;
-        
-      case 'toggleInventory':
-        this.toggleInventory();
         break;
         
       case 'useItem':
