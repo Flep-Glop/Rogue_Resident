@@ -1,4 +1,4 @@
-// character_assets.js - Modified to prevent redeclaration issues
+// character_assets.js - Complete fix with all required methods
 
 // Define CharacterAssets globally to avoid scope issues
 // Check if it's already defined first
@@ -77,6 +77,36 @@ if (typeof window.CharacterAssets === 'undefined') {
         return this.characters[key] || null;
       },
       
+      // Get character image path by key - THIS WAS MISSING
+      getCharacterImagePath: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.imagePath : '/static/img/characters/default.png';
+      },
+      
+      // Get character name by key
+      getCharacterName: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.name : 'Unknown Character';
+      },
+      
+      // Get character description by key
+      getCharacterDescription: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.description : '';
+      },
+      
+      // Get character stats by key
+      getCharacterStats: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.stats : null;
+      },
+      
+      // Get character perks by key
+      getCharacterPerks: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.perks : [];
+      },
+      
       // Get progression level based on experience
       getProgressionLevel: function(experience) {
         const thresholds = this.progression.levelThresholds;
@@ -86,16 +116,42 @@ if (typeof window.CharacterAssets === 'undefined') {
           }
         }
         return 0;
+      },
+      
+      // Check if a character is unlocked at the given level
+      isCharacterUnlocked: function(characterKey, level) {
+        // The physicist is always unlocked
+        if (characterKey === 'physicist') return true;
+        
+        // Check unlockables for this character
+        for (let i = 1; i <= level; i++) {
+          const unlockKey = `level${i}`;
+          const unlocks = this.progression.unlockables[unlockKey];
+          
+          if (unlocks && unlocks.characters && unlocks.characters.includes(characterKey)) {
+            return true;
+          }
+        }
+        
+        return false;
       }
     };
     
-    console.log("CharacterAssets initialized");
+    console.log("CharacterAssets initialized with all required methods");
   } else {
     console.warn("CharacterAssets already defined, using existing definition");
+    
+    // Add the missing method if it doesn't exist
+    if (typeof window.CharacterAssets.getCharacterImagePath !== 'function') {
+      window.CharacterAssets.getCharacterImagePath = function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.imagePath : '/static/img/characters/default.png';
+      };
+      console.log("Added missing getCharacterImagePath method to existing CharacterAssets");
+    }
   }
   
   // Export CharacterAssets to make sure it's globally available
-  // This is redundant but ensures compatibility with different module systems
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = window.CharacterAssets;
   }
