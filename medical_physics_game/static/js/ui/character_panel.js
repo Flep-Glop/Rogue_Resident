@@ -1,7 +1,13 @@
-// character_panel.js - Handles character display and stats
+// character_panel.js - Modern implementation of character display and stats
 
 // CharacterPanel singleton - manages character UI
 const CharacterPanel = {
+  // State tracking
+  state: {
+    currentCharacterId: null,
+    animationActive: false
+  },
+
   // Initialize the character panel
   initialize: function() {
     console.log("Initializing character panel...");
@@ -11,19 +17,17 @@ const CharacterPanel = {
     EventSystem.on(GAME_EVENTS.LIVES_CHANGED, this.updateLives.bind(this));
     EventSystem.on(GAME_EVENTS.INSIGHT_CHANGED, this.updateInsight.bind(this));
     
-    // Initial character display
-    this.updateCharacterDisplay(GameState.data.character);
+    // Initial character display if available in GameState
+    if (GameState && GameState.data && GameState.data.character) {
+      this.updateCharacterDisplay(GameState.data.character);
+    }
     
-    // Make sure animation stops when page is hidden
+    // Handle page visibility changes
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        if (this.animationTimer) {
-          clearInterval(this.animationTimer);
-          this.animationTimer = null;
-        }
-      } else {
-        // Resume animation when page becomes visible again
-        this.startCharacterAnimation();
+      if (document.hidden && this.state.animationActive) {
+        this.pauseAnimations();
+      } else if (!document.hidden && !this.state.animationActive) {
+        this.resumeAnimations();
       }
     });
     
@@ -32,63 +36,109 @@ const CharacterPanel = {
   
   // Update character display with new character data
   updateCharacterDisplay: function(character) {
-    if (!character) return;
+    if (!character) {
+      console.error('No character data provided to updateCharacterDisplay');
+      return;
+    }
     
-    // Get character data
-    this.getCharacterData(character.name)
-      .then(characterData => {
-        // Get character ID
-        const characterId = CharacterAssets.getCharacterIdFromName(character.name);
-        
-        // Create HTML for character display
-        const charInfoHtml = `
-          <div class="character-details">
-            <p><strong>${character.name}</strong></p>
-            <div class="character-avatar-container">
-              <div class="character-avatar">
-                <img src="${CharacterAssets.getCharacterImagePath(characterId)}" 
-                     alt="${character.name}" 
-                     class="character-panel-img pixel-character-img">
-              </div>
-            </div>
-            <div class="insight-bar-container">
-              <div class="insight-bar-label">Insight</div>
-              <div class="insight-bar">
-                <div class="insight-bar-fill" style="width: ${Math.min(100, character.insight / 2)}%"></div>
-                <span class="insight-value">${character.insight}</span>
-              </div>
-            </div>
-            <p><strong>Level:</strong> ${character.level}</p>
+    // Try to get character ID from name
+    let characterId = this.getCharacterId(character);
+    this.state.currentCharacterId = characterId;
+    
+    // Get image path
+    const imagePath = this.getCharacterImagePath(characterId);
+    
+    // Create HTML for character display
+    const charInfoHtml = `
+      <div class="character-details">
+        <p class="character-name"><strong>${character.name}</strong></p>
+        <div class="character-avatar-container">
+          <div class="character-avatar">
+            <img src="${imagePath}" 
+                 alt="${character.name}" 
+                 class="character-panel-img pixel-character-img"
+                 onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
           </div>
-        `;
+        </div>
+        <div class="insight-bar-container">
+          <div class="insight-bar-label">Insight</div>
+          <div class="insight-bar">
+            <div class="insight-bar-fill" style="width: ${Math.min(100, character.insight / 2)}%"></div>
+            <span class="insight-value">${character.insight}</span>
+          </div>
+        </div>
+        <p class="character-level"><strong>Level:</strong> ${character.level}</p>
+      </div>
+    `;
+    
+    // Update the character info element
+    const charInfoElement = document.getElementById('character-info');
+    if (charInfoElement) {
+      charInfoElement.innerHTML = charInfoHtml;
+      
+      // Add character type class for CSS targeting
+      const characterStats = document.querySelector('.character-stats');
+      if (characterStats) {
+        // Remove any existing character type classes
+        const possibleClasses = ['debug-mode-character', 'resident-character', 'qa-specialist-character', 'physicist-character'];
+        possibleClasses.forEach(cls => characterStats.classList.remove(cls));
         
-        // Update the character info element
-        const charInfoElement = document.getElementById('character-info');
-        if (charInfoElement) {
-          charInfoElement.innerHTML = charInfoHtml;
-          
-          // Add character type class for CSS targeting
-          const characterStats = document.querySelector('.character-stats');
-          if (characterStats) {
-            // Remove any existing character type classes
-            characterStats.classList.remove('debug-physicist', 'resident-character', 'qa-specialist', 'physicist-character');
-            
-            // Add appropriate class based on character name
-            characterStats.classList.add(`${characterId}-character`);
-          }
-        }
-        
-        // Update lives visualization
-        this.updateLivesDisplay(character.lives, character.max_lives);
-        
-        // Update special ability if exists
-        if (character.special_ability) {
-          this.updateSpecialAbility(character.special_ability);
-        }
-        
-        // Start the character animation
-        this.startCharacterAnimation();
-      });
+        // Add appropriate class based on character ID
+        characterStats.classList.add(`${characterId}-character`);
+      }
+    }
+    
+    // Update lives visualization
+    this.updateLivesDisplay(character.lives, character.max_lives);
+    
+    // Update special ability if exists
+    if (character.special_ability) {
+      this.updateSpecialAbility(character.special_ability);
+    }
+    
+    // Apply animations
+    this.applyAnimations();
+  },
+  
+  // Get character ID from character data
+  getCharacterId: function(character) {
+    // If character already has an id property, use it
+    if (character.id) {
+      return character.id;
+    }
+    
+    // Try to get ID from name using CharacterAssets helper
+    if (window.CharacterAssets && typeof CharacterAssets.getCharacterIdFromName === 'function') {
+      try {
+        return CharacterAssets.getCharacterIdFromName(character.name);
+      } catch (err) {
+        console.warn('Error getting character ID from name:', err);
+      }
+    }
+    
+    // Fallback: derive ID from name
+    const derivedId = character.name
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '');
+    
+    // Default to resident if we somehow got a blank ID
+    return derivedId || 'resident';
+  },
+  
+  // Get character image path
+  getCharacterImagePath: function(characterId) {
+    // Try to use CharacterAssets helper
+    if (window.CharacterAssets && typeof CharacterAssets.getCharacterImagePath === 'function') {
+      try {
+        return CharacterAssets.getCharacterImagePath(characterId);
+      } catch (err) {
+        console.warn('Error getting character image path:', err);
+      }
+    }
+    
+    // Fallback path construction
+    return `/static/img/characters/${characterId}.png`;
   },
   
   // Update lives display
@@ -114,39 +164,7 @@ const CharacterPanel = {
     }
   },
   
-  // Get character data from server or cache
-  getCharacterData: function(characterName) {
-    // Check if we have cached the character data
-    if (this.characterDataCache && this.characterDataCache[characterName]) {
-      return Promise.resolve(this.characterDataCache[characterName]);
-    }
-    
-    // If not cached, fetch from server
-    return fetch('/api/characters')
-      .then(response => response.json())
-      .then(data => {
-        // Initialize cache if needed
-        if (!this.characterDataCache) {
-          this.characterDataCache = {};
-        }
-        
-        // Find the matching character
-        const character = data.characters.find(c => c.name === characterName);
-        
-        // Cache all characters for future use
-        data.characters.forEach(c => {
-          this.characterDataCache[c.name] = c;
-        });
-        
-        return character;
-      })
-      .catch(error => {
-        console.error('Error fetching character data:', error);
-        return null;
-      });
-  },
-  
-  // Update lives visualization to handle large values
+  // Update lives visualization with improved handling
   updateLivesDisplay: function(lives, maxLives) {
     const livesContainer = document.getElementById('lives-container');
     if (!livesContainer) return;
@@ -159,17 +177,13 @@ const CharacterPanel = {
       // Set attribute for CSS targeting
       livesContainer.setAttribute('data-lives-count', 'high');
       
-      // Add a single heart icon
-      const heartIcon = document.createElement('span');
-      heartIcon.className = 'life-icon active';
-      heartIcon.innerHTML = '❤️';
-      livesContainer.appendChild(heartIcon);
-      
-      // Add numeric display
-      const livesCount = document.createElement('span');
-      livesCount.className = 'life-display';
-      livesCount.textContent = ` ${lives}/${maxLives}`;
-      livesContainer.appendChild(livesCount);
+      // Add a numeric display for high numbers of lives
+      livesContainer.innerHTML = `
+        <div class="lives-numeric">
+          <span class="life-icon active">❤️</span>
+          <span class="lives-count">${lives} / ${maxLives}</span>
+        </div>
+      `;
     } else {
       // Remove any previous attribute
       livesContainer.removeAttribute('data-lives-count');
@@ -182,75 +196,18 @@ const CharacterPanel = {
         livesContainer.appendChild(lifeIcon);
       }
     }
-  },
-  
-  // Default ASCII art - kept for backward compatibility
-  getDefaultAsciiArt: function() {
-    return `    ,+,
-   (o o)
-   /|\\Y/|\\
-   || ||
-   /|| ||\\
-     ==`;
-  },
-  
-  // High res ASCII art - kept for backward compatibility
-  getHighResAsciiArt: function(characterName) {
-    if (characterName.includes('Physicist')) {
-      return `   .---.
-  [o--o]
- /|_⚛_|\\
-  |/__\\|
-  // \\\\`;
-    } else if (characterName.includes('QA')) {
-      return `    ,+,
-   [o-o]
-  /|\\#/|\\
-   |QA|
-   // \\\\`;
-    } else if (characterName.includes('Debug')) {
-      return `  $[01]$
- {>_<}
-=|▢▣▢|=
- /|¦|\\
- /¦ ¦\\`;
-    } else {
-      return `    ,+,
-   (o.o)
-  /|\\Y/|\\
-   || ||
-  /|| ||\\
-    ==`;
+    
+    // Add animation if lives changed
+    if (lives !== this.prevLives) {
+      if (lives > this.prevLives) {
+        livesContainer.classList.add('lives-increased');
+        setTimeout(() => livesContainer.classList.remove('lives-increased'), 1000);
+      } else if (lives < this.prevLives) {
+        livesContainer.classList.add('lives-decreased');
+        setTimeout(() => livesContainer.classList.remove('lives-decreased'), 1000);
+      }
+      this.prevLives = lives;
     }
-  },
-  
-  // Style ASCII art - kept for backward compatibility
-  styleAsciiArt: function(asciiArt, characterName) {
-    // Always use high res art instead of passed-in ASCII
-    const highResArt = this.getHighResAsciiArt(characterName);
-    
-    // Add color based on character type
-    let color = '#5b8dd9'; // Default blue for resident
-    
-    if (characterName.includes('Physicist')) {
-      color = '#56b886'; // Green for physicist
-    } else if (characterName.includes('QA')) {
-      color = '#f0c866'; // Yellow for QA specialist
-    } else if (characterName.includes('Regulatory')) {
-      color = '#e67e73'; // Red for regulatory specialist
-    }
-    
-    // Add color styling to ASCII art for terminal-like effect
-    const coloredArt = highResArt
-      .split('\n')
-      .map((line, index) => {
-        // Add slight color variation for each line for a more dynamic look
-        const shade = Math.min(100, 80 + index * 5);
-        return `<span style="color: ${color}; filter: brightness(${shade}%)">${line}</span>`;
-      })
-      .join('\n');
-    
-    return coloredArt;
   },
   
   // Update special ability display with button
@@ -274,9 +231,12 @@ const CharacterPanel = {
       specialAbility.remaining_uses = specialAbility.uses_per_floor || 1;
     }
     
+    // Check if ability is usable
+    const isUsable = specialAbility.remaining_uses > 0;
+    
     // Update ability display with button and tooltip
     abilityContainer.innerHTML = `
-      <button class="special-ability-btn ${specialAbility.remaining_uses <= 0 ? 'disabled' : ''}" id="use-ability-btn">
+      <button class="special-ability-btn ${!isUsable ? 'disabled' : ''}" id="use-ability-btn" ${!isUsable ? 'disabled' : ''}>
         ${specialAbility.name}
         <span class="use-count">${specialAbility.remaining_uses}/${specialAbility.uses_per_floor || 1}</span>
         <div class="ability-tooltip">${specialAbility.description}</div>
@@ -285,15 +245,10 @@ const CharacterPanel = {
     
     // Add event listener for using the ability
     const useAbilityBtn = document.getElementById('use-ability-btn');
-    if (useAbilityBtn) {
+    if (useAbilityBtn && isUsable) {
       useAbilityBtn.addEventListener('click', () => {
         this.useSpecialAbility(specialAbility);
       });
-      
-      // Disable button if no uses left
-      if (specialAbility.remaining_uses <= 0) {
-        useAbilityBtn.disabled = true;
-      }
     }
   },
   
@@ -334,10 +289,31 @@ const CharacterPanel = {
             NodeInteraction.currentQuestion) {
           // Show correct answer in UI
           UiUtils.showFloatingText('Revealed correct answer', 'success');
+          
+          // Highlight the correct answer if possible
+          this.highlightCorrectAnswer();
         } else {
           UiUtils.showFloatingText('No active question', 'warning');
           // Return the use since it wasn't applicable
           specialAbility.remaining_uses++;
+        }
+        break;
+        
+      case 'Measurement Uncertainty':
+        // Allow retry of a failed question
+        UiUtils.showFloatingText('You can retry a failed question', 'success');
+        // Set flag for question component to use
+        if (!GameState.data.questionEffects) {
+          GameState.data.questionEffects = {};
+        }
+        GameState.data.questionEffects.canRetry = true;
+        break;
+        
+      case 'Debug Override':
+        // Instant completion for debugging
+        UiUtils.showFloatingText('Debug mode: Node completed', 'success');
+        if (GameState.data.currentNode) {
+          GameState.completeNode(GameState.data.currentNode);
         }
         break;
         
@@ -354,111 +330,29 @@ const CharacterPanel = {
     }
   },
   
-  // Animation frames - kept for backward compatibility
-  animationFrames: {
-    // Physicist frames
-    physicist: [
-      // Frame 1: Regular pose
-      `   .---.
-  [o--o]
- /|_⚛_|\\
-  |/__\\|
-  // \\\\`,
-      // Frame 2: Slight arm movement
-      `   .---.
-  [o--o]
- /|_⚛~|\\
-  |/__\\|
-  // \\\\`,
-      // Frame 3: More arm movement
-      `   .---.
-  [o--o]
- /|~⚛_|\\
-  |/__\\|
-  // \\\\`,
-    ],
+  // Highlight the correct answer for peer review ability
+  highlightCorrectAnswer: function() {
+    if (!NodeInteraction || !NodeInteraction.currentQuestion) return;
     
-    // Resident frames
-    resident: [
-      // Frame 1: Regular pose
-      `    ,+,
-   (o.o)
-  /|\\Y/|\\
-   || ||
-  /|| ||\\
-    ==`,
-      // Frame 2: Slight movement
-      `    ,+,
-   (o.o)
-  /|\\Y/|\\
-   || ||
-  /|/ \\|\\
-    ==`,
-      // Frame 3: More movement
-      `    ,+,
-   (o.o)
-  /|\\Y/|\\
-   || ||
-  /|| ||\\
-    ==`,
-    ],
+    const question = NodeInteraction.currentQuestion;
+    const correctIndex = question.correct;
     
-    // QA Specialist frames
-    qa_specialist: [
-      // Frame 1: Regular pose
-      `    ,+,
-   [o-o]
-  /|\\#/|\\
-   |QA|
-   // \\\\`,
-      // Frame 2: Measurement pose
-      `    ,+,
-   [o-o]
-  /|\\#-|\\
-   |QA|
-   // \\\\`,
-      // Frame 3: Another pose
-      `    ,+,
-   [o-o]
-  /|-#/|\\
-   |QA|
-   // \\\\`,
-    ],
-    
-    // Debug mode frames
-    debug_mode: [
-      // Frame 1: Regular pose
-      `  $[01]$
- {>_<}
-=|▢▣▢|=
- /|¦|\\
- /¦ ¦\\`,
-      // Frame 2: Binary change
-      `  $[10]$
- {^_^}
-=|▣▢▣|=
- /|¦|\\
- /¦ ¦\\`,
-      // Frame 3: More circuit changes
-      `  $[11]$
- {>_<}
-=|▢▢▢|=
- /|¦|\\
- /¦ ¦\\`,
-    ]
-  },
-
-  // Current animation frame and timer - keeping these for compatibility
-  currentAnimationFrame: 0,
-  animationTimer: null,
-
-  // Start the animation for pixel character 
-  startCharacterAnimation: function() {
-    // Clear any existing animation
-    if (this.animationTimer) {
-      clearInterval(this.animationTimer);
-      this.animationTimer = null;
+    // Find the correct answer option
+    const options = document.querySelectorAll('.question-option');
+    if (options && options.length > correctIndex) {
+      // Add highlighting class
+      options[correctIndex].classList.add('correct-answer-highlight');
+      
+      // Remove highlight after a while
+      setTimeout(() => {
+        options[correctIndex].classList.remove('correct-answer-highlight');
+      }, 3000);
     }
+  },
+  
+  // Apply animations to character display
+  applyAnimations: function() {
+    this.state.animationActive = true;
     
     // Apply bobbing animation to character image
     const characterImg = document.querySelector('.character-panel-img');
@@ -466,49 +360,52 @@ const CharacterPanel = {
       characterImg.classList.add('pixel-bobbing');
     }
     
-    // In the future, you could implement sprite-based animation here
-    // by cycling through different images
-  },
-
-  // This is kept empty for compatibility with any code that might call it
-  updateCharacterAnimation: function() {
-    // No longer needed for static pixel images
-    // But kept for backward compatibility
-  },
-
-  // This is kept for backward compatibility
-  styleAnimationFrame: function(frame, characterName) {
-    // Add color based on character type
-    let color = '#5b8dd9'; // Default blue for resident
-    
-    if (characterName.includes('Physicist')) {
-      color = '#56b886'; // Green for physicist
-    } else if (characterName.includes('QA')) {
-      color = '#f0c866'; // Yellow for QA specialist
-    } else if (characterName.includes('Regulatory')) {
-      color = '#e67e73'; // Red for regulatory specialist
+    // Apply subtle glow to character avatar
+    const avatar = document.querySelector('.character-avatar');
+    if (avatar) {
+      avatar.classList.add('pixel-glow');
     }
+  },
+  
+  // Pause animations (for background tabs, etc.)
+  pauseAnimations: function() {
+    this.state.animationActive = false;
     
-    // Add color styling to ASCII art
-    const coloredArt = frame
-      .split('\n')
-      .map((line, index) => {
-        const shade = Math.min(100, 80 + index * 5);
-        return `<span style="color: ${color}; filter: brightness(${shade}%)">${line}</span>`;
-      })
-      .join('\n');
+    document.querySelectorAll('.pixel-bobbing').forEach(el => {
+      el.style.animationPlayState = 'paused';
+    });
     
-    return coloredArt;
+    document.querySelectorAll('.pixel-glow').forEach(el => {
+      el.style.animationPlayState = 'paused';
+    });
+  },
+  
+  // Resume animations
+  resumeAnimations: function() {
+    this.state.animationActive = true;
+    
+    document.querySelectorAll('.pixel-bobbing').forEach(el => {
+      el.style.animationPlayState = 'running';
+    });
+    
+    document.querySelectorAll('.pixel-glow').forEach(el => {
+      el.style.animationPlayState = 'running';
+    });
   },
   
   // Initialize inventory system
   initializeInventory: function() {
-    InventorySystem.initialize();
+    if (typeof InventorySystem !== 'undefined') {
+      InventorySystem.initialize();
+    }
   },
   
   // Add item to inventory
   addItemToInventory: function(item) {
-    return InventorySystem.addItem(item);
+    if (typeof InventorySystem !== 'undefined') {
+      return InventorySystem.addItem(item);
+    }
+    return false;
   },
   
   // Get effect description for an item
