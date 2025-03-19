@@ -1,32 +1,32 @@
 {
   "relics": [
     {
-      "id": "nihilist_clipboard",
-      "name": "Nihilist's Clipboard",
-      "description": "A clipboard that occasionally whispers 'None of these measurements matter'",
-      "rarity": "uncommon",
-      "itemType": "relic",
-      "iconPath": "Yellow Sticky Note.png",
-      "effect": {
-        "type": "heal",
-        "value": "",
-        "duration": "permanent"
-      },
-      "passiveText": ""
-    },
-    {
       "id": "quantum_uncertainty_goggles",
-      "name": "Schr\u00f6dinger's Spectacles",
-      "description": "These glasses simultaneously show radiation as both particles and waves.",
+      "name": "Schrödinger's Spectacles",
+      "description": "These glasses simultaneously show radiation as both particles and waves, allowing you two attempts at answering questions.",
       "rarity": "epic",
       "itemType": "relic",
-      "iconPath": "3D Glasses.png",
+      "iconPath": "glasses.png",
       "effect": {
-        "type": "heal",
-        "value": "",
+        "type": "second_chance",
+        "value": "Allows a second attempt at question nodes",
         "duration": "permanent"
       },
-      "passiveText": ""
+      "passiveText": "Passive: Can attempt questions twice"
+    },
+    {
+      "id": "nihilist_clipboard",
+      "name": "Theoretical Physicist's Notebook",
+      "description": "A notebook containing advanced calculations that boost your understanding of physics concepts.",
+      "rarity": "uncommon",
+      "itemType": "relic",
+      "iconPath": "notebook.png",
+      "effect": {
+        "type": "insight_boost",
+        "value": 10,
+        "duration": "permanent"
+      },
+      "passiveText": "Passive: +10% Insight from all sources"
     }
   ]
 }

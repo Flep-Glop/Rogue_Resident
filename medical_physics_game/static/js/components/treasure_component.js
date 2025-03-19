@@ -1,14 +1,23 @@
-// treasure_component.js - Component for treasure node type
+// Updated treasure_component.js - Component for treasure node type
 
 const TreasureComponent = ComponentUtils.createComponent('treasure', {
   // Initialize component
   initialize: function() {
     console.log("Initializing treasure component");
+    
+    // Initialize UI state
+    this.setUiState('itemTaken', false);
   },
   
-  // treasure_component.js - Refactored implementation
+  // Render treasure component
   render: function(nodeData, container) {
     console.log("Rendering treasure component", nodeData);
+    
+    // Try to recover item data if missing
+    if (!nodeData.item) {
+      nodeData.item = this.getFallbackItem();
+      console.log("Using fallback item for treasure node:", nodeData.item);
+    }
     
     // Validate node data
     if (!nodeData.item) {
@@ -79,9 +88,55 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       nodeData, item: nodeData.item 
     });
     this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
+    
+    // If item was already taken, update UI
+    if (this.getUiState('itemTaken')) {
+      const takeBtn = document.getElementById('treasure-take-btn');
+      const leaveBtn = document.getElementById('treasure-leave-btn');
+      
+      if (takeBtn) takeBtn.style.display = 'none';
+      if (leaveBtn) {
+        leaveBtn.textContent = 'Continue';
+        leaveBtn.style.width = '100%';
+      }
+    }
+  },
+  
+  // Get fallback item if node data doesn't include one
+  getFallbackItem: function() {
+    const items = [
+      {
+        id: "medical_textbook",
+        name: "Medical Physics Textbook",
+        description: "A comprehensive guide that helps eliminate one incorrect answer option.",
+        rarity: "uncommon",
+        itemType: "consumable",
+        iconPath: "textbook.png",
+        effect: {
+          type: "eliminateOption",
+          value: "Removes one incorrect answer option",
+          duration: "instant"
+        }
+      },
+      {
+        id: "radiation_badge",
+        name: "Radiation Badge",
+        description: "A personal dosimeter that can absorb harmful radiation, restoring 1 life point.",
+        rarity: "rare",
+        itemType: "consumable",
+        iconPath: "badge.png",
+        effect: {
+          type: "heal",
+          value: 1,
+          duration: "instant"
+        }
+      }
+    ];
+    
+    return items[Math.floor(Math.random() * items.length)];
   },
 
-  // Add a fun new method that uses the design bridge for fancy titles
+  // Generate a fun title for treasure
   generateTreasureTitle: function() {
     const titles = [
       "Treasure Found!",
@@ -93,35 +148,93 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return titles[Math.floor(Math.random() * titles.length)];
   },
 
-  // Update the getItemIcon method to use design bridge colors
+  // Get icon for an item
   getItemIcon: function(item) {
     // Use design bridge for colors if available
     const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
     
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixelated">`;
+      return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor};"></i>`;
     }
     
     // Map common item types to default icons with color from design bridge
-    const itemName = item.name.toLowerCase();
-    let iconClass = "default";
+    return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor};"></i>`;
+  },
+  
+  // Get appropriate icon class based on item properties
+  getIconClass: function(item) {
+    const itemName = (item.name || '').toLowerCase();
     
-    if (itemName.includes('book') || itemName.includes('manual')) {
-      iconClass = "book";
+    if (itemName.includes('book') || itemName.includes('textbook') || itemName.includes('manual')) {
+      return "book";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconClass = "potion";
+      return "flask";
+    } else if (itemName.includes('badge') || itemName.includes('dosimeter') || itemName.includes('detector')) {
+      return "id-badge";
     } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconClass = "shield";
-    } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
-      iconClass = "detector";
+      return "shield-alt";
+    } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
+      return "glasses";
+    } else if (itemName.includes('notebook') || itemName.includes('clipboard')) {
+      return "clipboard";
     }
     
-    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};"></i>`;
+    // Default icon
+    return "box";
+  },
+  
+  // Take the item
+  takeItem: function(data) {
+    const { nodeData, item } = data;
+    
+    console.log("Taking item:", item);
+    
+    // Add to inventory
+    const added = this.addItemToInventory(item);
+    
+    if (added) {
+      // Mark as taken in UI state
+      this.setUiState('itemTaken', true);
+      
+      // Show feedback
+      this.showFeedback(`Added ${item.name} to inventory!`, 'success');
+      
+      // Update UI to show item was taken
+      const takeBtn = document.getElementById('treasure-take-btn');
+      const leaveBtn = document.getElementById('treasure-leave-btn');
+      
+      if (takeBtn) takeBtn.style.display = 'none';
+      if (leaveBtn) {
+        leaveBtn.textContent = 'Continue';
+        leaveBtn.style.width = '100%';
+      }
+    } else {
+      // Show error
+      this.showToast("Failed to add item to inventory. It may be full.", 'warning');
+    }
+  },
+  
+  // Handle component actions
+  handleAction: function(nodeData, action, data) {
+    console.log(`Treasure component handling action: ${action}`, data);
+    
+    switch (action) {
+      case 'takeItem':
+        this.takeItem(data);
+        break;
+        
+      case 'continue':
+        this.completeNode(nodeData);
+        break;
+        
+      default:
+        console.warn(`Unknown action: ${action}`);
+    }
   }
 });
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
-NodeComponents.register('treasure', TreasureComponent);
+  NodeComponents.register('treasure', TreasureComponent);
 }

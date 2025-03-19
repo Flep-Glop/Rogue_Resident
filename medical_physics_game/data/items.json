@@ -1,3 +1,30 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "medical_textbook",
+      "name": "Medical Physics Textbook",
+      "description": "A comprehensive guide that helps eliminate one incorrect answer option.",
+      "rarity": "uncommon",
+      "itemType": "consumable",
+      "iconPath": "textbook.png",
+      "effect": {
+        "type": "eliminateOption",
+        "value": "Removes one incorrect answer option",
+        "duration": "instant"
+      }
+    },
+    {
+      "id": "radiation_badge",
+      "name": "Radiation Badge",
+      "description": "A personal dosimeter that can absorb harmful radiation, restoring 1 life point.",
+      "rarity": "rare",
+      "itemType": "consumable",
+      "iconPath": "badge.png",
+      "effect": {
+        "type": "heal",
+        "value": 1,
+        "duration": "instant"
+      }
+    }
+  ]
 }

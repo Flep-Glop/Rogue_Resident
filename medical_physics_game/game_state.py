@@ -135,47 +135,46 @@ def get_random_item(rarity=None):
     # Get all items
     items = items_data.get('items', [])
     
+    # If no items found in the file, use these default items
+    if not items:
+        items = [
+            {
+                "id": "medical_textbook",
+                "name": "Medical Physics Textbook",
+                "description": "A comprehensive guide that helps eliminate one incorrect answer option.",
+                "rarity": "uncommon",
+                "itemType": "consumable",
+                "iconPath": "textbook.png",
+                "effect": {
+                    "type": "eliminateOption",
+                    "value": "Removes one incorrect answer option",
+                    "duration": "instant"
+                }
+            },
+            {
+                "id": "radiation_badge",
+                "name": "Radiation Badge",
+                "description": "A personal dosimeter that can absorb harmful radiation, restoring 1 life point.",
+                "rarity": "rare",
+                "itemType": "consumable",
+                "iconPath": "badge.png",
+                "effect": {
+                    "type": "heal",
+                    "value": 1,
+                    "duration": "instant"
+                }
+            }
+        ]
+    
     # Filter by rarity if specified
     if rarity:
-        items = [item for item in items if item.get('rarity') == rarity]
-    
-    # If no items, return a default item
-    if not items:
-        return {
-            "id": "default_item",
-            "name": "Medical Physics Book",
-            "description": "A comprehensive guide to medical physics principles.",
-            "rarity": "common",
-            "effect": {
-                "type": "insight_boost",
-                "value": "Gain 5 insight points",
-                "duration": "instant"
-            }
-        }
-    
-    # Calculate weights based on rarity if not filtered
-    if not rarity:
-        weighted_items = []
-        for item in items:
-            # Give higher weight to common items
-            weight = 1
-            if item.get('rarity') == 'common':
-                weight = 4
-            elif item.get('rarity') == 'uncommon':
-                weight = 3
-            elif item.get('rarity') == 'rare':
-                weight = 2
-            elif item.get('rarity') == 'epic':
-                weight = 1
-            
-            # Add item to weighted list
-            for _ in range(weight):
-                weighted_items.append(item)
-        
-        # Choose from weighted list
-        return random.choice(weighted_items) if weighted_items else items[0]
+        filtered_items = [item for item in items if item.get('rarity') == rarity]
+        # Only use filtered items if we found any, otherwise use all items
+        if filtered_items:
+            items = filtered_items
     
     # Return random item
+    import random
     return random.choice(items)
 
 def get_random_patient_case(node=None):

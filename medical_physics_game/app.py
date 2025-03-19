@@ -933,6 +933,93 @@ def save_all_changes():
             'success': False,
             'error': str(e)
         })
+# Add these routes to your Flask app (e.g., in app.py)
+
+@app.route('/api/item/<item_id>', methods=['GET'])
+def get_item(item_id):
+    """Get a specific item by ID"""
+    from data_manager import load_json_data
+    
+    # Load items data
+    items_data = load_json_data('items.json')
+    
+    # Get all items
+    items = items_data.get('items', [])
+    
+    # Find the item with the specified ID
+    item = next((item for item in items if item.get('id') == item_id), None)
+    
+    # If no item found, use the updated get_random_item function to get a default item
+    if not item:
+        from game_state import get_random_item
+        item = get_random_item()
+    
+    return jsonify(item)
+
+@app.route('/api/item/random', methods=['GET'])
+def get_random_items():
+    """Get random items, with optional count"""
+    from game_state import get_random_item
+    import random
+    
+    try:
+        # Get count parameter, default to 1
+        count = int(request.args.get('count', 1))
+        # Limit count to avoid abuse
+        count = min(count, 10)
+        
+        # Get random items
+        items = [get_random_item() for _ in range(count)]
+        
+        return jsonify(items)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/relic/<relic_id>', methods=['GET'])
+def get_relic(relic_id):
+    """Get a specific relic by ID"""
+    from data_manager import load_json_data
+    
+    # Load relics data
+    relics_data = load_json_data('relics.json')
+    
+    # Get all relics
+    relics = relics_data.get('relics', [])
+    
+    # Find the relic with the specified ID
+    relic = next((relic for relic in relics if relic.get('id') == relic_id), None)
+    
+    # If no relic found, return an error
+    if not relic:
+        return jsonify({"error": f"Relic not found: {relic_id}"}), 404
+    
+    return jsonify(relic)
+
+@app.route('/api/item/all', methods=['GET'])
+def get_all_items():
+    """Get all items"""
+    from data_manager import load_json_data
+    
+    # Load items data
+    items_data = load_json_data('items.json')
+    
+    # Get all items
+    items = items_data.get('items', [])
+    
+    return jsonify(items)
+
+@app.route('/api/relic/all', methods=['GET'])
+def get_all_relics():
+    """Get all relics"""
+    from data_manager import load_json_data
+    
+    # Load relics data
+    relics_data = load_json_data('relics.json')
+    
+    # Get all relics
+    relics = relics_data.get('relics', [])
+    
+    return jsonify(relics)
 
 # Upload a new icon
 @app.route('/api/editor/upload-icon', methods=['POST'])

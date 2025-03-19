@@ -1,9 +1,6 @@
-// question_component.js - Complete robust implementation
+// question_component.js - Complete implementation with item support
+// Handles question, elite, and boss nodes with comprehensive error handling
 
-/**
- * Question Component
- * Handles question, elite, and boss nodes with comprehensive error handling
- */
 const QuestionComponent = ComponentUtils.createComponent('question', {
   // Initialize component
   initialize: function() {
@@ -15,6 +12,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     this.setUiState('currentNodeData', null);
     this.setUiState('resultData', null);
     this.setUiState('errorState', false);
+    this.setUiState('usedSecondChance', false);
     
     // Register for state updates
     if (window.GameState && GameState.addObserver) {
@@ -38,6 +36,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     this.setUiState('selectedOptionIndex', null);
     this.setUiState('resultData', null);
     this.setUiState('errorState', false);
+    this.setUiState('usedSecondChance', false);
     // Keep currentNodeData for reference until we get new data
   },
   
@@ -351,22 +350,69 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Render question options
+  // Render question options with support for the "eliminate option" effect
   renderOptions: function(container, options, nodeData) {
     if (!container || !options || !options.length) return;
     
+    // Check if we should eliminate an option
+    let eliminatedIndex = null;
+    if (GameState.data?.questionEffects?.eliminateOption && 
+        nodeData.question && 
+        typeof nodeData.question.correct === 'number') {
+      
+      // Find a wrong option to eliminate
+      const wrongOptions = [];
+      options.forEach((option, index) => {
+        if (index !== nodeData.question.correct) {
+          wrongOptions.push(index);
+        }
+      });
+      
+      // Randomly select one wrong option to eliminate
+      if (wrongOptions.length > 0) {
+        const randomIndex = Math.floor(Math.random() * wrongOptions.length);
+        eliminatedIndex = wrongOptions[randomIndex];
+        
+        // Reset the effect after using it
+        GameState.data.questionEffects.eliminateOption = false;
+        
+        // Show feedback
+        this.showToast("One incorrect option has been eliminated!", "primary");
+      }
+    }
+    
+    // Check for second chance from relics
+    const hasSecondChance = GameState.data?.hasSecondChance || false;
+    
     // Create option buttons
     options.forEach((option, index) => {
-      const optionEl = document.createElement('button');
-      optionEl.className = 'game-option w-full mb-sm';
-      optionEl.dataset.index = index;
-      optionEl.textContent = option;
+      const isEliminated = index === eliminatedIndex;
       
-      // Specifically pass BOTH the index AND the nodeData to the action
-      this.bindAction(optionEl, 'click', 'answer', { 
-        index: index,
-        nodeData: nodeData // Pass the complete node data with question
-      });
+      const optionEl = document.createElement('button');
+      optionEl.className = `game-option w-full mb-sm ${isEliminated ? 'eliminated-option' : ''}`;
+      optionEl.dataset.index = index;
+      
+      // Add strike-through for eliminated options
+      if (isEliminated) {
+        optionEl.innerHTML = `<s>${option}</s> <span class="badge badge-danger float-right">Eliminated</span>`;
+        optionEl.disabled = true;
+      } else {
+        optionEl.textContent = option;
+        
+        // Add second chance badge if applicable
+        if (hasSecondChance && !this.getUiState('questionAnswered')) {
+          const badgeSpan = document.createElement('span');
+          badgeSpan.className = 'badge badge-secondary float-right second-chance-badge';
+          badgeSpan.textContent = '2nd Chance Available';
+          optionEl.appendChild(badgeSpan);
+        }
+        
+        // Bind click handler
+        this.bindAction(optionEl, 'click', 'answer', { 
+          index: index,
+          nodeData: nodeData
+        });
+      }
       
       container.appendChild(optionEl);
     });
@@ -456,7 +502,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Answer a question with comprehensive error handling
+  // Answer a question with comprehensive error handling and second chance support
   answerQuestion: function(nodeData, answerIndex) {
     // Validate inputs extensively
     if (!nodeData || !nodeData.id) {
@@ -477,6 +523,10 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       }
     }
     
+    // Check if this is a second attempt
+    const isSecondAttempt = this.getUiState('usedSecondChance');
+    const hasSecondChance = GameState.data?.hasSecondChance && !isSecondAttempt;
+    
     console.log(`Answering question for node ${nodeData.id}, selected option ${answerIndex}`);
     console.log("Question data:", nodeData.question);
     
@@ -496,30 +546,17 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Call API to check answer
     ApiClient.answerQuestion(nodeData.id, answerIndex, nodeData.question)
       .then(data => {
-        // Save result data in UI state
-        this.setUiState('questionAnswered', true);
-        this.setUiState('resultData', data);
+        // Check if answer is correct
+        const isCorrect = data.correct === true;
         
-        // Show result
-        this.showQuestionResult(data, answerIndex, nodeData.question);
-        
-        // Check for game over
-        if (data.game_state && data.game_state.character && 
-            data.game_state.character.lives <= 0) {
-          // Set timeout to show the result before game over
-          setTimeout(() => {
-            if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
-              NodeInteraction.showGameOver();
-            }
-          }, 2000);
-        } else {
-          // Set up continue button
-          const continueBtn = document.getElementById('continue-btn');
-          if (continueBtn) {
-            continueBtn.style.display = 'block';
-            this.bindAction('continue-btn', 'click', 'continue', { nodeData });
-          }
+        // If incorrect AND has second chance AND not used yet
+        if (!isCorrect && hasSecondChance && !isSecondAttempt) {
+          this.showSecondChancePrompt(nodeData, answerIndex);
+          return;
         }
+        
+        // Continue with normal result handling
+        this.handleAnswerResult(data, answerIndex, nodeData);
       })
       .catch(error => {
         ErrorHandler.handleError(
@@ -534,6 +571,13 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
         if (nodeData.question && typeof nodeData.question.correct === 'number') {
           // Create a mock response based on the correct answer in question data
           const isCorrect = answerIndex === nodeData.question.correct;
+          
+          // If incorrect AND has second chance AND not used yet
+          if (!isCorrect && hasSecondChance && !isSecondAttempt) {
+            this.showSecondChancePrompt(nodeData, answerIndex);
+            return;
+          }
+          
           const fallbackData = {
             correct: isCorrect,
             explanation: nodeData.question.explanation || 
@@ -544,37 +588,8 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
           // Log fallback
           console.log("Using fallback response:", fallbackData);
           
-          // Save result data in UI state
-          this.setUiState('questionAnswered', true);
-          this.setUiState('resultData', fallbackData);
-          
-          // Show result using fallback data
-          this.showQuestionResult(fallbackData, answerIndex, nodeData.question);
-          
-          // Update character stats based on result
-          if (isCorrect) {
-            // Award insight
-            this.updatePlayerInsight(fallbackData.insight_gained || 10);
-          } else {
-            // Lose a life
-            this.updatePlayerLives(-1);
-            
-            // Check for game over
-            if (this.getPlayerLives() <= 0) {
-              setTimeout(() => {
-                if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
-                  NodeInteraction.showGameOver();
-                }
-              }, 2000);
-            }
-          }
-          
-          // Show continue button
-          const continueBtn = document.getElementById('continue-btn');
-          if (continueBtn) {
-            continueBtn.style.display = 'block';
-            this.bindAction('continue-btn', 'click', 'continue', { nodeData });
-          }
+          // Continue with result handling
+          this.handleAnswerResult(fallbackData, answerIndex, nodeData);
         } else {
           console.error("Fallback failed - question data incomplete:", nodeData.question);
           
@@ -591,6 +606,141 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       });
   },
   
+  // Show second chance prompt
+  showSecondChancePrompt: function(nodeData, wrongAnswerIndex) {
+    const resultDiv = document.getElementById('question-result');
+    if (!resultDiv) return;
+    
+    resultDiv.className = 'alert alert-warning mt-sm anim-fade-in';
+    resultDiv.innerHTML = `
+      <div class="flex items-center mb-sm">
+        <span class="text-lg mr-sm">⚠️</span>
+        <strong>Incorrect Answer</strong>
+      </div>
+      <p>Thanks to your Schrödinger's Spectacles, you can try this question again!</p>
+      <div class="mt-sm">
+        <button id="use-second-chance" class="game-btn game-btn--secondary mr-md">Try Again</button>
+        <button id="skip-second-chance" class="game-btn game-btn--danger">Accept Wrong Answer</button>
+      </div>
+    `;
+    resultDiv.style.display = 'block';
+    
+    // Bind buttons
+    document.getElementById('use-second-chance').addEventListener('click', () => {
+      this.useSecondChance(nodeData, wrongAnswerIndex);
+    });
+    
+    document.getElementById('skip-second-chance').addEventListener('click', () => {
+      // Create mock data for wrong answer
+      const mockData = {
+        correct: false,
+        explanation: nodeData.question.explanation || "Incorrect answer.",
+        insight_gained: 0
+      };
+      
+      // Handle as normal wrong answer
+      this.handleAnswerResult(mockData, wrongAnswerIndex, nodeData);
+    });
+  },
+  
+  // Use second chance to try again
+  useSecondChance: function(nodeData, wrongAnswerIndex) {
+    // Mark second chance as used
+    this.setUiState('usedSecondChance', true);
+    
+    // Hide result
+    const resultDiv = document.getElementById('question-result');
+    if (resultDiv) {
+      resultDiv.style.display = 'none';
+    }
+    
+    // Re-enable options except the wrong one
+    const optionsContainer = document.getElementById('options-container');
+    const options = optionsContainer.querySelectorAll('.game-option');
+    
+    options.forEach((option, index) => {
+      // Don't re-enable the wrong answer
+      if (index !== wrongAnswerIndex) {
+        option.disabled = false;
+        option.classList.remove('disabled');
+      } else {
+        // Mark the wrong option
+        option.classList.add('game-option--danger');
+        option.disabled = true;
+        
+        // Add wrong icon
+        if (!option.querySelector('.option-icon')) {
+          const icon = document.createElement('span');
+          icon.className = 'option-icon float-right';
+          icon.textContent = '✗';
+          option.appendChild(icon);
+        }
+      }
+    });
+    
+    // Remove second chance badges
+    const badges = optionsContainer.querySelectorAll('.second-chance-badge');
+    badges.forEach(badge => badge.remove());
+    
+    // Show toast
+    this.showToast("Second chance used! Choose another answer.", "warning");
+  },
+  
+  // Handle answer result (after second chance if applicable)
+  handleAnswerResult: function(data, answerIndex, nodeData) {
+    // Save result data in UI state
+    this.setUiState('questionAnswered', true);
+    this.setUiState('resultData', data);
+    
+    // Show result
+    this.showQuestionResult(data, answerIndex, nodeData.question);
+    
+    // Check for game over
+    if (data.game_state && data.game_state.character && 
+        data.game_state.character.lives <= 0) {
+      // Set timeout to show the result before game over
+      setTimeout(() => {
+        if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+          NodeInteraction.showGameOver();
+        }
+      }, 2000);
+    } else {
+      // Set up continue button
+      const continueBtn = document.getElementById('continue-btn');
+      if (continueBtn) {
+        continueBtn.style.display = 'block';
+        this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+      }
+    }
+    
+    // Update character stats based on result if we don't have game_state in response
+    if (!data.game_state) {
+      if (data.correct) {
+        // Apply insight boost if available
+        let insightGained = data.insight_gained || 10;
+        if (GameState?.data?.insightBoost) {
+          const boost = Math.floor(insightGained * (GameState.data.insightBoost / 100));
+          insightGained += boost;
+        }
+        
+        // Award insight
+        this.updatePlayerInsight(insightGained);
+      } else {
+        // Lose a life
+        this.updatePlayerLives(-1);
+        
+        // Check for game over
+        if (this.getPlayerLives() <= 0) {
+          setTimeout(() => {
+            if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+              NodeInteraction.showGameOver();
+            }
+          }, 2000);
+        }
+      }
+    }
+  },
+  
   // Show question result
   showQuestionResult: function(data, selectedIndex, question) {
     const resultDiv = document.getElementById('question-result');
@@ -604,6 +754,18 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Determine if the answer was correct
     const isCorrect = data?.correct === true || (selectedIndex === correctIndex);
     
+    // Apply insight boost if applicable
+    let insightGained = data?.insight_gained || 10;
+    let boostMessage = "";
+    if (isCorrect && GameState?.data?.insightBoost) {
+      const baseInsight = insightGained;
+      const boost = Math.floor(baseInsight * (GameState.data.insightBoost / 100));
+      if (boost > 0) {
+        insightGained += boost;
+        boostMessage = ` <span class="text-secondary">(+${boost} from Notebook)</span>`;
+      }
+    }
+    
     // Create result message
     resultDiv.className = `alert ${isCorrect ? 'alert-success' : 'alert-danger'} mt-sm anim-fade-in`;
     resultDiv.innerHTML = `
@@ -614,7 +776,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       <p>${data?.explanation || question?.explanation || 'No explanation available.'}</p>
       <div class="mt-sm">
         ${isCorrect 
-          ? `<span class="badge badge-success">+${data?.insight_gained || 10} Insight</span>` 
+          ? `<span class="badge badge-success">+${insightGained} Insight${boostMessage}</span>` 
           : `<span class="badge badge-danger">-1 Life</span>`}
       </div>
     `;
@@ -624,7 +786,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     // Show floating feedback
     if (isCorrect) {
-      this.showFeedback(`+${data?.insight_gained || 10} Insight`, 'success');
+      this.showFeedback(`+${insightGained} Insight`, 'success');
     } else {
       this.showFeedback('-1 Life', 'danger');
     }
