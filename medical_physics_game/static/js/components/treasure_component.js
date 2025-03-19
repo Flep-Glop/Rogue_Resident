@@ -61,8 +61,8 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
           </div>
           
           <div class="game-card__body flex">
-            <div class="flex-shrink-0 mr-md">
-              <div class="item-icon item-icon--${itemRarity}">
+            <div class="flex-shrink-0 mr-md" style="width: 80px; height: 80px;">
+              <div class="item-icon item-icon--${itemRarity}" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                 ${this.getItemIcon(nodeData.item)}
               </div>
             </div>
@@ -89,11 +89,16 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       </div>
     `;
     
-    // Add event handlers
-    this.bindAction('treasure-take-btn', 'click', 'takeItem', { 
-      nodeData, item: nodeData.item 
-    });
-    this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
+    // Add event handlers - ONLY bind once
+    if (!this.getUiState('eventsBound')) {
+      this.bindAction('treasure-take-btn', 'click', 'takeItem', { 
+        nodeData, item: nodeData.item 
+      });
+      this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
+      
+      // Mark events as bound
+      this.setUiState('eventsBound', true);
+    }
     
     // If item was already taken, update UI
     if (this.getUiState('itemTaken')) {
@@ -154,18 +159,18 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return titles[Math.floor(Math.random() * titles.length)];
   },
 
-  // FIXED: Get icon for an item - properly displays image
+  // FIXED: Get icon for an item - properly displays image with consistent sizing
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="item-image pixelated">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
     }
     
     // Use design bridge for colors if available
     const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
     
     // Map common item types to default icons with color from design bridge
-    return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor};"></i>`;
+    return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor}; font-size: 32px;"></i>`;
   },
   
   // Get appropriate icon class based on item properties
@@ -196,13 +201,19 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     
     console.log("Taking item:", item);
     
+    // PREVENT DUPLICATE ITEMS: Check if item is already taken
+    if (this.getUiState('itemTaken')) {
+      console.log("Item already taken, ignoring duplicate click");
+      return;
+    }
+    
+    // Add to inventory - Mark as taken BEFORE adding to prevent duplicates
+    this.setUiState('itemTaken', true);
+    
     // Add to inventory
     const added = this.addItemToInventory(item);
     
     if (added) {
-      // Mark as taken in UI state
-      this.setUiState('itemTaken', true);
-      
       // Show feedback
       this.showFeedback(`Added ${item.name} to inventory!`, 'success');
       
@@ -216,9 +227,21 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         leaveBtn.style.width = '100%';
       }
     } else {
+      // Failed to add - reset taken state
+      this.setUiState('itemTaken', false);
+      
       // Show error
       this.showToast("Failed to add item to inventory. It may be full.", 'warning');
     }
+  },
+  
+  // Reset component state when node is completed
+  onNodeCompleted: function() {
+    // Reset UI state for next treasure node
+    this.setUiState('itemTaken', false);
+    this.setUiState('eventsBound', false);
+    
+    console.log("Treasure component state reset");
   },
   
   // Handle component actions
@@ -232,6 +255,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         
       case 'continue':
         this.completeNode(nodeData);
+        this.onNodeCompleted(); // Reset state when continuing
         break;
         
       default:
