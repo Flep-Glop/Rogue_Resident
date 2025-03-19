@@ -609,29 +609,45 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     console.log("Effect applied successfully");
   },
   
-  // Eliminate an incorrect option with an item
+  // Fixed eliminateIncorrectOption function
   eliminateIncorrectOption: function(item) {
+    console.log("Executing eliminateIncorrectOption");
+    
     if (!this.getUiState('currentNodeData') || 
         !this.getUiState('currentNodeData').question || 
         typeof this.getUiState('currentNodeData').question.correct !== 'number') {
-      this.showToast("Can't determine correct answer", "warning");
+      console.log("Can't determine correct answer from question data");
+      
+      // Use showToast instead of showFloatingText
+      if (typeof this.showToast === 'function') {
+        this.showToast("Can't determine correct answer", "warning");
+      } else {
+        console.warn("Can't determine correct answer");
+      }
       return;
     }
     
     const question = this.getUiState('currentNodeData').question;
     const correctIndex = question.correct;
+    console.log("Correct answer index:", correctIndex);
     
     // Get all option buttons
     const optionsContainer = document.getElementById('options-container');
-    if (!optionsContainer) return;
+    if (!optionsContainer) {
+      console.error("Options container not found");
+      return;
+    }
     
     const options = optionsContainer.querySelectorAll('.game-option:not(.disabled):not(.eliminated-option)');
+    console.log("Found options:", options.length);
     
     // Find incorrect options
     const incorrectOptions = Array.from(options).filter((option, index) => {
       const optionIndex = parseInt(option.dataset.index);
       return optionIndex !== correctIndex;
     });
+    
+    console.log("Incorrect options:", incorrectOptions.length);
     
     // If we have incorrect options, choose one randomly to eliminate
     if (incorrectOptions.length > 0) {
@@ -644,10 +660,23 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       optionToEliminate.innerHTML = `<s>${optionToEliminate.textContent}</s> <span class="badge badge-danger float-right">Eliminated</span>`;
       optionToEliminate.disabled = true;
       
-      // Show feedback
-      this.showFloatingText("Incorrect option eliminated!", "success");
+      // Show feedback with showToast instead of showFloatingText
+      if (typeof this.showToast === 'function') {
+        this.showToast("Incorrect option eliminated!", "success");
+      } else {
+        alert("Incorrect option eliminated!");
+      }
+      
+      console.log("Successfully eliminated an option");
     } else {
-      this.showToast("No incorrect options available to eliminate", "warning");
+      console.log("No incorrect options available to eliminate");
+      
+      // Show feedback with showToast
+      if (typeof this.showToast === 'function') {
+        this.showToast("No incorrect options available to eliminate", "warning");
+      } else {
+        console.warn("No incorrect options available to eliminate");
+      }
     }
   },
   
