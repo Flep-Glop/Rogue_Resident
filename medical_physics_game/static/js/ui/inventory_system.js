@@ -34,14 +34,16 @@ const InventorySystem = {
       }
     }
     
-    // Initialize the unified tooltip system if available
-    if (window.UnifiedTooltipSystem) {
+    // Check for tooltip system (either old or new)
+    if (window.TooltipSystem) {
+      if (typeof TooltipSystem.initialize === 'function' && !TooltipSystem.initialized) {
+        TooltipSystem.initialize();
+      }
+    } else if (window.UnifiedTooltipSystem) {
       if (typeof UnifiedTooltipSystem.initialize === 'function' && !UnifiedTooltipSystem.initialized) {
         UnifiedTooltipSystem.initialize();
       }
-    } else {
-      console.warn("UnifiedTooltipSystem not available - tooltips may not display correctly");
-    }
+    } // No warning needed - tooltip system is initialized elsewhere
     
     // Subscribe to inventory events
     if (window.EventSystem) {
@@ -545,7 +547,7 @@ const InventorySystem = {
     const relicsContainer = document.getElementById('relics-container');
     if (!relicsContainer) return;
     
-    // Filter to only show relics
+    // Filter inventory to only show relics
     const relics = window.GameState && GameState.data && GameState.data.inventory ? 
       GameState.data.inventory.filter(item => 
       item.itemType === 'relic') : [];
@@ -555,35 +557,35 @@ const InventorySystem = {
       return;
     }
     
-    // Create title and grid
+    // Create title and grid (using inventory-grid instead of relic-grid)
     const gridHtml = `
       <div class="inventory-title">
         <h3>Relics</h3>
         <span id="relics-count">${relics.length}</span>
       </div>
-      <div class="relic-grid"></div>
+      <div class="inventory-grid"></div>
     `;
     relicsContainer.innerHTML = gridHtml;
     
-    const grid = relicsContainer.querySelector('.relic-grid');
+    const grid = relicsContainer.querySelector('.inventory-grid');
     
-    // Add each relic
+    // Add each relic as an icon similar to items
     relics.forEach((relic, index) => {
       const relicElement = document.createElement('div');
-      relicElement.className = `relic-item ${relic.rarity || 'common'}`;
+      relicElement.className = `inventory-item ${relic.rarity || 'common'}`;
       relicElement.dataset.index = index;
       relicElement.dataset.itemId = relic.id;
       
       relicElement.innerHTML = `
-        <div class="relic-card">
-          <div class="relic-header">
-            <h4 class="relic-name">${relic.name}</h4>
-            <span class="relic-rarity">${relic.rarity || 'common'}</span>
-          </div>
-          <p class="relic-desc">${relic.description}</p>
-          <div class="relic-effect">
-            <span class="passive-text">${relic.passiveText || relic.effect?.value || 'Passive effect'}</span>
-          </div>
+        <div class="item-inner">
+          <div class="item-icon">${this.getItemIcon(relic)}</div>
+          <div class="item-glow"></div>
+        </div>
+        <div class="pixel-border ${relic.rarity || 'common'}">
+          <div class="pixel-corner top-left"></div>
+          <div class="pixel-corner top-right"></div>
+          <div class="pixel-corner bottom-left"></div>
+          <div class="pixel-corner bottom-right"></div>
         </div>
       `;
       

@@ -1,3 +1,23 @@
+// Polyfill for Element.closest
+if (!Element.prototype.closest) {
+    Element.prototype.closest = function(s) {
+      let el = this;
+      do {
+        if (el.matches && el.matches(s)) return el;
+        if (el.msMatchesSelector && el.msMatchesSelector(s)) return el;
+        if (el.webkitMatchesSelector && el.webkitMatchesSelector(s)) return el;
+        el = el.parentElement || el.parentNode;
+      } while (el !== null && el.nodeType === 1);
+      return null;
+    };
+  }
+  
+  // Polyfill for Element.matches
+  if (!Element.prototype.matches) {
+    Element.prototype.matches = Element.prototype.msMatchesSelector || 
+                                Element.prototype.webkitMatchesSelector;
+  }
+
 // tooltip-system.js
 const TooltipSystem = {
     // Singleton tooltip element
@@ -417,76 +437,126 @@ const TooltipSystem = {
     
     // Extract item data from element attributes and content
     extractItemData: function(element) {
-      const item = {};
-      
-      // Check for direct data attributes
-      if (element.dataset.itemId) {
-        item.id = element.dataset.itemId;
-      }
-      
-      if (element.dataset.itemName) {
-        item.name = element.dataset.itemName;
-      } else {
-        // Try to find name in element content
-        const nameEl = element.querySelector('.item-name, [class*="name"]');
-        if (nameEl) {
-          item.name = nameEl.textContent.trim();
+        const item = {};
+        
+        try {
+        // Check for direct data attributes
+        if (element.dataset.itemId) {
+            item.id = element.dataset.itemId;
         }
-      }
-      
-      // Extract rarity
-      if (element.dataset.itemRarity) {
-        item.rarity = element.dataset.itemRarity;
-      } else {
-        // Try to determine from classes
-        const rarityClasses = ['common', 'uncommon', 'rare', 'epic'];
-        rarityClasses.forEach(rarity => {
-          if (element.classList.contains(rarity)) {
-            item.rarity = rarity;
-          }
-          if (element.classList.contains(`rarity-${rarity}`)) {
-            item.rarity = rarity;
-          }
-        });
-      }
-      
-      // Extract description
-      if (element.dataset.itemDescription) {
-        item.description = element.dataset.itemDescription;
-      } else {
-        // Try to find description in element content
-        const descEl = element.querySelector('.item-description, [class*="desc"]');
-        if (descEl) {
-          item.description = descEl.textContent.trim();
+        
+        if (element.dataset.itemName) {
+            item.name = element.dataset.itemName;
+        } else {
+            // Try to find name in element content
+            // Check more selectors to find the name
+            const possibleNameSelectors = [
+            '.item-name', '.item-title', '.tooltip-title', 
+            '.relic-name', 'h3', 'h4', '[class*="name"]', '[class*="title"]'
+            ];
+            
+            for (const selector of possibleNameSelectors) {
+            const nameEl = element.querySelector(selector);
+            if (nameEl) {
+                item.name = nameEl.textContent.trim();
+                break;
+            }
+            }
+            
+            // If still no name, try the element itself
+            if (!item.name && element.textContent) {
+            // Look for a short line of text that could be a name
+            const lines = element.textContent.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0 && line.length < 50);
+            
+            if (lines.length > 0) {
+                item.name = lines[0];
+            }
+            }
         }
-      }
-      
-      // Extract item type
-      if (element.dataset.itemType) {
-        item.itemType = element.dataset.itemType;
-      } else if (element.classList.contains('relic-item')) {
-        item.itemType = 'relic';
-      } else {
-        item.itemType = 'consumable';
-      }
-      
-      // Extract effect
-      if (element.dataset.itemEffect) {
-        item.effect = {
-          type: element.dataset.itemEffectType || 'default',
-          value: element.dataset.itemEffect
-        };
-      } else {
-        // Try to find effect in element content
-        const effectEl = element.querySelector('.item-effect, [class*="effect"]');
-        if (effectEl) {
-          item.effect = {
-            value: effectEl.textContent.trim()
-          };
+        
+        // Extract rarity
+        if (element.dataset.itemRarity) {
+            item.rarity = element.dataset.itemRarity;
+        } else {
+            // Try to determine from classes with more thorough checking
+            const rarityClasses = ['common', 'uncommon', 'rare', 'epic'];
+            
+            // Check element's class list
+            rarityClasses.forEach(rarity => {
+            if (element.classList && element.classList.contains(rarity)) {
+                item.rarity = rarity;
+            }
+            if (element.classList && element.classList.contains(`rarity-${rarity}`)) {
+                item.rarity = rarity;
+            }
+            });
+            
+            // Check child elements for rarity
+            if (!item.rarity) {
+            const rarityEl = element.querySelector('.rarity-badge, .item-rarity, .tooltip-rarity, [class*="rarity"]');
+            if (rarityEl) {
+                const rarityText = rarityEl.textContent.trim().toLowerCase();
+                if (rarityClasses.includes(rarityText)) {
+                item.rarity = rarityText;
+                }
+            }
+            }
         }
-      }
-      
-      return item;
+        
+        // Default rarity if none found
+        if (!item.rarity) {
+            item.rarity = 'common';
+        }
+        
+        // Extract description
+        if (element.dataset.itemDescription) {
+            item.description = element.dataset.itemDescription;
+        } else {
+            // Try to find description in element content
+            const descEl = element.querySelector('.tooltip-desc, .item-description, .relic-desc, [class*="desc"]');
+            if (descEl) {
+            item.description = descEl.textContent.trim();
+            }
+        }
+        
+        // Extract item type
+        if (element.dataset.itemType) {
+            item.itemType = element.dataset.itemType;
+        } else if (element.classList && element.classList.contains('relic-item')) {
+            item.itemType = 'relic';
+        } else if (element.querySelector('.passive-text, .relic-effect')) {
+            item.itemType = 'relic';
+        } else {
+            item.itemType = 'consumable';
+        }
+        
+        // Extract effect
+        if (element.dataset.itemEffect) {
+            item.effect = {
+            type: element.dataset.itemEffectType || 'default',
+            value: element.dataset.itemEffect
+            };
+        } else {
+            // Try to find effect in element content
+            const effectEl = element.querySelector('.tooltip-effect, .item-effect, .relic-effect, [class*="effect"]');
+            if (effectEl) {
+            item.effect = {
+                value: effectEl.textContent.trim()
+            };
+            }
+        }
+        } catch (err) {
+        console.log("Error extracting item data:", err);
+        // Provide defaults for critical fields
+        if (!item.name) item.name = "Unknown Item";
+        if (!item.rarity) item.rarity = "common";
+        if (!item.description) item.description = "Item information could not be retrieved.";
+        if (!item.itemType) item.itemType = "consumable";
+        }
+        
+        return item;
     },
     
     // Register an element to show tooltips
