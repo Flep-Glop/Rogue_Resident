@@ -28,29 +28,80 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Render the question UI
   render: function(nodeData, container) {
     console.log("Rendering question component", nodeData);
+    
+    // Store node data in UI state for future reference
+    this.setUiState('currentNodeData', nodeData);
+    
+    // Validate node data
+    if (!nodeData || !nodeData.id) {
+      console.error("Invalid node data provided to question component:", nodeData);
+      container.innerHTML = `
+        <div class="game-panel shadow-md">
+          <div class="alert alert-danger">
+            <h4>Error Loading Question</h4>
+            <p>Unable to load question data. Please refresh and try again.</p>
+          </div>
+          <button id="error-continue-btn" class="game-btn game-btn--primary mt-md">Continue</button>
+        </div>
+      `;
+      this.bindAction('error-continue-btn', 'click', 'continue', { nodeData });
+      return;
+    }
+    
+    // Check if the question data is missing
+    if (!nodeData.question) {
+      console.warn("Missing question data in node:", nodeData);
+      
+      // Attempt to fetch question data from server
+      this.fetchQuestionData(nodeData)
+        .then(updatedNodeData => {
+          // Retry render with updated data
+          this.render(updatedNodeData, container);
+        })
+        .catch(error => {
+          console.error("Failed to fetch question data:", error);
+          
+          // Create fallback question
+          const fallbackQuestion = {
+            text: "What is the primary goal of medical physics?",
+            options: [
+              "Ensuring the safe use of radiation in medicine",
+              "Maximizing radiation dose to all tissues",
+              "Eliminating the need for physicians",
+              "Avoiding the use of technology in healthcare"
+            ],
+            correct: 0,
+            explanation: "Medical physics focuses on the safe and effective applications of physics principles in medical settings."
+          };
+          
+          // Create a copy of the node data with the fallback question
+          const updatedNodeData = {...nodeData, question: fallbackQuestion};
+          
+          // Update UI state
+          this.setUiState('currentNodeData', updatedNodeData);
+          
+          // Retry render with fallback data
+          this.render(updatedNodeData, container);
+        });
+      
+      // Show loading state
+      container.innerHTML = `
+        <div class="game-panel shadow-md">
+          <h3 class="game-panel__title">Loading Question...</h3>
+          <div class="text-center p-md">
+            <div class="spinner-border mb-sm"></div>
+            <p>Retrieving question data...</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
     
     // Get colors from design bridge if available
     const questionColor = window.DesignBridge?.colors?.nodeQuestion || '#5b8dd9';
     const primaryColor = window.DesignBridge?.colors?.primary || '#5b8dd9';
-    
-    // Validate node data
-    if (!nodeData.question) {
-      container.innerHTML = `
-        <div class="game-panel shadow-md">
-          <div class="alert alert-danger">
-            <h4>Missing Question Data</h4>
-            <p>This question node doesn't have question data.</p>
-          </div>
-          <button id="question-continue-btn" class="game-btn game-btn--primary mt-md">Continue</button>
-        </div>
-      `;
-      
-      this.bindAction('question-continue-btn', 'click', 'continue', { nodeData });
-      return;
-    }
     
     // Determine node type styling
     const isElite = nodeData.type === 'elite';
@@ -109,9 +160,45 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Render question options with new design classes
+  // Add a method to fetch question data if it's missing
+  fetchQuestionData: function(nodeData) {
+    console.log("Attempting to fetch question data for node:", nodeData.id);
+    
+    return new Promise((resolve, reject) => {
+      // Try to fetch from backend
+      fetch(`/api/get-question?node_id=${nodeData.id}&type=${nodeData.type}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch question data: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data.question) {
+            throw new Error("API response missing question data");
+          }
+          
+          // Create a copy of the node data with the question
+          const updatedNodeData = {...nodeData, question: data.question};
+          resolve(updatedNodeData);
+        })
+        .catch(error => {
+          console.error("Error fetching question data:", error);
+          reject(error);
+        });
+        
+      // Add timeout for the request
+      setTimeout(() => {
+        reject(new Error("Request timed out"));
+      }, 5000);
+    });
+  },
+  
   renderOptions: function(container, options) {
     if (!container || !options || !options.length) return;
+    
+    // Get current node data to ensure it's passed to action handlers
+    const currentNodeData = this.getCurrentNodeData();
     
     // Create option buttons
     options.forEach((option, index) => {
@@ -120,11 +207,38 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       optionEl.dataset.index = index;
       optionEl.textContent = option;
       
-      // Add click handler using our bindAction method
-      this.bindAction(optionEl, 'click', 'answer', { index });
+      // Add click handler with FULL node data including question
+      this.bindAction(optionEl, 'click', 'answer', { 
+        index: index,
+        nodeData: currentNodeData // Pass the complete node data
+      });
       
       container.appendChild(optionEl);
     });
+  },
+  
+  // Add this helper method to get current node data
+  getCurrentNodeData: function() {
+    // First try to get from GameState's current node
+    if (GameState && GameState.data && GameState.data.currentNode) {
+      const nodeId = GameState.data.currentNode;
+      const nodeData = GameState.getNodeById(nodeId);
+      if (nodeData) {
+        return nodeData;
+      }
+    }
+    
+    // If not available, check UI state
+    const nodeData = this.getUiState('currentNodeData');
+    if (nodeData) {
+      return nodeData;
+    }
+    
+    // Last resort - create minimal valid structure
+    return {
+      id: 'unknown',
+      type: 'question'
+    };
   },
   
   // Disable all option buttons
@@ -173,17 +287,28 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     `;
   },
   
-  // Handle component actions
   handleAction: function(nodeData, action, data) {
     console.log(`Question component handling action: ${action}`, data);
     
+    // Ensure we always have valid nodeData
+    const validNodeData = nodeData || data.nodeData || this.getCurrentNodeData();
+    
+    if (!validNodeData) {
+      console.error("Missing node data in handleAction", {action, data});
+      this.showToast("An error occurred. Please try again.", "danger");
+      return;
+    }
+    
+    // Store current node data in UI state for future reference
+    this.setUiState('currentNodeData', validNodeData);
+    
     switch (action) {
       case 'answer':
-        this.answerQuestion(nodeData, data.index);
+        this.answerQuestion(validNodeData, data.index);
         break;
         
       case 'continue':
-        this.completeNode(nodeData);
+        this.completeNode(validNodeData);
         break;
         
       default:
@@ -191,122 +316,134 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Answer a question
-answerQuestion: function(nodeData, answerIndex) {
-  console.log(`Answering question for node ${nodeData.id}, selected option ${answerIndex}`);
-  
-  // Log full data for debugging
-  console.log("Question data:", nodeData.question);
-  
-  // Save selected option in UI state
-  this.setUiState('selectedOptionIndex', answerIndex);
-  
-  // Disable all options to prevent multiple submissions
-  const optionsContainer = document.getElementById('options-container');
-  this.disableOptions(optionsContainer);
-  
-  // Apply visual feedback immediately
-  const selectedOption = optionsContainer.querySelector(`.game-option[data-index="${answerIndex}"]`);
-  if (selectedOption) {
-    selectedOption.classList.add('anim-pulse-opacity');
-  }
-  
-  // Call API to check answer
-  ApiClient.answerQuestion(nodeData.id, answerIndex, nodeData.question)
-    .then(data => {
-      // Save result data in UI state
-      this.setUiState('questionAnswered', true);
-      this.setUiState('resultData', data);
-      
-      // Show result
-      this.showQuestionResult(data, answerIndex, nodeData.question);
-      
-      // Check for game over
-      if (data.game_state && data.game_state.character && 
-          data.game_state.character.lives <= 0) {
-        // Set timeout to show the result before game over
-        setTimeout(() => {
-          if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
-            NodeInteraction.showGameOver();
-          }
-        }, 2000);
-      } else {
-        // Set up continue button
-        const continueBtn = document.getElementById('continue-btn');
-        if (continueBtn) {
-          continueBtn.style.display = 'block';
-          this.bindAction('continue-btn', 'click', 'continue', { nodeData });
-        }
-      }
-    })
-    .catch(error => {
-      ErrorHandler.handleError(
-        error,
-        "Question Answering", 
-        ErrorHandler.SEVERITY.WARNING // Changed from ERROR to WARNING
-      );
-      
-      console.log("Using fallback for question answer handling due to API error");
-      
-      // FALLBACK: Use local validation instead of API
-      if (nodeData.question && typeof nodeData.question.correct === 'number') {
-        // Create a mock response based on the correct answer in question data
-        const isCorrect = answerIndex === nodeData.question.correct;
-        const fallbackData = {
-          correct: isCorrect,
-          explanation: nodeData.question.explanation || 
-                      (isCorrect ? "Correct!" : "Incorrect answer."),
-          insight_gained: isCorrect ? 10 : 0
-        };
-        
-        // Log fallback
-        console.log("Using fallback response:", fallbackData);
-        
+  // Updated answerQuestion method with improved error handling
+  answerQuestion: function(nodeData, answerIndex) {
+    // Validate inputs
+    if (!nodeData || !nodeData.id) {
+      console.error("Invalid node data in answerQuestion:", nodeData);
+      this.showToast("Error processing question. Please try again.", "danger");
+      return;
+    }
+    
+    // Make sure we have the question data
+    if (!nodeData.question) {
+      console.error("Missing question data in node:", nodeData);
+      this.showToast("Error: Question data is missing. Please try again.", "danger");
+      return;
+    }
+    
+    console.log(`Answering question for node ${nodeData.id}, selected option ${answerIndex}`);
+    console.log("Question data:", nodeData.question);
+    
+    // Save selected option in UI state
+    this.setUiState('selectedOptionIndex', answerIndex);
+    
+    // Disable all options to prevent multiple submissions
+    const optionsContainer = document.getElementById('options-container');
+    this.disableOptions(optionsContainer);
+    
+    // Apply visual feedback immediately
+    const selectedOption = optionsContainer.querySelector(`.game-option[data-index="${answerIndex}"]`);
+    if (selectedOption) {
+      selectedOption.classList.add('anim-pulse-opacity');
+    }
+    
+    // Call API to check answer
+    ApiClient.answerQuestion(nodeData.id, answerIndex, nodeData.question)
+      .then(data => {
         // Save result data in UI state
         this.setUiState('questionAnswered', true);
-        this.setUiState('resultData', fallbackData);
+        this.setUiState('resultData', data);
         
-        // Show result using fallback data
-        this.showQuestionResult(fallbackData, answerIndex, nodeData.question);
+        // Show result
+        this.showQuestionResult(data, answerIndex, nodeData.question);
         
-        // Update character stats based on result
-        if (isCorrect) {
-          // Award insight
-          this.updatePlayerInsight(fallbackData.insight_gained || 10);
+        // Check for game over
+        if (data.game_state && data.game_state.character && 
+            data.game_state.character.lives <= 0) {
+          // Set timeout to show the result before game over
+          setTimeout(() => {
+            if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+              NodeInteraction.showGameOver();
+            }
+          }, 2000);
         } else {
-          // Lose a life
-          this.updatePlayerLives(-1);
-          
-          // Check for game over
-          if (this.getPlayerLives() <= 0) {
-            setTimeout(() => {
-              if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
-                NodeInteraction.showGameOver();
-              }
-            }, 2000);
+          // Set up continue button
+          const continueBtn = document.getElementById('continue-btn');
+          if (continueBtn) {
+            continueBtn.style.display = 'block';
+            this.bindAction('continue-btn', 'click', 'continue', { nodeData });
           }
         }
+      })
+      .catch(error => {
+        ErrorHandler.handleError(
+          error,
+          "Question Answering", 
+          ErrorHandler.SEVERITY.WARNING
+        );
         
-        // Show continue button
-        const continueBtn = document.getElementById('continue-btn');
-        if (continueBtn) {
-          continueBtn.style.display = 'block';
-          this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+        console.log("Using fallback for question answer handling due to API error");
+        
+        // Enhanced fallback with better error handling
+        if (nodeData.question && typeof nodeData.question.correct === 'number') {
+          // Create a mock response based on the correct answer in question data
+          const isCorrect = answerIndex === nodeData.question.correct;
+          const fallbackData = {
+            correct: isCorrect,
+            explanation: nodeData.question.explanation || 
+                        (isCorrect ? "Correct!" : "Incorrect answer."),
+            insight_gained: isCorrect ? 10 : 0
+          };
+          
+          // Log fallback
+          console.log("Using fallback response:", fallbackData);
+          
+          // Save result data in UI state
+          this.setUiState('questionAnswered', true);
+          this.setUiState('resultData', fallbackData);
+          
+          // Show result using fallback data
+          this.showQuestionResult(fallbackData, answerIndex, nodeData.question);
+          
+          // Update character stats based on result
+          if (isCorrect) {
+            // Award insight
+            this.updatePlayerInsight(fallbackData.insight_gained || 10);
+          } else {
+            // Lose a life
+            this.updatePlayerLives(-1);
+            
+            // Check for game over
+            if (this.getPlayerLives() <= 0) {
+              setTimeout(() => {
+                if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+                  NodeInteraction.showGameOver();
+                }
+              }, 2000);
+            }
+          }
+          
+          // Show continue button
+          const continueBtn = document.getElementById('continue-btn');
+          if (continueBtn) {
+            continueBtn.style.display = 'block';
+            this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+          }
+        } else {
+          console.error("Fallback failed - question data incomplete:", nodeData.question);
+          // Re-enable options if we can't use the fallback
+          const options = document.querySelectorAll('.game-option');
+          options.forEach(opt => {
+            opt.disabled = false;
+            opt.classList.remove('disabled');
+          });
+          
+          // Show error toast
+          this.showToast("There was a problem processing your answer. Please try again.", "danger");
         }
-      } else {
-        // Re-enable options if we can't use the fallback
-        console.error("Fallback failed - question data incomplete:", nodeData.question);
-        const options = document.querySelectorAll('.game-option');
-        options.forEach(opt => {
-          opt.disabled = false;
-          opt.classList.remove('disabled');
-        });
-        
-        // Show error toast
-        this.showToast("There was a problem processing your answer. Please try again.", "danger");
-      }
-    });
-},
+      });
+  },
   
   // Show question result
   showQuestionResult: function(data, selectedIndex, question) {
