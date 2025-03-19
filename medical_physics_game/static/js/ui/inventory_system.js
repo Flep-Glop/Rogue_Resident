@@ -1,9 +1,12 @@
-// inventory_system.js - Manages game inventory
+// inventory_system.js - Manages game inventory with fixes for duplicate items and item usage
 
 // InventorySystem singleton - handles inventory display and functionality
 const InventorySystem = {
   // Max inventory size (can be increased with level)
   maxSize: 5,
+  
+  // Track which items have been added to prevent duplicates
+  addedItems: new Set(),
   
   // Initialize inventory system
   initialize: function() {
@@ -214,11 +217,34 @@ const InventorySystem = {
       return false;
     }
     
-    if (!ItemManager) {
-      console.error("ItemManager not available");
-      return false;
+    // FIX: Check if ItemManager exists before using it
+    if (typeof window.ItemManager === 'undefined') {
+      console.error("ItemManager not available, using fallback item usage");
+      
+      // Fallback implementation if ItemManager doesn't exist
+      const success = this.fallbackUseItem(item);
+      
+      if (success) {
+        this.renderInventory(); // Refresh the display
+        
+        // Show visual feedback
+        if (window.UiUtils) {
+          UiUtils.showFloatingText(`Used ${item.name}!`, 'success');
+        } else {
+          console.log(`Used ${item.name}!`);
+        }
+      } else {
+        if (window.UiUtils) {
+          UiUtils.showToast("Cannot use this item", "warning");
+        } else {
+          console.log("Cannot use this item");
+        }
+      }
+      
+      return success;
     }
     
+    // Use ItemManager if available
     const success = ItemManager.useItem(itemId);
     
     if (success) {
@@ -231,6 +257,82 @@ const InventorySystem = {
     }
     
     return success;
+  },
+  
+  // Fallback implementation for using an item when ItemManager is not available
+  fallbackUseItem: function(item) {
+    console.log("Using fallback item usage for:", item);
+    
+    if (!item || !item.effect) {
+      console.error("Item has no effect");
+      return false;
+    }
+    
+    const effect = item.effect;
+    
+    // Apply the effect based on its type
+    switch (effect.type) {
+      case "heal":
+        // Heal the player
+        if (window.GameState && GameState.data && GameState.data.character) {
+          const value = parseInt(effect.value) || 1;
+          const newLives = Math.min(
+            GameState.data.character.max_lives,
+            GameState.data.character.lives + value
+          );
+          
+          GameState.data.character.lives = newLives;
+          
+          // Emit event for UI update
+          if (window.EventSystem) {
+            EventSystem.emit(GAME_EVENTS.LIVES_CHANGED, newLives);
+          }
+          
+          // Save game state
+          if (window.ApiClient && ApiClient.saveGame) {
+            ApiClient.saveGame();
+          }
+        }
+        break;
+        
+      case "insight_gain":
+        // Add insight
+        if (window.GameState && GameState.data && GameState.data.character) {
+          const amount = parseInt(effect.value) || 10;
+          GameState.data.character.insight += amount;
+          
+          // Emit event for UI update
+          if (window.EventSystem) {
+            EventSystem.emit(GAME_EVENTS.INSIGHT_CHANGED, GameState.data.character.insight);
+          }
+          
+          // Save game state
+          if (window.ApiClient && ApiClient.saveGame) {
+            ApiClient.saveGame();
+          }
+        }
+        break;
+        
+      case "eliminateOption":
+        // Set flag for question component to use
+        if (window.GameState && GameState.data) {
+          if (!GameState.data.questionEffects) {
+            GameState.data.questionEffects = {};
+          }
+          
+          GameState.data.questionEffects.eliminateOption = true;
+        }
+        break;
+        
+      default:
+        console.log(`Unhandled effect type: ${effect.type}`);
+        return false;
+    }
+    
+    // Remove the item from inventory
+    this.removeItem(item);
+    
+    return true;
   },
   
   // Get pixel art icon for an item
@@ -276,11 +378,21 @@ const InventorySystem = {
   addItem: function(item) {
     console.log("Adding item to inventory:", item);
     
+    // FIX: Check for duplicate items using a unique ID
+    const itemKey = `${item.id}-${item.name}`;
+    if (this.addedItems.has(itemKey)) {
+      console.warn(`Item ${item.name} (${item.id}) already exists in inventory. Not adding duplicate.`);
+      return false;
+    }
+    
     // Check if inventory is full
     if (GameState.data.inventory.length >= this.maxSize) {
       this.showInventoryFullDialog(item);
       return false;
     }
+    
+    // Mark this item as added to prevent duplicates
+    this.addedItems.add(itemKey);
     
     // Add the item
     GameState.data.inventory.push(item);
@@ -314,6 +426,10 @@ const InventorySystem = {
     
     // Remove the item
     const removedItem = GameState.data.inventory.splice(index, 1)[0];
+    
+    // Remove from tracking Set to allow it to be added again
+    const itemKey = `${removedItem.id}-${removedItem.name}`;
+    this.addedItems.delete(itemKey);
     
     // Update inventory display
     this.renderInventory();
@@ -385,6 +501,12 @@ const InventorySystem = {
     if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
       ApiClient.saveGame().catch(err => console.error("Failed to save inventory:", err));
     }
+  },
+  
+  // Clear duplicate tracking (for testing/debugging)
+  clearDuplicateTracking: function() {
+    this.addedItems.clear();
+    console.log("Cleared duplicate item tracking");
   }
 };
 

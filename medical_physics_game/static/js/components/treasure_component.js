@@ -1,24 +1,22 @@
-// Updated treasure_component.js - Component for treasure node type with comprehensive fix for duplicate items
+// Updated treasure_component.js - Component for treasure node type with final fixes
 
 const TreasureComponent = ComponentUtils.createComponent('treasure', {
   // Initialize component
   initialize: function() {
     console.log("Initializing treasure component");
     
-    // Initialize UI state with a global unique ID to track items
+    // Initialize UI state
     this.setUiState('itemTaken', false);
-    this.setUiState('processingTakeAction', false); // Add a lock to prevent double processing
-    
-    // Use a class-level property to track globally which items have been taken
-    // This persists even if the component is re-instantiated
-    if (!TreasureComponent.takenItems) {
-      TreasureComponent.takenItems = new Set();
-    }
+    this.setUiState('addAttempted', false); // Track if item add was attempted
   },
   
   // Render treasure component
   render: function(nodeData, container) {
     console.log("Rendering treasure component", nodeData);
+    
+    // Check for duplicate rendering
+    const nodeId = nodeData.id;
+    console.log(`Rendering treasure for node ${nodeId}`);
     
     // Handle array of items - just use the first one
     if (Array.isArray(nodeData.item)) {
@@ -47,23 +45,22 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       this.bindAction('treasure-continue-btn', 'click', 'continue', { nodeData });
       return;
     }
-
-    // Check if this item was already taken (using the static property)
-    const nodeId = nodeData.id;
-    const itemId = nodeData.item.id;
-    const uniqueItemKey = `${nodeId}-${itemId}`;
-    const alreadyTaken = TreasureComponent.takenItems.has(uniqueItemKey);
-    
-    // Update component state to match global state
-    if (alreadyTaken) {
-      this.setUiState('itemTaken', true);
-    }
     
     // Get colors from the design bridge if available
     const treasureColor = window.DesignBridge?.colors?.nodeTreasure || '#f0c866';
     
     // Get item data
     const itemRarity = nodeData.item.rarity || 'common';
+    
+    // Check if the item was already taken for this node
+    // Using a combination of component state and checking the inventory
+    const alreadyTaken = this.isItemAlreadyTaken(nodeData);
+    
+    // Update UI state to match
+    if (alreadyTaken) {
+      this.setUiState('itemTaken', true);
+      this.setUiState('addAttempted', true);
+    }
     
     // Create treasure UI with new component and utility classes
     container.innerHTML = `
@@ -107,25 +104,36 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       </div>
     `;
     
-    // Remove old event listeners to prevent duplication
-    const takeBtn = document.getElementById('treasure-take-btn');
-    const leaveBtn = document.getElementById('treasure-leave-btn');
-    
-    if (takeBtn) {
-      const newTakeBtn = takeBtn.cloneNode(true);
-      takeBtn.parentNode.replaceChild(newTakeBtn, takeBtn);
-      this.bindAction(newTakeBtn, 'click', 'takeItem', { 
-        nodeData, 
-        item: nodeData.item,
-        uniqueItemKey: uniqueItemKey // Pass the unique key for tracking
-      });
+    // Only attach event listeners once per component
+    this.bindAction('treasure-take-btn', 'click', 'takeItem', { nodeData, item: nodeData.item });
+    this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
+  },
+  
+  // Check if an item was already taken from this node
+  isItemAlreadyTaken: function(nodeData) {
+    // First check component state
+    if (this.getUiState('itemTaken') || this.getUiState('addAttempted')) {
+      return true;
     }
     
-    if (leaveBtn) {
-      const newLeaveBtn = leaveBtn.cloneNode(true);
-      leaveBtn.parentNode.replaceChild(newLeaveBtn, leaveBtn);
-      this.bindAction(newLeaveBtn, 'click', 'continue', { nodeData });
+    // Then check if the item is already in inventory
+    if (window.GameState && GameState.data && GameState.data.inventory) {
+      const inventory = GameState.data.inventory;
+      const nodeItem = nodeData.item;
+      
+      // Find by ID and possibly name
+      const existsInInventory = inventory.some(item => 
+        item.id === nodeItem.id && 
+        (item.name === nodeItem.name || !nodeItem.name)
+      );
+      
+      if (existsInInventory) {
+        console.log(`Item ${nodeItem.id} already exists in inventory`);
+        return true;
+      }
     }
+    
+    return false;
   },
   
   // Get fallback item if node data doesn't include one
@@ -174,7 +182,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return titles[Math.floor(Math.random() * titles.length)];
   },
 
-  // FIXED: Get icon for an item - properly displays image with consistent sizing
+  // Get icon for an item - properly displays image with consistent sizing
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
@@ -210,78 +218,91 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return "box";
   },
   
-  // Take the item with comprehensive protection against duplicates
+  // Take the item - with direct hooks to inventory system
   takeItem: function(data) {
-    const { nodeData, item, uniqueItemKey } = data;
+    const { nodeData, item } = data;
     
-    console.log("Taking item:", item, "with uniqueKey:", uniqueItemKey);
+    console.log("Taking item:", item);
     
-    // MULTIPLE CHECKS against duplicate items:
-    
-    // 1. Check component-level state
-    if (this.getUiState('itemTaken')) {
-      console.log("Item already taken according to component state, ignoring");
+    // PREVENT DUPLICATE ITEMS: Check if item is already taken or add was attempted
+    if (this.getUiState('itemTaken') || this.getUiState('addAttempted')) {
+      console.log("Item already taken or add was attempted, ignoring duplicate click");
       return;
     }
     
-    // 2. Check if we're already processing a take action
-    if (this.getUiState('processingTakeAction')) {
-      console.log("Already processing a take action, ignoring duplicate request");
+    // Mark that we've attempted to add the item - this is crucial
+    this.setUiState('addAttempted', true);
+    
+    // Check if InventorySystem exists
+    if (!window.InventorySystem) {
+      console.error("InventorySystem not available");
+      this.showToast("Cannot add item to inventory - system error", "danger");
       return;
     }
     
-    // 3. Check global state tracking
-    if (TreasureComponent.takenItems.has(uniqueItemKey)) {
-      console.log("Item already taken according to global tracking, ignoring");
-      this.setUiState('itemTaken', true); // Update local state to match global
-      return;
-    }
+    // Use a custom method to ensure the item is only added once
+    // The direct addItemToInventory call can sometimes be called multiple times
+    const added = this.safeAddToInventory(item);
     
-    // 4. Set processing lock - this prevents race conditions
-    this.setUiState('processingTakeAction', true);
-    
-    try {
-      // 5. Update global tracking BEFORE adding to inventory
-      TreasureComponent.takenItems.add(uniqueItemKey);
-      
-      // 6. Mark as taken in component state
+    if (added) {
+      // Mark as taken in component state
       this.setUiState('itemTaken', true);
       
-      // 7. Now add to inventory
-      const added = this.addItemToInventory(item);
+      // Show feedback
+      this.showFeedback(`Added ${item.name} to inventory!`, 'success');
       
-      if (added) {
-        // Show feedback
-        this.showFeedback(`Added ${item.name} to inventory!`, 'success');
-        
-        // Update UI to show item was taken
-        const takeBtn = document.getElementById('treasure-take-btn');
-        const leaveBtn = document.getElementById('treasure-leave-btn');
-        
-        if (takeBtn) takeBtn.style.display = 'none';
-        if (leaveBtn) {
-          leaveBtn.textContent = 'Continue';
-          leaveBtn.style.width = '100%';
-        }
-      } else {
-        // Failed to add - reset states
-        this.setUiState('itemTaken', false);
-        TreasureComponent.takenItems.delete(uniqueItemKey);
-        
-        // Show error
-        this.showToast("Failed to add item to inventory. It may be full.", 'warning');
+      // Update UI to show item was taken
+      const takeBtn = document.getElementById('treasure-take-btn');
+      const leaveBtn = document.getElementById('treasure-leave-btn');
+      
+      if (takeBtn) takeBtn.style.display = 'none';
+      if (leaveBtn) {
+        leaveBtn.textContent = 'Continue';
+        leaveBtn.style.width = '100%';
       }
-    } finally {
-      // 8. Always release the processing lock
-      this.setUiState('processingTakeAction', false);
+    } else {
+      // Show error
+      this.showToast("Failed to add item to inventory. It may be full.", 'warning');
     }
   },
   
-  // Reset component state when node is completed
-  onNodeCompleted: function() {
-    // Reset processing locks but keep itemTaken state
-    this.setUiState('processingTakeAction', false);
-    console.log("Treasure component processing locks reset");
+  // Safely add item to inventory (handles duplicate prevention)
+  safeAddToInventory: function(item) {
+    // Direct hook to InventorySystem
+    if (window.InventorySystem && InventorySystem.addItem) {
+      console.log("Using direct InventorySystem hook to add item");
+      return InventorySystem.addItem(item);
+    }
+    
+    // Fallback to GameObject
+    if (window.GameState && GameState.data) {
+      if (!GameState.data.inventory) {
+        GameState.data.inventory = [];
+      }
+      
+      // Check for duplicate
+      const existingItemIndex = GameState.data.inventory.findIndex(i => 
+        i.id === item.id && i.name === item.name
+      );
+      
+      if (existingItemIndex >= 0) {
+        console.log("Item already exists in inventory, not adding duplicate");
+        return false;
+      }
+      
+      // Add the item
+      GameState.data.inventory.push(item);
+      console.log("Item added to inventory via GameState");
+      
+      // Save game state
+      if (window.ApiClient && ApiClient.saveGame) {
+        ApiClient.saveGame();
+      }
+      
+      return true;
+    }
+    
+    return false;
   },
   
   // Handle component actions
@@ -295,7 +316,6 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         
       case 'continue':
         this.completeNode(nodeData);
-        this.onNodeCompleted(); // Reset state when continuing
         break;
         
       default:
@@ -303,10 +323,6 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     }
   }
 });
-
-// Static property to track which items have been taken globally
-// This ensures persistence even if the component is re-instantiated
-TreasureComponent.takenItems = new Set();
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
