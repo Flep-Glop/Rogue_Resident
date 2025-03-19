@@ -1,12 +1,19 @@
-// Updated treasure_component.js - Component for treasure node type
+// Updated treasure_component.js - Component for treasure node type with comprehensive fix for duplicate items
 
 const TreasureComponent = ComponentUtils.createComponent('treasure', {
   // Initialize component
   initialize: function() {
     console.log("Initializing treasure component");
     
-    // Initialize UI state
+    // Initialize UI state with a global unique ID to track items
     this.setUiState('itemTaken', false);
+    this.setUiState('processingTakeAction', false); // Add a lock to prevent double processing
+    
+    // Use a class-level property to track globally which items have been taken
+    // This persists even if the component is re-instantiated
+    if (!TreasureComponent.takenItems) {
+      TreasureComponent.takenItems = new Set();
+    }
   },
   
   // Render treasure component
@@ -39,6 +46,17 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       `;
       this.bindAction('treasure-continue-btn', 'click', 'continue', { nodeData });
       return;
+    }
+
+    // Check if this item was already taken (using the static property)
+    const nodeId = nodeData.id;
+    const itemId = nodeData.item.id;
+    const uniqueItemKey = `${nodeId}-${itemId}`;
+    const alreadyTaken = TreasureComponent.takenItems.has(uniqueItemKey);
+    
+    // Update component state to match global state
+    if (alreadyTaken) {
+      this.setUiState('itemTaken', true);
     }
     
     // Get colors from the design bridge if available
@@ -79,37 +97,34 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         </div>
         
         <div class="flex gap-md">
-          <button id="treasure-take-btn" class="game-btn game-btn--secondary flex-1 anim-pulse-scale">
+          <button id="treasure-take-btn" class="game-btn game-btn--secondary flex-1 anim-pulse-scale" ${alreadyTaken ? 'style="display:none;"' : ''}>
             Take Item
           </button>
-          <button id="treasure-leave-btn" class="game-btn game-btn--primary flex-1">
-            Leave It
+          <button id="treasure-leave-btn" class="game-btn game-btn--primary flex-1" ${alreadyTaken ? 'style="width:100%;"' : ''}>
+            ${alreadyTaken ? 'Continue' : 'Leave It'}
           </button>
         </div>
       </div>
     `;
     
-    // Add event handlers - ONLY bind once
-    if (!this.getUiState('eventsBound')) {
-      this.bindAction('treasure-take-btn', 'click', 'takeItem', { 
-        nodeData, item: nodeData.item 
+    // Remove old event listeners to prevent duplication
+    const takeBtn = document.getElementById('treasure-take-btn');
+    const leaveBtn = document.getElementById('treasure-leave-btn');
+    
+    if (takeBtn) {
+      const newTakeBtn = takeBtn.cloneNode(true);
+      takeBtn.parentNode.replaceChild(newTakeBtn, takeBtn);
+      this.bindAction(newTakeBtn, 'click', 'takeItem', { 
+        nodeData, 
+        item: nodeData.item,
+        uniqueItemKey: uniqueItemKey // Pass the unique key for tracking
       });
-      this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
-      
-      // Mark events as bound
-      this.setUiState('eventsBound', true);
     }
     
-    // If item was already taken, update UI
-    if (this.getUiState('itemTaken')) {
-      const takeBtn = document.getElementById('treasure-take-btn');
-      const leaveBtn = document.getElementById('treasure-leave-btn');
-      
-      if (takeBtn) takeBtn.style.display = 'none';
-      if (leaveBtn) {
-        leaveBtn.textContent = 'Continue';
-        leaveBtn.style.width = '100%';
-      }
+    if (leaveBtn) {
+      const newLeaveBtn = leaveBtn.cloneNode(true);
+      leaveBtn.parentNode.replaceChild(newLeaveBtn, leaveBtn);
+      this.bindAction(newLeaveBtn, 'click', 'continue', { nodeData });
     }
   },
   
@@ -163,7 +178,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;">`;
     }
     
     // Use design bridge for colors if available
@@ -195,53 +210,78 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return "box";
   },
   
-  // Take the item
+  // Take the item with comprehensive protection against duplicates
   takeItem: function(data) {
-    const { nodeData, item } = data;
+    const { nodeData, item, uniqueItemKey } = data;
     
-    console.log("Taking item:", item);
+    console.log("Taking item:", item, "with uniqueKey:", uniqueItemKey);
     
-    // PREVENT DUPLICATE ITEMS: Check if item is already taken
+    // MULTIPLE CHECKS against duplicate items:
+    
+    // 1. Check component-level state
     if (this.getUiState('itemTaken')) {
-      console.log("Item already taken, ignoring duplicate click");
+      console.log("Item already taken according to component state, ignoring");
       return;
     }
     
-    // Add to inventory - Mark as taken BEFORE adding to prevent duplicates
-    this.setUiState('itemTaken', true);
+    // 2. Check if we're already processing a take action
+    if (this.getUiState('processingTakeAction')) {
+      console.log("Already processing a take action, ignoring duplicate request");
+      return;
+    }
     
-    // Add to inventory
-    const added = this.addItemToInventory(item);
+    // 3. Check global state tracking
+    if (TreasureComponent.takenItems.has(uniqueItemKey)) {
+      console.log("Item already taken according to global tracking, ignoring");
+      this.setUiState('itemTaken', true); // Update local state to match global
+      return;
+    }
     
-    if (added) {
-      // Show feedback
-      this.showFeedback(`Added ${item.name} to inventory!`, 'success');
+    // 4. Set processing lock - this prevents race conditions
+    this.setUiState('processingTakeAction', true);
+    
+    try {
+      // 5. Update global tracking BEFORE adding to inventory
+      TreasureComponent.takenItems.add(uniqueItemKey);
       
-      // Update UI to show item was taken
-      const takeBtn = document.getElementById('treasure-take-btn');
-      const leaveBtn = document.getElementById('treasure-leave-btn');
+      // 6. Mark as taken in component state
+      this.setUiState('itemTaken', true);
       
-      if (takeBtn) takeBtn.style.display = 'none';
-      if (leaveBtn) {
-        leaveBtn.textContent = 'Continue';
-        leaveBtn.style.width = '100%';
+      // 7. Now add to inventory
+      const added = this.addItemToInventory(item);
+      
+      if (added) {
+        // Show feedback
+        this.showFeedback(`Added ${item.name} to inventory!`, 'success');
+        
+        // Update UI to show item was taken
+        const takeBtn = document.getElementById('treasure-take-btn');
+        const leaveBtn = document.getElementById('treasure-leave-btn');
+        
+        if (takeBtn) takeBtn.style.display = 'none';
+        if (leaveBtn) {
+          leaveBtn.textContent = 'Continue';
+          leaveBtn.style.width = '100%';
+        }
+      } else {
+        // Failed to add - reset states
+        this.setUiState('itemTaken', false);
+        TreasureComponent.takenItems.delete(uniqueItemKey);
+        
+        // Show error
+        this.showToast("Failed to add item to inventory. It may be full.", 'warning');
       }
-    } else {
-      // Failed to add - reset taken state
-      this.setUiState('itemTaken', false);
-      
-      // Show error
-      this.showToast("Failed to add item to inventory. It may be full.", 'warning');
+    } finally {
+      // 8. Always release the processing lock
+      this.setUiState('processingTakeAction', false);
     }
   },
   
   // Reset component state when node is completed
   onNodeCompleted: function() {
-    // Reset UI state for next treasure node
-    this.setUiState('itemTaken', false);
-    this.setUiState('eventsBound', false);
-    
-    console.log("Treasure component state reset");
+    // Reset processing locks but keep itemTaken state
+    this.setUiState('processingTakeAction', false);
+    console.log("Treasure component processing locks reset");
   },
   
   // Handle component actions
@@ -263,6 +303,10 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     }
   }
 });
+
+// Static property to track which items have been taken globally
+// This ensures persistence even if the component is re-instantiated
+TreasureComponent.takenItems = new Set();
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
