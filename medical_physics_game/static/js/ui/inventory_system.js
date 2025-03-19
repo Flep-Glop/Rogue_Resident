@@ -298,6 +298,8 @@ const InventorySystem = {
     return success;
   },
   
+  // Fixed fallbackUseItem function with proper item removal - replace in inventory_system.js
+
   // Fallback implementation for using an item when ItemManager is not available
   fallbackUseItem: function(item) {
     console.log("Using fallback item usage for:", item);
@@ -313,13 +315,20 @@ const InventorySystem = {
       return false;
     }
     
+    // Make sure GameState exists
+    if (!window.GameState || !GameState.data) {
+      console.error("GameState not available for item usage");
+      return false;
+    }
+    
     const effect = item.effect;
+    let effectApplied = false;
     
     // Apply the effect based on its type
     switch (effect.type) {
       case "heal":
         // Heal the player
-        if (window.GameState && GameState.data && GameState.data.character) {
+        if (GameState.data.character) {
           const value = parseInt(effect.value) || 1;
           const newLives = Math.min(
             GameState.data.character.max_lives,
@@ -333,16 +342,13 @@ const InventorySystem = {
             EventSystem.emit(GAME_EVENTS.LIVES_CHANGED, newLives);
           }
           
-          // Save game state
-          if (window.ApiClient && ApiClient.saveGame) {
-            ApiClient.saveGame();
-          }
+          effectApplied = true;
         }
         break;
         
       case "insight_gain":
         // Add insight
-        if (window.GameState && GameState.data && GameState.data.character) {
+        if (GameState.data.character) {
           const amount = parseInt(effect.value) || 10;
           GameState.data.character.insight += amount;
           
@@ -351,22 +357,18 @@ const InventorySystem = {
             EventSystem.emit(GAME_EVENTS.INSIGHT_CHANGED, GameState.data.character.insight);
           }
           
-          // Save game state
-          if (window.ApiClient && ApiClient.saveGame) {
-            ApiClient.saveGame();
-          }
+          effectApplied = true;
         }
         break;
         
       case "eliminateOption":
         // Set flag for question component to use
-        if (window.GameState && GameState.data) {
-          if (!GameState.data.questionEffects) {
-            GameState.data.questionEffects = {};
-          }
-          
-          GameState.data.questionEffects.eliminateOption = true;
+        if (!GameState.data.questionEffects) {
+          GameState.data.questionEffects = {};
         }
+        
+        GameState.data.questionEffects.eliminateOption = true;
+        effectApplied = true;
         break;
         
       default:
@@ -374,8 +376,51 @@ const InventorySystem = {
         return false;
     }
     
+    // Only proceed with removal if effect was applied
+    if (!effectApplied) {
+      console.error("Effect could not be applied");
+      return false;
+    }
+    
+    // Now that the effect is applied, we need to remove the item from inventory
+    // First, find the item in the inventory
+    if (!GameState.data.inventory) {
+      console.error("Inventory not found in GameState");
+      return false;
+    }
+    
+    const itemIndex = GameState.data.inventory.findIndex(invItem => 
+      invItem.id === item.id && invItem.name === item.name
+    );
+    
+    if (itemIndex === -1) {
+      console.error("Item not found in inventory");
+      return false;
+    }
+    
     // Remove the item from inventory
-    this.removeItem(item);
+    GameState.data.inventory.splice(itemIndex, 1);
+    console.log(`Removed item at index ${itemIndex} from inventory`);
+    
+    // Update our tracking to allow adding this item again
+    const itemKey = `${item.id}-${item.name}`;
+    this.addedItems.delete(itemKey);
+    
+    // Save game state
+    if (window.ApiClient) {
+      if (typeof ApiClient.saveInventory === 'function') {
+        ApiClient.saveInventory({ inventory: GameState.data.inventory })
+          .catch(err => console.error("Failed to save inventory:", err));
+      } else if (typeof ApiClient.saveGame === 'function') {
+        ApiClient.saveGame()
+          .catch(err => console.error("Failed to save game state:", err));
+      }
+    }
+    
+    // Emit the item used event
+    if (window.EventSystem) {
+      EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
+    }
     
     return true;
   },
