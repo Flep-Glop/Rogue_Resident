@@ -521,6 +521,7 @@
   .inventory-item:hover .item-tooltip {
     opacity: 1;
     transform: translateX(-50%) translateY(-5px);
+    pointer-events: auto; /* This is the key fix */
   }
   
   .item-tooltip__header {
@@ -923,7 +924,7 @@
 .inventory-item:hover .item-tooltip {
   opacity: 1;
   transform: translateX(-50%) translateY(-5px);
-  pointer-events: all; /* Enable interactions when visible */
+  pointer-events: auto; /* This is the key fix */
 }
 
 .item-tooltip__header {
