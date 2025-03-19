@@ -66,17 +66,45 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       `;
     }
     
-    // Load both items and relics
+    // For testing purposes, use fixed items if specified in nodeData
+    if (nodeData && nodeData.fixedItems) {
+      console.log("Using fixed items from node data");
+      this.setUiState('itemsLoaded', true);
+      this.setUiState('shopItems', nodeData.fixedItems);
+      this.renderShopItems(nodeData.fixedItems);
+      return;
+    }
+    
+    // Load both items and relics - ALWAYS include at least one relic
     Promise.all([
       // Fetch regular items
       fetch('/api/item/random?count=2')
         .then(response => response.ok ? response.json() : []),
       
-      // Fetch relics
+      // Fetch relics - always get at least one
       fetch('/api/relic/random?count=1')
         .then(response => response.ok ? response.json() : [])
     ])
     .then(([items, relics]) => {
+      // Make sure we have at least one relic
+      if (!relics || !relics.length) {
+        // Fallback to a default relic if API fails
+        relics = [{
+          id: "quantum_uncertainty_goggles",
+          name: "Schrödinger's Spectacles",
+          description: "These glasses simultaneously show radiation as both particles and waves.",
+          rarity: "epic",
+          itemType: "relic",
+          iconPath: "3D Glasses.png",
+          effect: {
+            type: "second_chance",
+            value: "Allows a second attempt at questions",
+            duration: "permanent"
+          },
+          passiveText: "Can attempt questions twice"
+        }];
+      }
+      
       // Add item type if missing
       items.forEach(item => {
         if (!item.itemType) item.itemType = 'consumable';
@@ -103,15 +131,56 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     .catch(error => {
       console.error("Failed to load shop items:", error);
       
-      // Show error message
-      const container = document.getElementById('shop-items-container');
-      if (container) {
-        container.innerHTML = `
-          <div class="alert alert-danger w-full">
-            <p>Failed to load shop items. Please try again later.</p>
-          </div>
-        `;
-      }
+      // If API fails, use fallback items
+      const fallbackItems = [
+        {
+          id: "medical_textbook",
+          name: "Medical Physics Textbook",
+          description: "A comprehensive guide that helps eliminate one incorrect answer option.",
+          rarity: "uncommon",
+          itemType: "consumable",
+          iconPath: "Notebook.png",
+          price: 30,
+          effect: {
+            type: "eliminateOption",
+            value: "Removes one incorrect answer option",
+            duration: "instant"
+          }
+        },
+        {
+          id: "radiation_badge",
+          name: "Radiation Badge",
+          description: "A personal dosimeter that can absorb harmful radiation.",
+          rarity: "rare",
+          itemType: "consumable",
+          iconPath: "Nametag.png",
+          price: 50,
+          effect: {
+            type: "heal",
+            value: "Restores 1 life point",
+            duration: "instant"
+          }
+        },
+        {
+          id: "quantum_goggles",
+          name: "Schrödinger's Spectacles",
+          description: "These glasses simultaneously show radiation as both particles and waves.",
+          rarity: "epic",
+          itemType: "relic",
+          iconPath: "3D Glasses.png",
+          price: 80,
+          effect: {
+            type: "second_chance",
+            value: "Allows a second attempt at questions",
+            duration: "permanent"
+          },
+          passiveText: "Can attempt questions twice"
+        }
+      ];
+      
+      this.setUiState('itemsLoaded', true);
+      this.setUiState('shopItems', fallbackItems);
+      this.renderShopItems(fallbackItems);
     });
   },
   
@@ -132,6 +201,30 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     // Group items by type
     const consumables = items.filter(item => item.itemType === 'consumable');
     const relics = items.filter(item => item.itemType === 'relic');
+    
+    // Ensure at least one relic
+    if (relics.length === 0) {
+      console.warn("No relics found in shop items, adding default relic");
+      // Add a default relic
+      const defaultRelic = {
+        id: "quantum_uncertainty_goggles",
+        name: "Schrödinger's Spectacles",
+        description: "These glasses simultaneously show radiation as both particles and waves.",
+        rarity: "epic",
+        itemType: "relic",
+        iconPath: "3D Glasses.png",
+        price: 80,
+        effect: {
+          type: "second_chance",
+          value: "Allows a second attempt at questions",
+          duration: "permanent"
+        },
+        passiveText: "Can attempt questions twice"
+      };
+      
+      relics.push(defaultRelic);
+      items.push(defaultRelic);
+    }
     
     // Create layout with section headers
     container.innerHTML = `
@@ -154,43 +247,43 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       const itemElement = document.createElement('div');
       itemElement.className = `shop-item ${isRelic ? 'shop-relic' : ''}`;
       
-      // Main visible content (icon, name, price)
+      // Main visible content (icon, name, price) - based on the screenshot layout
       itemElement.innerHTML = `
         <div class="shop-item-content">
-          <div class="item-header">
-            <span class="item-name">${item.name}</span>
+          <div class="item-name">${item.name}</div>
+          
+          <div class="item-row">
+            <div class="item-icon-container">
+              ${this.getItemIcon(item)}
+            </div>
+            
             <div class="item-price-tag ${playerCanAfford ? '' : 'cannot-afford'}">
               <span class="item-price-value">${Math.round(item.price)}</span>
               <span class="item-price-label">Insight</span>
             </div>
           </div>
           
-          <div class="item-main">
-            <div class="item-icon-container">
-              ${this.getItemIcon(item)}
-            </div>
-            <div class="rarity-badge ${rarity}">${rarity}</div>
-            
-            <!-- Item tooltip that appears on hover -->
-            <div class="item-tooltip">
-              <div class="tooltip-header">
-                <span class="tooltip-title">${item.name}</span>
-                <span class="tooltip-rarity">${rarity}</span>
-              </div>
-              <div class="tooltip-body">
-                <p class="tooltip-desc">${item.description}</p>
-                <div class="tooltip-effect">
-                  ${isRelic ? '<span class="effect-type">Passive:</span> ' : ''}
-                  ${isRelic ? (item.passiveText || item.effect?.value || 'No effect') : (item.effect?.value || 'No effect')}
-                </div>
-              </div>
-            </div>
-          </div>
+          <div class="rarity-badge ${rarity}">${rarity}</div>
           
           <button class="purchase-btn ${playerCanAfford ? 'can-afford' : 'cannot-afford'}" 
             ${!playerCanAfford ? 'disabled' : ''} data-item-id="${item.id}">
-            Purchase
+            PURCHASE
           </button>
+            
+          <!-- Item tooltip that appears on hover -->
+          <div class="item-tooltip">
+            <div class="tooltip-header">
+              <span class="tooltip-title">${item.name}</span>
+              <span class="tooltip-rarity">${rarity}</span>
+            </div>
+            <div class="tooltip-body">
+              <p class="tooltip-desc">${item.description}</p>
+              <div class="tooltip-effect">
+                ${isRelic ? '<span class="effect-type">Passive:</span> ' : ''}
+                ${isRelic ? (item.passiveText || item.effect?.value || 'No effect') : (item.effect?.value || 'No effect')}
+              </div>
+            </div>
+          </div>
         </div>
       `;
       
