@@ -798,3 +798,134 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Add these styles to components/nodes.css */
+
+/* Modern shop styling */
+.shop-header {
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.insight-display {
+  background-color: #333;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.insight-value {
+  color: #f0c866;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.shop-description {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.shop-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.shop-item {
+  background-color: #2a2a36;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.shop-item:hover {
+  transform: translateY(-3px);
+}
+
+.shop-item-header {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-name {
+  font-weight: bold;
+  color: white;
+}
+
+.item-price {
+  background-color: #5b8dd9;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.item-price.cannot-afford {
+  background-color: #e67e73;
+  text-decoration: line-through;
+}
+
+.shop-item-body {
+  padding: 10px;
+}
+
+.rarity-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  text-transform: capitalize;
+  margin-bottom: 8px;
+}
+
+.rarity-badge.common { background-color: #6c757d; }
+.rarity-badge.uncommon { background-color: #5b8dd9; }
+.rarity-badge.rare { background-color: #9c77db; }
+.rarity-badge.epic { background-color: #f0c866; color: black; }
+
+.item-description {
+  font-size: 12px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.item-effect {
+  font-size: 12px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 6px;
+  border-radius: 3px;
+  color: #5b8dd9;
+}
+
+.purchase-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: #5b8dd9;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 13px;
+}
+
+.purchase-btn:hover {
+  background-color: #4a7cc7;
+}
+
+.purchase-btn.cannot-afford {
+  background-color: #e67e73;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.loading-indicator {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}

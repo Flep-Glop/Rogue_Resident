@@ -13,6 +13,12 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
   render: function(nodeData, container) {
     console.log("Rendering treasure component", nodeData);
     
+    // Handle array of items - just use the first one
+    if (Array.isArray(nodeData.item)) {
+      console.warn("Received multiple items in treasure node, using only the first one");
+      nodeData.item = nodeData.item[0];
+    }
+    
     // Try to recover item data if missing
     if (!nodeData.item) {
       nodeData.item = this.getFallbackItem();
@@ -111,7 +117,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         description: "A comprehensive guide that helps eliminate one incorrect answer option.",
         rarity: "uncommon",
         itemType: "consumable",
-        iconPath: "textbook.png",
+        iconPath: "Notebook.png",
         effect: {
           type: "eliminateOption",
           value: "Removes one incorrect answer option",
@@ -124,7 +130,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         description: "A personal dosimeter that can absorb harmful radiation, restoring 1 life point.",
         rarity: "rare",
         itemType: "consumable",
-        iconPath: "badge.png",
+        iconPath: "Nametag.png",
         effect: {
           type: "heal",
           value: 1,
@@ -148,15 +154,15 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return titles[Math.floor(Math.random() * titles.length)];
   },
 
-  // Get icon for an item
+  // FIXED: Get icon for an item - properly displays image
   getItemIcon: function(item) {
-    // Use design bridge for colors if available
-    const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
-    
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor};"></i>`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="item-image pixelated">`;
     }
+    
+    // Use design bridge for colors if available
+    const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
     
     // Map common item types to default icons with color from design bridge
     return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor};"></i>`;

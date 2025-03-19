@@ -13,6 +13,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     this.setUiState('resultData', null);
     this.setUiState('errorState', false);
     this.setUiState('usedSecondChance', false);
+    this.setUiState('inventoryVisible', false);
     
     // Register for state updates
     if (window.GameState && GameState.addObserver) {
@@ -37,6 +38,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     this.setUiState('resultData', null);
     this.setUiState('errorState', false);
     this.setUiState('usedSecondChance', false);
+    this.setUiState('inventoryVisible', false);
     // Keep currentNodeData for reference until we get new data
   },
   
@@ -108,195 +110,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Main question rendering for valid data
     this.renderQuestionUI(nodeData, container);
   },
-  // First, modify the end of your render function to add the inventory UI elements:
-  renderQuestionUI: function(nodeData, container) {
-    // Your existing renderQuestionUI code...
-    
-    // After rendering the main question UI, add these lines:
-    const inventoryButton = document.createElement('div');
-    inventoryButton.className = 'question-actions mt-md';
-    inventoryButton.innerHTML = `
-      <button id="show-inventory-btn" class="game-btn game-btn--secondary">
-        <i class="fas fa-backpack mr-xs"></i> Use Item
-      </button>
-    `;
-    container.appendChild(inventoryButton);
-    
-    // Create inventory panel (initially hidden)
-    const inventoryPanel = document.createElement('div');
-    inventoryPanel.id = 'question-inventory-panel';
-    inventoryPanel.className = 'inventory-panel';
-    inventoryPanel.style.display = 'none';
-    inventoryPanel.innerHTML = `
-      <div class="inventory-panel__header">
-        <h4>Select an item to use</h4>
-        <button id="close-inventory-btn" class="close-btn">&times;</button>
-      </div>
-      <div id="question-inventory-items" class="inventory-panel__items">
-        <!-- Items will be loaded here -->
-      </div>
-    `;
-    container.appendChild(inventoryPanel);
-    
-    // Add click handlers
-    this.bindAction('show-inventory-btn', 'click', 'toggleInventory');
-    this.bindAction('close-inventory-btn', 'click', 'toggleInventory');
-  },
-
-  // Add these as new methods to the component (at the same level as render):
-
-  // Method to toggle inventory visibility
-  toggleInventory: function() {
-    const panel = document.getElementById('question-inventory-panel');
-    if (panel) {
-      const isVisible = panel.style.display !== 'none';
-      panel.style.display = isVisible ? 'none' : 'block';
-      
-      // If showing the panel, load items
-      if (!isVisible) {
-        this.renderInventoryItems();
-      }
-    }
-  },
-
-  // Method to render inventory items
-  renderInventoryItems: function() {
-    const container = document.getElementById('question-inventory-items');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    // Get inventory from game state
-    const inventory = GameState.data.inventory || [];
-    
-    if (inventory.length === 0) {
-      container.innerHTML = '<p class="text-center text-light">No items in inventory</p>';
-      return;
-    }
-    
-    // Render each item with use button
-    inventory.forEach(item => {
-      const itemEl = document.createElement('div');
-      itemEl.className = `inventory-item rarity-${item.rarity || 'common'}`;
-      
-      itemEl.innerHTML = `
-        <div class="inventory-item__icon">
-          ${this.getItemIcon(item)}
-        </div>
-        <div class="inventory-item__info">
-          <div class="inventory-item__name">${item.name}</div>
-          <div class="inventory-item__effect">${item.effect?.value || 'No effect'}</div>
-        </div>
-        <button class="use-item-btn game-btn game-btn--small" data-item-id="${item.id}">Use</button>
-      `;
-      
-      container.appendChild(itemEl);
-      
-      // Bind action to the use button
-      const useBtn = itemEl.querySelector('.use-item-btn');
-      this.bindAction(useBtn, 'click', 'useItem', { item });
-    });
-  },
-
-  // Get icon for an item (reuse from other components if needed)
-  getItemIcon: function(item) {
-    // Use design bridge for colors if available
-    const iconColor = window.DesignBridge?.colors?.primary || "#5b8dd9";
-    
-    // Check if the item has a custom icon path
-    if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixelated">`;
-    }
-    
-    // Map common item types to icons
-    const itemName = item.name.toLowerCase();
-    let iconClass = "box";
-    
-    if (itemName.includes('book') || itemName.includes('manual')) {
-      iconClass = "book";
-    } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconClass = "flask";
-    } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconClass = "shield-alt";
-    } else if (itemName.includes('dosimeter') || itemName.includes('detector') || itemName.includes('badge')) {
-      iconClass = "id-badge";
-    }
-    
-    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};"></i>`;
-  },
-
-  // Method to use an item
-  useItem: function(data) {
-    if (!data || !data.item) return;
-    
-    console.log(`Using item during question: ${data.item.id}`);
-    
-    // Use the item through the item manager
-    if (window.ItemManager) {
-      const used = ItemManager.useItem(data.item.id);
-      
-      if (used) {
-        // Close inventory panel
-        this.toggleInventory();
-        
-        // Update question UI based on the effect
-        this.applyItemEffectToQuestion(data.item);
-      }
-    }
-  },
-
-  // Method to apply item effects to the question
-  applyItemEffectToQuestion: function(item) {
-    if (!item || !item.effect) return;
-    
-    // Handle different effect types
-    switch(item.effect.type) {
-      case "eliminateOption":
-        // Find an incorrect answer and hide it
-        this.eliminateIncorrectOption();
-        break;
-        
-      case "heal":
-        // Just show feedback since healing is handled by ItemManager
-        this.showToast(`Used ${item.name} - Restored ${item.effect.value} life!`, 'success');
-        break;
-        
-      // Add other item effect types as needed
-      
-      default:
-        this.showToast(`Used ${item.name}`, 'info');
-    }
-  },
-
-  // Helper to eliminate an incorrect option
-  eliminateIncorrectOption: function() {
-    const correctAnswer = this.getUiState('correctAnswer');
-    if (!correctAnswer) return;
-    
-    // Find all answer option elements
-    const options = document.querySelectorAll('.answer-option');
-    
-    // Get all incorrect options
-    const incorrectOptions = Array.from(options).filter(option => {
-      const value = option.getAttribute('data-value');
-      return value !== correctAnswer;
-    });
-    
-    // If there are incorrect options, pick one randomly and disable it
-    if (incorrectOptions.length > 0) {
-      const randomIndex = Math.floor(Math.random() * incorrectOptions.length);
-      const optionToEliminate = incorrectOptions[randomIndex];
-      
-      // Style this option to show it's eliminated
-      optionToEliminate.classList.add('eliminated');
-      optionToEliminate.style.opacity = '0.5';
-      optionToEliminate.style.textDecoration = 'line-through';
-      optionToEliminate.setAttribute('disabled', 'true');
-      
-      // Show feedback
-      this.showToast('An incorrect option has been eliminated!', 'success');
-    }
-  },
+  
   // Try to recover node data if it's missing
   recoverNodeData: function() {
     // First check if we have it in UI state
@@ -484,14 +298,30 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Create question UI
     container.innerHTML = `
       <div class="game-panel ${panelClass} anim-fade-in">
-        <div class="game-panel__title">
-          ${this.getQuestionTitle(nodeData)}
-          ${this.getDifficultyBadge(nodeData.question.difficulty)}
+        <div class="game-panel__title flex justify-between items-center">
+          <div>${this.getQuestionTitle(nodeData)}</div>
+          <div>${this.getDifficultyBadge(nodeData.question.difficulty)}</div>
         </div>
         
         <div class="p-sm mb-md bg-dark-alt rounded-md">
           <p id="question-text" class="text-light">${nodeData.question?.text || 'No question text available'}</p>
           ${this.getCategoryTag(nodeData.question)}
+        </div>
+        
+        <div class="item-button-container">
+          <button id="show-inventory-btn" class="game-btn game-btn--secondary mb-sm">
+            <i class="fas fa-backpack mr-xs"></i> Use Item
+          </button>
+        </div>
+        
+        <div id="question-inventory-panel" class="inventory-panel mb-md" style="display: none;">
+          <div class="inventory-panel__header">
+            <h4>Select an item to use</h4>
+            <button id="close-inventory-btn" class="close-btn">&times;</button>
+          </div>
+          <div id="question-inventory-items" class="inventory-panel__items">
+            <p class="text-center">Loading items...</p>
+          </div>
         </div>
         
         <div id="options-container" class="mb-lg"></div>
@@ -509,6 +339,10 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     if (optionsContainer && nodeData.question?.options) {
       this.renderOptions(optionsContainer, nodeData.question.options, nodeData);
     }
+    
+    // Bind inventory toggle buttons
+    this.bindAction('show-inventory-btn', 'click', 'toggleInventory');
+    this.bindAction('close-inventory-btn', 'click', 'toggleInventory');
     
     // If question was already answered in this session, show the result
     if (this.getUiState('questionAnswered') && 
@@ -532,13 +366,217 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       }
     }
     
+    // If inventory was visible, show it
+    if (this.getUiState('inventoryVisible')) {
+      const inventoryPanel = document.getElementById('question-inventory-panel');
+      if (inventoryPanel) {
+        inventoryPanel.style.display = 'block';
+        this.renderInventoryItems();
+      }
+    }
+    
     // Apply design tokens if available
     if (window.DesignBridge) {
       this.refreshDesignTokens(container);
     }
   },
   
-  // Render question options with support for the "eliminate option" effect
+  // Toggle inventory panel visibility
+  toggleInventory: function() {
+    const panel = document.getElementById('question-inventory-panel');
+    if (!panel) return;
+    
+    const isVisible = panel.style.display !== 'none';
+    panel.style.display = isVisible ? 'none' : 'block';
+    
+    // Update UI state
+    this.setUiState('inventoryVisible', !isVisible);
+    
+    // If showing the panel, load items
+    if (!isVisible) {
+      this.renderInventoryItems();
+    }
+  },
+  
+  // Render inventory items in the panel
+  renderInventoryItems: function() {
+    const container = document.getElementById('question-inventory-items');
+    if (!container) return;
+    
+    // Get inventory from game state
+    const inventory = window.GameState?.data?.inventory || [];
+    
+    // Clear container and show message if no items
+    if (!inventory || inventory.length === 0) {
+      container.innerHTML = '<p class="text-center text-muted">No items in inventory</p>';
+      return;
+    }
+    
+    // Generate HTML for items
+    let html = '<div class="inventory-grid">';
+    
+    inventory.forEach(item => {
+      const rarity = item.rarity || 'common';
+      html += `
+        <div class="inventory-item inventory-item--${rarity}" data-item-id="${item.id}">
+          <div class="inventory-item__inner">
+            ${this.getItemIcon(item)}
+          </div>
+          <div class="item-tooltip">
+            <div class="item-tooltip__header item-tooltip__header--${rarity}">
+              <span class="item-tooltip__title">${item.name}</span>
+              <span class="item-rarity">${rarity}</span>
+            </div>
+            <div class="item-tooltip__body">
+              <p class="item-tooltip__desc">${item.description}</p>
+              <div class="item-tooltip__effect">${item.effect?.value || 'No effect'}</div>
+              <button class="use-item-btn" data-item-id="${item.id}">Use Item</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Add click handlers for use buttons
+    const useButtons = container.querySelectorAll('.use-item-btn');
+    useButtons.forEach(button => {
+      const itemId = button.getAttribute('data-item-id');
+      const item = inventory.find(i => i.id === itemId);
+      
+      if (item) {
+        this.bindAction(button, 'click', 'useItem', { item });
+      }
+    });
+  },
+  
+  // Get icon for an item
+  getItemIcon: function(item) {
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="inventory-item__icon pixelated">`;
+    }
+    
+    // Use design bridge for colors if available
+    const iconColor = window.DesignBridge?.colors?.primary || "#5b8dd9";
+    
+    // Map common item types to icons
+    const itemName = (item.name || '').toLowerCase();
+    let iconClass = "box";
+    
+    if (itemName.includes('book') || itemName.includes('manual')) {
+      iconClass = "book";
+    } else if (itemName.includes('potion') || itemName.includes('vial')) {
+      iconClass = "flask";
+    } else if (itemName.includes('shield') || itemName.includes('armor')) {
+      iconClass = "shield-alt";
+    } else if (itemName.includes('dosimeter') || itemName.includes('detector') || itemName.includes('badge')) {
+      iconClass = "id-badge";
+    }
+    
+    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};" class="inventory-item__icon"></i>`;
+  },
+  
+  // Use an item during a question
+  useItem: function(data) {
+    if (!data || !data.item) {
+      console.error("Missing item data in useItem");
+      return;
+    }
+    
+    console.log(`Using item: ${data.item.id} - ${data.item.name}`);
+    
+    // Check if we have ItemManager
+    if (!window.ItemManager) {
+      console.error("ItemManager not available");
+      this.showToast("Unable to use item. Game system not fully loaded.", "danger");
+      return;
+    }
+    
+    // Try to use the item
+    const success = ItemManager.useItem(data.item.id);
+    
+    if (success) {
+      // Hide inventory panel
+      this.toggleInventory();
+      
+      // Show feedback
+      this.showToast(`Used ${data.item.name}!`, "success");
+      
+      // Apply item effect to question
+      this.applyItemEffectToQuestion(data.item);
+    } else {
+      this.showToast("Failed to use item", "danger");
+    }
+  },
+  
+  // Apply item effect to the current question
+  applyItemEffectToQuestion: function(item) {
+    if (!item || !item.effect) return;
+    
+    console.log(`Applying item effect: ${item.effect.type}`);
+    
+    // Handle different effect types
+    switch(item.effect.type) {
+      case "eliminateOption":
+        this.eliminateIncorrectOption(item);
+        break;
+        
+      case "heal":
+        // Healing is handled by ItemManager directly
+        this.showFloatingText(`+${item.effect.value} Life`, "success");
+        break;
+        
+      default:
+        console.log(`Unhandled effect type: ${item.effect.type}`);
+    }
+  },
+  
+  // Eliminate an incorrect option with an item
+  eliminateIncorrectOption: function(item) {
+    if (!this.getUiState('currentNodeData') || 
+        !this.getUiState('currentNodeData').question || 
+        typeof this.getUiState('currentNodeData').question.correct !== 'number') {
+      this.showToast("Can't determine correct answer", "warning");
+      return;
+    }
+    
+    const question = this.getUiState('currentNodeData').question;
+    const correctIndex = question.correct;
+    
+    // Get all option buttons
+    const optionsContainer = document.getElementById('options-container');
+    if (!optionsContainer) return;
+    
+    const options = optionsContainer.querySelectorAll('.game-option:not(.disabled):not(.eliminated-option)');
+    
+    // Find incorrect options
+    const incorrectOptions = Array.from(options).filter((option, index) => {
+      const optionIndex = parseInt(option.dataset.index);
+      return optionIndex !== correctIndex;
+    });
+    
+    // If we have incorrect options, choose one randomly to eliminate
+    if (incorrectOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * incorrectOptions.length);
+      const optionToEliminate = incorrectOptions[randomIndex];
+      
+      // Mark as eliminated
+      optionToEliminate.classList.add('eliminated-option');
+      optionToEliminate.style.opacity = '0.5';
+      optionToEliminate.innerHTML = `<s>${optionToEliminate.textContent}</s> <span class="badge badge-danger float-right">Eliminated</span>`;
+      optionToEliminate.disabled = true;
+      
+      // Show feedback
+      this.showFloatingText("Incorrect option eliminated!", "success");
+    } else {
+      this.showToast("No incorrect options available to eliminate", "warning");
+    }
+  },
+  
+  // Render question options
   renderOptions: function(container, options, nodeData) {
     if (!container || !options || !options.length) return;
     
@@ -640,7 +678,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     const badgeClass = difficulty === 1 ? 'badge-secondary' : 
                       difficulty === 2 ? 'badge-warning' : 'badge-danger';
     
-    return `<span class="badge ${badgeClass} float-right">Difficulty: ${difficultyText}</span>`;
+    return `<span class="badge ${badgeClass}">Difficulty: ${difficultyText}</span>`;
   },
   
   // Get category tag if available
@@ -659,7 +697,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     console.log(`Question component handling action: ${action}`, data);
     
     // Find the best node data available
-    const bestNodeData = data.nodeData || nodeData || this.getUiState('currentNodeData');
+    const bestNodeData = data?.nodeData || nodeData || this.getUiState('currentNodeData');
     
     if (!bestNodeData || !bestNodeData.id) {
       console.error("Missing node data in handleAction", {action, data});
@@ -683,6 +721,14 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
         
       case 'continue':
         this.completeNode(bestNodeData);
+        break;
+        
+      case 'toggleInventory':
+        this.toggleInventory();
+        break;
+        
+      case 'useItem':
+        this.useItem(data);
         break;
         
       default:
@@ -747,11 +793,15 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
         this.handleAnswerResult(data, answerIndex, nodeData);
       })
       .catch(error => {
-        ErrorHandler.handleError(
-          error,
-          "Question Answering", 
-          ErrorHandler.SEVERITY.WARNING
-        );
+        if (window.ErrorHandler) {
+          ErrorHandler.handleError(
+            error,
+            "Question Answering", 
+            ErrorHandler.SEVERITY.WARNING
+          );
+        } else {
+          console.error("Error answering question:", error);
+        }
         
         console.log("Using fallback for question answer handling due to API error");
         

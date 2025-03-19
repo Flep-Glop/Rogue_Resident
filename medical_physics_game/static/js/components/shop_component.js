@@ -32,45 +32,38 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Render the shop UI
+  // Simplified shop_component.js render function
   render: function(nodeData, container) {
     console.log("Rendering shop component", nodeData);
     
-    // Get colors from design bridge
+    // Get colors from design bridge if available
     const shopColor = window.DesignBridge?.colors?.nodeShop || '#5bbcd9';
     
-    // Create shop UI with new design classes
+    // Create shop UI with clean, minimal design matching screenshot
     container.innerHTML = `
-      <div class="game-panel shadow-md anim-fade-in">
-        <div class="game-panel__title flex justify-between items-center">
+      <div class="game-panel shadow-md">
+        <div class="shop-header flex justify-between items-center">
           <h3>Department Store</h3>
-          <div class="badge badge-warning px-md">
-            <span class="text-sm">Available Insight:</span>
-            <span id="shop-currency" class="text-md ml-xs">${this.getPlayerInsight()}</span>
+          <div class="insight-display">
+            <span>Available Insight:</span>
+            <span id="shop-currency" class="insight-value">${this.getPlayerInsight()}</span>
           </div>
         </div>
         
-        <p class="text-light mb-md">Browse and purchase items using your insight points.</p>
+        <p class="shop-description">Browse and purchase items using your insight points.</p>
         
-        <div id="shop-items-container" class="grid grid-cols-auto-fill gap-md mb-lg">
-          <div class="text-center p-md text-light">
-            <div class="flex justify-center mb-sm">
-              <div class="spinner-border"></div>
-            </div>
-            <p>Loading available items...</p>
+        <div id="shop-items-container" class="shop-items-grid">
+          <div class="loading-indicator">
+            <div class="spinner-border"></div>
+            <p>Loading items...</p>
           </div>
         </div>
         
-        <button id="shop-continue-btn" class="game-btn game-btn--primary w-full">
+        <button id="shop-continue-btn" class="game-btn w-full">
           Leave Shop
         </button>
       </div>
     `;
-    
-    // Apply shop-specific colors if design bridge is available
-    if (window.DesignBridge && window.DesignBridge.colors) {
-      this.refreshShopAppearance();
-    }
     
     // Bind continue button
     this.bindAction('shop-continue-btn', 'click', 'continue', { nodeData });
@@ -122,7 +115,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       });
   },
   
-  // Render shop items with enhanced styling
+  // Simplified rendering of shop items
   renderShopItems: function(items) {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
@@ -132,70 +125,40 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // If no items, show message
     if (!items || items.length === 0) {
-      container.innerHTML = `
-        <div class="empty-shop-message text-center p-md">
-          <p class="text-dark">No items available in the shop.</p>
-        </div>
-      `;
+      container.innerHTML = `<p class="text-center">No items available</p>`;
       return;
     }
     
-    // Calculate item prices based on rarity
-    const itemsWithPrices = items.map(item => {
-      const basePrice = this.getItemBasePrice(item.rarity);
-      return {
-        ...item,
-        price: basePrice
-      };
-    });
-    
     // Render each item
-    itemsWithPrices.forEach(item => {
+    items.forEach(item => {
       const playerCanAfford = this.getPlayerInsight() >= item.price;
       const rarity = item.rarity || 'common';
       
       const itemElement = document.createElement('div');
-      itemElement.className = `game-card rarity-${rarity} anim-fade-in`;
+      itemElement.className = `shop-item rarity-${rarity}`;
       
       itemElement.innerHTML = `
-        <div class="game-card__header">
-          <h5 class="game-card__title">${item.name}</h5>
-          <span class="badge ${playerCanAfford ? 'badge-primary' : 'badge-danger'}">
-            ${item.price} Insight
-          </span>
+        <div class="shop-item-header">
+          <span class="item-name">${item.name}</span>
+          <span class="item-price ${playerCanAfford ? '' : 'cannot-afford'}">${item.price} Insight</span>
         </div>
         
-        <div class="game-card__body">
-          <div class="flex mb-sm">
-            <div class="item-icon item-icon--${rarity} mr-sm">
-              ${this.getItemIcon(item)}
-            </div>
-            <div>
-              <span class="badge rarity-badge-${rarity} mb-xs">${rarity}</span>
-              <p class="text-sm">${item.description}</p>
-            </div>
-          </div>
-          
-          <div class="item-effect p-xs rounded-sm bg-dark-alt">
-            ${item.effect?.value || 'No effect'}
-          </div>
+        <div class="shop-item-body">
+          <div class="rarity-badge ${rarity}">${rarity}</div>
+          <p class="item-description">${item.description}</p>
+          <div class="item-effect">${item.effect?.value || 'No effect'}</div>
         </div>
         
-        <div class="game-card__footer">
-          <button 
-            class="game-btn ${playerCanAfford ? 'game-btn--secondary' : 'game-btn--danger'} w-full" 
-            ${!playerCanAfford ? 'disabled' : ''}
-            data-item-id="${item.id}"
-          >
-            ${playerCanAfford ? 'Purchase' : 'Not enough insight'}
-          </button>
-        </div>
+        <button class="purchase-btn ${playerCanAfford ? 'can-afford' : 'cannot-afford'}" 
+          ${!playerCanAfford ? 'disabled' : ''} data-item-id="${item.id}">
+          ${playerCanAfford ? 'Purchase' : 'Not enough insight'}
+        </button>
       `;
       
       container.appendChild(itemElement);
       
       // Add click handler for purchase button
-      const buyBtn = itemElement.querySelector('button');
+      const buyBtn = itemElement.querySelector('.purchase-btn');
       if (buyBtn && playerCanAfford) {
         this.bindAction(buyBtn, 'click', 'purchaseItem', { item });
       }
