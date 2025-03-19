@@ -79,6 +79,38 @@ def process_node_for_client(node):
     """Process a node to add necessary data for the client"""
     return process_node_with_plugin(node)
 
+# ===== FRONTEND ROUTES =====
+
+@app.route('/')
+def index():
+    """Render the game's landing page"""
+    return render_template('landing.html')
+
+@app.route('/game')
+def game():
+    """Render the main game page"""
+    return render_template('index.html')
+
+@app.route('/character-select')
+def character_select():
+    """Render character selection page"""
+    return render_template('character_select.html')
+
+@app.route('/select')
+def select():
+    """Redirect to character selection"""
+    return redirect(url_for('game', select='true'))
+
+@app.route('/editor')
+def editor():
+    """Render the item editor page"""
+    return render_template('item_editor.html')
+
+@app.route('/item-editor')
+def item_editor():
+    """Redirect to editor"""
+    return redirect(url_for('editor'))
+
 # ===== GAME STATE ROUTES =====
 
 @app.route('/api/game-state', methods=['GET'])
@@ -148,6 +180,65 @@ def reset_game():
     update_game_state(game_state)
     
     return jsonify(game_state)
+
+# ===== CHARACTER ROUTES =====
+
+@app.route('/api/characters', methods=['GET'])
+def get_characters():
+    """Get all available characters"""
+    # Example characters - in production, these would come from a database
+    characters = [
+        {
+            "id": "resident",
+            "name": "Medical Physics Resident",
+            "description": "A balanced character with average stats for all beginners.",
+            "starting_stats": {
+                "lives": 3,
+                "max_lives": 3,
+                "insight": 20,
+                "level": 1
+            },
+            "special_ability": {
+                "name": "Medical Intuition",
+                "description": "See one incorrect answer on a question node.",
+                "uses_per_floor": 1
+            }
+        },
+        {
+            "id": "physicist",
+            "name": "Experienced Physicist",
+            "description": "Starts with higher insight but fewer lives.",
+            "starting_stats": {
+                "lives": 2,
+                "max_lives": 2,
+                "insight": 30,
+                "level": 1
+            },
+            "special_ability": {
+                "name": "Deep Knowledge",
+                "description": "Gain double insight from question nodes.",
+                "uses_per_floor": 2
+            }
+        },
+        {
+            "id": "dosimetrist",
+            "name": "Medical Dosimetrist",
+            "description": "Starts with more lives but less insight.",
+            "starting_stats": {
+                "lives": 4,
+                "max_lives": 4,
+                "insight": 15,
+                "level": 1
+            },
+            "special_ability": {
+                "name": "Careful Planning",
+                "description": "Avoid losing a life once per floor.",
+                "uses_per_floor": 1
+            }
+        }
+    ]
+    
+    return jsonify({"characters": characters})
 
 # ===== MAP AND NODE ROUTES =====
 
@@ -421,33 +512,6 @@ def debug_info():
         "game_states_count": len(game_states),
         "saved_games_count": len(saved_games)
     })
-
-# ===== FRONTEND ROUTES =====
-
-@app.route('/')
-def index():
-    """Render the game's landing page"""
-    return render_template('index.html')
-
-@app.route('/game')
-def game():
-    """Render the main game page"""
-    return render_template('index.html')
-
-@app.route('/select')
-def character_select():
-    """Render character selection page"""
-    return redirect(url_for('game', select='true'))
-
-@app.route('/editor')
-def editor():
-    """Render the item editor page"""
-    return render_template('editor.html')
-
-@app.route('/item-editor')
-def item_editor():
-    """Redirect to editor"""
-    return redirect(url_for('editor'))
 
 # Run the app if executed directly
 if __name__ == '__main__':
