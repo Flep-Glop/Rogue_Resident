@@ -27,20 +27,6 @@
         "duration": "permanent"
       },
       "passiveText": ""
-    },
-    {
-      "id": "doom_disk",
-      "name": "Disk of Doom",
-      "description": "A copy of the 1992 classic: \"Doom\"",
-      "rarity": "uncommon",
-      "itemType": "relic",
-      "iconPath": "CD.png",
-      "effect": {
-        "type": "insight_gain",
-        "value": "20",
-        "duration": "instant"
-      },
-      "passiveText": ""
     }
   ]
 }

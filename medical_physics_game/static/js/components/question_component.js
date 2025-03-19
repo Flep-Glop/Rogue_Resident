@@ -192,65 +192,121 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
   },
   
   // Answer a question
-  answerQuestion: function(nodeData, answerIndex) {
-    console.log(`Answering question for node ${nodeData.id}, selected option ${answerIndex}`);
-    
-    // Save selected option in UI state
-    this.setUiState('selectedOptionIndex', answerIndex);
-    
-    // Disable all options to prevent multiple submissions
-    const optionsContainer = document.getElementById('options-container');
-    this.disableOptions(optionsContainer);
-    
-    // Apply visual feedback immediately
-    const selectedOption = optionsContainer.querySelector(`.game-option[data-index="${answerIndex}"]`);
-    if (selectedOption) {
-      selectedOption.classList.add('anim-pulse-opacity');
-    }
-    
-    // Call API to check answer
-    ApiClient.answerQuestion(nodeData.id, answerIndex, nodeData.question)
-      .then(data => {
+answerQuestion: function(nodeData, answerIndex) {
+  console.log(`Answering question for node ${nodeData.id}, selected option ${answerIndex}`);
+  
+  // Log full data for debugging
+  console.log("Question data:", nodeData.question);
+  
+  // Save selected option in UI state
+  this.setUiState('selectedOptionIndex', answerIndex);
+  
+  // Disable all options to prevent multiple submissions
+  const optionsContainer = document.getElementById('options-container');
+  this.disableOptions(optionsContainer);
+  
+  // Apply visual feedback immediately
+  const selectedOption = optionsContainer.querySelector(`.game-option[data-index="${answerIndex}"]`);
+  if (selectedOption) {
+    selectedOption.classList.add('anim-pulse-opacity');
+  }
+  
+  // Call API to check answer
+  ApiClient.answerQuestion(nodeData.id, answerIndex, nodeData.question)
+    .then(data => {
+      // Save result data in UI state
+      this.setUiState('questionAnswered', true);
+      this.setUiState('resultData', data);
+      
+      // Show result
+      this.showQuestionResult(data, answerIndex, nodeData.question);
+      
+      // Check for game over
+      if (data.game_state && data.game_state.character && 
+          data.game_state.character.lives <= 0) {
+        // Set timeout to show the result before game over
+        setTimeout(() => {
+          if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+            NodeInteraction.showGameOver();
+          }
+        }, 2000);
+      } else {
+        // Set up continue button
+        const continueBtn = document.getElementById('continue-btn');
+        if (continueBtn) {
+          continueBtn.style.display = 'block';
+          this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+        }
+      }
+    })
+    .catch(error => {
+      ErrorHandler.handleError(
+        error,
+        "Question Answering", 
+        ErrorHandler.SEVERITY.WARNING // Changed from ERROR to WARNING
+      );
+      
+      console.log("Using fallback for question answer handling due to API error");
+      
+      // FALLBACK: Use local validation instead of API
+      if (nodeData.question && typeof nodeData.question.correct === 'number') {
+        // Create a mock response based on the correct answer in question data
+        const isCorrect = answerIndex === nodeData.question.correct;
+        const fallbackData = {
+          correct: isCorrect,
+          explanation: nodeData.question.explanation || 
+                      (isCorrect ? "Correct!" : "Incorrect answer."),
+          insight_gained: isCorrect ? 10 : 0
+        };
+        
+        // Log fallback
+        console.log("Using fallback response:", fallbackData);
+        
         // Save result data in UI state
         this.setUiState('questionAnswered', true);
-        this.setUiState('resultData', data);
+        this.setUiState('resultData', fallbackData);
         
-        // Show result
-        this.showQuestionResult(data, answerIndex, nodeData.question);
+        // Show result using fallback data
+        this.showQuestionResult(fallbackData, answerIndex, nodeData.question);
         
-        // Check for game over
-        if (data.game_state && data.game_state.character && 
-            data.game_state.character.lives <= 0) {
-          // Set timeout to show the result before game over
-          setTimeout(() => {
-            if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
-              NodeInteraction.showGameOver();
-            }
-          }, 2000);
+        // Update character stats based on result
+        if (isCorrect) {
+          // Award insight
+          this.updatePlayerInsight(fallbackData.insight_gained || 10);
         } else {
-          // Set up continue button
-          const continueBtn = document.getElementById('continue-btn');
-          if (continueBtn) {
-            continueBtn.style.display = 'block';
-            this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+          // Lose a life
+          this.updatePlayerLives(-1);
+          
+          // Check for game over
+          if (this.getPlayerLives() <= 0) {
+            setTimeout(() => {
+              if (typeof NodeInteraction !== 'undefined' && NodeInteraction.showGameOver) {
+                NodeInteraction.showGameOver();
+              }
+            }, 2000);
           }
         }
-      })
-      .catch(error => {
-        ErrorHandler.handleError(
-          error,
-          "Question Answering", 
-          ErrorHandler.SEVERITY.ERROR
-        );
         
-        // Re-enable options in case of error
+        // Show continue button
+        const continueBtn = document.getElementById('continue-btn');
+        if (continueBtn) {
+          continueBtn.style.display = 'block';
+          this.bindAction('continue-btn', 'click', 'continue', { nodeData });
+        }
+      } else {
+        // Re-enable options if we can't use the fallback
+        console.error("Fallback failed - question data incomplete:", nodeData.question);
         const options = document.querySelectorAll('.game-option');
         options.forEach(opt => {
           opt.disabled = false;
           opt.classList.remove('disabled');
         });
-      });
-  },
+        
+        // Show error toast
+        this.showToast("There was a problem processing your answer. Please try again.", "danger");
+      }
+    });
+},
   
   // Show question result
   showQuestionResult: function(data, selectedIndex, question) {
