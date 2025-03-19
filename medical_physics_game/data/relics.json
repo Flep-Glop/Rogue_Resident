@@ -6,7 +6,7 @@
       "description": "These glasses simultaneously show radiation as both particles and waves, allowing you two attempts at answering questions.",
       "rarity": "epic",
       "itemType": "relic",
-      "iconPath": "glasses.png",
+      "iconPath": "3D Glasses.png",
       "effect": {
         "type": "second_chance",
         "value": "Allows a second attempt at question nodes",
@@ -20,7 +20,7 @@
       "description": "A notebook containing advanced calculations that boost your understanding of physics concepts.",
       "rarity": "uncommon",
       "itemType": "relic",
-      "iconPath": "notebook.png",
+      "iconPath": "Textbook.png",
       "effect": {
         "type": "insight_boost",
         "value": 10,

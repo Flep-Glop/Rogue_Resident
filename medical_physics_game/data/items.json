@@ -6,7 +6,7 @@
       "description": "A comprehensive guide that helps eliminate one incorrect answer option.",
       "rarity": "uncommon",
       "itemType": "consumable",
-      "iconPath": "textbook.png",
+      "iconPath": "Notebook.png",
       "effect": {
         "type": "eliminateOption",
         "value": "Removes one incorrect answer option",
@@ -19,7 +19,7 @@
       "description": "A personal dosimeter that can absorb harmful radiation, restoring 1 life point.",
       "rarity": "rare",
       "itemType": "consumable",
-      "iconPath": "badge.png",
+      "iconPath": "Nametag.png",
       "effect": {
         "type": "heal",
         "value": 1,

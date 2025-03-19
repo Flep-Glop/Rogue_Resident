@@ -413,6 +413,11 @@ const ComponentUtils = {
       
       // Add item to inventory with feedback
       addItemToInventory: function(item) {
+        if (GameState.data.inventory && GameState.data.inventory.some(i => i.id === item.id)) {
+          console.log(`Item ${item.id} already in inventory, not adding duplicate`);
+          return true; // Return true so the component thinks it succeeded
+        }
+
         if (!GameState || !GameState.addInventoryItem) {
           console.error("GameState not available for inventory update");
           return false;

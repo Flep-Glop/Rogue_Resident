@@ -154,7 +154,21 @@ const NodeRegistry = {
     
     return weightedTypes;
   },
-  
+  // Override or add this method
+  getAvailableNodeTypes: function(floor) {
+    let availableTypes = Object.keys(this.nodeTypes).filter(type => {
+      // Hide gambling, event and challenge nodes
+      return !['gamble', 'event', 'challenge'].includes(type);
+    });
+    
+    // Filter based on floor requirements if needed
+    if (floor && floor.restrictedNodeTypes) {
+      availableTypes = availableTypes.filter(type => 
+        !floor.restrictedNodeTypes.includes(type));
+    }
+    
+    return availableTypes;
+  },
   // Get container ID for a node type
   getContainerIdForType: function(type) {
     return this.getNodeType(type).interactionContainer;

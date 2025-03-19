@@ -108,7 +108,195 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     // Main question rendering for valid data
     this.renderQuestionUI(nodeData, container);
   },
-  
+  // First, modify the end of your render function to add the inventory UI elements:
+  renderQuestionUI: function(nodeData, container) {
+    // Your existing renderQuestionUI code...
+    
+    // After rendering the main question UI, add these lines:
+    const inventoryButton = document.createElement('div');
+    inventoryButton.className = 'question-actions mt-md';
+    inventoryButton.innerHTML = `
+      <button id="show-inventory-btn" class="game-btn game-btn--secondary">
+        <i class="fas fa-backpack mr-xs"></i> Use Item
+      </button>
+    `;
+    container.appendChild(inventoryButton);
+    
+    // Create inventory panel (initially hidden)
+    const inventoryPanel = document.createElement('div');
+    inventoryPanel.id = 'question-inventory-panel';
+    inventoryPanel.className = 'inventory-panel';
+    inventoryPanel.style.display = 'none';
+    inventoryPanel.innerHTML = `
+      <div class="inventory-panel__header">
+        <h4>Select an item to use</h4>
+        <button id="close-inventory-btn" class="close-btn">&times;</button>
+      </div>
+      <div id="question-inventory-items" class="inventory-panel__items">
+        <!-- Items will be loaded here -->
+      </div>
+    `;
+    container.appendChild(inventoryPanel);
+    
+    // Add click handlers
+    this.bindAction('show-inventory-btn', 'click', 'toggleInventory');
+    this.bindAction('close-inventory-btn', 'click', 'toggleInventory');
+  },
+
+  // Add these as new methods to the component (at the same level as render):
+
+  // Method to toggle inventory visibility
+  toggleInventory: function() {
+    const panel = document.getElementById('question-inventory-panel');
+    if (panel) {
+      const isVisible = panel.style.display !== 'none';
+      panel.style.display = isVisible ? 'none' : 'block';
+      
+      // If showing the panel, load items
+      if (!isVisible) {
+        this.renderInventoryItems();
+      }
+    }
+  },
+
+  // Method to render inventory items
+  renderInventoryItems: function() {
+    const container = document.getElementById('question-inventory-items');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Get inventory from game state
+    const inventory = GameState.data.inventory || [];
+    
+    if (inventory.length === 0) {
+      container.innerHTML = '<p class="text-center text-light">No items in inventory</p>';
+      return;
+    }
+    
+    // Render each item with use button
+    inventory.forEach(item => {
+      const itemEl = document.createElement('div');
+      itemEl.className = `inventory-item rarity-${item.rarity || 'common'}`;
+      
+      itemEl.innerHTML = `
+        <div class="inventory-item__icon">
+          ${this.getItemIcon(item)}
+        </div>
+        <div class="inventory-item__info">
+          <div class="inventory-item__name">${item.name}</div>
+          <div class="inventory-item__effect">${item.effect?.value || 'No effect'}</div>
+        </div>
+        <button class="use-item-btn game-btn game-btn--small" data-item-id="${item.id}">Use</button>
+      `;
+      
+      container.appendChild(itemEl);
+      
+      // Bind action to the use button
+      const useBtn = itemEl.querySelector('.use-item-btn');
+      this.bindAction(useBtn, 'click', 'useItem', { item });
+    });
+  },
+
+  // Get icon for an item (reuse from other components if needed)
+  getItemIcon: function(item) {
+    // Use design bridge for colors if available
+    const iconColor = window.DesignBridge?.colors?.primary || "#5b8dd9";
+    
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixelated">`;
+    }
+    
+    // Map common item types to icons
+    const itemName = item.name.toLowerCase();
+    let iconClass = "box";
+    
+    if (itemName.includes('book') || itemName.includes('manual')) {
+      iconClass = "book";
+    } else if (itemName.includes('potion') || itemName.includes('vial')) {
+      iconClass = "flask";
+    } else if (itemName.includes('shield') || itemName.includes('armor')) {
+      iconClass = "shield-alt";
+    } else if (itemName.includes('dosimeter') || itemName.includes('detector') || itemName.includes('badge')) {
+      iconClass = "id-badge";
+    }
+    
+    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};"></i>`;
+  },
+
+  // Method to use an item
+  useItem: function(data) {
+    if (!data || !data.item) return;
+    
+    console.log(`Using item during question: ${data.item.id}`);
+    
+    // Use the item through the item manager
+    if (window.ItemManager) {
+      const used = ItemManager.useItem(data.item.id);
+      
+      if (used) {
+        // Close inventory panel
+        this.toggleInventory();
+        
+        // Update question UI based on the effect
+        this.applyItemEffectToQuestion(data.item);
+      }
+    }
+  },
+
+  // Method to apply item effects to the question
+  applyItemEffectToQuestion: function(item) {
+    if (!item || !item.effect) return;
+    
+    // Handle different effect types
+    switch(item.effect.type) {
+      case "eliminateOption":
+        // Find an incorrect answer and hide it
+        this.eliminateIncorrectOption();
+        break;
+        
+      case "heal":
+        // Just show feedback since healing is handled by ItemManager
+        this.showToast(`Used ${item.name} - Restored ${item.effect.value} life!`, 'success');
+        break;
+        
+      // Add other item effect types as needed
+      
+      default:
+        this.showToast(`Used ${item.name}`, 'info');
+    }
+  },
+
+  // Helper to eliminate an incorrect option
+  eliminateIncorrectOption: function() {
+    const correctAnswer = this.getUiState('correctAnswer');
+    if (!correctAnswer) return;
+    
+    // Find all answer option elements
+    const options = document.querySelectorAll('.answer-option');
+    
+    // Get all incorrect options
+    const incorrectOptions = Array.from(options).filter(option => {
+      const value = option.getAttribute('data-value');
+      return value !== correctAnswer;
+    });
+    
+    // If there are incorrect options, pick one randomly and disable it
+    if (incorrectOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * incorrectOptions.length);
+      const optionToEliminate = incorrectOptions[randomIndex];
+      
+      // Style this option to show it's eliminated
+      optionToEliminate.classList.add('eliminated');
+      optionToEliminate.style.opacity = '0.5';
+      optionToEliminate.style.textDecoration = 'line-through';
+      optionToEliminate.setAttribute('disabled', 'true');
+      
+      // Show feedback
+      this.showToast('An incorrect option has been eliminated!', 'success');
+    }
+  },
   // Try to recover node data if it's missing
   recoverNodeData: function() {
     // First check if we have it in UI state
