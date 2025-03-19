@@ -5,8 +5,13 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
   initialize: function() {
     console.log("Initializing enhanced shop component");
     this.resetComponentState();
+    
+    // Initialize the unified tooltip system if available
+    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.initialize === 'function') {
+      UnifiedTooltipSystem.initialize();
+    }
   },
-  
+
   // Reset component state - called on initialize and each render
   resetComponentState: function() {
     this.itemsLoaded = false;
@@ -285,94 +290,79 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Create a standardized item card with proper tooltips
+  // Create a simplified item card with just icon and price
   createItemCard: function(item) {
     const canAfford = this.getPlayerInsight() >= item.price;
     const isPurchased = this.purchasedItems.has(item.id);
     const isInInventory = this.isItemInInventory(item);
     
     const card = document.createElement('div');
-    card.className = `shop-item-card rarity-${item.rarity || 'common'} ${isPurchased ? 'purchased' : ''} ${isInInventory ? 'in-inventory' : ''}`;
+    card.className = `simplified-shop-item ${item.rarity || 'common'} ${isPurchased ? 'purchased' : ''} ${isInInventory && item.itemType === 'relic' ? 'owned' : ''}`;
+    card.dataset.id = item.id;
+    card.dataset.rarity = item.rarity || 'common';
     
-    let buttonText = canAfford ? 'Purchase' : 'Not enough insight';
-    let buttonClass = 'purchase-btn';
-    let buttonDisabled = !canAfford;
+    // Create minimal content - just icon and price
+    card.innerHTML = `
+      <div class="item-icon-container">
+        <div class="item-icon ${item.rarity || 'common'}">
+          ${this.getItemIcon(item)}
+        </div>
+      </div>
+      <div class="item-price ${!canAfford ? 'cannot-afford' : ''}">
+        ${item.price}
+      </div>
+      ${isPurchased ? '<div class="sold-out-badge">SOLD</div>' : ''}
+      ${isInInventory && item.itemType === 'relic' ? '<div class="owned-badge">OWNED</div>' : ''}
+    `;
     
-    if (isPurchased) {
-      buttonText = 'Sold Out';
-      buttonClass += ' sold-out';
-      buttonDisabled = true;
-    } else if (isInInventory && item.itemType === 'relic') {
-      buttonText = 'Already Owned';
-      buttonClass += ' already-owned';
-      buttonDisabled = true;
+    // Add tooltip using the unified tooltip system
+    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+      UnifiedTooltipSystem.applyTooltip(card, item);
+    } else {
+      // Fallback to inline tooltip if unified system isn't available
+      card.appendChild(this.createInlineTooltip(item));
     }
     
-    // Create card content with standardized structure
-    card.innerHTML = `
-      <div class="card-header">
-        <h4 class="item-name">${item.name}</h4>
-        <div class="item-price ${!canAfford ? 'cannot-afford' : ''}">${item.price}</div>
-      </div>
-      <div class="card-body">
-        <div class="item-details">
-          <div class="item-icon-container">
-            <div class="item-icon ${item.rarity || 'common'}">
-              ${this.getItemIcon(item)}
-            </div>
-          </div>
-          <div class="item-info">
-            <div class="item-rarity">${item.rarity || 'common'}</div>
-            <div class="item-description">${item.description}</div>
-          </div>
+    // Only make clickable if not purchased/owned and can afford
+    const isClickable = !isPurchased && !(isInInventory && item.itemType === 'relic') && canAfford;
+    
+    if (isClickable) {
+      card.classList.add('clickable');
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.purchaseItem(item);
+      });
+    }
+    
+    return card;
+  },
+
+  // Fallback tooltip if unified system isn't available
+  createInlineTooltip: function(item) {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'standardized-tooltip';
+    
+    tooltip.innerHTML = `
+      <div class="tooltip-bridge"></div>
+      <div class="tooltip-content">
+        <div class="tooltip-header ${item.rarity || 'common'}">
+          <span class="tooltip-title">${item.name}</span>
+          <span class="tooltip-rarity">${item.rarity || 'common'}</span>
         </div>
-        ${item.itemType === 'relic' ? 
-          `<div class="item-passive">
-            <span class="passive-label">Passive Effect</span>
-          </div>` : ''}
-      </div>
-      <div class="card-footer">
-        <button class="${buttonClass}" 
-                data-id="${item.id}" 
-                ${buttonDisabled ? 'disabled' : ''}>
-          ${buttonText}
-        </button>
-      </div>
-      
-      <!-- Standardized tooltip with invisible bridge -->
-      <div class="standardized-tooltip">
-        <div class="tooltip-bridge"></div>
-        <div class="tooltip-content">
-          <div class="tooltip-header ${item.rarity || 'common'}">
-            <span class="tooltip-title">${item.name}</span>
-            <span class="tooltip-rarity">${item.rarity || 'common'}</span>
-          </div>
-          <div class="tooltip-body">
-            <p class="tooltip-desc">${item.description}</p>
-            <div class="tooltip-effect">
-              ${item.itemType === 'relic' ? 
-                `<span class="passive-text">Passive: ${item.description}</span>` :
-                `<span>Effect: ${item.effect?.value || item.description}</span>`
-              }
-            </div>
+        <div class="tooltip-body">
+          <p class="tooltip-desc">${item.description}</p>
+          <div class="tooltip-effect">
+            ${item.itemType === 'relic' ? 
+              `<span class="passive-text">Passive: ${item.description}</span>` :
+              `<span>Effect: ${item.effect?.value || item.description}</span>`
+            }
           </div>
         </div>
       </div>
     `;
     
-    // Add purchase event listener if not disabled
-    if (!buttonDisabled) {
-      const button = card.querySelector('.purchase-btn');
-      if (button) {
-        button.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.purchaseItem(item);
-        });
-      }
-    }
-    
-    return card;
+    return tooltip;
   },
   
   // Check if an item is already in the player's inventory
@@ -712,326 +702,137 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     const styleEl = document.createElement('style');
     styleEl.id = 'enhanced-shop-styles';
     styleEl.textContent = `
-      /* Enhanced Shop Styles */
-      .shop-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid rgba(91, 141, 217, 0.3);
-      }
-      
-      .shop-title-container {
-        flex: 1;
-      }
-      
-      .shop-description {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-        margin-top: 5px;
-      }
-      
-      .insight-display {
-        background-color: #222233;
-        padding: 8px 12px;
-        border-radius: 5px;
-        border: 1px solid rgba(91, 141, 217, 0.5);
-        font-weight: bold;
-      }
-      
-      .insight-value {
-        color: #f0c866;
-        margin-left: 5px;
-      }
-      
-      .shop-items-container {
-        max-height: 400px;
-        overflow-y: auto;
-        margin-bottom: 20px;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(91, 141, 217, 0.5) #222233;
-        padding-right: 5px;
-      }
-      
-      .shop-items-container::-webkit-scrollbar {
-        width: 8px;
-      }
-      
-      .shop-items-container::-webkit-scrollbar-track {
-        background: #222233;
-        border-radius: 4px;
-      }
-      
-      .shop-items-container::-webkit-scrollbar-thumb {
-        background-color: rgba(91, 141, 217, 0.5);
-        border-radius: 4px;
-      }
-      
-      .shop-section {
-        margin-bottom: 20px;
-      }
-      
-      .shop-section-title {
-        color: #5b8dd9;
-        font-size: 16px;
-        margin-bottom: 10px;
-        padding-left: 8px;
-        border-left: 3px solid #5b8dd9;
-      }
-      
+      /* Add these styles to your shop component's addEnhancedStyles method */
+
+      /* Grid for icon-based shop */
       .shop-items-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         gap: 15px;
         margin-bottom: 15px;
       }
-      
-      .shop-item-card {
+
+      /* Simplified shop item */
+      .simplified-shop-item {
+        width: 100%;
+        aspect-ratio: 1;
         background-color: #1e1e2a;
-        border-radius: 6px;
-        overflow: hidden;
-        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 8px;
         display: flex;
         flex-direction: column;
-        border-left: 4px solid gray;
+        align-items: center;
+        justify-content: center;
         position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid transparent;
       }
-      
-      .shop-item-card:hover {
-        transform: translateY(-3px);
+
+      /* Hover effect for purchasable items */
+      .simplified-shop-item.clickable:hover {
+        transform: translateY(-5px);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        cursor: pointer;
       }
-      
-      .shop-item-card.purchased {
-        opacity: 0.6;
-        filter: grayscale(0.8);
-      }
-      
-      .shop-item-card.in-inventory.rarity-epic {
+
+      /* Color borders by rarity */
+      .simplified-shop-item.common { border-color: #aaa; }
+      .simplified-shop-item.uncommon { border-color: #5b8dd9; }
+      .simplified-shop-item.rare { border-color: #9c77db; }
+      .simplified-shop-item.epic { 
+        border-color: #f0c866; 
         box-shadow: 0 0 10px rgba(240, 200, 102, 0.3);
       }
-      
-      .card-header {
-        background-color: rgba(0, 0, 0, 0.2);
-        padding: 10px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+
+      /* Epic items glow */
+      .simplified-shop-item.epic {
+        animation: epic-item-glow 2s infinite alternate;
       }
-      
-      .item-name {
-        font-weight: bold;
-        color: white;
-        font-size: 14px;
-        margin: 0;
+
+      @keyframes epic-item-glow {
+        0% { box-shadow: 0 0 5px rgba(240, 200, 102, 0.3); }
+        100% { box-shadow: 0 0 15px rgba(240, 200, 102, 0.5); }
       }
-      
-      .item-price {
-        background-color: #5b8dd9;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        color: white;
-        font-weight: bold;
+
+      /* Sold out and owned item styling */
+      .simplified-shop-item.purchased,
+      .simplified-shop-item.owned {
+        opacity: 0.7;
+        filter: grayscale(0.5);
       }
-      
-      .item-price.cannot-afford {
-        background-color: #e67e73;
-        text-decoration: line-through;
-      }
-      
-      .card-body {
-        padding: 12px;
-        flex: 1;
-      }
-      
-      .item-details {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-      
+
+      /* Item icon container */
       .item-icon-container {
         width: 64px;
         height: 64px;
-        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
       }
-      
+
+      /* Item icon */
       .item-icon {
         width: 100%;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #2a2a36;
-        border-radius: 4px;
+        background-color: #252532;
+        border-radius: 8px;
         overflow: hidden;
       }
-      
-      .item-icon.common {
-        box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
-      }
-      
-      .item-icon.uncommon {
-        box-shadow: 0 0 8px rgba(91, 141, 217, 0.3);
-      }
-      
-      .item-icon.rare {
-        box-shadow: 0 0 8px rgba(156, 119, 219, 0.3);
-      }
-      
-      .item-icon.epic {
-        box-shadow: 0 0 12px rgba(240, 200, 102, 0.3);
-        animation: epic-glow 2s infinite;
-      }
-      
-      @keyframes epic-glow {
-        0% { box-shadow: 0 0 8px rgba(240, 200, 102, 0.3); }
-        50% { box-shadow: 0 0 14px rgba(240, 200, 102, 0.5); }
-        100% { box-shadow: 0 0 8px rgba(240, 200, 102, 0.3); }
-      }
-      
-      .item-image {
+
+      /* Glow effects by rarity */
+      .item-icon.common { box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1); }
+      .item-icon.uncommon { box-shadow: inset 0 0 8px rgba(91, 141, 217, 0.2); }
+      .item-icon.rare { box-shadow: inset 0 0 8px rgba(156, 119, 219, 0.2); }
+      .item-icon.epic { box-shadow: inset 0 0 12px rgba(240, 200, 102, 0.3); }
+
+      /* Item icon image */
+      .item-icon img {
         max-width: 80%;
         max-height: 80%;
         object-fit: contain;
         image-rendering: pixelated;
       }
-      
-      .item-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      
-      .item-rarity {
-        text-transform: capitalize;
-        font-size: 12px;
-        margin-bottom: 6px;
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 3px;
-        background-color: rgba(0, 0, 0, 0.2);
-      }
-      
-      .item-description {
-        font-size: 13px;
-        line-height: 1.4;
-        color: rgba(255, 255, 255, 0.9);
-      }
-      
-      .item-passive {
-        background-color: rgba(0, 0, 0, 0.15);
-        padding: 8px;
-        border-radius: 4px;
-        border-left: 3px solid #f0c866;
-        margin-top: 8px;
-      }
-      
-      .passive-label {
-        color: #f0c866;
-        font-size: 12px;
-        font-weight: bold;
-      }
-      
-      .card-footer {
-        padding: 10px 12px;
-        background-color: rgba(0, 0, 0, 0.2);
-      }
-      
-      .purchase-btn {
-        width: 100%;
-        padding: 8px 12px;
-        border: none;
+
+      /* Price badge */
+      .item-price {
         background-color: #5b8dd9;
         color: white;
         font-weight: bold;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
+        font-size: 14px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
-      
-      .purchase-btn:hover {
-        background-color: #4a7cc7;
+
+      /* Can't afford price */
+      .item-price.cannot-afford {
+        background-color: #e67e73;
+        text-decoration: line-through;
       }
-      
-      .purchase-btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
+
+      /* Sold out badge */
+      .sold-out-badge, .owned-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 10px;
+        padding: 3px 6px;
+        border-radius: 0 8px 0 8px;
+        font-weight: bold;
       }
-      
-      .purchase-btn.cannot-afford {
+
+      .sold-out-badge {
         background-color: #e67e73;
       }
-      
-      .purchase-btn.sold-out {
-        background-color: #777;
-      }
-      
-      .purchase-btn.already-owned {
-        background-color: #5a5a72;
-      }
-      
-      .loading-indicator {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 30px;
-        color: rgba(255, 255, 255, 0.7);
-      }
-      
-      .spinner {
-        width: 30px;
-        height: 30px;
-        border: 3px solid rgba(91, 141, 217, 0.3);
-        border-top: 3px solid #5b8dd9;
-        border-radius: 50%;
-        margin-bottom: 10px;
-        animation: spin 1s linear infinite;
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      .empty-shop-message {
-        text-align: center;
-        padding: 30px;
-        color: rgba(255, 255, 255, 0.5);
-        font-style: italic;
-      }
-      
-      /* Rarity-based styling */
-      .rarity-common {
-        border-left-color: #aaa;
-      }
-      
-      .rarity-uncommon {
-        border-left-color: #5b8dd9;
-      }
-      
-      .rarity-uncommon .item-rarity {
-        color: #5b8dd9;
-      }
-      
-      .rarity-rare {
-        border-left-color: #9c77db;
-      }
-      
-      .rarity-rare .item-rarity {
-        color: #9c77db;
-      }
-      
-      .rarity-epic {
-        border-left-color: #f0c866;
-      }
-      
-      .rarity-epic .item-rarity {
-        color: #f0c866;
+
+      .owned-badge {
+        background-color: #5b8dd9;
       }
       
       /* STANDARDIZED TOOLTIP SYSTEM */
