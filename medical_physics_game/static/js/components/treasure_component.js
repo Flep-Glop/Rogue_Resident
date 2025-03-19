@@ -139,8 +139,8 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       
       .treasure-item-icon {
         position: relative;
-        width: 80px;
-        height: 80px;
+        width: 150px;
+        height: 150px;
         background-color: var(--dark-alt);
         border-radius: var(--border-radius-sm);
         display: flex;
@@ -157,14 +157,14 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       }
       
       .treasure-item-icon .item-inner {
-        width: 70px;
-        height: 70px;
+        width: 140px;
+        height: 140px;
         display: flex;
         justify-content: center;
         align-items: center;
         position: relative;
         background-color: var(--dark);
-        border-radius: 6px;
+        border-radius: 10px;
         overflow: hidden;
       }
       
@@ -177,8 +177,8 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       }
       
       .treasure-item-icon .item-icon img {
-        max-width: 80%;
-        max-height: 80%;
+        max-width: 90%;
+        max-height: 90%;
         object-fit: contain;
         image-rendering: pixelated;
       }
@@ -225,8 +225,8 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       
       .pixel-corner {
         position: absolute;
-        width: 5px;
-        height: 5px;
+        width: 8px;
+        height: 8px;
       }
       
       .pixel-corner.top-left {
