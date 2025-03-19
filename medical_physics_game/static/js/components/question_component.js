@@ -383,7 +383,9 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
   
   // Toggle inventory panel visibility
   toggleInventory: function() {
+    console.log("toggleInventory called");
     const panel = document.getElementById('question-inventory-panel');
+    console.log("Panel found:", !!panel);
     if (!panel) return;
     
     const isVisible = panel.style.display !== 'none';
