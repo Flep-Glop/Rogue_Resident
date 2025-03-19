@@ -128,20 +128,19 @@ const InventorySystem = {
           <div class="tooltip-body">
             <p class="tooltip-desc">${item.description}</p>
             <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
-            <div class="tooltip-usage">${item.useText || 'Click to use'}</div>
-            <button class="use-item-btn">Use</button>
           </div>
         </div>
       `;
       
-      // Add use button handler
-      const useBtn = itemElement.querySelector('.use-item-btn');
-      if (useBtn) {
-        useBtn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Prevent item tooltip from closing
-          this.useItem(item.id);
-        });
-      }
+      // Add click handler directly to the item element
+      itemElement.addEventListener('click', (e) => {
+        // Prevent default behavior
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Use the item directly when clicked
+        this.useItem(item.id || item);
+      });
       
       grid.appendChild(itemElement);
     });
@@ -199,33 +198,39 @@ const InventorySystem = {
 
   // Use an item
   useItem: function(itemId) {
+    let item;
+    
+    // Handle both direct item objects and item IDs
+    if (typeof itemId === 'object') {
+      item = itemId;
+      itemId = item.id;
+    } else {
+      // Find the item by ID in the inventory
+      item = GameState.data.inventory.find(i => i.id === itemId);
+    }
+    
+    if (!item) {
+      console.error(`Item not found: ${itemId}`);
+      return false;
+    }
+    
     if (!ItemManager) {
       console.error("ItemManager not available");
-      return;
+      return false;
     }
     
     const success = ItemManager.useItem(itemId);
     
     if (success) {
       this.renderInventory(); // Refresh the display
+      
+      // Show visual feedback
+      UiUtils.showFloatingText(`Used ${item.name}!`, 'success');
     } else {
       UiUtils.showToast("Cannot use this item", "warning");
     }
-  },
-
-  // Add pixelated border effect to inventory items
-  addPixelBorder: function(element, rarity) {
-    const borderElement = document.createElement('div');
-    borderElement.className = `pixel-border ${rarity || 'common'}`;
     
-    // Create pixelated corners
-    ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(corner => {
-      const cornerElement = document.createElement('div');
-      cornerElement.className = `pixel-corner ${corner}`;
-      borderElement.appendChild(cornerElement);
-    });
-    
-    element.appendChild(borderElement);
+    return success;
   },
   
   // Get pixel art icon for an item
@@ -249,12 +254,11 @@ const InventorySystem = {
     } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
       iconFile = "detector.png";
     }
-    // Add more mappings as needed
     
     return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
   },
   
-  // Convert effect object to readable description
+  // Get effect description for display
   getEffectDescription: function(effect) {
     if (!effect) return 'No effect';
     
@@ -268,7 +272,7 @@ const InventorySystem = {
     }
   },
   
-  // Add an item to inventory (called from event)
+  // Add an item to inventory
   addItem: function(item) {
     console.log("Adding item to inventory:", item);
     
@@ -294,90 +298,6 @@ const InventorySystem = {
     EventSystem.emit(GAME_EVENTS.ITEM_ADDED_SUCCESS, item);
     
     return true;
-  },
-  
-  // Use an item at a specific index
-  useItemByIndex: function(index) {
-    if (index < 0 || index >= GameState.data.inventory.length) return;
-    
-    const item = GameState.data.inventory[index];
-    console.log(`Using item at index ${index}:`, item);
-    
-    // Try to use the item
-    if (this.useItem(item)) {
-      // Remove from inventory if successfully used
-      this.removeItem(index);
-    }
-  },
-  
-  // Use an item (apply its effect)
-  useItem: function(item) {
-    if (!item || !item.effect) return false;
-    
-    console.log("Using item:", item);
-    
-    const effect = item.effect;
-    let success = true;
-    
-    switch (effect.type) {
-      case 'insight_boost':
-        GameState.data.character.insight += parseInt(effect.value);
-        EventSystem.emit(GAME_EVENTS.INSIGHT_CHANGED, GameState.data.character.insight);
-        UiUtils.showFloatingText(`+${effect.value} Insight`, 'success');
-        break;
-        
-      case 'restore_life':
-        // Only use if not at full health
-        if (GameState.data.character.lives < GameState.data.character.max_lives) {
-          GameState.data.character.lives = Math.min(
-            GameState.data.character.lives + parseInt(effect.value),
-            GameState.data.character.max_lives
-          );
-          EventSystem.emit(GAME_EVENTS.LIVES_CHANGED, GameState.data.character.lives);
-          UiUtils.showFloatingText(`+${effect.value} Life`, 'success');
-        } else {
-          UiUtils.showFloatingText("Already at full health!", 'warning');
-          success = false;
-        }
-        break;
-        
-      case 'question_hint':
-        // Apply hint to current question
-        if (typeof NodeInteraction !== 'undefined' && 
-            NodeInteraction.currentQuestion && 
-            GameState.data.currentNode) {
-          // Apply hint logic would go here
-          UiUtils.showFloatingText("Applied hint to current question", 'success');
-        } else {
-          UiUtils.showFloatingText("No active question to apply hint to", 'warning');
-          success = false;
-        }
-        break;
-        
-      case 'extra_life':
-        // Increase max lives
-        GameState.data.character.max_lives += 1;
-        GameState.data.character.lives += 1;
-        EventSystem.emit(GAME_EVENTS.LIVES_CHANGED, GameState.data.character.lives);
-        UiUtils.showFloatingText("Increased maximum lives by 1", 'success');
-        break;
-        
-      default:
-        UiUtils.showFloatingText("Unknown effect type", 'warning');
-        success = false;
-    }
-    
-    // Save game state if possible
-    if (success && typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-      ApiClient.saveGame().catch(err => console.error("Failed to save after using item:", err));
-    }
-    
-    // Emit event if successful
-    if (success) {
-      EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
-    }
-    
-    return success;
   },
   
   // Remove an item from inventory
