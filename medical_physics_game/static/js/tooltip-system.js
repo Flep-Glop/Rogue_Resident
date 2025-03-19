@@ -200,19 +200,24 @@ const TooltipSystem = {
       this.positionTooltip(this.activeTrigger);
     },
     
-    // Handle mouse enter on tooltip triggers
+    // Minimal fix for just the handleMouseEnter function
     handleMouseEnter: function(e) {
-      // Check if target or any parent has tooltip data
-      const trigger = e.target.closest('[data-tooltip], [data-tooltip-item]');
-      if (!trigger) return;
-      
-      // Set active trigger
-      this.activeTrigger = trigger;
-      
-      // Configure and show tooltip
-      this.updateTooltipContent(trigger);
-      this.positionTooltip(trigger);
-      this.showTooltip();
+        try {
+        // Check if target or any parent has tooltip data
+        const trigger = e.target.closest('[data-tooltip], [data-tooltip-item]');
+        if (!trigger) return;
+        
+        // Set active trigger
+        this.activeTrigger = trigger;
+        
+        // Configure and show tooltip
+        this.updateTooltipContent(trigger);
+        this.positionTooltip(trigger);
+        this.showTooltip();
+        } catch(err) {
+        // Silently handle the error and continue
+        console.log("Tooltip hover handling error:", err);
+        }
     },
     
     // Handle mouse leave
