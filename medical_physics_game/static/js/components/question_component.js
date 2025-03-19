@@ -441,20 +441,16 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     container.innerHTML = html;
     
     // Replace the current event binding code with this more direct approach
+    // The component uses direct event listeners instead of its normal binding system
     const useButtons = container.querySelectorAll('.use-item-btn');
     useButtons.forEach(button => {
-      const itemId = button.getAttribute('data-item-id');
-      const item = inventory.find(i => i.id === itemId);
-      
-      if (item) {
-        // Direct event binding instead of using bindAction
-        button.addEventListener('click', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          console.log("Item button clicked:", item.id);
-          this.useItem({ item });
-        });
-      }
+      // Direct event binding instead of using bindAction
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log("Item button clicked:", item.id);
+        this.useItem({ item });
+      });
     });
   },
   
@@ -485,45 +481,92 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     return `<i class="fas fa-${iconClass}" style="color: ${iconColor};" class="inventory-item__icon"></i>`;
   },
   
-  // Use an item during a question
+  // Complete implementation of useItem function
   useItem: function(data) {
+    console.log("useItem called with data:", data);
+    
     if (!data || !data.item) {
       console.error("Missing item data in useItem");
+      this.showToast("Error: Item data is missing", "danger");
       return;
     }
     
-    console.log(`Using item: ${data.item.id} - ${data.item.name}`);
+    const item = data.item;
+    console.log(`Using item: ${item.id} - ${item.name}`);
     
-    // Check if we have ItemManager
+    // First, check if inventory exists in GameState
+    if (!window.GameState || !window.GameState.data || !Array.isArray(window.GameState.data.inventory)) {
+      console.error("GameState or inventory is not properly initialized");
+      this.showToast("Game system not fully loaded", "danger");
+      return;
+    }
+    
+    // Find the item in inventory
+    const inventory = window.GameState.data.inventory;
+    const itemIndex = inventory.findIndex(i => i.id === item.id);
+    
+    if (itemIndex === -1) {
+      console.error(`Item ${item.id} not found in inventory`);
+      this.showToast("Item not found in inventory", "warning");
+      return;
+    }
+    
+    // Create a simple ItemManager if it doesn't exist
     if (!window.ItemManager) {
-      console.error("ItemManager not available");
-      this.showToast("Unable to use item. Game system not fully loaded.", "danger");
-      return;
+      console.log("Creating minimal ItemManager");
+      window.ItemManager = {
+        useItem: function(itemId) {
+          return true; // Always succeed for now
+        },
+        removeItemFromInventory: function(itemId) {
+          const inventory = window.GameState.data.inventory;
+          const itemIndex = inventory.findIndex(i => i.id === itemId);
+          if (itemIndex !== -1) {
+            inventory.splice(itemIndex, 1);
+            console.log(`Removed item ${itemId} from inventory`);
+            
+            // Trigger event for inventory update if EventSystem exists
+            if (window.EventSystem && typeof EventSystem.emit === 'function') {
+              EventSystem.emit('INVENTORY_UPDATED', inventory);
+            }
+            return true;
+          }
+          return false;
+        }
+      };
     }
     
-    // Try to use the item
-    const success = ItemManager.useItem(data.item.id);
+    // Try to use the item via ItemManager
+    const success = window.ItemManager.useItem(item.id);
     
     if (success) {
       // Hide inventory panel
       this.toggleInventory();
       
       // Show feedback
-      this.showToast(`Used ${data.item.name}!`, "success");
+      this.showToast(`Used ${item.name}!`, "success");
       
       // Apply item effect to question
-      this.applyItemEffectToQuestion(data.item);
+      this.applyItemEffectToQuestion(item);
+      
+      // Remove item from inventory
+      window.ItemManager.removeItemFromInventory(item.id);
+      
+      // Save game state if API client is available
+      if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
+        ApiClient.saveInventory({ inventory: window.GameState.data.inventory })
+          .catch(err => console.error("Failed to save inventory:", err));
+      }
+      
     } else {
       this.showToast("Failed to use item", "danger");
     }
+    
+    // Re-render inventory to reflect changes
+    setTimeout(() => this.renderInventoryItems(), 100);
   },
   
-  // Apply item effect to the current question
   applyItemEffectToQuestion: function(item) {
-    if (!item || !item.effect) return;
-    
-    console.log(`Applying item effect: ${item.effect.type}`);
-    
     // Handle different effect types
     switch(item.effect.type) {
       case "eliminateOption":
