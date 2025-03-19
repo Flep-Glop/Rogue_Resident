@@ -177,11 +177,11 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       }
       
       .treasure-item-icon .item-icon img {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
         object-fit: contain;
         image-rendering: pixelated;
-        transform: scale(2.0); /* Make the icon much larger */
+        transform: scale(1.5); /* Moderate scaling */
       }
       
       .treasure-item-icon .item-glow {
