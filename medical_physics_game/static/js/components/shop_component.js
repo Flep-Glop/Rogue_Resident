@@ -8,30 +8,30 @@ const ShopComponent = {
     this.shopItems = [];
   },
   
-  // Render the shop
+  // Render the shop to exactly match your screenshot
   render: function(nodeData, container) {
     console.log("Rendering shop component", nodeData);
     
-    // Create basic shop structure
+    // Create shop structure to match your screenshot
     container.innerHTML = `
-      <div class="game-panel shop-panel">
+      <div class="shop-panel">
         <div class="shop-header">
           <h3>Department Store</h3>
           <div class="insight-bar">
             <span>Available Insight:</span>
-            <span id="shop-currency">${this.getPlayerInsight()}</span>
+            <span id="shop-currency" style="color: #f0c866; font-weight: bold;">${this.getPlayerInsight()}</span>
           </div>
         </div>
         
-        <p class="shop-description">Browse and purchase items using your insight points.</p>
+        <p style="color: #b8c7e0; margin-bottom: 15px;">Browse and purchase items using your insight points.</p>
         
         <div id="shop-items-container">
-          <div class="loading-indicator">
+          <div style="text-align: center; padding: 20px;">
             Loading items...
           </div>
         </div>
         
-        <button id="shop-continue-btn" class="btn btn-success w-100 mt-3">
+        <button id="shop-continue-btn" style="background-color: #56b886; color: white; border: none; width: 100%; padding: 12px; font-size: 16px; letter-spacing: 1px; cursor: pointer; margin-top: 15px; font-weight: bold;">
           LEAVE SHOP
         </button>
       </div>
@@ -52,13 +52,14 @@ const ShopComponent = {
     this.loadItems();
   },
   
-  // Add basic styles
+  // Add dedicated styles for shop component
   addStyles: function() {
     if (document.getElementById('shop-styles')) return;
     
     const styleEl = document.createElement('style');
     styleEl.id = 'shop-styles';
     styleEl.textContent = `
+      /* Main shop styling to match your screenshot */
       .shop-panel {
         background-color: #1a1c2e;
         border: 2px solid #5b8dd9;
@@ -68,21 +69,24 @@ const ShopComponent = {
       
       .shop-header {
         margin-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
       
       .shop-header h3 {
         color: #5b8dd9;
-        margin-bottom: 10px;
-        text-align: center;
+        font-size: 24px;
+        margin: 0;
+        font-weight: bold;
       }
       
+      /* Insight display in top right */
       .insight-bar {
-        background-color: #252a3d;
-        padding: 10px;
-        border-radius: 4px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        color: #ffffff;
+        font-weight: bold;
       }
       
       #shop-currency {
@@ -90,60 +94,37 @@ const ShopComponent = {
         font-weight: bold;
       }
       
-      .shop-item {
-        background-color: #252a3d;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .item-name {
-        font-weight: bold;
+      /* Shop description */
+      .shop-description {
+        margin-bottom: 20px;
+        color: #b8c7e0;
         text-align: center;
-        margin-bottom: 10px;
       }
       
-      .item-icon {
-        width: 64px;
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-        margin-bottom: 10px;
+      /* Section titles for consumables and relics */
+      .section-title {
+        color: #f0c866;
+        font-size: 18px;
+        margin: 15px 0 10px 0;
+        font-weight: bold;
       }
       
-      .item-icon img {
-        max-width: 48px;
-        max-height: 48px;
-        image-rendering: pixelated;
-      }
-      
-      .purchase-btn {
-        width: 100%;
-        padding: 8px;
+      /* Leave shop button */
+      #shop-continue-btn {
         background-color: #56b886;
         color: white;
         border: none;
-        border-radius: 4px;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 1px;
         cursor: pointer;
         text-align: center;
+        margin-top: 15px;
       }
       
-      .rare {
-        color: #9c77db;
-      }
-      
-      .uncommon {
-        color: #5b8dd9;
-      }
-      
-      .epic {
-        color: #f0c866;
+      #shop-continue-btn:hover {
+        background-color: #48a375;
       }
     `;
     
@@ -161,7 +142,8 @@ const ShopComponent = {
         price: 30,
         rarity: "uncommon",
         iconPath: "Notebook.png",
-        type: "consumable"
+        type: "consumable",
+        itemType: "consumable" // Added for compatibility
       },
       {
         id: "radiation_badge",
@@ -170,7 +152,8 @@ const ShopComponent = {
         price: 50,
         rarity: "rare",
         iconPath: "Nametag.png",
-        type: "consumable"
+        type: "consumable",
+        itemType: "consumable" // Added for compatibility
       },
       {
         id: "quantum_goggles",
@@ -179,9 +162,15 @@ const ShopComponent = {
         price: 80,
         rarity: "epic",
         iconPath: "3D Glasses.png",
-        type: "relic"
+        type: "relic",
+        itemType: "relic" // Added for compatibility
       }
     ];
+    
+    console.log("Created shop items:", items);
+    // Debug check for relics
+    const relics = items.filter(item => item.type === 'relic' || item.itemType === 'relic');
+    console.log("Filtered relics:", relics);
     
     this.shopItems = items;
     this.itemsLoaded = true;
@@ -195,49 +184,93 @@ const ShopComponent = {
     
     container.innerHTML = '';
     
-    // Create sections
+    // Create sections with styled headers matching your UI
     container.innerHTML = `
-      <div class="section-title">Consumable Items</div>
+      <div style="color: #f0c866; font-size: 18px; margin-bottom: 10px;">Consumable Items</div>
       <div id="consumables-container"></div>
-      <div class="section-title mt-3">Rare Relics</div>
-      <div id="relics-container"></div>
+      <div style="color: #f0c866; font-size: 18px; margin: 15px 0 10px 0;">Rare Relics</div>
+      <div id="relics-container" style="margin-bottom: 15px;"></div>
     `;
     
     const consumablesContainer = document.getElementById('consumables-container');
     const relicsContainer = document.getElementById('relics-container');
     
+    // Debug check
+    console.log("Rendering items, containers:", {
+      consumablesContainer: !!consumablesContainer,
+      relicsContainer: !!relicsContainer
+    });
+    
+    let consumableCount = 0;
+    let relicCount = 0;
+    
     // Render each item
     this.shopItems.forEach(item => {
+      // Determine if item is a relic (checking both properties for compatibility)
+      const isRelic = item.type === 'relic' || item.itemType === 'relic';
+      console.log(`Processing item: ${item.name}, isRelic: ${isRelic}`);
+      
       const itemEl = document.createElement('div');
       itemEl.className = 'shop-item';
+      itemEl.style.backgroundColor = '#1e2032';
+      itemEl.style.padding = '15px';
+      itemEl.style.marginBottom = '10px';
+      itemEl.style.borderRadius = '5px';
       
       const canAfford = this.getPlayerInsight() >= item.price;
       
+      // Change color based on rarity
+      let nameColor = '#ffffff';
+      if (item.rarity === 'uncommon') nameColor = '#5b8dd9';
+      if (item.rarity === 'rare') nameColor = '#9c77db';
+      if (item.rarity === 'epic') nameColor = '#f0c866';
+      
       itemEl.innerHTML = `
-        <div class="item-name ${item.rarity}">${item.name}</div>
-        <div class="item-icon">
-          <img src="/static/img/items/${item.iconPath}" alt="${item.name}">
+        <div style="text-align: center; margin-bottom: 15px; color: ${nameColor}; font-weight: bold;">${item.name}</div>
+        <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background-color: #12141d; margin: 0 auto 15px auto; border-radius: 5px;">
+          <img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="max-width: 48px; max-height: 48px; image-rendering: pixelated;">
         </div>
-        <button class="purchase-btn" data-id="${item.id}" ${!canAfford ? 'disabled' : ''}>
+        <button style="width: 100%; padding: 8px; background-color: ${canAfford ? '#56b886' : '#777777'}; color: white; border: none; border-radius: 5px; cursor: pointer; text-align: center; font-weight: bold;">
           ${item.price} INSIGHT
         </button>
       `;
       
       // Add purchase button event
-      const purchaseBtn = itemEl.querySelector('.purchase-btn');
+      const purchaseBtn = itemEl.querySelector('button');
       if (purchaseBtn && canAfford) {
         purchaseBtn.addEventListener('click', () => {
           this.purchaseItem(item);
         });
       }
       
-      // Add to appropriate container
-      if (item.type === 'relic') {
-        relicsContainer.appendChild(itemEl);
+      // Add to appropriate container based on type
+      if (isRelic) {
+        if (relicsContainer) {
+          relicsContainer.appendChild(itemEl);
+          relicCount++;
+        } else {
+          console.error("Relics container not found");
+        }
       } else {
-        consumablesContainer.appendChild(itemEl);
+        if (consumablesContainer) {
+          consumablesContainer.appendChild(itemEl);
+          consumableCount++;
+        } else {
+          console.error("Consumables container not found");
+        }
       }
     });
+    
+    console.log(`Rendered ${consumableCount} consumables and ${relicCount} relics`);
+    
+    // Add message if no relics are shown
+    if (relicCount === 0 && relicsContainer) {
+      relicsContainer.innerHTML = `
+        <div style="text-align: center; padding: 15px; color: #9c77db;">
+          No relics available at this time
+        </div>
+      `;
+    }
   },
   
   // Get player insight
