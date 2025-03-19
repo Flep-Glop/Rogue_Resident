@@ -73,6 +73,8 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     }
   },
   
+  // Integrated boss_component.js with inventory functionality
+
   // Main render function
   render: function(nodeData, container) {
     console.log("Rendering boss component", nodeData);
@@ -92,42 +94,53 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       BossHelpers.getBossData(nodeData) : 
       this.getBossData(nodeData);
     
-    // Set up the boss container with the cosmic exam theme
+    // Create a wrapper to hold both the boss content and inventory sidebar
     container.innerHTML = `
-      <div class="game-panel quantum-exam-panel anim-fade-in">
-        <div id="exam-header" class="exam-header">
-          <div class="exam-title-container">
-            <h3 class="exam-title cosmic-glow">${bossData.title || 'ABR Part 1 Examination'}</h3>
-            <div class="reality-distortion-meter" title="Reality Distortion">
-              <div class="reality-fill" style="width: ${this.getUiState('realityDistortion')}%"></div>
+      <div class="question-with-inventory-container boss-with-inventory">
+        <!-- Main boss exam panel -->
+        <div class="game-panel quantum-exam-panel anim-fade-in">
+          <div id="exam-header" class="exam-header">
+            <div class="exam-title-container">
+              <h3 class="exam-title cosmic-glow">${bossData.title || 'ABR Part 1 Examination'}</h3>
+              <div class="reality-distortion-meter" title="Reality Distortion">
+                <div class="reality-fill" style="width: ${this.getUiState('realityDistortion')}%"></div>
+              </div>
+            </div>
+            
+            <div class="exam-status">
+              <div class="time-container">
+                <span class="time-icon">⏱️</span>
+                <span class="time-remaining">${this.formatTime(this.getUiState('timeRemaining'))}</span>
+              </div>
+              
+              <div class="confidence-container">
+                <div class="confidence-bar">
+                  <div class="confidence-fill" style="width: ${this.getUiState('playerConfidence')}%"></div>
+                </div>
+                <span class="confidence-text">${this.getUiState('playerConfidence')}% Confidence</span>
+              </div>
             </div>
           </div>
           
-          <div class="exam-status">
-            <div class="time-container">
-              <span class="time-icon">⏱️</span>
-              <span class="time-remaining">${this.formatTime(this.getUiState('timeRemaining'))}</span>
-            </div>
-            
-            <div class="confidence-container">
-              <div class="confidence-bar">
-                <div class="confidence-fill" style="width: ${this.getUiState('playerConfidence')}%"></div>
-              </div>
-              <span class="confidence-text">${this.getUiState('playerConfidence')}% Confidence</span>
-            </div>
+          <div id="professor-container"></div>
+          
+          <div id="exam-phase-container" class="exam-phase-container"></div>
+          
+          <div id="exam-actions" class="exam-actions">
+            ${phaseComplete ? `
+              <button id="next-phase-btn" class="game-btn game-btn--primary cosmic-pulse w-full">
+                ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
+              </button>
+            ` : ''}
           </div>
         </div>
         
-        <div id="professor-container"></div>
-        
-        <div id="exam-phase-container" class="exam-phase-container"></div>
-        
-        <div id="exam-actions" class="exam-actions">
-          ${phaseComplete ? `
-            <button id="next-phase-btn" class="game-btn game-btn--primary cosmic-pulse w-full">
-              ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
-            </button>
-          ` : ''}
+        <!-- Inventory sidebar -->
+        <div id="question-inventory-sidebar" class="question-inventory-sidebar boss-inventory-sidebar">
+          <h4 class="inventory-sidebar-title">Inventory</h4>
+          <div id="question-inventory-items" class="inventory-sidebar-items">
+            <p class="text-center">Loading items...</p>
+          </div>
         </div>
       </div>
     `;
@@ -147,6 +160,9 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       });
     }
     
+    // Load inventory items
+    this.renderInventoryItems();
+    
     // Start exam timer if not already running
     this.startExamTimer();
     
@@ -157,7 +173,428 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       this.applyQuantumEffects();
     }
   },
-  
+
+  // Add inventory rendering function
+  renderInventoryItems: function() {
+    const container = document.getElementById('question-inventory-items');
+    if (!container) return;
+    
+    // Get inventory from game state
+    const inventory = window.GameState?.data?.inventory || [];
+    
+    // Clear container and show message if no items
+    if (!inventory || inventory.length === 0) {
+      container.innerHTML = '<p class="text-center p-md">No items in inventory</p>';
+      return;
+    }
+    
+    // Filter to only show consumable items (not relics)
+    const consumableItems = inventory.filter(item => 
+      item.itemType !== 'relic' || !item.itemType
+    );
+    
+    if (consumableItems.length === 0) {
+      container.innerHTML = '<p class="text-center p-md">No usable items</p>';
+      return;
+    }
+    
+    // Create a simple grid layout for the items
+    container.innerHTML = '';
+    
+    // Create a grid container
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'inventory-sidebar-grid';
+    container.appendChild(gridDiv);
+    
+    // Add each item
+    consumableItems.forEach(item => {
+      // Create item element
+      const itemDiv = document.createElement('div');
+      itemDiv.className = `inventory-sidebar-item ${item.rarity || 'common'}`;
+      
+      // Add item icon with appropriate styling based on rarity
+      const itemInner = document.createElement('div');
+      itemInner.className = 'inventory-sidebar-item-inner';
+      
+      // Get icon HTML
+      itemInner.innerHTML = this.getItemIcon(item);
+      
+      // Add to item div
+      itemDiv.appendChild(itemInner);
+      
+      // Setup data for tooltip and functionality
+      itemDiv.dataset.itemId = item.id;
+      itemDiv.dataset.itemName = item.name;
+      itemDiv.dataset.itemRarity = item.rarity || 'common';
+      
+      // Apply tooltips
+      if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+        TooltipSystem.registerTooltip(itemDiv, item);
+      } else if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+        UnifiedTooltipSystem.applyTooltip(itemDiv, item);
+      }
+      
+      // Add click event
+      const self = this;
+      itemDiv.addEventListener('click', function() {
+        self.useItem({ item: item });
+      });
+      
+      // Add to grid
+      gridDiv.appendChild(itemDiv);
+    });
+  },
+
+  // Helper function for item icons
+  getItemIcon: function(item) {
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;">`;
+    }
+    
+    // Map common item types to icons with inline styling for better visibility
+    const itemName = (item.name || '').toLowerCase();
+    let iconClass = "box";
+    
+    if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
+      iconClass = "book";
+    } else if (itemName.includes('potion') || itemName.includes('vial')) {
+      iconClass = "flask";
+    } else if (itemName.includes('shield') || itemName.includes('armor')) {
+      iconClass = "shield-alt";
+    } else if (itemName.includes('dosimeter') || itemName.includes('detector') || itemName.includes('badge')) {
+      iconClass = "id-badge";
+    }
+    
+    // Use inline styling to ensure visibility
+    return `<i class="fas fa-${iconClass}" style="color: #5b8dd9; font-size: 24px;"></i>`;
+  },
+
+  // Fixed useItem function
+  useItem: function(data) {
+    console.log("useItem called with data:", data);
+    
+    if (!data || !data.item) {
+      console.error("Missing item data in useItem");
+      return;
+    }
+    
+    const item = data.item;
+    console.log(`Using item: ${item.id} - ${item.name}`);
+    
+    // Apply the item effect directly
+    console.log("Applying item effect directly");
+    const effectApplied = this.applyItemEffectToQuestion(item);
+    
+    if (!effectApplied) {
+      console.error("Failed to apply item effect");
+      if (typeof this.showToast === 'function') {
+        this.showToast("Failed to use item", "error");
+      }
+      return;
+    }
+    
+    // Remove the item from inventory
+    if (window.GameState && window.GameState.data && window.GameState.data.inventory) {
+      const inventory = window.GameState.data.inventory;
+      const itemIndex = inventory.findIndex(i => i.id === item.id);
+      
+      if (itemIndex !== -1) {
+        // Remove the item
+        inventory.splice(itemIndex, 1);
+        console.log(`Removed item ${item.id} from inventory, new inventory size: ${inventory.length}`);
+        
+        // Save the inventory change via API if available
+        if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
+          ApiClient.saveInventory({ inventory: inventory })
+            .then(() => console.log("Inventory saved successfully"))
+            .catch(err => console.error("Failed to save inventory:", err));
+        }
+      } else {
+        console.error(`Item ${item.id} not found in inventory`);
+      }
+    } else {
+      console.error("GameState or inventory not available");
+    }
+    
+    // Show success message
+    if (typeof this.showToast === 'function') {
+      this.showToast(`Used ${item.name}!`, "success");
+    } else {
+      alert(`Used ${item.name}!`);
+    }
+    
+    // Force inventory update
+    this.renderInventoryItems();
+    
+    // Emit event for item used
+    if (window.EventSystem && typeof EventSystem.emit === 'function') {
+      EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
+    }
+  },
+  // Add these additional methods to the boss component
+
+  // Boss-specific item effect handler
+  applyItemEffectToQuestion: function(item) {
+    console.log(`Applying item effect:`, item.effect);
+    
+    if (!item || !item.effect) {
+      console.error("No effect defined for item");
+      return false;
+    }
+    
+    // Handle different effect types for boss fights
+    switch(item.effect.type) {
+      case "eliminateOption":
+        console.log("Eliminating incorrect option");
+        // For boss, try to find the current phase question container
+        const phaseContainer = document.querySelector('.phase-question');
+        if (phaseContainer) {
+          const optionsContainer = phaseContainer.querySelector('.options-container, .exam-options');
+          return this.eliminateIncorrectOption(item, optionsContainer);
+        }
+        return false;
+        
+      case "heal":
+        console.log("Applying healing effect");
+        // Update player lives directly
+        if (window.GameState && window.GameState.data && window.GameState.data.character) {
+          const character = window.GameState.data.character;
+          character.lives = Math.min(character.lives + (item.effect.value || 1), character.max_lives);
+          console.log(`Healed for ${item.effect.value || 1} life, new total: ${character.lives}`);
+          
+          // Update character panel if available
+          if (window.CharacterPanel && typeof CharacterPanel.updateLives === 'function') {
+            CharacterPanel.updateLives(character.lives);
+          }
+          
+          // For boss fights - increase confidence too
+          const confidenceBoost = 10; // 10% confidence boost
+          const currentConfidence = this.getUiState('playerConfidence') || 0;
+          this.setUiState('playerConfidence', Math.min(100, currentConfidence + confidenceBoost));
+          
+          // Update confidence bar
+          const confidenceFill = document.querySelector('.confidence-fill');
+          if (confidenceFill) {
+            confidenceFill.style.width = `${this.getUiState('playerConfidence')}%`;
+          }
+          
+          const confidenceText = document.querySelector('.confidence-text');
+          if (confidenceText) {
+            confidenceText.textContent = `${this.getUiState('playerConfidence')}% Confidence`;
+          }
+          
+          // Reduce reality distortion as a bonus effect
+          const currentDistortion = this.getUiState('realityDistortion') || 0;
+          if (currentDistortion > 0) {
+            const distortionReduction = Math.min(currentDistortion, 15); // Reduce by 15% max
+            this.setUiState('realityDistortion', currentDistortion - distortionReduction);
+            
+            // Update distortion meter
+            const distortionFill = document.querySelector('.reality-fill');
+            if (distortionFill) {
+              distortionFill.style.width = `${this.getUiState('realityDistortion')}%`;
+            }
+            
+            // Show feedback for distortion reduction
+            if (typeof this.showFloatingText === 'function') {
+              this.showFloatingText(`-${distortionReduction}% Reality Distortion`, "success");
+            }
+          }
+          
+          // Show feedback
+          if (typeof this.showFloatingText === 'function') {
+            this.showFloatingText(`+${item.effect.value || 1} Life`, "success");
+            this.showFloatingText(`+${confidenceBoost}% Confidence`, "success");
+          }
+          
+          return true;
+        }
+        return false;
+        
+      case "insight_gain":
+        console.log("Applying insight gain effect");
+        // Update player insight directly
+        if (window.GameState && window.GameState.data && window.GameState.data.character) {
+          const character = window.GameState.data.character;
+          const insightGain = item.effect.value || 10;
+          character.insight += insightGain;
+          console.log(`Gained ${insightGain} insight, new total: ${character.insight}`);
+          
+          // Update character panel if available
+          if (window.CharacterPanel && typeof CharacterPanel.updateInsight === 'function') {
+            CharacterPanel.updateInsight(character.insight);
+          }
+          
+          // For boss fights - increase confidence too
+          const confidenceBoost = 5; // 5% confidence boost
+          const currentConfidence = this.getUiState('playerConfidence') || 0;
+          this.setUiState('playerConfidence', Math.min(100, currentConfidence + confidenceBoost));
+          
+          // Update confidence bar
+          const confidenceFill = document.querySelector('.confidence-fill');
+          if (confidenceFill) {
+            confidenceFill.style.width = `${this.getUiState('playerConfidence')}%`;
+          }
+          
+          const confidenceText = document.querySelector('.confidence-text');
+          if (confidenceText) {
+            confidenceText.textContent = `${this.getUiState('playerConfidence')}% Confidence`;
+          }
+          
+          // Give a time boost if timer is running
+          if (this.examTimerId) {
+            const timeBonus = 30; // 30 second bonus
+            const currentTime = this.getUiState('timeRemaining') || 0;
+            this.setUiState('timeRemaining', currentTime + timeBonus);
+            
+            // Update time display
+            const timeRemainingElement = document.querySelector('.time-remaining');
+            if (timeRemainingElement) {
+              timeRemainingElement.textContent = this.formatTime(this.getUiState('timeRemaining'));
+            }
+            
+            // Show time bonus feedback
+            if (typeof this.showFloatingText === 'function') {
+              this.showFloatingText(`+${timeBonus}s Time`, "success");
+            }
+          }
+          
+          // Show feedback
+          if (typeof this.showFloatingText === 'function') {
+            this.showFloatingText(`+${insightGain} Insight`, "success");
+            this.showFloatingText(`+${confidenceBoost}% Confidence`, "success");
+          }
+          
+          return true;
+        }
+        return false;
+        
+      default:
+        console.log(`Unhandled effect type: ${item.effect.type}`);
+        return false;
+    }
+  },
+
+  // Specialized version for boss component
+  eliminateIncorrectOption: function(item, customOptionsContainer) {
+    console.log("Executing eliminateIncorrectOption in boss context");
+    
+    // Try to get the current phase's question
+    let correctIndex = null;
+    let question = null;
+    
+    // First try to get from current phase
+    const currentPhase = this.getUiState('currentPhase');
+    const bossData = window.BossHelpers ? 
+      BossHelpers.getBossData(this.getUiState('currentNodeData')) : 
+      this.getBossData(this.getUiState('currentNodeData'));
+    
+    if (bossData && bossData.phases && bossData.phases[currentPhase] && 
+        bossData.phases[currentPhase].question && 
+        typeof bossData.phases[currentPhase].question.correct === 'number') {
+      
+      question = bossData.phases[currentPhase].question;
+      correctIndex = question.correct;
+    }
+    // Fallback to nodeData
+    else if (this.getUiState('currentNodeData') && 
+        this.getUiState('currentNodeData').question && 
+        typeof this.getUiState('currentNodeData').question.correct === 'number') {
+      
+      question = this.getUiState('currentNodeData').question;
+      correctIndex = question.correct;
+    }
+    
+    if (correctIndex === null || !question) {
+      console.log("Can't determine correct answer from question data");
+      
+      if (typeof this.showToast === 'function') {
+        this.showToast("Can't determine correct answer", "warning");
+      } else {
+        console.warn("Can't determine correct answer");
+      }
+      return false;
+    }
+    
+    console.log("Correct answer index:", correctIndex);
+    
+    // Get options container - either custom provided or find from DOM
+    const optionsContainer = customOptionsContainer || 
+                            document.querySelector('.phase-question .options-container') || 
+                            document.querySelector('.phase-question .exam-options') ||
+                            document.getElementById('options-container');
+    
+    if (!optionsContainer) {
+      console.error("Options container not found");
+      return false;
+    }
+    
+    const options = optionsContainer.querySelectorAll('.game-option:not(.disabled):not(.eliminated-option), .exam-option:not(.disabled):not(.eliminated-option)');
+    console.log("Found options:", options.length);
+    
+    // Find incorrect options
+    const incorrectOptions = Array.from(options).filter((option) => {
+      // Get index from data attribute or position
+      const optionIndex = option.dataset.index ? parseInt(option.dataset.index) : 
+                        Array.from(options).indexOf(option);
+      return optionIndex !== correctIndex;
+    });
+    
+    console.log("Incorrect options:", incorrectOptions.length);
+    
+    // If we have incorrect options, choose one randomly to eliminate
+    if (incorrectOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * incorrectOptions.length);
+      const optionToEliminate = incorrectOptions[randomIndex];
+      
+      // Mark as eliminated
+      optionToEliminate.classList.add('eliminated-option');
+      optionToEliminate.style.opacity = '0.5';
+      optionToEliminate.innerHTML = `<s>${optionToEliminate.textContent}</s> <span class="badge badge-danger float-right">Eliminated</span>`;
+      optionToEliminate.disabled = true;
+      
+      // Show feedback
+      if (typeof this.showToast === 'function') {
+        this.showToast("Incorrect option eliminated!", "success");
+      } else if (typeof this.showFloatingText === 'function') {
+        this.showFloatingText("Incorrect option eliminated!", "success");
+      } else {
+        alert("Incorrect option eliminated!");
+      }
+      
+      // For boss fights, drop reality distortion slightly
+      const currentDistortion = this.getUiState('realityDistortion') || 0;
+      if (currentDistortion > 0) {
+        const distortionReduction = 5; // 5% reduction
+        this.setUiState('realityDistortion', Math.max(0, currentDistortion - distortionReduction));
+        
+        // Update distortion meter
+        const distortionFill = document.querySelector('.reality-fill');
+        if (distortionFill) {
+          distortionFill.style.width = `${this.getUiState('realityDistortion')}%`;
+        }
+        
+        // Show distortion reduction
+        if (typeof this.showFloatingText === 'function') {
+          this.showFloatingText(`-${distortionReduction}% Reality Distortion`, "success");
+        }
+      }
+      
+      console.log("Successfully eliminated an option");
+      return true;
+    } else {
+      console.log("No incorrect options available to eliminate");
+      
+      // Show feedback
+      if (typeof this.showToast === 'function') {
+        this.showToast("No incorrect options available to eliminate", "warning");
+      } else {
+        console.warn("No incorrect options available to eliminate");
+      }
+      return false;
+    }
+  },
   // Render professor using helper or inline
   renderProfessor: function(bossData, currentPhase, phaseComplete) {
     const professorContainer = document.getElementById('professor-container');

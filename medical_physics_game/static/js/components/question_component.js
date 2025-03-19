@@ -504,12 +504,21 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     // Apply the item effect directly
     console.log("Applying item effect directly");
-    this.applyItemEffectToQuestion(item);
+    const effectApplied = this.applyItemEffectToQuestion(item);
+    
+    if (!effectApplied) {
+      console.error("Failed to apply item effect");
+      if (typeof this.showToast === 'function') {
+        this.showToast("Failed to use item", "error");
+      }
+      return;
+    }
     
     // Remove the item from inventory
     if (window.GameState && window.GameState.data && window.GameState.data.inventory) {
       const inventory = window.GameState.data.inventory;
       const itemIndex = inventory.findIndex(i => i.id === item.id);
+      
       if (itemIndex !== -1) {
         // Remove the item
         inventory.splice(itemIndex, 1);
@@ -521,11 +530,12 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
             .then(() => console.log("Inventory saved successfully"))
             .catch(err => console.error("Failed to save inventory:", err));
         }
+      } else {
+        console.error(`Item ${item.id} not found in inventory`);
       }
+    } else {
+      console.error("GameState or inventory not available");
     }
-    
-    // Hide inventory panel
-    this.toggleInventory();
     
     // Show success message
     if (typeof this.showToast === 'function') {
@@ -534,24 +544,29 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       alert(`Used ${item.name}!`);
     }
     
-    // Force inventory update on next toggle
-    this.setUiState('inventoryLoaded', false);
+    // Force inventory update
+    this.renderInventoryItems();
+    
+    // Emit event for item used
+    if (window.EventSystem && typeof EventSystem.emit === 'function') {
+      EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
+    }
   },
   
+  // Helper function to apply item effects
   applyItemEffectToQuestion: function(item) {
     console.log(`Applying item effect:`, item.effect);
     
     if (!item || !item.effect) {
       console.error("No effect defined for item");
-      return;
+      return false;
     }
     
     // Handle different effect types
     switch(item.effect.type) {
       case "eliminateOption":
         console.log("Eliminating incorrect option");
-        this.eliminateIncorrectOption(item);
-        break;
+        return this.eliminateIncorrectOption(item);
         
       case "heal":
         console.log("Applying healing effect");
@@ -560,21 +575,50 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
           const character = window.GameState.data.character;
           character.lives = Math.min(character.lives + (item.effect.value || 1), character.max_lives);
           console.log(`Healed for ${item.effect.value || 1} life, new total: ${character.lives}`);
+          
+          // Update character panel if available
+          if (window.CharacterPanel && typeof CharacterPanel.updateLives === 'function') {
+            CharacterPanel.updateLives(character.lives);
+          }
+          
+          // Show feedback
+          if (typeof this.showFloatingText === 'function') {
+            this.showFloatingText(`+${item.effect.value || 1} Life`, "success");
+          }
+          
+          return true;
         }
+        return false;
         
-        // Show visual feedback
-        if (typeof this.showFloatingText === 'function') {
-          this.showFloatingText(`+${item.effect.value || 1} Life`, "success");
+      case "insight_gain":
+        console.log("Applying insight gain effect");
+        // Update player insight directly
+        if (window.GameState && window.GameState.data && window.GameState.data.character) {
+          const character = window.GameState.data.character;
+          const insightGain = item.effect.value || 10;
+          character.insight += insightGain;
+          console.log(`Gained ${insightGain} insight, new total: ${character.insight}`);
+          
+          // Update character panel if available
+          if (window.CharacterPanel && typeof CharacterPanel.updateInsight === 'function') {
+            CharacterPanel.updateInsight(character.insight);
+          }
+          
+          // Show feedback
+          if (typeof this.showFloatingText === 'function') {
+            this.showFloatingText(`+${insightGain} Insight`, "success");
+          }
+          
+          return true;
         }
-        break;
+        return false;
         
       default:
         console.log(`Unhandled effect type: ${item.effect.type}`);
+        return false;
     }
-    
-    console.log("Effect applied successfully");
   },
-  
+
   // Fixed eliminateIncorrectOption function
   eliminateIncorrectOption: function(item) {
     console.log("Executing eliminateIncorrectOption");
@@ -590,7 +634,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       } else {
         console.warn("Can't determine correct answer");
       }
-      return;
+      return false;
     }
     
     const question = this.getUiState('currentNodeData').question;
@@ -601,7 +645,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     const optionsContainer = document.getElementById('options-container');
     if (!optionsContainer) {
       console.error("Options container not found");
-      return;
+      return false;
     }
     
     const options = optionsContainer.querySelectorAll('.game-option:not(.disabled):not(.eliminated-option)');
@@ -634,6 +678,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       }
       
       console.log("Successfully eliminated an option");
+      return true;
     } else {
       console.log("No incorrect options available to eliminate");
       
@@ -643,6 +688,7 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       } else {
         console.warn("No incorrect options available to eliminate");
       }
+      return false;
     }
   },
   

@@ -528,3 +528,86 @@
 .reality-warped {
   animation: reality-warp 10s infinite alternate;
 }
+
+/* Adjustments for the quantum boss exam with inventory */
+.boss-with-inventory {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  position: relative;
+}
+
+/* Make the main quantum exam panel take most of the space */
+.quantum-exam-panel {
+  flex: 1;
+  min-width: 0; /* Allow panel to shrink if needed */
+}
+
+/* Special styling for boss inventory sidebar */
+.boss-inventory-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  background-color: rgba(30, 30, 50, 0.7); /* More transparent for quantum theme */
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  max-height: 600px;
+  overflow-y: auto;
+  align-self: flex-start;
+  position: sticky;
+  top: var(--spacing-md);
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3); /* Glowing effect for quantum theme */
+}
+
+/* Add quantum effect to inventory title */
+.boss-inventory-sidebar .inventory-sidebar-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: var(--font-size-sm);
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px dashed rgba(91, 141, 217, 0.4);
+  text-shadow: 0 0 8px var(--primary); /* Glowing effect */
+}
+
+/* Add quantum effects to items */
+.boss-inventory-sidebar .inventory-sidebar-item:hover {
+  transform: translateY(-3px) scale(1.05);
+  filter: brightness(1.2);
+  box-shadow: 0 0 12px var(--primary);
+}
+
+/* Quantum animation for epic items */
+@keyframes quantum-pulse {
+  0% { box-shadow: 0 0 5px var(--secondary) inset; opacity: 0.9; }
+  50% { box-shadow: 0 0 12px var(--secondary) inset; opacity: 1; }
+  100% { box-shadow: 0 0 5px var(--secondary) inset; opacity: 0.9; }
+}
+
+.boss-inventory-sidebar .inventory-sidebar-item.epic .inventory-sidebar-item-inner {
+  animation: quantum-pulse 2s infinite;
+}
+
+/* Modal positioning adjustment */
+.node-modal-overlay .boss-with-inventory {
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .boss-with-inventory {
+    flex-direction: column;
+  }
+  
+  .boss-inventory-sidebar {
+    width: 100%;
+    max-height: 200px;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .boss-inventory-sidebar .inventory-sidebar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
