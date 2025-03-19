@@ -476,7 +476,6 @@ const InventorySystem = {
     }
   },
   
-  // Render consumable items
   renderItems: function() {
     const itemsContainer = document.getElementById('items-container');
     if (!itemsContainer) return;
@@ -503,10 +502,10 @@ const InventorySystem = {
     
     const grid = itemsContainer.querySelector('.inventory-grid');
     
-    // Add each item with the unified tooltip system
+    // Add each item with the tooltip system
     items.forEach((item, index) => {
       const itemElement = document.createElement('div');
-      itemElement.className = `inventory-item ${item.rarity || 'common'} tooltip-trigger`;
+      itemElement.className = `inventory-item ${item.rarity || 'common'}`;
       itemElement.dataset.index = index;
       itemElement.dataset.itemId = item.id;
       
@@ -523,9 +522,9 @@ const InventorySystem = {
         </div>
       `;
       
-      // Add tooltip using UnifiedTooltipSystem
-      if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
-        UnifiedTooltipSystem.applyTooltip(itemElement, item);
+      // Register with tooltip system
+      if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+        TooltipSystem.registerTooltip(itemElement, item);
       }
       
       // Add click handler
@@ -542,12 +541,11 @@ const InventorySystem = {
     });
   },
 
-  // Render relics using the unified tooltip system
   renderRelics: function() {
     const relicsContainer = document.getElementById('relics-container');
     if (!relicsContainer) return;
     
-    // Filter inventory to only show relics
+    // Filter to only show relics
     const relics = window.GameState && GameState.data && GameState.data.inventory ? 
       GameState.data.inventory.filter(item => 
       item.itemType === 'relic') : [];
@@ -569,10 +567,10 @@ const InventorySystem = {
     
     const grid = relicsContainer.querySelector('.relic-grid');
     
-    // Add each relic with the unified tooltip system
+    // Add each relic
     relics.forEach((relic, index) => {
       const relicElement = document.createElement('div');
-      relicElement.className = `relic-item ${relic.rarity || 'common'} tooltip-trigger`;
+      relicElement.className = `relic-item ${relic.rarity || 'common'}`;
       relicElement.dataset.index = index;
       relicElement.dataset.itemId = relic.id;
       
@@ -589,9 +587,9 @@ const InventorySystem = {
         </div>
       `;
       
-      // Add tooltip using UnifiedTooltipSystem
-      if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
-        UnifiedTooltipSystem.applyTooltip(relicElement, relic);
+      // Register with tooltip system
+      if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+        TooltipSystem.registerTooltip(relicElement, relic);
       }
       
       grid.appendChild(relicElement);

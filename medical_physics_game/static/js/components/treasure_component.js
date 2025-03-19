@@ -19,7 +19,6 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     }
   },
   
-  // Render treasure component
   render: function(nodeData, container) {
     console.log("Rendering treasure component", nodeData);
     
@@ -74,7 +73,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
           <h3 class="text-warning glow-text anim-pulse-warning">${this.generateTreasureTitle()}</h3>
         </div>
         
-        <div id="treasure-item-card" class="treasure-item-card tooltip-trigger ${itemRarity}">
+        <div id="treasure-item-card" class="treasure-item-card ${itemRarity}">
           <div class="item-header">
             <h4 class="item-title">${nodeData.item.name}</h4>
             <span class="item-rarity-badge">${itemRarity}</span>
@@ -109,10 +108,12 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       </div>
     `;
     
-    // Apply tooltip to the item card
-    const itemCard = document.getElementById('treasure-item-card');
-    if (itemCard && window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
-      UnifiedTooltipSystem.applyTooltip(itemCard, nodeData.item);
+    // Register with tooltip system
+    if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+      const itemCard = document.getElementById('treasure-item-card');
+      if (itemCard) {
+        TooltipSystem.registerTooltip(itemCard, nodeData.item);
+      }
     }
     
     // Add treasure component styles

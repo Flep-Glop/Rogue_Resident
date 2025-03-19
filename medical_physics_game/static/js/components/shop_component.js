@@ -314,7 +314,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Create a simplified item card with just icon and price that uses unified tooltips
+  // Replace tooltip code in createItemCard with:
   createItemCard: function(item) {
     const canAfford = this.getPlayerInsight() >= item.price;
     const isPurchased = this.purchasedItems.has(item.id);
@@ -322,7 +322,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // Create card container
     const card = document.createElement('div');
-    card.className = `simplified-shop-item ${item.rarity || 'common'} tooltip-trigger`;
+    card.className = `simplified-shop-item ${item.rarity || 'common'}`;
     if (isPurchased) card.classList.add('purchased');
     if (isInInventory && item.itemType === 'relic') card.classList.add('owned');
     if (!isPurchased && !(isInInventory && item.itemType === 'relic') && canAfford) {
@@ -346,9 +346,9 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       ${isInInventory && item.itemType === 'relic' ? '<div class="owned-badge">OWNED</div>' : ''}
     `;
     
-    // Add tooltip using the UnifiedTooltipSystem
-    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
-      UnifiedTooltipSystem.applyTooltip(card, item);
+    // Register with tooltip system
+    if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+      TooltipSystem.registerTooltip(card, item);
     }
     
     // Only make clickable if not purchased/owned and can afford

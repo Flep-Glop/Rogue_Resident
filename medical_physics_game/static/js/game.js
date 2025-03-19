@@ -397,8 +397,13 @@ function initializeGame() {
       if (typeof InventorySystem !== 'undefined' && typeof InventorySystem.initialize === 'function') {
         InventorySystem.initialize();
       }
-      
-      // 14. Initialize save manager
+
+      // 14. Initialize tooltip system (new step)
+      if (typeof TooltipSystem !== 'undefined' && typeof TooltipSystem.initialize === 'function') {
+        TooltipSystem.initialize();
+      }
+
+      // 15. Initialize save manager
       if (typeof SaveManager !== 'undefined' && typeof SaveManager.initialize === 'function') {
         SaveManager.initialize();
       }
