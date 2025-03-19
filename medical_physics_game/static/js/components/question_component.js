@@ -440,14 +440,20 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     html += '</div>';
     container.innerHTML = html;
     
-    // Add click handlers for use buttons
+    // Replace the current event binding code with this more direct approach
     const useButtons = container.querySelectorAll('.use-item-btn');
     useButtons.forEach(button => {
       const itemId = button.getAttribute('data-item-id');
       const item = inventory.find(i => i.id === itemId);
       
       if (item) {
-        this.bindAction(button, 'click', 'useItem', { item });
+        // Direct event binding instead of using bindAction
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          console.log("Item button clicked:", item.id);
+          this.useItem({ item });
+        });
       }
     });
   },
