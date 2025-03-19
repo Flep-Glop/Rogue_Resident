@@ -1,70 +1,101 @@
-// character_assets.js - Central manager for character images and animations
-// Place this file in: medical_physics_game/static/js/character_assets.js
-// At the beginning of character_assets.js, add:
-if (typeof CharacterAssets !== 'undefined') {
-    console.warn('CharacterAssets already defined, skipping redefinition');
-  } else {
-    const CharacterAssets = {
-        // Character image data
-        characters: {
-            'resident': {
-                imagePath: '/static/img/characters/resident.png',
-                // You can add animation frames later if needed
-                animationFrames: [
-                    '/static/img/characters/resident.png',
-                    // Add more frames if you create them
-                ]
-            },
-            'physicist': {
-                imagePath: '/static/img/characters/physicist.png',
-                animationFrames: [
-                    '/static/img/characters/physicist.png',
-                    // Add more frames if you create them
-                ]
-            },
-            'qa_specialist': {
-                imagePath: '/static/img/characters/qa_specialist.png',
-                animationFrames: [
-                    '/static/img/characters/qa_specialist.png',
-                    // Add more frames if you create them
-                ]
-            },
-            'debug_mode': {
-                imagePath: '/static/img/characters/debug_mode.png',
-                animationFrames: [
-                    '/static/img/characters/debug_mode.png',
-                    // Add more frames if you create them
-                ]
-            }
+// character_assets.js - Modified to prevent redeclaration issues
+
+// Define CharacterAssets globally to avoid scope issues
+// Check if it's already defined first
+if (typeof window.CharacterAssets === 'undefined') {
+    // Define CharacterAssets as a global object
+    window.CharacterAssets = {
+      // Character data
+      characters: {
+        physicist: {
+          name: "Medical Physicist",
+          description: "Specializes in physics concepts and measurements.",
+          imagePath: "/static/img/characters/physicist.png",
+          stats: {
+            startingInsight: 50,
+            startingLives: 3,
+            maxLives: 5
+          },
+          perks: [
+            "Starts with extra insight",
+            "Better understanding of radiation physics"
+          ]
         },
-        
-        // Get character ID from name
-        getCharacterIdFromName: function(characterName) {
-            if (characterName.includes('Physicist')) return 'physicist';
-            if (characterName.includes('QA')) return 'qa_specialist';
-            if (characterName.includes('Debug')) return 'debug_mode';
-            return 'resident'; // Default
+        resident: {
+          name: "Resident Physician",
+          description: "Medical doctor in radiation oncology training.",
+          imagePath: "/static/img/characters/resident.png",
+          stats: {
+            startingInsight: 30,
+            startingLives: 4,
+            maxLives: 6
+          },
+          perks: [
+            "More resilient to mistakes",
+            "Better at patient cases"
+          ]
         },
-        
-        // Get image path for a character
-        getCharacterImagePath: function(characterIdOrName) {
-            // If given a name, convert to ID
-            const characterId = characterIdOrName.includes(' ') ? 
-                this.getCharacterIdFromName(characterIdOrName) : characterIdOrName;
-                
-            return this.characters[characterId]?.imagePath || '/static/img/characters/resident.png';
-        },
-        
-        // Get animation frames for a character
-        getAnimationFrames: function(characterIdOrName) {
-            // If given a name, convert to ID
-            const characterId = characterIdOrName.includes(' ') ? 
-                this.getCharacterIdFromName(characterIdOrName) : characterIdOrName;
-                
-            return this.characters[characterId]?.animationFrames || 
-                this.characters['resident'].animationFrames;
+        qa_specialist: {
+          name: "QA Specialist",
+          description: "Expert in quality assurance procedures.",
+          imagePath: "/static/img/characters/qa_specialist.png",
+          stats: {
+            startingInsight: 40,
+            startingLives: 3,
+            maxLives: 5
+          },
+          perks: [
+            "Finds more errors in setups",
+            "Better at practical questions"
+          ]
         }
+      },
+  
+      // Character progression data
+      progression: {
+        levelThresholds: [0, 100, 250, 450, 700, 1000, 1500, 2000, 3000, 5000],
+        
+        unlockables: {
+          level2: {
+            characters: ["resident"],
+            items: ["basic_manual"]
+          },
+          level3: {
+            characters: ["qa_specialist"],
+            items: ["advanced_dosimeter"]
+          }
+        }
+      },
+      
+      // Get all character keys
+      getCharacterKeys: function() {
+        return Object.keys(this.characters);
+      },
+      
+      // Get character data by key
+      getCharacter: function(key) {
+        return this.characters[key] || null;
+      },
+      
+      // Get progression level based on experience
+      getProgressionLevel: function(experience) {
+        const thresholds = this.progression.levelThresholds;
+        for (let i = thresholds.length - 1; i >= 0; i--) {
+          if (experience >= thresholds[i]) {
+            return i;
+          }
+        }
+        return 0;
+      }
     };
-}
-// Make it globally available
-window.CharacterAssets = CharacterAssets;
+    
+    console.log("CharacterAssets initialized");
+  } else {
+    console.warn("CharacterAssets already defined, using existing definition");
+  }
+  
+  // Export CharacterAssets to make sure it's globally available
+  // This is redundant but ensures compatibility with different module systems
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = window.CharacterAssets;
+  }
