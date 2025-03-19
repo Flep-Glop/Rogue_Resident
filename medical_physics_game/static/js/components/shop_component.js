@@ -1,4 +1,4 @@
-// shop_component.js - Refactored implementation with new design architecture
+// shop_component.js - Simplified implementation with consistent icon handling
 
 const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
@@ -8,41 +8,16 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     // Initialize UI state
     this.setUiState('itemsLoaded', false);
     this.setUiState('shopItems', []);
-    
-    // Subscribe to design bridge changes
-    if (window.DesignBridge && window.DesignBridge.subscribe) {
-      window.DesignBridge.subscribe(this.onDesignChanged.bind(this));
-    }
   },
   
-  // Handle design system changes
-  onDesignChanged: function(designBridge) {
-    // Update shop appearance if active
-    const container = document.getElementById('shop-container');
-    if (container && container.style.display !== 'none') {
-      this.refreshShopAppearance();
-    }
-  },
-  
-  // Refresh shop appearance with design tokens
-  refreshShopAppearance: function() {
-    const currencyDisplay = document.getElementById('shop-currency');
-    if (currencyDisplay) {
-      currencyDisplay.style.color = window.DesignBridge?.colors?.warning || '#f0c866';
-    }
-  },
-  
-  // Simplified shop_component.js render function
+  // Render the shop with a clean, minimal design
   render: function(nodeData, container) {
     console.log("Rendering shop component", nodeData);
     
-    // Get colors from design bridge if available
-    const shopColor = window.DesignBridge?.colors?.nodeShop || '#5bbcd9';
-    
-    // Create shop UI with clean, minimal design matching screenshot
+    // Create basic shop structure
     container.innerHTML = `
-      <div class="game-panel shadow-md">
-        <div class="shop-header flex justify-between items-center">
+      <div class="game-panel">
+        <div class="shop-header">
           <h3>Department Store</h3>
           <div class="insight-display">
             <span>Available Insight:</span>
@@ -59,7 +34,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
           </div>
         </div>
         
-        <button id="shop-continue-btn" class="game-btn w-full">
+        <button id="shop-continue-btn" class="game-btn game-btn--primary w-full mt-md">
           Leave Shop
         </button>
       </div>
@@ -89,6 +64,11 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         return response.json();
       })
       .then(items => {
+        // Add price to each item based on rarity
+        items.forEach(item => {
+          item.price = this.getItemBasePrice(item.rarity || 'common');
+        });
+        
         // Save items in UI state
         this.setUiState('itemsLoaded', true);
         this.setUiState('shopItems', items);
@@ -97,11 +77,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         this.renderShopItems(items);
       })
       .catch(error => {
-        ErrorHandler.handleError(
-          error, 
-          "Shop Items Loading", 
-          ErrorHandler.SEVERITY.WARNING
-        );
+        console.error("Failed to load shop items:", error);
         
         // Show error message
         const container = document.getElementById('shop-items-container');
@@ -115,7 +91,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       });
   },
   
-  // Simplified rendering of shop items
+  // Render shop items with consistent icon handling
   renderShopItems: function(items) {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
@@ -144,6 +120,9 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         </div>
         
         <div class="shop-item-body">
+          <div class="item-icon-container">
+            ${this.getItemIcon(item)}
+          </div>
           <div class="rarity-badge ${rarity}">${rarity}</div>
           <p class="item-description">${item.description}</p>
           <div class="item-effect">${item.effect?.value || 'No effect'}</div>
@@ -165,6 +144,17 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     });
   },
   
+  // Get consistent item icon (matching inventory system)
+  getItemIcon: function(item) {
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+    }
+    
+    // Fallback to a default icon
+    return `<img src="/static/img/items/default.png" alt="${item.name}" class="pixel-item-icon-img">`;
+  },
+  
   // Get base price for an item based on rarity
   getItemBasePrice: function(rarity) {
     switch(rarity) {
@@ -176,31 +166,9 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Get icon for an item
-  getItemIcon: function(item) {
-    // Use design bridge for colors if available
-    const iconColor = window.DesignBridge?.colors?.primary || "#5b8dd9";
-    
-    // Check if the item has a custom icon path
-    if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixelated">`;
-    }
-    
-    // Map common item types to icons
-    const itemName = item.name.toLowerCase();
-    let iconClass = "default";
-    
-    if (itemName.includes('book') || itemName.includes('manual')) {
-      iconClass = "book";
-    } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconClass = "potion";
-    } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconClass = "shield";
-    } else if (itemName.includes('dosimeter') || itemName.includes('detector')) {
-      iconClass = "detector";
-    }
-    
-    return `<i class="fas fa-${iconClass}" style="color: ${iconColor};"></i>`;
+  // Get player's current insight
+  getPlayerInsight: function() {
+    return window.GameState?.data?.character?.insight || 0;
   },
   
   // Purchase an item
@@ -234,8 +202,6 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         const currencyElement = document.getElementById('shop-currency');
         if (currencyElement) {
           currencyElement.textContent = this.getPlayerInsight();
-          currencyElement.classList.add('anim-pulse-warning');
-          setTimeout(() => currencyElement.classList.remove('anim-pulse-warning'), 1000);
         }
         
         // Remove item from shop
@@ -254,21 +220,28 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
   
   // Show purchase animation
   showPurchaseAnimation: function(callback) {
-    // Create a quick animation overlay
+    // Create a simple overlay for feedback
     const overlay = document.createElement('div');
-    overlay.className = 'position-fixed top-0 left-0 w-full h-full';
+    overlay.className = 'purchase-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
     overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
     overlay.style.zIndex = '9999';
     overlay.style.display = 'flex';
     overlay.style.justifyContent = 'center';
     overlay.style.alignItems = 'center';
-    overlay.style.animation = 'fade-in 0.2s';
     
     const message = document.createElement('div');
-    message.className = 'bg-background-alt p-lg rounded-md text-center';
+    message.className = 'purchase-message';
+    message.style.backgroundColor = '#2a2a36';
+    message.style.padding = '20px';
+    message.style.borderRadius = '5px';
+    message.style.textAlign = 'center';
     message.innerHTML = `
-      <div class="text-xl text-secondary mb-md">Purchase Complete!</div>
-      <div class="spinner-border mb-md"></div>
+      <div style="font-size: 18px; color: #56b886; margin-bottom: 10px;">Purchase Complete!</div>
       <div>Adding to inventory...</div>
     `;
     
@@ -277,12 +250,82 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // Remove after short delay
     setTimeout(() => {
-      overlay.style.animation = 'fade-out 0.2s';
-      overlay.addEventListener('animationend', () => {
-        document.body.removeChild(overlay);
-        if (callback) callback();
-      });
+      document.body.removeChild(overlay);
+      if (callback) callback();
     }, 700);
+  },
+  
+  // Update player insight
+  updatePlayerInsight: function(amount) {
+    if (window.GameState && GameState.data && GameState.data.character) {
+      GameState.data.character.insight += amount;
+      
+      // Notify UI systems of the change
+      if (window.EventSystem) {
+        EventSystem.emit(GAME_EVENTS.INSIGHT_CHANGED, GameState.data.character.insight);
+      }
+      
+      // Save game state
+      if (window.ApiClient && ApiClient.saveGame) {
+        ApiClient.saveGame();
+      }
+    }
+  },
+  
+  // Add item to inventory
+  addItemToInventory: function(item) {
+    // Use inventory system if available
+    if (window.InventorySystem && typeof InventorySystem.addItem === 'function') {
+      return InventorySystem.addItem(item);
+    }
+    
+    // Fallback to direct GameState manipulation
+    if (window.GameState && GameState.data) {
+      if (!GameState.data.inventory) {
+        GameState.data.inventory = [];
+      }
+      
+      // Check inventory size limit
+      const maxSize = 5;
+      if (GameState.data.inventory.length >= maxSize) {
+        return false;
+      }
+      
+      // Add the item
+      GameState.data.inventory.push(item);
+      
+      // Emit item added event
+      if (window.EventSystem) {
+        EventSystem.emit(GAME_EVENTS.ITEM_ADDED, item);
+      }
+      
+      // Save inventory
+      if (window.ApiClient && ApiClient.saveInventory) {
+        ApiClient.saveInventory({ inventory: GameState.data.inventory });
+      }
+      
+      return true;
+    }
+    
+    return false;
+  },
+  
+  // Show toast message
+  showToast: function(message, type) {
+    if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+      UiUtils.showToast(message, type);
+    } else {
+      console.log(`[${type}] ${message}`);
+    }
+  },
+  
+  // Show feedback message
+  showFeedback: function(message, type) {
+    if (window.UiUtils && typeof UiUtils.showFloatingText === 'function') {
+      UiUtils.showFloatingText(message, type);
+    } else {
+      this.showToast(message, type);
+    }
   },
   
   // Handle component actions
