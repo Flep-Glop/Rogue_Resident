@@ -381,35 +381,50 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     }
   },
   
-  // Toggle inventory panel visibility
   toggleInventory: function() {
     console.log("toggleInventory called");
     const panel = document.getElementById('question-inventory-panel');
     console.log("Panel found:", !!panel);
+    
     if (!panel) return;
     
     const isVisible = panel.style.display !== 'none';
+    console.log("Is currently visible:", isVisible);
+    
+    // IMPORTANT: This is a possible bug - for elements with inline style="display: none",
+    // the first toggle might not work because of how browsers handle defaulting styles
+    if (panel.style.display === '') {
+      panel.style.display = 'none'; // Ensure we start with a defined state
+    }
+    
+    // Force the display opposite of current
     panel.style.display = isVisible ? 'none' : 'block';
+    console.log("Setting display to:", panel.style.display);
     
     // Update UI state
     this.setUiState('inventoryVisible', !isVisible);
     
     // If showing the panel, load items
     if (!isVisible) {
+      console.log("Panel becoming visible, rendering items");
       this.renderInventoryItems();
     }
   },
   
-  // Render inventory items in the panel
   renderInventoryItems: function() {
+    console.log("renderInventoryItems called");
     const container = document.getElementById('question-inventory-items');
+    console.log("Items container found:", !!container);
+    
     if (!container) return;
     
     // Get inventory from game state
     const inventory = window.GameState?.data?.inventory || [];
+    console.log("Inventory items:", inventory);
     
     // Clear container and show message if no items
     if (!inventory || inventory.length === 0) {
+      console.log("No items in inventory");
       container.innerHTML = '<p class="text-center text-muted">No items in inventory</p>';
       return;
     }
@@ -419,19 +434,20 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     inventory.forEach(item => {
       const rarity = item.rarity || 'common';
+      console.log("Rendering item:", item.id, item.name);
+      
+      // Simpler item HTML to reduce potential issues
       html += `
         <div class="inventory-item inventory-item--${rarity}" data-item-id="${item.id}">
           <div class="inventory-item__inner">
             ${this.getItemIcon(item)}
           </div>
           <div class="item-tooltip">
-            <div class="item-tooltip__header item-tooltip__header--${rarity}">
-              <span class="item-tooltip__title">${item.name}</span>
-              <span class="item-rarity">${rarity}</span>
+            <div class="item-tooltip__header">
+              <span>${item.name}</span>
             </div>
             <div class="item-tooltip__body">
-              <p class="item-tooltip__desc">${item.description}</p>
-              <div class="item-tooltip__effect">${item.effect?.value || 'No effect'}</div>
+              <p>${item.description}</p>
               <button class="use-item-btn" data-item-id="${item.id}">Use Item</button>
             </div>
           </div>
@@ -442,17 +458,28 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     html += '</div>';
     container.innerHTML = html;
     
-    // Replace the current event binding code with this more direct approach
-    // The component uses direct event listeners instead of its normal binding system
+    // Use a more straightforward event binding approach
     const useButtons = container.querySelectorAll('.use-item-btn');
+    console.log("Found use buttons:", useButtons.length);
+    
     useButtons.forEach(button => {
-      // Direct event binding instead of using bindAction
-      button.addEventListener('click', (event) => {
+      const itemId = button.getAttribute('data-item-id');
+      console.log("Setting up click handler for item:", itemId);
+      
+      // Use a cleaner approach to binding that preserves 'this' context
+      button.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        console.log("Item button clicked:", item.id);
-        this.useItem({ item });
-      });
+        console.log("Item button clicked:", itemId);
+        
+        // Find the item in inventory
+        const item = inventory.find(i => i.id === itemId);
+        if (item) {
+          this.useItem({ item: item });
+        } else {
+          console.error("Item not found in inventory:", itemId);
+        }
+      };
     });
   },
   
