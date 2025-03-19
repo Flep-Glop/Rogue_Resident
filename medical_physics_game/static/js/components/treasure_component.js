@@ -181,7 +181,7 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
         height: 80px;
         object-fit: contain;
         image-rendering: pixelated;
-        transform: scale(1.5); /* Moderate scaling */
+        transform: scale(1.2); /* Moderate scaling */
       }
       
       .treasure-item-icon .item-glow {

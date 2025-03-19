@@ -758,7 +758,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         max-height: 80%;
         object-fit: contain;
         image-rendering: pixelated;
-        transform: scale(2); /* Moderate scaling */
+        transform: scale(2.5); /* Moderate scaling */
       }
 
       /* Price badge */
