@@ -240,6 +240,18 @@
   pointer-events: auto; /* This is the key fix */
 }
 
+/* This creates the invisible bridge connection */
+.inventory-item:hover::after {
+  content: '';
+  position: absolute;
+  width: 20px;  /* Width of the bridge */
+  height: 15px; /* Adjust to match gap between item and tooltip */
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  /* For debugging: background-color: rgba(255, 0, 0, 0.2); */
+}
+
 .tooltip-header {
   padding: var(--spacing-sm);
   border-top-left-radius: var(--border-radius-sm);
