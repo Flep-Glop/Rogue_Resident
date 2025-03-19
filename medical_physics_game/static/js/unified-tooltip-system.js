@@ -45,7 +45,7 @@ const UnifiedTooltipSystem = {
         /* Base tooltip container */
         .unified-tooltip {
           position: fixed !important; /* Use fixed positioning to escape parent constraints */
-          z-index: 100000 !important; /* Extremely high z-index to be above everything */
+          z-index: 999999 !important; /* Extremely high z-index to be above everything */
           pointer-events: none !important; /* Initially pass through mouse events */
           opacity: 0 !important; /* Hidden by default */
           transition: opacity 0.2s ease, transform 0.2s ease !important;
@@ -56,10 +56,13 @@ const UnifiedTooltipSystem = {
         }
         
         /* Tooltip visibility on hover */
-        .tooltip-trigger:hover .unified-tooltip, .tooltip-trigger.hovered .unified-tooltip {
+        .tooltip-trigger:hover .unified-tooltip,
+        .tooltip-trigger.hovered .unified-tooltip {
+          visibility: visible !important;
+          display: block !important;
           opacity: 1 !important;
           transform: translateY(0) !important;
-          pointer-events: auto !important; /* Allow mouse interaction when visible */
+          pointer-events: auto !important;
         }
         
         /* Content wrapper with background */
@@ -283,12 +286,17 @@ const UnifiedTooltipSystem = {
       return tooltip;
     },
     
-    // Position a tooltip relative to its trigger element
+    // Replace or modify the positionTooltip function
     positionTooltip: function(trigger, tooltip) {
       if (!trigger || !tooltip) return;
       
       // Function to position the tooltip
       const position = () => {
+        // Make sure the tooltip is visible during positioning
+        tooltip.style.visibility = 'visible';
+        tooltip.style.display = 'block';
+        tooltip.style.opacity = '0.01';
+        
         // Get dimensions and positions
         const triggerRect = trigger.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
@@ -335,10 +343,11 @@ const UnifiedTooltipSystem = {
         // Apply the calculated position
         tooltip.style.top = `${top}px`;
         tooltip.style.left = `${left}px`;
-        
-        // Ensure tooltip has high z-index and fixed positioning
         tooltip.style.position = 'fixed';
-        tooltip.style.zIndex = '100000';
+        tooltip.style.zIndex = '999999';
+        
+        // Reset visibility after positioning
+        tooltip.style.opacity = '';
         
         // Adjust arrow position if tooltip is shifted from center
         const arrow = tooltip.querySelector('.tooltip-arrow');
@@ -353,12 +362,22 @@ const UnifiedTooltipSystem = {
       // Position once initially
       position();
       
+      // Also add explicit hover handlers
+      trigger.addEventListener('mouseenter', function() {
+        this.classList.add('hovered');
+        position();
+      });
+      
+      trigger.addEventListener('mouseleave', function() {
+        this.classList.remove('hovered');
+      });
+      
       // Attach to the tooltip's parent element for future updates
       trigger._positionTooltip = position;
       
       return position;
     },
-    
+
     // Fix any existing tooltips in the DOM
     fixExistingTooltips: function() {
       console.log("Scanning for existing tooltips to fix");
