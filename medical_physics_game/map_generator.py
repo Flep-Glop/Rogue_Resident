@@ -169,18 +169,17 @@ def determine_node_type(floor_data):
     # Default fallback
     return "question"
 
-# Import node type weights from JavaScript registry
 def get_node_type_weights():
     """Get node type weights from configuration"""
     return {
-        "question": 60,
-        "elite": 15,
-        "treasure": 20,
-        "rest": 15,
-        "event": 15,
-        "patient_case": 25,
-        "shop": 10,
-        "gamble": 10
+        "question": 100,  # Only show question nodes by default
+        "elite": 0,
+        "treasure": 0,
+        "rest": 0,
+        "event": 0,
+        "patient_case": 0,
+        "shop": 0,
+        "gamble": 0
     }
 
 def determine_node_difficulty(floor_data, node_type):

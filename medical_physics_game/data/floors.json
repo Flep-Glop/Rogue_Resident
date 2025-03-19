@@ -9,28 +9,60 @@
         "question": {"weight": 100, "difficulty_range": [1, 1]},
         "rest": {"weight": 0},
         "treasure": {"weight": 0},
-        "elite": {"weight": 0},
         "shop": {"weight": 0},
         "event": {"weight": 0},
-        "patient_case": {"weight": 0}
+        "elite": {"weight": 0},
+        "patient_case": {"weight": 0},
+        "gamble": {"weight": 0}
       },
-      "boss": null
+      "boss": {
+        "name": "Department Supervisor",
+        "description": "A basic assessment of your knowledge.",
+        "difficulty": 1
+      }
     },
     {
       "id": 2,
-      "name": "Floor 2",
-      "description": "Test floor 2 with increasing difficulty.",
+      "name": "Clinic Level",
+      "description": "More challenging questions about medical physics principles.",
       "node_count": {"min": 5, "max": 7},
       "node_types": {
         "question": {"weight": 100, "difficulty_range": [1, 2]},
-        "elite": {"weight": 0},
         "rest": {"weight": 0},
         "treasure": {"weight": 0},
         "shop": {"weight": 0},
         "event": {"weight": 0},
-        "patient_case": {"weight": 0}
+        "elite": {"weight": 0},
+        "patient_case": {"weight": 0},
+        "gamble": {"weight": 0}
       },
-      "boss": null
+      "boss": {
+        "name": "Chief Physicist",
+        "description": "A challenging assessment of your knowledge.",
+        "difficulty": 2
+      }
+    },
+    {
+      "id": 3,
+      "name": "Advanced Studies",
+      "description": "Higher difficulty questions covering advanced topics.",
+      "node_count": {"min": 6, "max": 8},
+      "node_types": {
+        "question": {"weight": 100, "difficulty_range": [2, 3]},
+        "rest": {"weight": 0},
+        "treasure": {"weight": 0},
+        "shop": {"weight": 0},
+        "event": {"weight": 0},
+        "elite": {"weight": 0},
+        "patient_case": {"weight": 0},
+        "gamble": {"weight": 0}
+      },
+      "boss": {
+        "name": "Board Examination",
+        "description": "The ultimate test of your medical physics knowledge.",
+        "difficulty": 3
+      }
     }
-  ]
+  ],
+  "_comment": "Configure node weights by adjusting values in the node_types section for each floor. Setting weight to 0 will prevent that node type from appearing."
 }
