@@ -1,4 +1,4 @@
-// shop_component.js - Enhanced component with limited stock and better layout
+// shop_component.js - Complete replacement with fixed progression and tooltips
 
 const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
@@ -20,6 +20,9 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // Reset completion flag
     this.completedFlag = false;
+    
+    // Store nodeData for later use
+    this.currentNodeData = nodeData;
     
     // Create shop structure with better layout
     container.innerHTML = `
@@ -53,6 +56,16 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // Bind action using ComponentUtils for reliability
     this.bindAction('shop-continue-btn', 'click', 'continue', { nodeData });
+    
+    // Also add an additional direct event handler for extra reliability
+    const continueBtn = document.getElementById('shop-continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', () => {
+        // This direct handler is in addition to the component's action binding
+        console.log("Direct handler for continue button clicked");
+        this.leaveShop(nodeData);
+      });
+    }
     
     // Load a finite selection of items
     this.loadLimitedStock();
@@ -424,7 +437,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       // First check if window.ItemManager exists
       if (window.ItemManager && typeof ItemManager.addItem === 'function') {
         // Initialize ItemManager if needed
-        if (typeof ItemManager.initialize === 'function') {
+        if (typeof ItemManager.initialize === 'function' && !ItemManager.initialized) {
           ItemManager.initialize();
         }
         added = ItemManager.addItem(fullItem);
@@ -525,7 +538,149 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Add enhanced shop styles
+  // Direct method to leave shop - bypasses component action system
+  leaveShop: function(nodeData) {
+    console.log("🔍 Direct leave shop method called");
+    
+    // Prevent multiple completions
+    if (this.completedFlag) {
+      console.log("🔍 Node already completed, showing map view only");
+      return this.safelyShowMapView();
+    }
+    
+    this.completedFlag = true;
+    
+    // Save node ID for reference
+    const nodeId = nodeData?.id || GameState.getCurrentNodeId();
+    console.log(`🔍 Leaving shop, node ID: ${nodeId}`);
+    
+    if (nodeId) {
+      // First update node in game state directly
+      if (window.GameState && GameState.data && GameState.data.map) {
+        if (GameState.data.map.nodes && GameState.data.map.nodes[nodeId]) {
+          GameState.data.map.nodes[nodeId].visited = true;
+          console.log(`✅ Node ${nodeId} marked as visited in map.nodes`);
+        } else if (GameState.data.map.boss && GameState.data.map.boss.id === nodeId) {
+          GameState.data.map.boss.visited = true;
+          console.log(`✅ Boss node ${nodeId} marked as visited`);
+        }
+        
+        // Clear current node
+        if (typeof GameState.setCurrentNode === 'function') {
+          GameState.setCurrentNode(null);
+          console.log("✅ Current node set to null");
+        }
+      }
+      
+      // Then try API
+      if (window.ApiClient && typeof ApiClient.markNodeVisited === 'function') {
+        ApiClient.markNodeVisited(nodeId)
+          .then(() => {
+            console.log(`✅ Node ${nodeId} marked as visited via API`);
+            
+            // Emit completion event
+            if (window.EventSystem) {
+              EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeId);
+              console.log(`✅ Emitted NODE_COMPLETED event for ${nodeId}`);
+            }
+          })
+          .catch(error => {
+            console.warn(`❌ Error marking node visited via API: ${error.message}`);
+            // Still try to show map view
+          })
+          .finally(() => {
+            // Always try to show map
+            setTimeout(() => this.safelyShowMapView(), 100);
+          });
+      } else {
+        // No API available, just show map
+        console.log("❓ API not available, just showing map view");
+        this.safelyShowMapView();
+      }
+    } else {
+      // No node ID, just show map
+      console.log("❓ No node ID found, just showing map view");
+      this.safelyShowMapView();
+    }
+  },
+  
+  // Handle component actions
+  handleAction: function(nodeData, action, data) {
+    console.log(`Shop component handling action: ${action}`, data);
+    
+    switch (action) {
+      case 'continue':
+        this.leaveShop(nodeData);
+        break;
+        
+      default:
+        console.warn(`Unknown action: ${action}`);
+    }
+  },
+  
+  // Safely show map view with multiple fallbacks
+  safelyShowMapView: function() {
+    console.log("🔍 Safely showing map view");
+    
+    // Try multiple approaches to ensure the map view is shown
+    
+    // Method 1: Use UI.showMapView if available
+    if (window.UI && typeof UI.showMapView === 'function') {
+      console.log("🔍 Using UI.showMapView");
+      UI.showMapView();
+    }
+    
+    // Method 2: Manual DOM manipulation
+    console.log("🔍 Also applying manual DOM updates for redundancy");
+    
+    // Hide any modal overlay
+    const modal = document.getElementById('node-modal-overlay');
+    if (modal) {
+      modal.style.display = 'none';
+      console.log("✅ Hidden modal overlay");
+      
+      // Move interaction containers back
+      const modalContent = document.getElementById('node-modal-content');
+      if (modalContent) {
+        const containers = modalContent.querySelectorAll('.interaction-container');
+        const gameBoard = document.querySelector('.col-md-9');
+        
+        if (gameBoard) {
+          containers.forEach(container => {
+            gameBoard.appendChild(container);
+            container.style.display = 'none';
+            console.log(`✅ Moved and hidden container: ${container.id}`);
+          });
+        }
+      }
+    }
+    
+    // Hide all interaction containers
+    document.querySelectorAll('.interaction-container').forEach(container => {
+      container.style.display = 'none';
+      console.log(`✅ Hidden interaction container: ${container.id}`);
+    });
+    
+    // Show map container
+    const mapContainer = document.querySelector('.map-container');
+    if (mapContainer) {
+      mapContainer.style.display = 'block';
+      console.log("✅ Shown map container");
+    }
+    
+    // Method 3: Force redraw map
+    if (window.MapRenderer && typeof MapRenderer.renderMap === 'function') {
+      console.log("🔍 Forcing map render");
+      setTimeout(() => {
+        MapRenderer.renderMap();
+        console.log("✅ Map re-rendered");
+      }, 200);
+    }
+    
+    console.log("✅ All map view methods applied");
+  },
+  
+  // Add enhanced shop styles and tooltip fixes
   addEnhancedStyles: function() {
     if (document.getElementById('enhanced-shop-styles')) return;
     
@@ -852,172 +1007,68 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       .rarity-epic .item-rarity {
         color: #f0c866;
       }
+      
+      /* Fix for tooltips - emergency styles */
+      .item-tooltip {
+        position: absolute !important;
+        bottom: 100% !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 200px !important;
+        max-width: 90vw !important;
+        background-color: #1e1e2a !important;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+        border-radius: 5px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.2s, transform 0.2s !important;
+        z-index: 9999 !important;
+        font-family: 'Press Start 2P', cursive !important;
+        font-size: 10px !important;
+        margin-bottom: 8px !important;
+        text-align: left !important;
+        border: 2px solid rgba(91, 141, 217, 0.5) !important;
+      }
+      
+      /* Show tooltip on hover */
+      .inventory-item:hover .item-tooltip {
+        opacity: 1 !important;
+        transform: translateX(-50%) translateY(-5px) !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Tooltip header */
+      .tooltip-header {
+        padding: 8px !important;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      
+      /* Tooltip title */
+      .tooltip-title {
+        font-weight: bold !important;
+        font-size: 10px !important;
+        color: white !important;
+      }
+      
+      /* Tooltip rarity */
+      .tooltip-rarity {
+        font-size: 8px !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        text-transform: capitalize !important;
+      }
+      
+      /* Tooltip body */
+      .tooltip-body {
+        padding: 8px !important;
+      }
     `;
     
     document.head.appendChild(styleEl);
-  },
-  
-  // Handle component actions
-  handleAction: function(nodeData, action, data) {
-    console.log(`Shop component handling action: ${action}`, data);
-    
-    switch (action) {
-      case 'continue':
-        this.completeNode(nodeData);
-        break;
-        
-      default:
-        console.warn(`Unknown action: ${action}`);
-    }
-  },
-  
-  // Complete the node with enhanced reliability
-  completeNode: function(nodeData) {
-    console.log("Completing shop node", nodeData);
-    
-    // Prevent multiple completions of the same node
-    if (this.completedFlag) {
-      console.log("Node already completed, ignoring duplicate completion attempt");
-      return this.showMapView();
-    }
-    
-    // Mark as completed locally
-    this.completedFlag = true;
-    
-    // Ensure we have the node data
-    if (!nodeData || !nodeData.id) {
-      console.error("Invalid node data for completion", nodeData);
-      return this.showMapView(); // Try to show map anyway
-    }
-    
-    // Save current node ID for reliable reference
-    const nodeId = nodeData.id;
-    
-    // Create a Promise to handle all possible completion methods
-    new Promise((resolve, reject) => {
-      try {
-        // First try NodeInteraction
-        if (window.NodeInteraction && typeof NodeInteraction.completeNode === 'function') {
-          NodeInteraction.completeNode(nodeData);
-          console.log("Node completed via NodeInteraction");
-          resolve();
-        } else {
-          throw new Error("NodeInteraction not available");
-        }
-      } catch (error) {
-        reject(error);
-      }
-    })
-    .catch(error => {
-      console.log("Falling back to API client for node completion:", error);
-      
-      // Then try API client
-      if (window.ApiClient && typeof ApiClient.markNodeVisited === 'function') {
-        return ApiClient.markNodeVisited(nodeId);
-      }
-      throw new Error("No method available to mark node visited");
-    })
-    .catch(error => {
-      console.error("All methods to mark node visited failed:", error);
-      
-      // Last resort: manually update GameState
-      if (window.GameState && GameState.data && GameState.data.map) {
-        console.log("Using direct GameState manipulation as last resort");
-        
-        try {
-          // Find and mark the node
-          if (GameState.data.map.boss && GameState.data.map.boss.id === nodeId) {
-            GameState.data.map.boss.visited = true;
-          } else if (GameState.data.map.nodes && GameState.data.map.nodes[nodeId]) {
-            GameState.data.map.nodes[nodeId].visited = true;
-          }
-          
-          // Update current node to null
-          GameState.setCurrentNode(null);
-          
-          // Save the game state
-          if (window.ApiClient && typeof ApiClient.saveGame === 'function') {
-            return ApiClient.saveGame();
-          }
-          
-          return Promise.resolve();
-        } catch (e) {
-          console.error("Even direct manipulation failed:", e);
-          return Promise.reject(e);
-        }
-      }
-      
-      return Promise.reject(error);
-    })
-    .then(() => {
-      console.log("Node marked as visited successfully");
-      
-      // Emit the node completed event
-      if (window.EventSystem) {
-        EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeId);
-      }
-    })
-    .catch(error => {
-      console.error("All methods to complete node failed:", error);
-      this.showToast("Error progressing. Try using debug controls.", "warning");
-    })
-    .finally(() => {
-      // Always try to show map view
-      setTimeout(() => this.showMapView(), 100);
-    });
-  },
-  
-  // Enhanced show map view with thorough cleanup
-  showMapView: function() {
-    console.log("Attempting to show map view");
-    
-    // Try multiple methods to ensure we can return to the map
-    if (window.UI && typeof UI.showMapView === 'function') {
-      UI.showMapView();
-      return; // UI.showMapView should handle everything
-    }
-    
-    // Manual fallback if UI.showMapView is not available
-    try {
-      // Find and show the map container
-      const mapContainer = document.querySelector('.map-container');
-      if (mapContainer) {
-        mapContainer.style.display = 'block';
-      }
-      
-      // Handle modal cleanup
-      const modal = document.getElementById('node-modal-overlay');
-      if (modal) {
-        modal.style.display = 'none';
-        
-        // Move any interaction containers back to their original parent
-        const modalContent = document.getElementById('node-modal-content');
-        if (modalContent) {
-          const containers = modalContent.querySelectorAll('.interaction-container');
-          const gameBoard = document.querySelector('.col-md-9');
-          
-          if (gameBoard) {
-            containers.forEach(container => {
-              gameBoard.appendChild(container);
-              container.style.display = 'none';
-            });
-          }
-        }
-      }
-      
-      // Hide all interaction containers
-      document.querySelectorAll('.interaction-container').forEach(el => {
-        el.style.display = 'none';
-      });
-      
-      // Special case for the shop container
-      const shopContainer = document.querySelector('#shop-container');
-      if (shopContainer) {
-        shopContainer.style.display = 'none';
-      }
-    } catch (error) {
-      console.error("Error during manual map view display:", error);
-    }
   }
 });
 

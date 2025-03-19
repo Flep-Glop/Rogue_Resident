@@ -105,6 +105,8 @@ const InventorySystem = {
     }
   },
   
+  // Replace the renderItems and renderRelics functions in inventory_system.js
+
   // Render consumable items
   renderItems: function() {
     const itemsContainer = document.getElementById('items-container');
@@ -174,6 +176,9 @@ const InventorySystem = {
       
       grid.appendChild(itemElement);
     });
+    
+    // Add tooltip CSS fix
+    this.addTooltipFix();
   },
 
   // Render relics - now matches items display style
@@ -236,6 +241,130 @@ const InventorySystem = {
       
       grid.appendChild(relicElement);
     });
+    
+    // Add tooltip CSS fix
+    this.addTooltipFix();
+  },
+
+  // Add a new method to fix tooltips
+  addTooltipFix: function() {
+    if (document.getElementById('fixed-tooltips')) return;
+    
+    const tooltipStyles = document.createElement('style');
+    tooltipStyles.id = 'fixed-tooltips';
+    tooltipStyles.textContent = `
+      /* Fixed tooltip styles */
+      .item-tooltip {
+        position: absolute !important;
+        bottom: 100% !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 200px !important;
+        max-width: 90vw !important;
+        background-color: #1e1e2a !important;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+        border-radius: 5px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.2s, transform 0.2s !important;
+        z-index: 9999 !important;
+        font-family: 'Press Start 2P', cursive !important;
+        font-size: 10px !important;
+        margin-bottom: 8px !important;
+        text-align: left !important;
+        border: 2px solid rgba(91, 141, 217, 0.5) !important;
+      }
+      
+      /* Show tooltip on hover */
+      .inventory-item:hover .item-tooltip {
+        opacity: 1 !important;
+        transform: translateX(-50%) translateY(-5px) !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Invisible bridge to improve hover */
+      .inventory-item:hover::after {
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 20px;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        /* For debugging: background-color: rgba(255, 0, 0, 0.2); */
+      }
+      
+      /* Tooltip header */
+      .tooltip-header {
+        padding: 8px !important;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      
+      /* Tooltip title */
+      .tooltip-title {
+        font-weight: bold !important;
+        font-size: 10px !important;
+        color: white !important;
+      }
+      
+      /* Tooltip rarity */
+      .tooltip-rarity {
+        font-size: 8px !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        text-transform: capitalize !important;
+      }
+      
+      /* Tooltip body */
+      .tooltip-body {
+        padding: 8px !important;
+      }
+      
+      /* Tooltip description */
+      .tooltip-desc {
+        margin-bottom: 8px !important;
+        line-height: 1.3 !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+      
+      /* Tooltip effect */
+      .tooltip-effect {
+        color: #5b8dd9 !important;
+        margin-bottom: 8px !important;
+        padding: 8px !important;
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        border-radius: 3px !important;
+      }
+      
+      /* Passive text for relics */
+      .passive-text {
+        color: #f0c866 !important;
+      }
+      
+      /* Rarity styling for tooltip headers */
+      .tooltip-header.common {
+        background-color: rgba(170, 170, 170, 0.2) !important;
+      }
+      
+      .tooltip-header.uncommon {
+        background-color: rgba(91, 141, 217, 0.2) !important;
+      }
+      
+      .tooltip-header.rare {
+        background-color: rgba(156, 119, 219, 0.2) !important;
+      }
+      
+      .tooltip-header.epic {
+        background-color: rgba(240, 200, 102, 0.2) !important;
+      }
+    `;
+    
+    document.head.appendChild(tooltipStyles);
+    console.log("Added fixed tooltip styles");
   },
 
   // Use an item with improved error handling
