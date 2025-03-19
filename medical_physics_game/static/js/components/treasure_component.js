@@ -1,4 +1,4 @@
-// Updated treasure_component.js - Component for treasure node type with final fixes
+// treasure_component.js - Updated to use the unified tooltip system
 
 const TreasureComponent = ComponentUtils.createComponent('treasure', {
   // Initialize component
@@ -8,6 +8,15 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     // Initialize UI state
     this.setUiState('itemTaken', false);
     this.setUiState('addAttempted', false); // Track if item add was attempted
+    
+    // Make sure unified tooltip system is initialized
+    if (window.UnifiedTooltipSystem) {
+      if (typeof UnifiedTooltipSystem.initialize === 'function' && !UnifiedTooltipSystem.initialized) {
+        UnifiedTooltipSystem.initialize();
+      }
+    } else {
+      console.warn("UnifiedTooltipSystem not available - tooltips may not display correctly");
+    }
   },
   
   // Render treasure component
@@ -46,14 +55,10 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       return;
     }
     
-    // Get colors from the design bridge if available
-    const treasureColor = window.DesignBridge?.colors?.nodeTreasure || '#f0c866';
-    
     // Get item data
     const itemRarity = nodeData.item.rarity || 'common';
     
     // Check if the item was already taken for this node
-    // Using a combination of component state and checking the inventory
     const alreadyTaken = this.isItemAlreadyTaken(nodeData);
     
     // Update UI state to match
@@ -62,38 +67,38 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       this.setUiState('addAttempted', true);
     }
     
-    // Create treasure UI with new component and utility classes
+    // Create treasure UI
     container.innerHTML = `
       <div class="game-panel anim-fade-in">
         <div class="text-center mb-md">
           <h3 class="text-warning glow-text anim-pulse-warning">${this.generateTreasureTitle()}</h3>
         </div>
         
-        <div class="game-card game-card--${itemRarity} shadow-md mb-lg">
-          <div class="game-card__header">
-            <h4 class="game-card__title">${nodeData.item.name}</h4>
-            <span class="rarity-badge rarity-badge-${itemRarity}">${itemRarity}</span>
+        <div id="treasure-item-card" class="treasure-item-card tooltip-trigger ${itemRarity}">
+          <div class="item-header">
+            <h4 class="item-title">${nodeData.item.name}</h4>
+            <span class="item-rarity-badge">${itemRarity}</span>
           </div>
           
-          <div class="game-card__body flex">
-            <div class="flex-shrink-0 mr-md" style="width: 80px; height: 80px;">
-              <div class="item-icon item-icon--${itemRarity}" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+          <div class="item-body">
+            <div class="item-icon-wrapper">
+              <div class="item-icon item-icon--${itemRarity}">
                 ${this.getItemIcon(nodeData.item)}
               </div>
             </div>
             
-            <div class="flex-grow">
-              <p class="mb-sm">${nodeData.item.description}</p>
+            <div class="item-details">
+              <p class="item-description">${nodeData.item.description}</p>
               
-              <div class="item-tooltip__effect mt-md">
-                <span class="text-primary">Effect:</span>
-                <span>${nodeData.item.effect?.value || 'None'}</span>
+              <div class="item-effect">
+                <span class="effect-label">Effect:</span>
+                <span class="effect-value">${nodeData.item.effect?.value || 'None'}</span>
               </div>
             </div>
           </div>
         </div>
         
-        <div class="flex gap-md">
+        <div class="treasure-buttons">
           <button id="treasure-take-btn" class="game-btn game-btn--secondary flex-1 anim-pulse-scale" ${alreadyTaken ? 'style="display:none;"' : ''}>
             Take Item
           </button>
@@ -104,9 +109,163 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       </div>
     `;
     
-    // Only attach event listeners once per component
+    // Apply tooltip to the item card
+    const itemCard = document.getElementById('treasure-item-card');
+    if (itemCard && window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+      UnifiedTooltipSystem.applyTooltip(itemCard, nodeData.item);
+    }
+    
+    // Add treasure component styles
+    this.addTreasureStyles();
+    
+    // Bind action buttons
     this.bindAction('treasure-take-btn', 'click', 'takeItem', { nodeData, item: nodeData.item });
     this.bindAction('treasure-leave-btn', 'click', 'continue', { nodeData });
+  },
+  
+  // Add treasure-specific styles
+  addTreasureStyles: function() {
+    // Check if styles are already added
+    if (document.getElementById('treasure-component-styles')) {
+      return;
+    }
+    
+    // Create style element
+    const styleEl = document.createElement('style');
+    styleEl.id = 'treasure-component-styles';
+    styleEl.textContent = `
+      /* Treasure component styles */
+      .treasure-item-card {
+        background-color: #2a2a36;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 2px solid transparent;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      
+      /* Color borders by rarity */
+      .treasure-item-card.common { border-color: #aaa; }
+      .treasure-item-card.uncommon { border-color: #5b8dd9; }
+      .treasure-item-card.rare { border-color: #9c77db; }
+      .treasure-item-card.epic { 
+        border-color: #f0c866; 
+        box-shadow: 0 0 10px rgba(240, 200, 102, 0.3);
+      }
+      
+      .treasure-item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+      }
+      
+      .item-header {
+        padding: 12px 15px;
+        background-color: rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .item-title {
+        margin: 0;
+        font-size: 16px;
+        color: white;
+      }
+      
+      .item-rarity-badge {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        background-color: rgba(0, 0, 0, 0.3);
+        text-transform: capitalize;
+      }
+      
+      .item-body {
+        padding: 15px;
+        display: flex;
+        align-items: center;
+      }
+      
+      .item-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+        margin-right: 15px;
+      }
+      
+      .item-icon {
+        width: 100%;
+        height: 100%;
+        background-color: #1e1e2a;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      
+      .item-icon img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+        image-rendering: pixelated;
+      }
+      
+      /* Glow effects by rarity */
+      .item-icon--common { box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1); }
+      .item-icon--uncommon { box-shadow: inset 0 0 8px rgba(91, 141, 217, 0.2); }
+      .item-icon--rare { box-shadow: inset 0 0 8px rgba(156, 119, 219, 0.2); }
+      .item-icon--epic { 
+        box-shadow: inset 0 0 12px rgba(240, 200, 102, 0.3);
+        animation: epic-glow 2s infinite alternate;
+      }
+      
+      @keyframes epic-glow {
+        0% { box-shadow: inset 0 0 8px rgba(240, 200, 102, 0.3); }
+        100% { box-shadow: inset 0 0 15px rgba(240, 200, 102, 0.6); }
+      }
+      
+      .item-details {
+        flex-grow: 1;
+      }
+      
+      .item-description {
+        margin-bottom: 12px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      
+      .item-effect {
+        padding: 8px 12px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
+        border-left: 3px solid #5b8dd9;
+      }
+      
+      .effect-label {
+        color: #5b8dd9;
+        font-size: 12px;
+        margin-right: 5px;
+      }
+      
+      .effect-value {
+        color: white;
+        font-size: 12px;
+      }
+      
+      .treasure-buttons {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .flex-1 {
+        flex: 1;
+      }
+    `;
+    
+    document.head.appendChild(styleEl);
   },
   
   // Check if an item was already taken from this node
@@ -182,40 +341,31 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     return titles[Math.floor(Math.random() * titles.length)];
   },
 
-  // Get icon for an item - properly displays image with consistent sizing
+  // Get icon for an item
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="item-image">`;
     }
     
-    // Use design bridge for colors if available
-    const iconColor = window.DesignBridge?.colors?.warning || "#f0c866";
-    
-    // Map common item types to default icons with color from design bridge
-    return `<i class="fas fa-${this.getIconClass(item)}" style="color: ${iconColor}; font-size: 32px;"></i>`;
-  },
-  
-  // Get appropriate icon class based on item properties
-  getIconClass: function(item) {
+    // Fallback: Use item name to determine a default icon
     const itemName = (item.name || '').toLowerCase();
+    let iconFile = 'Yellow Sticky Note.png';
     
+    // Map common item types to default icons
     if (itemName.includes('book') || itemName.includes('textbook') || itemName.includes('manual')) {
-      return "book";
-    } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      return "flask";
+      iconFile = 'Textbook.png';
     } else if (itemName.includes('badge') || itemName.includes('dosimeter') || itemName.includes('detector')) {
-      return "id-badge";
+      iconFile = 'Nametag.png';
     } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      return "shield-alt";
+      iconFile = 'Flag.png';
     } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
-      return "glasses";
+      iconFile = '3D Glasses.png';
     } else if (itemName.includes('notebook') || itemName.includes('clipboard')) {
-      return "clipboard";
+      iconFile = 'Notepad.png';
     }
     
-    // Default icon
-    return "box";
+    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="item-image">`;
   },
   
   // Take the item - with direct hooks to inventory system
@@ -234,15 +384,44 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     this.setUiState('addAttempted', true);
     
     // Check if InventorySystem exists
-    if (!window.InventorySystem) {
-      console.error("InventorySystem not available");
+    if (!window.InventorySystem && !window.ItemManager) {
+      console.error("Neither InventorySystem nor ItemManager are available");
       this.showToast("Cannot add item to inventory - system error", "danger");
       return;
     }
     
-    // Use a custom method to ensure the item is only added once
-    // The direct addItemToInventory call can sometimes be called multiple times
-    const added = this.safeAddToInventory(item);
+    // Create full item object with complete attributes
+    const fullItem = {
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      rarity: item.rarity,
+      itemType: item.itemType || 'consumable',
+      iconPath: item.iconPath,
+      effect: {
+        type: this.getEffectType(item),
+        value: item.effect?.value || item.description,
+        duration: (item.itemType === "relic") ? "permanent" : "instant"
+      }
+    };
+    
+    if (item.itemType === 'relic') {
+      fullItem.passiveText = `Passive: ${item.effect?.value || item.description}`;
+    }
+    
+    // Add to inventory with proper error handling
+    let added = false;
+    
+    // Try ItemManager first
+    if (window.ItemManager && typeof ItemManager.addItem === 'function') {
+      console.log("Using ItemManager to add item");
+      added = ItemManager.addItem(fullItem);
+    } 
+    // Fall back to InventorySystem
+    else if (window.InventorySystem && typeof InventorySystem.addItem === 'function') {
+      console.log("Using InventorySystem to add item");
+      added = InventorySystem.addItem(fullItem);
+    }
     
     if (added) {
       // Mark as taken in component state
@@ -266,43 +445,47 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     }
   },
   
-  // Safely add item to inventory (handles duplicate prevention)
-  safeAddToInventory: function(item) {
-    // Direct hook to InventorySystem
-    if (window.InventorySystem && InventorySystem.addItem) {
-      console.log("Using direct InventorySystem hook to add item");
-      return InventorySystem.addItem(item);
+  // Get effect type based on item properties
+  getEffectType: function(item) {
+    // If the item already has an effect type, use it
+    if (item.effect && item.effect.type) {
+      return item.effect.type;
     }
     
-    // Fallback to GameObject
-    if (window.GameState && GameState.data) {
-      if (!GameState.data.inventory) {
-        GameState.data.inventory = [];
-      }
-      
-      // Check for duplicate
-      const existingItemIndex = GameState.data.inventory.findIndex(i => 
-        i.id === item.id && i.name === item.name
-      );
-      
-      if (existingItemIndex >= 0) {
-        console.log("Item already exists in inventory, not adding duplicate");
-        return false;
-      }
-      
-      // Add the item
-      GameState.data.inventory.push(item);
-      console.log("Item added to inventory via GameState");
-      
-      // Save game state
-      if (window.ApiClient && ApiClient.saveGame) {
-        ApiClient.saveGame();
-      }
-      
-      return true;
-    }
+    const id = (item.id || '').toLowerCase();
+    const desc = (item.description || '').toLowerCase();
     
-    return false;
+    if (id.includes('textbook') || desc.includes('eliminat') || desc.includes('option')) 
+      return "eliminateOption";
+    if (id.includes('badge') || id.includes('heal') || desc.includes('restor') || desc.includes('life') || desc.includes('heal')) 
+      return "heal";
+    if (id.includes('goggles') || id.includes('spectacles') || desc.includes('second') || desc.includes('attempt') || desc.includes('retry'))
+      return "second_chance";
+    if (id.includes('insight') || desc.includes('insight')) 
+      return "insight_gain";
+    
+    // Default fallback
+    return item.itemType === 'relic' ? "passive" : "special";
+  },
+  
+  // Show toast message
+  showToast: function(message, type) {
+    if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+      UiUtils.showToast(message, type);
+    } else {
+      console.log(message);
+    }
+  },
+  
+  // Show feedback message
+  showFeedback: function(message, type) {
+    if (window.UiUtils && typeof UiUtils.showFloatingText === 'function') {
+      UiUtils.showFloatingText(message, type);
+    } else if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+      UiUtils.showToast(message, type);
+    } else {
+      console.log(message);
+    }
   },
   
   // Handle component actions

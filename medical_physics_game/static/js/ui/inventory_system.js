@@ -1,4 +1,4 @@
-// Enhanced inventory_system.js with fixed tooltips
+// inventory_system.js - Rewritten to use the unified tooltip system
 
 const InventorySystem = {
   // Max inventory size (can be increased with level)
@@ -34,6 +34,15 @@ const InventorySystem = {
       }
     }
     
+    // Initialize the unified tooltip system if available
+    if (window.UnifiedTooltipSystem) {
+      if (typeof UnifiedTooltipSystem.initialize === 'function' && !UnifiedTooltipSystem.initialized) {
+        UnifiedTooltipSystem.initialize();
+      }
+    } else {
+      console.warn("UnifiedTooltipSystem not available - tooltips may not display correctly");
+    }
+    
     // Subscribe to inventory events
     if (window.EventSystem) {
       EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.addItem.bind(this));
@@ -48,13 +57,371 @@ const InventorySystem = {
       this.maxSize = 4 + Math.floor(GameState.data.character.level / 2);
     }
     
-    // Add fixed tooltip styles
-    this.addTooltipFix();
+    // Add inventory styles
+    this.addInventoryStyles();
     
     // Render initial inventory
     this.renderInventory();
     
     return this;
+  },
+  
+  // Add inventory-specific styles
+  addInventoryStyles: function() {
+    if (document.getElementById('inventory-system-styles')) {
+      return; // Styles already added
+    }
+    
+    const styleEl = document.createElement('style');
+    styleEl.id = 'inventory-system-styles';
+    styleEl.textContent = `
+      /* Inventory container */
+      .inventory-container {
+        background-color: var(--background-alt);
+        color: var(--text);
+        border: 3px solid var(--secondary);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+      }
+      
+      .inventory-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 2px dashed var(--secondary);
+      }
+      
+      .inventory-title h3 {
+        color: var(--secondary);
+        font-size: var(--font-size-md);
+        margin: 0;
+      }
+      
+      #inventory-count {
+        font-size: var(--font-size-xs);
+        background-color: var(--dark);
+        padding: 2px 5px;
+        border-radius: 3px;
+      }
+      
+      /* Item grid */
+      .inventory-items {
+        max-height: 250px;
+        overflow-y: auto;
+        padding-right: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) var(--background);
+      }
+      
+      .inventory-items::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      .inventory-items::-webkit-scrollbar-track {
+        background: var(--background-alt);
+        border-radius: 4px;
+      }
+      
+      .inventory-items::-webkit-scrollbar-thumb {
+        background-color: var(--primary);
+        border-radius: 4px;
+      }
+      
+      .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        gap: 6px;
+        justify-content: start;
+      }
+      
+      /* Individual item styling */
+      .inventory-item {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        background-color: var(--dark-alt);
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+      }
+      
+      .inventory-item:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+      }
+      
+      .inventory-item:active {
+        transform: translateY(0);
+        filter: brightness(0.9);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+      
+      .inventory-item.empty {
+        opacity: 0.3;
+        cursor: default;
+      }
+      
+      .item-inner {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        background-color: var(--dark);
+        border-radius: 2px;
+      }
+      
+      .item-icon {
+        font-size: 20px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+      }
+      
+      .item-glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 2px;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) inset;
+        pointer-events: none;
+      }
+      
+      /* Rarity styles */
+      .inventory-item.common .item-inner {
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.2) inset;
+      }
+      
+      .inventory-item.uncommon .item-inner {
+        box-shadow: 0 0 5px var(--primary) inset;
+      }
+      
+      .inventory-item.rare .item-inner {
+        box-shadow: 0 0 5px var(--warning) inset;
+      }
+      
+      .inventory-item.epic .item-inner {
+        box-shadow: 0 0 8px var(--secondary) inset;
+        animation: epic-pulse 2s infinite;
+      }
+      
+      /* Pixelated border effect */
+      .pixel-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 2;
+      }
+      
+      .pixel-corner {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+      }
+      
+      .pixel-corner.top-left {
+        top: 0;
+        left: 0;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+      
+      .pixel-corner.top-right {
+        top: 0;
+        right: 0;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+      
+      .pixel-corner.bottom-left {
+        bottom: 0;
+        left: 0;
+        border-bottom: 2px solid;
+        border-left: 2px solid;
+      }
+      
+      .pixel-corner.bottom-right {
+        bottom: 0;
+        right: 0;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+      }
+      
+      /* Border colors by rarity */
+      .pixel-border.common .pixel-corner {
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+      
+      .pixel-border.uncommon .pixel-corner {
+        border-color: var(--primary);
+      }
+      
+      .pixel-border.rare .pixel-corner {
+        border-color: var(--warning);
+      }
+      
+      .pixel-border.epic .pixel-corner {
+        border-color: var(--secondary);
+        box-shadow: 0 0 3px var(--secondary);
+      }
+      
+      .pixel-border.empty .pixel-corner {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      
+      /* Empty inventory */
+      .empty-inventory {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: var(--font-size-xs);
+        text-align: center;
+        padding: var(--spacing-sm);
+        font-style: italic;
+      }
+      
+      /* Inventory tabs */
+      .inventory-tabs {
+        display: flex;
+        margin-bottom: var(--spacing-sm);
+      }
+      
+      .inventory-tab {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background-color: var(--dark-alt);
+        border: none;
+        color: var(--text);
+        cursor: pointer;
+        flex: 1;
+        text-align: center;
+        font-family: 'Press Start 2P', cursive;
+        font-size: var(--font-size-xs);
+      }
+      
+      .inventory-tab.active {
+        background-color: var(--primary);
+        color: white;
+      }
+      
+      /* Relic styling */
+      .relic-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+      }
+      
+      .relic-item {
+        background-color: var(--dark-alt);
+        border-radius: var(--border-radius-sm);
+        padding: var(--spacing-sm);
+        position: relative;
+        transition: transform var(--transition-fast);
+      }
+      
+      .relic-item:hover {
+        transform: translateY(-3px);
+      }
+      
+      .relic-card {
+        border-left: 3px solid;
+        padding-left: var(--spacing-sm);
+      }
+      
+      .relic-item.common .relic-card {
+        border-color: #aaa;
+      }
+      
+      .relic-item.uncommon .relic-card {
+        border-color: var(--primary);
+      }
+      
+      .relic-item.rare .relic-card {
+        border-color: var(--node-rest);
+      }
+      
+      .relic-item.epic .relic-card {
+        border-color: var(--warning);
+        box-shadow: 0 0 5px rgba(240, 200, 102, 0.3);
+      }
+      
+      .relic-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+      }
+      
+      .relic-name {
+        font-size: var(--font-size-xs);
+        margin: 0;
+        color: var(--light);
+      }
+      
+      .relic-rarity {
+        font-size: var(--font-size-xs);
+        text-transform: capitalize;
+        padding: 2px 4px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: var(--border-radius-sm);
+      }
+      
+      .relic-desc {
+        font-size: var(--font-size-xs);
+        margin-bottom: var(--spacing-sm);
+        color: var(--text);
+      }
+      
+      .relic-effect {
+        font-size: var(--font-size-xs);
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius-sm);
+        margin-top: var(--spacing-sm);
+      }
+      
+      .passive-text {
+        color: var(--secondary);
+      }
+      
+      /* Animations */
+      @keyframes epic-pulse {
+        0% { box-shadow: 0 0 3px var(--secondary) inset; }
+        50% { box-shadow: 0 0 8px var(--secondary) inset; }
+        100% { box-shadow: 0 0 3px var(--secondary) inset; }
+      }
+      
+      /* Responsive styling */
+      @media (max-width: 768px) {
+        .inventory-grid {
+          grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+          gap: 5px;
+        }
+      
+        .inventory-item {
+          width: 42px;
+          height: 42px;
+        }
+      
+        .item-inner {
+          width: 38px;
+          height: 38px;
+        }
+      }
+    `;
+    
+    document.head.appendChild(styleEl);
+    console.log("Added inventory system styles");
   },
   
   // Render different sections for items and relics
@@ -109,7 +476,7 @@ const InventorySystem = {
     }
   },
   
-  // Render consumable items with improved tooltips
+  // Render consumable items
   renderItems: function() {
     const itemsContainer = document.getElementById('items-container');
     if (!itemsContainer) return;
@@ -136,11 +503,12 @@ const InventorySystem = {
     
     const grid = itemsContainer.querySelector('.inventory-grid');
     
-    // Add each item with standardized display
+    // Add each item with the unified tooltip system
     items.forEach((item, index) => {
       const itemElement = document.createElement('div');
-      itemElement.className = `inventory-item ${item.rarity || 'common'}`;
+      itemElement.className = `inventory-item ${item.rarity || 'common'} tooltip-trigger`;
       itemElement.dataset.index = index;
+      itemElement.dataset.itemId = item.id;
       
       itemElement.innerHTML = `
         <div class="item-inner">
@@ -153,25 +521,14 @@ const InventorySystem = {
           <div class="pixel-corner bottom-left"></div>
           <div class="pixel-corner bottom-right"></div>
         </div>
-        
-        <!-- Standardized tooltip with invisible bridge -->
-        <div class="standardized-tooltip">
-          <div class="tooltip-bridge"></div>
-          <div class="tooltip-content">
-            <div class="tooltip-header ${item.rarity || 'common'}">
-              <span class="tooltip-title">${item.name}</span>
-              <span class="tooltip-rarity">${item.rarity || 'common'}</span>
-            </div>
-            <div class="tooltip-body">
-              <p class="tooltip-desc">${item.description}</p>
-              <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
-              <div class="tooltip-usage">Click to use</div>
-            </div>
-          </div>
-        </div>
       `;
       
-      // Add click handler directly to the item element
+      // Add tooltip using UnifiedTooltipSystem
+      if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+        UnifiedTooltipSystem.applyTooltip(itemElement, item);
+      }
+      
+      // Add click handler
       itemElement.addEventListener('click', (e) => {
         // Prevent default behavior
         e.preventDefault();
@@ -185,7 +542,7 @@ const InventorySystem = {
     });
   },
 
-  // Render relics - using the same standardized tooltip approach
+  // Render relics using the unified tooltip system
   renderRelics: function() {
     const relicsContainer = document.getElementById('relics-container');
     if (!relicsContainer) return;
@@ -206,203 +563,49 @@ const InventorySystem = {
         <h3>Relics</h3>
         <span id="relics-count">${relics.length}</span>
       </div>
-      <div class="inventory-grid"></div>
+      <div class="relic-grid"></div>
     `;
     relicsContainer.innerHTML = gridHtml;
     
-    const grid = relicsContainer.querySelector('.inventory-grid');
+    const grid = relicsContainer.querySelector('.relic-grid');
     
-    // Add each relic using the same display format as items
+    // Add each relic with the unified tooltip system
     relics.forEach((relic, index) => {
       const relicElement = document.createElement('div');
-      relicElement.className = `inventory-item ${relic.rarity || 'common'}`;
+      relicElement.className = `relic-item ${relic.rarity || 'common'} tooltip-trigger`;
       relicElement.dataset.index = index;
+      relicElement.dataset.itemId = relic.id;
       
       relicElement.innerHTML = `
-        <div class="item-inner">
-          <div class="item-icon">${this.getItemIcon(relic)}</div>
-          <div class="item-glow"></div>
-        </div>
-        <div class="pixel-border ${relic.rarity || 'common'}">
-          <div class="pixel-corner top-left"></div>
-          <div class="pixel-corner top-right"></div>
-          <div class="pixel-corner bottom-left"></div>
-          <div class="pixel-corner bottom-right"></div>
-        </div>
-        
-        <!-- Standardized tooltip with invisible bridge -->
-        <div class="standardized-tooltip">
-          <div class="tooltip-bridge"></div>
-          <div class="tooltip-content">
-            <div class="tooltip-header ${relic.rarity || 'common'}">
-              <span class="tooltip-title">${relic.name}</span>
-              <span class="tooltip-rarity">${relic.rarity || 'common'}</span>
-            </div>
-            <div class="tooltip-body">
-              <p class="tooltip-desc">${relic.description}</p>
-              <div class="tooltip-effect">
-                <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
-              </div>
-            </div>
+        <div class="relic-card">
+          <div class="relic-header">
+            <h4 class="relic-name">${relic.name}</h4>
+            <span class="relic-rarity">${relic.rarity || 'common'}</span>
+          </div>
+          <p class="relic-desc">${relic.description}</p>
+          <div class="relic-effect">
+            <span class="passive-text">${relic.passiveText || relic.effect?.value || 'Passive effect'}</span>
           </div>
         </div>
       `;
       
+      // Add tooltip using UnifiedTooltipSystem
+      if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+        UnifiedTooltipSystem.applyTooltip(relicElement, relic);
+      }
+      
       grid.appendChild(relicElement);
     });
-  },
-
-  // Add tooltip CSS fixes for consistent display
-  addTooltipFix: function() {
-    if (document.getElementById('fixed-tooltips')) return;
-    
-    const tooltipStyles = document.createElement('style');
-    tooltipStyles.id = 'fixed-tooltips';
-    tooltipStyles.textContent = `
-      /* STANDARDIZED TOOLTIP SYSTEM */
-      
-      /* Tooltip container */
-      .standardized-tooltip {
-        position: absolute !important;
-        bottom: 100% !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: 220px !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        z-index: 9999 !important;
-        transition: opacity 0.2s, transform 0.2s !important;
-      }
-      
-      /* Show tooltip on hover */
-      .inventory-item:hover .standardized-tooltip {
-        opacity: 1 !important;
-        transform: translateX(-50%) translateY(-5px) !important;
-        pointer-events: auto !important; /* Enable mouse interaction with tooltip */
-      }
-      
-      /* Invisible bridge between item and tooltip */
-      .tooltip-bridge {
-        position: absolute !important;
-        bottom: -10px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: 30px !important;
-        height: 20px !important;
-        /* For debugging: background-color: rgba(255, 0, 0, 0.3); */
-      }
-      
-      /* Tooltip content */
-      .tooltip-content {
-        background-color: #1e1e2a !important;
-        border-radius: 5px !important;
-        border: 2px solid rgba(91, 141, 217, 0.5) !important;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
-        overflow: hidden !important;
-        font-family: 'Press Start 2P', cursive !important;
-        font-size: 10px !important;
-      }
-      
-      /* Tooltip header */
-      .tooltip-header {
-        padding: 8px !important;
-        border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-      }
-      
-      /* Tooltip title */
-      .tooltip-title {
-        font-weight: bold !important;
-        font-size: 10px !important;
-        color: white !important;
-      }
-      
-      /* Tooltip body */
-      .tooltip-body {
-        padding: 8px !important;
-      }
-      
-      /* Tooltip description */
-      .tooltip-desc {
-        margin-bottom: 8px !important;
-        line-height: 1.3 !important;
-        color: rgba(255, 255, 255, 0.9) !important;
-      }
-      
-      /* Tooltip effect */
-      .tooltip-effect {
-        color: #5b8dd9 !important;
-        margin-bottom: 8px !important;
-        padding: 8px !important;
-        background-color: rgba(0, 0, 0, 0.2) !important;
-        border-radius: 3px !important;
-      }
-      
-      /* Passive text */
-      .passive-text {
-        color: #f0c866 !important;
-      }
-      
-      /* Rarity colors for tooltip headers */
-      .tooltip-header.common {
-        background-color: rgba(170, 170, 170, 0.2) !important;
-      }
-      
-      .tooltip-header.uncommon {
-        background-color: rgba(91, 141, 217, 0.2) !important;
-      }
-      
-      .tooltip-header.rare {
-        background-color: rgba(156, 119, 219, 0.2) !important;
-      }
-      
-      .tooltip-header.epic {
-        background-color: rgba(240, 200, 102, 0.2) !important;
-      }
-      
-      /* Tooltip rarity badge */
-      .tooltip-rarity {
-        font-size: 8px !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
-        background-color: rgba(0, 0, 0, 0.3) !important;
-        text-transform: capitalize !important;
-      }
-      
-      /* Override any existing tooltip styles to prevent conflicts */
-      .item-tooltip {
-        display: none !important;
-      }
-      
-      /* Critical fix: Add proper z-indexing for inventory items */
-      .inventory-item {
-        position: relative !important;
-        z-index: 1 !important;
-      }
-      
-      .inventory-item:hover {
-        z-index: 2 !important;
-      }
-    `;
-    
-    document.head.appendChild(tooltipStyles);
-    console.log("Added fixed tooltip styles");
   },
 
   // Get pixel art icon for an item
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      // Handle both paths with and without the /static/ prefix
-      const iconPath = item.iconPath.startsWith('/static/') ? 
-        item.iconPath : `/static/img/items/${item.iconPath}`;
-      
-      return `<img src="${iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
     }
     
-    // Fallback: Use item name to determine a default icon
+    // Fallback icon based on item type
     const itemName = (item.name || '').toLowerCase();
     let iconFile = "Yellow Sticky Note.png";
     
@@ -422,6 +625,7 @@ const InventorySystem = {
   
   // Use an item with improved error handling
   useItem: function(itemId) {
+    console.log("Using item:", itemId);
     let item;
     
     // Handle both direct item objects and item IDs

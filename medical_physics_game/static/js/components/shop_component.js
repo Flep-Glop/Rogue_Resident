@@ -1,4 +1,4 @@
-// Updated shop_component.js with fixed tooltips
+// shop_component.js - Rewritten to use the unified tooltip system
 
 const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
@@ -6,12 +6,16 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     console.log("Initializing enhanced shop component");
     this.resetComponentState();
     
-    // Add fixed tooltip styles immediately on initialization
+    // Add shop-specific styles
     this.addEnhancedStyles();
     
-    // Initialize the unified tooltip system if available
-    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.initialize === 'function') {
-      UnifiedTooltipSystem.initialize();
+    // Make sure the unified tooltip system is initialized
+    if (window.UnifiedTooltipSystem) {
+      if (typeof UnifiedTooltipSystem.initialize === 'function' && !UnifiedTooltipSystem.initialized) {
+        UnifiedTooltipSystem.initialize();
+      }
+    } else {
+      console.warn("UnifiedTooltipSystem not available - tooltips may not display correctly");
     }
   },
 
@@ -63,9 +67,6 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         </button>
       </div>
     `;
-    
-    // Add shop-specific styles again to ensure they're present
-    this.addEnhancedStyles();
     
     // Bind action using ComponentUtils for reliability
     this.bindAction('shop-continue-btn', 'click', 'continue', { nodeData });
@@ -242,7 +243,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     return basePrice + Math.floor(Math.random() * variance * 2) - variance;
   },
   
-  // Render items with enhanced layout and standardized item display
+  // Render items with enhanced layout using the unified tooltip system
   renderEnhancedItems: function() {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
@@ -311,22 +312,24 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         </div>
       `;
     }
-    
-    // Force tooltip fixes after rendering
-    setTimeout(() => {
-      this.fixTooltipPositioning();
-    }, 100);
   },
   
-  // Create a simplified item card with just icon and price
+  // Create a simplified item card with just icon and price that uses unified tooltips
   createItemCard: function(item) {
     const canAfford = this.getPlayerInsight() >= item.price;
     const isPurchased = this.purchasedItems.has(item.id);
     const isInInventory = this.isItemInInventory(item);
     
+    // Create card container
     const card = document.createElement('div');
-    card.className = `simplified-shop-item ${item.rarity || 'common'} ${isPurchased ? 'purchased' : ''} ${isInInventory && item.itemType === 'relic' ? 'owned' : ''}`;
-    card.dataset.id = item.id;
+    card.className = `simplified-shop-item ${item.rarity || 'common'} tooltip-trigger`;
+    if (isPurchased) card.classList.add('purchased');
+    if (isInInventory && item.itemType === 'relic') card.classList.add('owned');
+    if (!isPurchased && !(isInInventory && item.itemType === 'relic') && canAfford) {
+      card.classList.add('clickable');
+    }
+    
+    card.dataset.itemId = item.id;
     card.dataset.rarity = item.rarity || 'common';
     
     // Create minimal content - just icon and price
@@ -343,14 +346,15 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       ${isInInventory && item.itemType === 'relic' ? '<div class="owned-badge">OWNED</div>' : ''}
     `;
     
-    // Create tooltip content directly in card
-    this.createDirectTooltip(card, item);
+    // Add tooltip using the UnifiedTooltipSystem
+    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+      UnifiedTooltipSystem.applyTooltip(card, item);
+    }
     
     // Only make clickable if not purchased/owned and can afford
     const isClickable = !isPurchased && !(isInInventory && item.itemType === 'relic') && canAfford;
     
     if (isClickable) {
-      card.classList.add('clickable');
       card.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -359,63 +363,6 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
     
     return card;
-  },
-
-  // Create tooltip directly in the item card with fixed positioning
-  createDirectTooltip: function(card, item) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'shop-tooltip';
-    
-    tooltip.innerHTML = `
-      <div class="tooltip-content">
-        <div class="tooltip-header ${item.rarity || 'common'}">
-          <span class="tooltip-title">${item.name}</span>
-          <span class="tooltip-rarity">${item.rarity || 'common'}</span>
-        </div>
-        <div class="tooltip-body">
-          <p class="tooltip-desc">${item.description}</p>
-          <div class="tooltip-effect">
-            ${item.itemType === 'relic' ? 
-              `<span class="passive-text">Passive: ${item.effect?.value || item.description}</span>` :
-              `<span>Effect: ${item.effect?.value || item.description}</span>`
-            }
-          </div>
-        </div>
-      </div>
-    `;
-    
-    card.appendChild(tooltip);
-  },
-  
-  // Fix tooltip positioning issues
-  fixTooltipPositioning: function() {
-    // Apply specific fixes to ensure tooltips are visible
-    const shopItems = document.querySelectorAll('.simplified-shop-item');
-    
-    shopItems.forEach(item => {
-      // Make sure the item has relative positioning
-      item.style.position = 'relative';
-      
-      // Find tooltip and make sure it's properly positioned
-      const tooltip = item.querySelector('.shop-tooltip');
-      if (tooltip) {
-        tooltip.style.position = 'absolute';
-        tooltip.style.bottom = '120%';
-        tooltip.style.left = '50%';
-        tooltip.style.transform = 'translateX(-50%)';
-        tooltip.style.zIndex = '10000';
-        tooltip.style.display = 'none'; // Hide by default
-        
-        // Add hover event listeners directly
-        item.addEventListener('mouseenter', () => {
-          tooltip.style.display = 'block';
-        });
-        
-        item.addEventListener('mouseleave', () => {
-          tooltip.style.display = 'none';
-        });
-      }
-    });
   },
   
   // Check if an item is already in the player's inventory
@@ -430,7 +377,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     );
   },
   
-  // Get item icon HTML using standardized approach
+  // Get item icon HTML
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
@@ -438,23 +385,19 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
     
     // Fallback icon based on item type
-    const iconName = this.getIconName(item);
-    return `<img src="/static/img/items/${iconName}.png" alt="${item.name}" class="item-image">`;
-  },
-  
-  // Get icon name based on item properties
-  getIconName: function(item) {
+    let iconName = 'Paperclip';
+    
     const itemName = (item.name || '').toLowerCase();
-    
     if (itemName.includes('textbook') || itemName.includes('book'))
-      return 'Textbook';
-    if (itemName.includes('badge'))
-      return 'Nametag';
-    if (itemName.includes('goggles') || itemName.includes('spectacles') || itemName.includes('glasses'))
-      return '3D Glasses';
+      iconName = 'Textbook';
+    else if (itemName.includes('badge'))
+      iconName = 'Nametag';
+    else if (itemName.includes('goggles') || itemName.includes('glasses'))
+      iconName = '3D Glasses';
+    else if (item.itemType === 'relic')
+      iconName = 'USB Stick';
     
-    // Default fallback
-    return item.itemType === 'relic' ? 'USB Stick' : 'Yellow Sticky Note';
+    return `<img src="/static/img/items/${iconName}.png" alt="${item.name}" class="item-image">`;
   },
   
   // Purchase item with improved reliability
@@ -704,7 +647,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Add enhanced shop styles with fixed tooltip styles
+  // Add enhanced shop styles
   addEnhancedStyles: function() {
     if (document.getElementById('enhanced-shop-styles')) {
       return; // Styles already added
@@ -713,7 +656,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     const styleEl = document.createElement('style');
     styleEl.id = 'enhanced-shop-styles';
     styleEl.textContent = `
-      /* Fixed Shop Component Styles */
+      /* Shop Component Styles */
 
       /* Grid for icon-based shop */
       .shop-items-grid {
@@ -854,98 +797,10 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       .owned-badge {
         background-color: #5b8dd9;
       }
-      
-      /* FIXED TOOLTIP STYLES */
-      .shop-tooltip {
-        position: absolute;
-        bottom: 120%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 220px;
-        z-index: 10000;
-        display: none;
-        pointer-events: none;
-      }
-      
-      .simplified-shop-item:hover .shop-tooltip {
-        display: block;
-      }
-      
-      .tooltip-content {
-        background-color: #1e1e2a;
-        border-radius: 5px;
-        border: 2px solid rgba(91, 141, 217, 0.5);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        overflow: hidden;
-        font-family: 'Press Start 2P', cursive;
-        font-size: 10px;
-      }
-      
-      .tooltip-header {
-        padding: 8px;
-        border-bottom: 2px solid rgba(0, 0, 0, 0.3);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      .tooltip-title {
-        font-weight: bold;
-        font-size: 10px;
-        color: white;
-      }
-      
-      .tooltip-body {
-        padding: 8px;
-      }
-      
-      .tooltip-desc {
-        margin-bottom: 8px;
-        line-height: 1.3;
-        color: rgba(255, 255, 255, 0.9);
-      }
-      
-      .tooltip-effect {
-        color: #5b8dd9;
-        margin-bottom: 8px;
-        padding: 8px;
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: 3px;
-      }
-      
-      .passive-text {
-        color: #f0c866;
-      }
-      
-      /* Rarity colors for tooltip headers */
-      .tooltip-header.common {
-        background-color: rgba(170, 170, 170, 0.2);
-      }
-      
-      .tooltip-header.uncommon {
-        background-color: rgba(91, 141, 217, 0.2);
-      }
-      
-      .tooltip-header.rare {
-        background-color: rgba(156, 119, 219, 0.2);
-      }
-      
-      .tooltip-header.epic {
-        background-color: rgba(240, 200, 102, 0.2);
-      }
-      
-      /* Tooltip rarity badge */
-      .tooltip-rarity {
-        font-size: 8px;
-        padding: 2px 4px;
-        border-radius: 3px;
-        background-color: rgba(0, 0, 0, 0.3);
-        text-transform: capitalize;
-      }
     `;
     
     document.head.appendChild(styleEl);
-    console.log("Added enhanced shop styles with fixed tooltips");
+    console.log("Added enhanced shop styles");
   }
 });
 
