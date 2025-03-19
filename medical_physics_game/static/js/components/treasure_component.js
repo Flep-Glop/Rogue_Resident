@@ -1,4 +1,4 @@
-// treasure_component.js - Updated to use the unified tooltip system
+// treasure_component.js - Updated to use icon with tooltip like inventory
 
 const TreasureComponent = ComponentUtils.createComponent('treasure', {
   // Initialize component
@@ -66,33 +66,25 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
       this.setUiState('addAttempted', true);
     }
     
-    // Create treasure UI
+    // Create treasure UI with simplified icon display
     container.innerHTML = `
       <div class="game-panel anim-fade-in">
         <div class="text-center mb-md">
           <h3 class="text-warning glow-text anim-pulse-warning">${this.generateTreasureTitle()}</h3>
+          <p>You found an item!</p>
         </div>
         
-        <div id="treasure-item-card" class="treasure-item-card ${itemRarity}">
-          <div class="item-header">
-            <h4 class="item-title">${nodeData.item.name}</h4>
-            <span class="item-rarity-badge">${itemRarity}</span>
-          </div>
-          
-          <div class="item-body">
-            <div class="item-icon-wrapper">
-              <div class="item-icon item-icon--${itemRarity}">
-                ${this.getItemIcon(nodeData.item)}
-              </div>
+        <div class="treasure-display-container">
+          <div id="treasure-item-icon" class="treasure-item-icon ${itemRarity}">
+            <div class="item-inner">
+              <div class="item-icon">${this.getItemIcon(nodeData.item)}</div>
+              <div class="item-glow"></div>
             </div>
-            
-            <div class="item-details">
-              <p class="item-description">${nodeData.item.description}</p>
-              
-              <div class="item-effect">
-                <span class="effect-label">Effect:</span>
-                <span class="effect-value">${nodeData.item.effect?.value || 'None'}</span>
-              </div>
+            <div class="pixel-border ${itemRarity}">
+              <div class="pixel-corner top-left"></div>
+              <div class="pixel-corner top-right"></div>
+              <div class="pixel-corner bottom-left"></div>
+              <div class="pixel-corner bottom-right"></div>
             </div>
           </div>
         </div>
@@ -109,10 +101,12 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     `;
     
     // Register with tooltip system
-    if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
-      const itemCard = document.getElementById('treasure-item-card');
-      if (itemCard) {
-        TooltipSystem.registerTooltip(itemCard, nodeData.item);
+    const itemIcon = document.getElementById('treasure-item-icon');
+    if (itemIcon) {
+      if (window.TooltipSystem && typeof TooltipSystem.registerTooltip === 'function') {
+        TooltipSystem.registerTooltip(itemIcon, nodeData.item);
+      } else if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
+        UnifiedTooltipSystem.applyTooltip(itemIcon, nodeData.item);
       }
     }
     
@@ -136,133 +130,167 @@ const TreasureComponent = ComponentUtils.createComponent('treasure', {
     styleEl.id = 'treasure-component-styles';
     styleEl.textContent = `
       /* Treasure component styles */
-      .treasure-item-card {
-        background-color: #2a2a36;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        border: 2px solid transparent;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      
-      /* Color borders by rarity */
-      .treasure-item-card.common { border-color: #aaa; }
-      .treasure-item-card.uncommon { border-color: #5b8dd9; }
-      .treasure-item-card.rare { border-color: #9c77db; }
-      .treasure-item-card.epic { 
-        border-color: #f0c866; 
-        box-shadow: 0 0 10px rgba(240, 200, 102, 0.3);
-      }
-      
-      .treasure-item-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-      }
-      
-      .item-header {
-        padding: 12px 15px;
-        background-color: rgba(0, 0, 0, 0.2);
+      .treasure-display-container {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 30px 0;
       }
       
-      .item-title {
-        margin: 0;
-        font-size: 16px;
-        color: white;
-      }
-      
-      .item-rarity-badge {
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 10px;
-        background-color: rgba(0, 0, 0, 0.3);
-        text-transform: capitalize;
-      }
-      
-      .item-body {
-        padding: 15px;
-        display: flex;
-        align-items: center;
-      }
-      
-      .item-icon-wrapper {
+      .treasure-item-icon {
+        position: relative;
         width: 80px;
         height: 80px;
-        flex-shrink: 0;
-        margin-right: 15px;
+        background-color: var(--dark-alt);
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
       }
       
-      .item-icon {
-        width: 100%;
-        height: 100%;
-        background-color: #1e1e2a;
-        border-radius: 8px;
+      .treasure-item-icon:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+      }
+      
+      .treasure-item-icon .item-inner {
+        width: 70px;
+        height: 70px;
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
+        position: relative;
+        background-color: var(--dark);
+        border-radius: 6px;
         overflow: hidden;
       }
       
-      .item-icon img {
+      .treasure-item-icon .item-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
+      
+      .treasure-item-icon .item-icon img {
         max-width: 80%;
         max-height: 80%;
         object-fit: contain;
         image-rendering: pixelated;
       }
       
-      /* Glow effects by rarity */
-      .item-icon--common { box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1); }
-      .item-icon--uncommon { box-shadow: inset 0 0 8px rgba(91, 141, 217, 0.2); }
-      .item-icon--rare { box-shadow: inset 0 0 8px rgba(156, 119, 219, 0.2); }
-      .item-icon--epic { 
-        box-shadow: inset 0 0 12px rgba(240, 200, 102, 0.3);
-        animation: epic-glow 2s infinite alternate;
-      }
-      
-      @keyframes epic-glow {
-        0% { box-shadow: inset 0 0 8px rgba(240, 200, 102, 0.3); }
-        100% { box-shadow: inset 0 0 15px rgba(240, 200, 102, 0.6); }
-      }
-      
-      .item-details {
-        flex-grow: 1;
-      }
-      
-      .item-description {
-        margin-bottom: 12px;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 14px;
-        line-height: 1.4;
-      }
-      
-      .item-effect {
-        padding: 8px 12px;
-        background-color: rgba(0, 0, 0, 0.2);
+      .treasure-item-icon .item-glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         border-radius: 6px;
-        border-left: 3px solid #5b8dd9;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) inset;
+        pointer-events: none;
       }
       
-      .effect-label {
-        color: #5b8dd9;
-        font-size: 12px;
-        margin-right: 5px;
+      /* Rarity styles with glowing effects */
+      .treasure-item-icon.common .item-inner {
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.2) inset;
       }
       
-      .effect-value {
-        color: white;
-        font-size: 12px;
+      .treasure-item-icon.uncommon .item-inner {
+        box-shadow: 0 0 5px var(--primary) inset;
       }
       
+      .treasure-item-icon.rare .item-inner {
+        box-shadow: 0 0 5px var(--warning) inset;
+      }
+      
+      .treasure-item-icon.epic .item-inner {
+        box-shadow: 0 0 8px var(--secondary) inset;
+        animation: epic-pulse 2s infinite;
+      }
+      
+      /* Pixelated border effect */
+      .pixel-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 2;
+      }
+      
+      .pixel-corner {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+      }
+      
+      .pixel-corner.top-left {
+        top: 0;
+        left: 0;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+      
+      .pixel-corner.top-right {
+        top: 0;
+        right: 0;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+      
+      .pixel-corner.bottom-left {
+        bottom: 0;
+        left: 0;
+        border-bottom: 2px solid;
+        border-left: 2px solid;
+      }
+      
+      .pixel-corner.bottom-right {
+        bottom: 0;
+        right: 0;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+      }
+      
+      /* Border colors by rarity */
+      .pixel-border.common .pixel-corner {
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+      
+      .pixel-border.uncommon .pixel-corner {
+        border-color: var(--primary);
+      }
+      
+      .pixel-border.rare .pixel-corner {
+        border-color: var(--warning);
+      }
+      
+      .pixel-border.epic .pixel-corner {
+        border-color: var(--secondary);
+        box-shadow: 0 0 3px var(--secondary);
+      }
+      
+      /* Button styling */
       .treasure-buttons {
         display: flex;
         gap: 10px;
+        margin-top: 20px;
       }
       
       .flex-1 {
         flex: 1;
+      }
+      
+      /* Animations */
+      @keyframes epic-pulse {
+        0% { box-shadow: 0 0 3px var(--secondary) inset; }
+        50% { box-shadow: 0 0 8px var(--secondary) inset; }
+        100% { box-shadow: 0 0 3px var(--secondary) inset; }
       }
     `;
     
