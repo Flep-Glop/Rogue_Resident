@@ -56,7 +56,7 @@ const UnifiedTooltipSystem = {
         }
         
         /* Tooltip visibility on hover */
-        .tooltip-trigger:hover .unified-tooltip {
+        .tooltip-trigger:hover .unified-tooltip, .tooltip-trigger.hovered .unified-tooltip {
           opacity: 1 !important;
           transform: translateY(0) !important;
           pointer-events: auto !important; /* Allow mouse interaction when visible */
