@@ -414,8 +414,6 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
   renderInventoryItems: function() {
     console.log("renderInventoryItems called");
     const container = document.getElementById('question-inventory-items');
-    console.log("Items container found:", !!container);
-    
     if (!container) return;
     
     // Get inventory from game state
@@ -424,7 +422,6 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     // Clear container and show message if no items
     if (!inventory || inventory.length === 0) {
-      console.log("No items in inventory");
       container.innerHTML = '<p class="text-center text-muted">No items in inventory</p>';
       return;
     }
@@ -434,22 +431,21 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     
     inventory.forEach(item => {
       const rarity = item.rarity || 'common';
-      console.log("Rendering item:", item.id, item.name);
       
-      // Simpler item HTML to reduce potential issues
+      // Simpler, more reliable button structure
       html += `
         <div class="inventory-item inventory-item--${rarity}" data-item-id="${item.id}">
           <div class="inventory-item__inner">
             ${this.getItemIcon(item)}
           </div>
-          <div class="item-tooltip">
-            <div class="item-tooltip__header">
-              <span>${item.name}</span>
-            </div>
-            <div class="item-tooltip__body">
-              <p>${item.description}</p>
-              <button class="use-item-btn" data-item-id="${item.id}">Use Item</button>
-            </div>
+          <div class="item-info">
+            <strong>${item.name}</strong>
+            <p>${item.description}</p>
+            <button class="game-btn game-btn--primary use-item-btn" 
+                    style="z-index: 100; position: relative; cursor: pointer;" 
+                    data-item-id="${item.id}">
+              Use Item
+            </button>
           </div>
         </div>
       `;
@@ -458,7 +454,10 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     html += '</div>';
     container.innerHTML = html;
     
-    // Use a more straightforward event binding approach
+    // Store component reference for click handlers
+    const componentRef = this;
+    
+    // Add direct click handlers using a more reliable method
     const useButtons = container.querySelectorAll('.use-item-btn');
     console.log("Found use buttons:", useButtons.length);
     
@@ -466,20 +465,37 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
       const itemId = button.getAttribute('data-item-id');
       console.log("Setting up click handler for item:", itemId);
       
-      // Use a cleaner approach to binding that preserves 'this' context
-      button.onclick = (event) => {
+      // Remove existing click handlers to avoid duplicates
+      button.removeEventListener('click', button.clickHandler);
+      
+      // Create new click handler with correct context
+      button.clickHandler = function(event) {
         event.preventDefault();
         event.stopPropagation();
-        console.log("Item button clicked:", itemId);
+        console.log("BUTTON CLICKED for item:", itemId);
         
         // Find the item in inventory
         const item = inventory.find(i => i.id === itemId);
         if (item) {
-          this.useItem({ item: item });
+          console.log("Found item in inventory, using it:", item);
+          // Call useItem with the correct context
+          componentRef.useItem({ item: item });
         } else {
           console.error("Item not found in inventory:", itemId);
         }
       };
+      
+      // Add the new click handler
+      button.addEventListener('click', button.clickHandler);
+      
+      // Make sure button is styled to be obvious
+      button.style.backgroundColor = "#5b8dd9";
+      button.style.color = "white";
+      button.style.padding = "8px";
+      button.style.margin = "5px 0";
+      button.style.border = "none";
+      button.style.borderRadius = "4px";
+      button.style.cursor = "pointer";
     });
   },
   
@@ -510,106 +526,80 @@ const QuestionComponent = ComponentUtils.createComponent('question', {
     return `<i class="fas fa-${iconClass}" style="color: ${iconColor};" class="inventory-item__icon"></i>`;
   },
   
-  // Complete implementation of useItem function
   useItem: function(data) {
     console.log("useItem called with data:", data);
     
     if (!data || !data.item) {
       console.error("Missing item data in useItem");
-      this.showToast("Error: Item data is missing", "danger");
       return;
     }
     
     const item = data.item;
     console.log(`Using item: ${item.id} - ${item.name}`);
     
-    // First, check if inventory exists in GameState
-    if (!window.GameState || !window.GameState.data || !Array.isArray(window.GameState.data.inventory)) {
-      console.error("GameState or inventory is not properly initialized");
-      this.showToast("Game system not fully loaded", "danger");
-      return;
-    }
+    // Apply the item effect directly without relying on ItemManager
+    this.applyItemEffectToQuestion(item);
     
-    // Find the item in inventory
-    const inventory = window.GameState.data.inventory;
-    const itemIndex = inventory.findIndex(i => i.id === item.id);
-    
-    if (itemIndex === -1) {
-      console.error(`Item ${item.id} not found in inventory`);
-      this.showToast("Item not found in inventory", "warning");
-      return;
-    }
-    
-    // Create a simple ItemManager if it doesn't exist
-    if (!window.ItemManager) {
-      console.log("Creating minimal ItemManager");
-      window.ItemManager = {
-        useItem: function(itemId) {
-          return true; // Always succeed for now
-        },
-        removeItemFromInventory: function(itemId) {
-          const inventory = window.GameState.data.inventory;
-          const itemIndex = inventory.findIndex(i => i.id === itemId);
-          if (itemIndex !== -1) {
-            inventory.splice(itemIndex, 1);
-            console.log(`Removed item ${itemId} from inventory`);
-            
-            // Trigger event for inventory update if EventSystem exists
-            if (window.EventSystem && typeof EventSystem.emit === 'function') {
-              EventSystem.emit('INVENTORY_UPDATED', inventory);
-            }
-            return true;
-          }
-          return false;
-        }
-      };
-    }
-    
-    // Try to use the item via ItemManager
-    const success = window.ItemManager.useItem(item.id);
-    
-    if (success) {
-      // Hide inventory panel
-      this.toggleInventory();
-      
-      // Show feedback
-      this.showToast(`Used ${item.name}!`, "success");
-      
-      // Apply item effect to question
-      this.applyItemEffectToQuestion(item);
-      
-      // Remove item from inventory
-      window.ItemManager.removeItemFromInventory(item.id);
-      
-      // Save game state if API client is available
-      if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
-        ApiClient.saveInventory({ inventory: window.GameState.data.inventory })
-          .catch(err => console.error("Failed to save inventory:", err));
+    // Remove the item from inventory (simplified approach)
+    if (window.GameState && window.GameState.data && window.GameState.data.inventory) {
+      const inventory = window.GameState.data.inventory;
+      const itemIndex = inventory.findIndex(i => i.id === item.id);
+      if (itemIndex !== -1) {
+        inventory.splice(itemIndex, 1);
+        console.log(`Removed item ${item.id} from inventory`);
       }
-      
-    } else {
-      this.showToast("Failed to use item", "danger");
     }
     
-    // Re-render inventory to reflect changes
-    setTimeout(() => this.renderInventoryItems(), 100);
+    // Hide inventory panel
+    const panel = document.getElementById('question-inventory-panel');
+    if (panel) panel.style.display = 'none';
+    this.setUiState('inventoryVisible', false);
+    
+    // Show feedback
+    if (typeof this.showToast === 'function') {
+      this.showToast(`Used ${item.name}!`, "success");
+    } else {
+      console.log(`Used ${item.name}!`);
+    }
+    
+    console.log("Item use complete!");
   },
   
   applyItemEffectToQuestion: function(item) {
+    console.log(`Applying item effect:`, item.effect);
+    
+    if (!item || !item.effect) {
+      console.error("No effect defined for item");
+      return;
+    }
+    
     // Handle different effect types
     switch(item.effect.type) {
       case "eliminateOption":
+        console.log("Eliminating incorrect option");
         this.eliminateIncorrectOption(item);
         break;
         
       case "heal":
-        // Healing is handled by ItemManager directly
-        this.showFloatingText(`+${item.effect.value} Life`, "success");
+        console.log("Applying healing effect");
+        // Update player lives directly
+        if (window.GameState && window.GameState.data && window.GameState.data.character) {
+          const character = window.GameState.data.character;
+          character.lives = Math.min(character.lives + (item.effect.value || 1), character.max_lives);
+          console.log(`Healed for ${item.effect.value || 1} life, new total: ${character.lives}`);
+        }
+        
+        // Show visual feedback
+        if (typeof this.showFloatingText === 'function') {
+          this.showFloatingText(`+${item.effect.value || 1} Life`, "success");
+        }
         break;
         
       default:
         console.log(`Unhandled effect type: ${item.effect.type}`);
     }
+    
+    console.log("Effect applied successfully");
   },
   
   // Eliminate an incorrect option with an item
