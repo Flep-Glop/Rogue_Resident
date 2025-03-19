@@ -1,10 +1,13 @@
-// Enhanced shop_component.js with fixes for refresh issues and standardized item display
+// Updated shop_component.js with fixed tooltips
 
 const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
   initialize: function() {
     console.log("Initializing enhanced shop component");
     this.resetComponentState();
+    
+    // Add fixed tooltip styles immediately on initialization
+    this.addEnhancedStyles();
     
     // Initialize the unified tooltip system if available
     if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.initialize === 'function') {
@@ -61,7 +64,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       </div>
     `;
     
-    // Add shop-specific styles
+    // Add shop-specific styles again to ensure they're present
     this.addEnhancedStyles();
     
     // Bind action using ComponentUtils for reliability
@@ -145,7 +148,12 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         price: 30,
         rarity: "uncommon",
         iconPath: "Notebook.png",
-        itemType: "consumable"
+        itemType: "consumable",
+        effect: {
+          type: "eliminateOption",
+          value: "Removes one incorrect answer option",
+          duration: "instant"
+        }
       },
       {
         id: "radiation_badge",
@@ -154,7 +162,12 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         price: 50,
         rarity: "rare",
         iconPath: "Nametag.png",
-        itemType: "consumable"
+        itemType: "consumable",
+        effect: {
+          type: "heal",
+          value: 1,
+          duration: "instant"
+        }
       },
       {
         id: "quantum_goggles",
@@ -163,7 +176,12 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         price: 80,
         rarity: "epic",
         iconPath: "3D Glasses.png",
-        itemType: "relic"
+        itemType: "relic",
+        effect: {
+          type: "second_chance",
+          value: "Allows a second attempt at question nodes",
+          duration: "permanent"
+        }
       }
     ];
     
@@ -190,7 +208,12 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         description: "Allows a second attempt at questions",
         rarity: "epic",
         iconPath: "3D Glasses.png",
-        itemType: "relic"
+        itemType: "relic",
+        effect: {
+          type: "second_chance",
+          value: "Allows a second attempt at question nodes",
+          duration: "permanent"
+        }
       }
     ];
   },
@@ -288,6 +311,11 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         </div>
       `;
     }
+    
+    // Force tooltip fixes after rendering
+    setTimeout(() => {
+      this.fixTooltipPositioning();
+    }, 100);
   },
   
   // Create a simplified item card with just icon and price
@@ -315,13 +343,8 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       ${isInInventory && item.itemType === 'relic' ? '<div class="owned-badge">OWNED</div>' : ''}
     `;
     
-    // Add tooltip using the unified tooltip system
-    if (window.UnifiedTooltipSystem && typeof UnifiedTooltipSystem.applyTooltip === 'function') {
-      UnifiedTooltipSystem.applyTooltip(card, item);
-    } else {
-      // Fallback to inline tooltip if unified system isn't available
-      card.appendChild(this.createInlineTooltip(item));
-    }
+    // Create tooltip content directly in card
+    this.createDirectTooltip(card, item);
     
     // Only make clickable if not purchased/owned and can afford
     const isClickable = !isPurchased && !(isInInventory && item.itemType === 'relic') && canAfford;
@@ -338,13 +361,12 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     return card;
   },
 
-  // Fallback tooltip if unified system isn't available
-  createInlineTooltip: function(item) {
+  // Create tooltip directly in the item card with fixed positioning
+  createDirectTooltip: function(card, item) {
     const tooltip = document.createElement('div');
-    tooltip.className = 'standardized-tooltip';
+    tooltip.className = 'shop-tooltip';
     
     tooltip.innerHTML = `
-      <div class="tooltip-bridge"></div>
       <div class="tooltip-content">
         <div class="tooltip-header ${item.rarity || 'common'}">
           <span class="tooltip-title">${item.name}</span>
@@ -354,7 +376,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
           <p class="tooltip-desc">${item.description}</p>
           <div class="tooltip-effect">
             ${item.itemType === 'relic' ? 
-              `<span class="passive-text">Passive: ${item.description}</span>` :
+              `<span class="passive-text">Passive: ${item.effect?.value || item.description}</span>` :
               `<span>Effect: ${item.effect?.value || item.description}</span>`
             }
           </div>
@@ -362,7 +384,38 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       </div>
     `;
     
-    return tooltip;
+    card.appendChild(tooltip);
+  },
+  
+  // Fix tooltip positioning issues
+  fixTooltipPositioning: function() {
+    // Apply specific fixes to ensure tooltips are visible
+    const shopItems = document.querySelectorAll('.simplified-shop-item');
+    
+    shopItems.forEach(item => {
+      // Make sure the item has relative positioning
+      item.style.position = 'relative';
+      
+      // Find tooltip and make sure it's properly positioned
+      const tooltip = item.querySelector('.shop-tooltip');
+      if (tooltip) {
+        tooltip.style.position = 'absolute';
+        tooltip.style.bottom = '120%';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translateX(-50%)';
+        tooltip.style.zIndex = '10000';
+        tooltip.style.display = 'none'; // Hide by default
+        
+        // Add hover event listeners directly
+        item.addEventListener('mouseenter', () => {
+          tooltip.style.display = 'block';
+        });
+        
+        item.addEventListener('mouseleave', () => {
+          tooltip.style.display = 'none';
+        });
+      }
+    });
   },
   
   // Check if an item is already in the player's inventory
@@ -436,13 +489,13 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       iconPath: item.iconPath,
       effect: {
         type: this.getEffectType(item),
-        value: item.description,
+        value: item.effect?.value || item.description,
         duration: (item.itemType === "relic") ? "permanent" : "instant"
       }
     };
     
     if (item.itemType === 'relic') {
-      fullItem.passiveText = `Passive: ${item.description}`;
+      fullItem.passiveText = `Passive: ${item.effect?.value || item.description}`;
     }
     
     // Add to inventory with proper error handling
@@ -523,6 +576,11 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
   
   // Get effect type based on item ID and description
   getEffectType: function(item) {
+    // If the item already has an effect type, use it
+    if (item.effect && item.effect.type) {
+      return item.effect.type;
+    }
+    
     const id = (item.id || '').toLowerCase();
     const desc = (item.description || '').toLowerCase();
     
@@ -553,70 +611,43 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Direct method to leave shop - bypasses component action system
+  // Leave shop
   leaveShop: function(nodeData) {
-    console.log("🔍 Direct leave shop method called");
+    console.log("Leaving shop", nodeData);
     
     // Prevent multiple completions
     if (this.completedFlag) {
-      console.log("🔍 Node already completed, showing map view only");
       return this.safelyShowMapView();
     }
     
     this.completedFlag = true;
     
-    // Save node ID for reference
-    const nodeId = nodeData?.id || GameState.getCurrentNodeId();
-    console.log(`🔍 Leaving shop, node ID: ${nodeId}`);
-    
-    if (nodeId) {
-      // First update node in game state directly
-      if (window.GameState && GameState.data && GameState.data.map) {
-        if (GameState.data.map.nodes && GameState.data.map.nodes[nodeId]) {
-          GameState.data.map.nodes[nodeId].visited = true;
-          console.log(`✅ Node ${nodeId} marked as visited in map.nodes`);
-        } else if (GameState.data.map.boss && GameState.data.map.boss.id === nodeId) {
-          GameState.data.map.boss.visited = true;
-          console.log(`✅ Boss node ${nodeId} marked as visited`);
-        }
-        
-        // Clear current node
-        if (typeof GameState.setCurrentNode === 'function') {
-          GameState.setCurrentNode(null);
-          console.log("✅ Current node set to null");
-        }
-      }
+    // Complete the node
+    if (nodeData && nodeData.id) {
+      // First try the component's action system
+      this.completeNode(nodeData);
       
-      // Then try API
+      // Also mark node as visited directly for reliability
       if (window.ApiClient && typeof ApiClient.markNodeVisited === 'function') {
-        ApiClient.markNodeVisited(nodeId)
+        ApiClient.markNodeVisited(nodeData.id)
           .then(() => {
-            console.log(`✅ Node ${nodeId} marked as visited via API`);
+            console.log(`Node ${nodeData.id} marked as visited`);
             
             // Emit completion event
             if (window.EventSystem) {
-              EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeId);
-              console.log(`✅ Emitted NODE_COMPLETED event for ${nodeId}`);
+              EventSystem.emit(GAME_EVENTS.NODE_COMPLETED, nodeData.id);
             }
           })
           .catch(error => {
-            console.warn(`❌ Error marking node visited via API: ${error.message}`);
-            // Still try to show map view
-          })
-          .finally(() => {
-            // Always try to show map
-            setTimeout(() => this.safelyShowMapView(), 100);
+            console.warn(`Error marking node visited: ${error.message}`);
           });
-      } else {
-        // No API available, just show map
-        console.log("❓ API not available, just showing map view");
-        this.safelyShowMapView();
       }
-    } else {
-      // No node ID, just show map
-      console.log("❓ No node ID found, just showing map view");
-      this.safelyShowMapView();
     }
+    
+    // Show map view after a short delay
+    setTimeout(() => {
+      this.safelyShowMapView();
+    }, 100);
   },
   
   // Handle component actions
@@ -635,74 +666,54 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
   
   // Safely show map view with multiple fallbacks
   safelyShowMapView: function() {
-    console.log("🔍 Safely showing map view");
+    console.log("Safely showing map view");
     
     // Try multiple approaches to ensure the map view is shown
     
     // Method 1: Use UI.showMapView if available
     if (window.UI && typeof UI.showMapView === 'function') {
-      console.log("🔍 Using UI.showMapView");
+      console.log("Using UI.showMapView");
       UI.showMapView();
     }
     
-    // Method 2: Manual DOM manipulation
-    console.log("🔍 Also applying manual DOM updates for redundancy");
+    // Method 2: Manual DOM manipulation as backup
+    console.log("Also applying manual DOM updates for redundancy");
     
     // Hide any modal overlay
     const modal = document.getElementById('node-modal-overlay');
     if (modal) {
       modal.style.display = 'none';
-      console.log("✅ Hidden modal overlay");
-      
-      // Move interaction containers back
-      const modalContent = document.getElementById('node-modal-content');
-      if (modalContent) {
-        const containers = modalContent.querySelectorAll('.interaction-container');
-        const gameBoard = document.querySelector('.col-md-9');
-        
-        if (gameBoard) {
-          containers.forEach(container => {
-            gameBoard.appendChild(container);
-            container.style.display = 'none';
-            console.log(`✅ Moved and hidden container: ${container.id}`);
-          });
-        }
-      }
     }
     
     // Hide all interaction containers
     document.querySelectorAll('.interaction-container').forEach(container => {
       container.style.display = 'none';
-      console.log(`✅ Hidden interaction container: ${container.id}`);
     });
     
     // Show map container
     const mapContainer = document.querySelector('.map-container');
     if (mapContainer) {
       mapContainer.style.display = 'block';
-      console.log("✅ Shown map container");
     }
     
-    // Method 3: Force redraw map
+    // Method 3: Force redraw map if needed
     if (window.MapRenderer && typeof MapRenderer.renderMap === 'function') {
-      console.log("🔍 Forcing map render");
       setTimeout(() => {
         MapRenderer.renderMap();
-        console.log("✅ Map re-rendered");
       }, 200);
     }
-    
-    console.log("✅ All map view methods applied");
   },
   
-  // Add enhanced shop styles and standardized tooltip styles
+  // Add enhanced shop styles with fixed tooltip styles
   addEnhancedStyles: function() {
-    if (document.getElementById('enhanced-shop-styles')) return;
+    if (document.getElementById('enhanced-shop-styles')) {
+      return; // Styles already added
+    }
     
     const styleEl = document.createElement('style');
     styleEl.id = 'enhanced-shop-styles';
     styleEl.textContent = `
-      /* Add these styles to your shop component's addEnhancedStyles method */
+      /* Fixed Shop Component Styles */
 
       /* Grid for icon-based shop */
       .shop-items-grid {
@@ -710,6 +721,15 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         gap: 15px;
         margin-bottom: 15px;
+      }
+      
+      /* Shop section headers */
+      .shop-section-title {
+        margin: 10px 0;
+        color: #fff;
+        font-size: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 8px;
       }
 
       /* Simplified shop item */
@@ -790,7 +810,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       .item-icon.epic { box-shadow: inset 0 0 12px rgba(240, 200, 102, 0.3); }
 
       /* Item icon image */
-      .item-icon img {
+      .item-icon img.item-image {
         max-width: 80%;
         max-height: 80%;
         object-fit: contain;
@@ -835,41 +855,22 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         background-color: #5b8dd9;
       }
       
-      /* STANDARDIZED TOOLTIP SYSTEM */
-      
-      /* Tooltip container */
-      .standardized-tooltip {
+      /* FIXED TOOLTIP STYLES */
+      .shop-tooltip {
         position: absolute;
-        bottom: 100%;
+        bottom: 120%;
         left: 50%;
         transform: translateX(-50%);
         width: 220px;
+        z-index: 10000;
+        display: none;
         pointer-events: none;
-        opacity: 0;
-        z-index: 9999;
-        transition: opacity 0.2s, transform 0.2s;
       }
       
-      /* Show tooltip on hover */
-      .shop-item-card:hover .standardized-tooltip,
-      .inventory-item:hover .standardized-tooltip {
-        opacity: 1;
-        transform: translateX(-50%) translateY(-5px);
-        pointer-events: auto; /* Enable mouse interaction with tooltip */
+      .simplified-shop-item:hover .shop-tooltip {
+        display: block;
       }
       
-      /* Invisible bridge between item and tooltip */
-      .tooltip-bridge {
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 20px;
-        /* For debugging: background-color: rgba(255, 0, 0, 0.3); */
-      }
-      
-      /* Tooltip content */
       .tooltip-content {
         background-color: #1e1e2a;
         border-radius: 5px;
@@ -880,7 +881,6 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         font-size: 10px;
       }
       
-      /* Tooltip header */
       .tooltip-header {
         padding: 8px;
         border-bottom: 2px solid rgba(0, 0, 0, 0.3);
@@ -889,26 +889,22 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         align-items: center;
       }
       
-      /* Tooltip title */
       .tooltip-title {
         font-weight: bold;
         font-size: 10px;
         color: white;
       }
       
-      /* Tooltip body */
       .tooltip-body {
         padding: 8px;
       }
       
-      /* Tooltip description */
       .tooltip-desc {
         margin-bottom: 8px;
         line-height: 1.3;
         color: rgba(255, 255, 255, 0.9);
       }
       
-      /* Tooltip effect */
       .tooltip-effect {
         color: #5b8dd9;
         margin-bottom: 8px;
@@ -917,7 +913,6 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         border-radius: 3px;
       }
       
-      /* Passive text */
       .passive-text {
         color: #f0c866;
       }
@@ -950,6 +945,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     `;
     
     document.head.appendChild(styleEl);
+    console.log("Added enhanced shop styles with fixed tooltips");
   }
 });
 
