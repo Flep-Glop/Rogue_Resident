@@ -166,24 +166,12 @@ const UnifiedTooltipSystem = {
         /* Hide old tooltip systems */
         .item-tooltip, 
         .standardized-tooltip, 
-        .shop-tooltip {
+        .shop-tooltip,
+        .tooltip:not(.unified-tooltip) {
           display: none !important;
           opacity: 0 !important;
           visibility: hidden !important;
           pointer-events: none !important;
-        }
-        
-        /* Helper for debugging tooltip positioning */
-        .tooltip-debug {
-          border: 2px dashed red !important;
-          background-color: rgba(255, 0, 0, 0.2) !important;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .unified-tooltip {
-            max-width: 80vw !important;
-          }
         }
       `;
       
@@ -282,6 +270,10 @@ const UnifiedTooltipSystem = {
       // Set initial position - will be updated by positionTooltip
       tooltip.style.top = '-10000px';
       tooltip.style.left = '-10000px';
+
+      document.querySelectorAll('.unified-tooltip').forEach(tooltip => {
+        tooltip.style.zIndex = '100000';
+      });
       
       // Setup positioning after a brief delay to ensure DOM is ready
       setTimeout(() => {
@@ -329,11 +321,24 @@ const UnifiedTooltipSystem = {
             arrow.style.borderBottom = '8px solid #1e1e2a';
             arrow.style.borderTop = 'none';
           }
+        } else {
+          // Reset arrow position for top
+          const arrow = tooltip.querySelector('.tooltip-arrow');
+          if (arrow) {
+            arrow.style.top = 'auto';
+            arrow.style.bottom = '-8px';
+            arrow.style.borderTop = '8px solid #1e1e2a';
+            arrow.style.borderBottom = 'none';
+          }
         }
         
         // Apply the calculated position
         tooltip.style.top = `${top}px`;
         tooltip.style.left = `${left}px`;
+        
+        // Ensure tooltip has high z-index and fixed positioning
+        tooltip.style.position = 'fixed';
+        tooltip.style.zIndex = '100000';
         
         // Adjust arrow position if tooltip is shifted from center
         const arrow = tooltip.querySelector('.tooltip-arrow');
@@ -350,6 +355,8 @@ const UnifiedTooltipSystem = {
       
       // Attach to the tooltip's parent element for future updates
       trigger._positionTooltip = position;
+      
+      return position;
     },
     
     // Fix any existing tooltips in the DOM
