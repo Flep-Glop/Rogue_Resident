@@ -16,7 +16,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     
     // Create basic shop structure
     container.innerHTML = `
-      <div class="game-panel">
+      <div class="game-panel shop-panel">
         <div class="shop-header">
           <h3>Department Store</h3>
           <div class="insight-display">
@@ -27,14 +27,14 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         
         <p class="shop-description">Browse and purchase items using your insight points.</p>
         
-        <div id="shop-items-container" class="shop-items-grid">
+        <div id="shop-items-container">
           <div class="loading-indicator">
             <div class="spinner-border"></div>
             <p>Loading items...</p>
           </div>
         </div>
         
-        <button id="shop-continue-btn" class="game-btn game-btn--primary w-full mt-md">
+        <button id="shop-continue-btn" class="leave-shop-btn">
           Leave Shop
         </button>
       </div>
@@ -133,53 +133,65 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     const consumables = items.filter(item => item.itemType === 'consumable');
     const relics = items.filter(item => item.itemType === 'relic');
     
-    // Add section headers if both types exist
-    if (consumables.length > 0 && relics.length > 0) {
-      container.innerHTML = `
-        <div class="shop-section-header">Consumable Items</div>
-        <div id="consumables-container" class="shop-items-grid compact"></div>
-        <div class="shop-section-header">Rare Relics</div>
-        <div id="relics-container" class="shop-items-grid compact"></div>
-      `;
-    } else {
-      // If only one type, don't show headers
-      container.innerHTML = `<div class="shop-items-grid compact"></div>`;
-    }
+    // Create layout with section headers
+    container.innerHTML = `
+      <div class="shop-divider">
+        <span class="section-title consumables-title">Consumable Items</span>
+        <span class="section-title relics-title">Rare Relics</span>
+      </div>
+      <div class="shop-sections">
+        <div id="consumables-container" class="shop-section"></div>
+        <div id="relics-container" class="shop-section"></div>
+      </div>
+    `;
     
-    // Function to render an item
+    // Function to render an item card
     const renderItem = (item, targetContainer) => {
       const playerCanAfford = this.getPlayerInsight() >= item.price;
       const rarity = item.rarity || 'common';
       const isRelic = item.itemType === 'relic';
       
       const itemElement = document.createElement('div');
-      itemElement.className = `shop-item ${isRelic ? 'shop-relic' : ''} rarity-${rarity}`;
+      itemElement.className = `shop-item ${isRelic ? 'shop-relic' : ''}`;
       
+      // Main visible content (icon, name, price)
       itemElement.innerHTML = `
-        <div class="shop-item-header">
-          <span class="item-name">${item.name}</span>
-          <span class="item-price ${playerCanAfford ? '' : 'cannot-afford'}">${Math.round(item.price)} Insight</span>
-        </div>
-        
-        <div class="shop-item-body">
-          <div class="item-icon-container ${isRelic ? 'relic-icon' : ''}">
-            ${this.getItemIcon(item)}
-          </div>
-          
-          <div class="item-content">
-            <div class="rarity-badge ${rarity}">${rarity}</div>
-            <p class="item-description">${item.description}</p>
-            <div class="item-effect">
-              ${isRelic ? '<span class="passive-label">Passive:</span> ' : ''}
-              ${isRelic ? (item.passiveText || item.effect?.value || 'No effect') : (item.effect?.value || 'No effect')}
+        <div class="shop-item-content">
+          <div class="item-header">
+            <span class="item-name">${item.name}</span>
+            <div class="item-price-tag ${playerCanAfford ? '' : 'cannot-afford'}">
+              <span class="item-price-value">${Math.round(item.price)}</span>
+              <span class="item-price-label">Insight</span>
             </div>
           </div>
+          
+          <div class="item-main">
+            <div class="item-icon-container">
+              ${this.getItemIcon(item)}
+            </div>
+            <div class="rarity-badge ${rarity}">${rarity}</div>
+            
+            <!-- Item tooltip that appears on hover -->
+            <div class="item-tooltip">
+              <div class="tooltip-header">
+                <span class="tooltip-title">${item.name}</span>
+                <span class="tooltip-rarity">${rarity}</span>
+              </div>
+              <div class="tooltip-body">
+                <p class="tooltip-desc">${item.description}</p>
+                <div class="tooltip-effect">
+                  ${isRelic ? '<span class="effect-type">Passive:</span> ' : ''}
+                  ${isRelic ? (item.passiveText || item.effect?.value || 'No effect') : (item.effect?.value || 'No effect')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button class="purchase-btn ${playerCanAfford ? 'can-afford' : 'cannot-afford'}" 
+            ${!playerCanAfford ? 'disabled' : ''} data-item-id="${item.id}">
+            Purchase
+          </button>
         </div>
-        
-        <button class="purchase-btn ${playerCanAfford ? 'can-afford' : 'cannot-afford'}" 
-          ${!playerCanAfford ? 'disabled' : ''} data-item-id="${item.id}">
-          ${playerCanAfford ? 'Purchase' : 'Not enough insight'}
-        </button>
       `;
       
       targetContainer.appendChild(itemElement);
@@ -191,17 +203,20 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       }
     };
     
-    // Render consumables and relics in their respective containers
-    if (consumables.length > 0 && relics.length > 0) {
-      const consumablesContainer = document.getElementById('consumables-container');
-      const relicsContainer = document.getElementById('relics-container');
-      
+    // Render consumables
+    const consumablesContainer = document.getElementById('consumables-container');
+    if (consumables.length > 0) {
       consumables.forEach(item => renderItem(item, consumablesContainer));
+    } else {
+      consumablesContainer.innerHTML = `<p class="empty-section">No consumable items available</p>`;
+    }
+    
+    // Render relics
+    const relicsContainer = document.getElementById('relics-container');
+    if (relics.length > 0) {
       relics.forEach(item => renderItem(item, relicsContainer));
     } else {
-      // Render all items in the single container
-      const targetContainer = container.querySelector('.shop-items-grid');
-      items.forEach(item => renderItem(item, targetContainer));
+      relicsContainer.innerHTML = `<p class="empty-section">No relics available</p>`;
     }
   },
   
