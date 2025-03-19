@@ -933,33 +933,6 @@ def save_all_changes():
             'success': False,
             'error': str(e)
         })
-
-@app.route('/api/item/all', methods=['GET'])
-def get_all_items():
-    """Get all items"""
-    from data_manager import load_json_data
-    
-    # Load items data
-    items_data = load_json_data('items.json')
-    
-    # Get all items
-    items = items_data.get('items', [])
-    
-    return jsonify(items)
-
-@app.route('/api/relic/all', methods=['GET'])
-def get_all_relics():
-    """Get all relics"""
-    from data_manager import load_json_data
-    
-    # Load relics data
-    relics_data = load_json_data('relics.json')
-    
-    # Get all relics
-    relics = relics_data.get('relics', [])
-    
-    return jsonify(relics)
-
 # Upload a new icon
 @app.route('/api/editor/upload-icon', methods=['POST'])
 def upload_icon():
