@@ -1,6 +1,5 @@
-// inventory_system.js - Enhanced inventory management with consistent item/relic display
+// Enhanced inventory_system.js with fixed tooltips
 
-// InventorySystem singleton - handles inventory display and functionality
 const InventorySystem = {
   // Max inventory size (can be increased with level)
   maxSize: 5,
@@ -10,7 +9,8 @@ const InventorySystem = {
   
   // Initialize inventory system
   initialize: function() {
-    console.log("Initializing inventory system...");
+    console.log("Initializing enhanced inventory system...");
+    
     // Find the inventory container in the DOM
     this.container = document.getElementById('inventory-container');
 
@@ -33,6 +33,7 @@ const InventorySystem = {
         return this; // Return early but don't break the chain
       }
     }
+    
     // Subscribe to inventory events
     if (window.EventSystem) {
       EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.addItem.bind(this));
@@ -46,6 +47,9 @@ const InventorySystem = {
     if (window.GameState && GameState.data && GameState.data.character) {
       this.maxSize = 4 + Math.floor(GameState.data.character.level / 2);
     }
+    
+    // Add fixed tooltip styles
+    this.addTooltipFix();
     
     // Render initial inventory
     this.renderInventory();
@@ -105,9 +109,7 @@ const InventorySystem = {
     }
   },
   
-  // Replace the renderItems and renderRelics functions in inventory_system.js
-
-  // Render consumable items
+  // Render consumable items with improved tooltips
   renderItems: function() {
     const itemsContainer = document.getElementById('items-container');
     if (!itemsContainer) return;
@@ -134,7 +136,7 @@ const InventorySystem = {
     
     const grid = itemsContainer.querySelector('.inventory-grid');
     
-    // Add each item
+    // Add each item with standardized display
     items.forEach((item, index) => {
       const itemElement = document.createElement('div');
       itemElement.className = `inventory-item ${item.rarity || 'common'}`;
@@ -151,15 +153,20 @@ const InventorySystem = {
           <div class="pixel-corner bottom-left"></div>
           <div class="pixel-corner bottom-right"></div>
         </div>
-        <div class="item-tooltip">
-          <div class="tooltip-header ${item.rarity || 'common'}">
-            <span class="tooltip-title">${item.name}</span>
-            <span class="tooltip-rarity">${item.rarity || 'common'}</span>
-          </div>
-          <div class="tooltip-body">
-            <p class="tooltip-desc">${item.description}</p>
-            <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
-            <div class="tooltip-usage">Click to use</div>
+        
+        <!-- Standardized tooltip with invisible bridge -->
+        <div class="standardized-tooltip">
+          <div class="tooltip-bridge"></div>
+          <div class="tooltip-content">
+            <div class="tooltip-header ${item.rarity || 'common'}">
+              <span class="tooltip-title">${item.name}</span>
+              <span class="tooltip-rarity">${item.rarity || 'common'}</span>
+            </div>
+            <div class="tooltip-body">
+              <p class="tooltip-desc">${item.description}</p>
+              <div class="tooltip-effect">${item.effect?.value || 'No effect'}</div>
+              <div class="tooltip-usage">Click to use</div>
+            </div>
           </div>
         </div>
       `;
@@ -176,12 +183,9 @@ const InventorySystem = {
       
       grid.appendChild(itemElement);
     });
-    
-    // Add tooltip CSS fix
-    this.addTooltipFix();
   },
 
-  // Render relics - now matches items display style
+  // Render relics - using the same standardized tooltip approach
   renderRelics: function() {
     const relicsContainer = document.getElementById('relics-container');
     if (!relicsContainer) return;
@@ -196,7 +200,7 @@ const InventorySystem = {
       return;
     }
     
-    // Create title and grid - using the same grid class for consistency
+    // Create title and grid
     const gridHtml = `
       <div class="inventory-title">
         <h3>Relics</h3>
@@ -208,7 +212,7 @@ const InventorySystem = {
     
     const grid = relicsContainer.querySelector('.inventory-grid');
     
-    // Add each relic using the same format as items
+    // Add each relic using the same display format as items
     relics.forEach((relic, index) => {
       const relicElement = document.createElement('div');
       relicElement.className = `inventory-item ${relic.rarity || 'common'}`;
@@ -225,15 +229,20 @@ const InventorySystem = {
           <div class="pixel-corner bottom-left"></div>
           <div class="pixel-corner bottom-right"></div>
         </div>
-        <div class="item-tooltip">
-          <div class="tooltip-header ${relic.rarity || 'common'}">
-            <span class="tooltip-title">${relic.name}</span>
-            <span class="tooltip-rarity">${relic.rarity || 'common'}</span>
-          </div>
-          <div class="tooltip-body">
-            <p class="tooltip-desc">${relic.description}</p>
-            <div class="tooltip-effect">
-              <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
+        
+        <!-- Standardized tooltip with invisible bridge -->
+        <div class="standardized-tooltip">
+          <div class="tooltip-bridge"></div>
+          <div class="tooltip-content">
+            <div class="tooltip-header ${relic.rarity || 'common'}">
+              <span class="tooltip-title">${relic.name}</span>
+              <span class="tooltip-rarity">${relic.rarity || 'common'}</span>
+            </div>
+            <div class="tooltip-body">
+              <p class="tooltip-desc">${relic.description}</p>
+              <div class="tooltip-effect">
+                <span class="passive-text">${relic.passiveText || relic.effect?.value || 'No effect'}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -241,57 +250,57 @@ const InventorySystem = {
       
       grid.appendChild(relicElement);
     });
-    
-    // Add tooltip CSS fix
-    this.addTooltipFix();
   },
 
-  // Add a new method to fix tooltips
+  // Add tooltip CSS fixes for consistent display
   addTooltipFix: function() {
     if (document.getElementById('fixed-tooltips')) return;
     
     const tooltipStyles = document.createElement('style');
     tooltipStyles.id = 'fixed-tooltips';
     tooltipStyles.textContent = `
-      /* Fixed tooltip styles */
-      .item-tooltip {
+      /* STANDARDIZED TOOLTIP SYSTEM */
+      
+      /* Tooltip container */
+      .standardized-tooltip {
         position: absolute !important;
         bottom: 100% !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
-        width: 200px !important;
-        max-width: 90vw !important;
-        background-color: #1e1e2a !important;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
-        border-radius: 5px !important;
-        opacity: 0 !important;
+        width: 220px !important;
         pointer-events: none !important;
-        transition: opacity 0.2s, transform 0.2s !important;
+        opacity: 0 !important;
         z-index: 9999 !important;
-        font-family: 'Press Start 2P', cursive !important;
-        font-size: 10px !important;
-        margin-bottom: 8px !important;
-        text-align: left !important;
-        border: 2px solid rgba(91, 141, 217, 0.5) !important;
+        transition: opacity 0.2s, transform 0.2s !important;
       }
       
       /* Show tooltip on hover */
-      .inventory-item:hover .item-tooltip {
+      .inventory-item:hover .standardized-tooltip {
         opacity: 1 !important;
         transform: translateX(-50%) translateY(-5px) !important;
-        pointer-events: auto !important;
+        pointer-events: auto !important; /* Enable mouse interaction with tooltip */
       }
       
-      /* Invisible bridge to improve hover */
-      .inventory-item:hover::after {
-        content: '';
-        position: absolute;
-        width: 30px;
-        height: 20px;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        /* For debugging: background-color: rgba(255, 0, 0, 0.2); */
+      /* Invisible bridge between item and tooltip */
+      .tooltip-bridge {
+        position: absolute !important;
+        bottom: -10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 30px !important;
+        height: 20px !important;
+        /* For debugging: background-color: rgba(255, 0, 0, 0.3); */
+      }
+      
+      /* Tooltip content */
+      .tooltip-content {
+        background-color: #1e1e2a !important;
+        border-radius: 5px !important;
+        border: 2px solid rgba(91, 141, 217, 0.5) !important;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+        overflow: hidden !important;
+        font-family: 'Press Start 2P', cursive !important;
+        font-size: 10px !important;
       }
       
       /* Tooltip header */
@@ -308,15 +317,6 @@ const InventorySystem = {
         font-weight: bold !important;
         font-size: 10px !important;
         color: white !important;
-      }
-      
-      /* Tooltip rarity */
-      .tooltip-rarity {
-        font-size: 8px !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
-        background-color: rgba(0, 0, 0, 0.3) !important;
-        text-transform: capitalize !important;
       }
       
       /* Tooltip body */
@@ -340,12 +340,12 @@ const InventorySystem = {
         border-radius: 3px !important;
       }
       
-      /* Passive text for relics */
+      /* Passive text */
       .passive-text {
         color: #f0c866 !important;
       }
       
-      /* Rarity styling for tooltip headers */
+      /* Rarity colors for tooltip headers */
       .tooltip-header.common {
         background-color: rgba(170, 170, 170, 0.2) !important;
       }
@@ -361,12 +361,65 @@ const InventorySystem = {
       .tooltip-header.epic {
         background-color: rgba(240, 200, 102, 0.2) !important;
       }
+      
+      /* Tooltip rarity badge */
+      .tooltip-rarity {
+        font-size: 8px !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        text-transform: capitalize !important;
+      }
+      
+      /* Override any existing tooltip styles to prevent conflicts */
+      .item-tooltip {
+        display: none !important;
+      }
+      
+      /* Critical fix: Add proper z-indexing for inventory items */
+      .inventory-item {
+        position: relative !important;
+        z-index: 1 !important;
+      }
+      
+      .inventory-item:hover {
+        z-index: 2 !important;
+      }
     `;
     
     document.head.appendChild(tooltipStyles);
     console.log("Added fixed tooltip styles");
   },
 
+  // Get pixel art icon for an item
+  getItemIcon: function(item) {
+    // Check if the item has a custom icon path
+    if (item.iconPath) {
+      // Handle both paths with and without the /static/ prefix
+      const iconPath = item.iconPath.startsWith('/static/') ? 
+        item.iconPath : `/static/img/items/${item.iconPath}`;
+      
+      return `<img src="${iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
+    }
+    
+    // Fallback: Use item name to determine a default icon
+    const itemName = (item.name || '').toLowerCase();
+    let iconFile = "Yellow Sticky Note.png";
+    
+    // Map common item types to default icons
+    if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
+      iconFile = "Textbook.png";
+    } else if (itemName.includes('potion') || itemName.includes('vial')) {
+      iconFile = "Flask.png";
+    } else if (itemName.includes('badge') || itemName.includes('dosimeter')) {
+      iconFile = "Nametag.png";
+    } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
+      iconFile = "3D Glasses.png";
+    }
+    
+    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
+  },
+  
   // Use an item with improved error handling
   useItem: function(itemId) {
     let item;
@@ -405,7 +458,7 @@ const InventorySystem = {
       return success;
     }
     
-    // Fallback implementation if ItemManager doesn't exist
+    // Fallback implementation
     console.log("ItemManager not available, using fallback item usage");
     const success = this.fallbackUseItem(item);
     
@@ -427,8 +480,6 @@ const InventorySystem = {
     return success;
   },
   
-  // Fixed fallbackUseItem function with proper item removal - replace in inventory_system.js
-
   // Fallback implementation for using an item when ItemManager is not available
   fallbackUseItem: function(item) {
     console.log("Using fallback item usage for:", item);
@@ -552,54 +603,6 @@ const InventorySystem = {
     }
     
     return true;
-  },
-  
-  // Get pixel art icon for an item
-  getItemIcon: function(item) {
-    // Check if the item has a custom icon path
-    if (item.iconPath) {
-      // Handle both paths with and without the /static/ prefix
-      const iconPath = item.iconPath.startsWith('/static/') ? 
-        item.iconPath : `/static/img/items/${item.iconPath}`;
-      
-      return `<img src="${iconPath}" alt="${item.name}" class="pixel-item-icon-img">`;
-    }
-    
-    // Fallback: Use item name to determine a default icon
-    const itemName = (item.name || '').toLowerCase();
-    let iconFile = "Yellow Sticky Note.png";
-    
-    // Map common item types to default icons
-    if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
-      iconFile = "Textbook.png";
-    } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconFile = "Flask.png";
-    } else if (itemName.includes('badge') || itemName.includes('dosimeter')) {
-      iconFile = "Nametag.png";
-    } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
-      iconFile = "3D Glasses.png";
-    }
-    
-    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" class="pixel-item-icon-img">`;
-  },
-  
-  // Get effect description for display
-  getEffectDescription: function(effect) {
-    if (!effect) return 'No effect';
-    
-    switch (effect.type) {
-      case 'insight_boost': return `+${effect.value}% Insight`;
-      case 'restore_life': 
-      case 'heal': 
-        return `Restore ${effect.value} Life`;
-      case 'eliminateOption': 
-      case 'question_hint': 
-        return effect.value;
-      case 'category_boost': return effect.value;
-      case 'extra_life': return effect.value;
-      case 'second_chance': return "Second chance on questions";
-      default: return effect.value || 'Unknown effect';
-    }
   },
   
   // Add an item to inventory with improved duplicate prevention
@@ -818,6 +821,25 @@ const InventorySystem = {
     }
   },
   
+  // Get effect description for display
+  getEffectDescription: function(effect) {
+    if (!effect) return 'No effect';
+    
+    switch (effect.type) {
+      case 'insight_boost': return `+${effect.value}% Insight`;
+      case 'restore_life': 
+      case 'heal': 
+        return `Restore ${effect.value} Life`;
+      case 'eliminateOption': 
+      case 'question_hint': 
+        return effect.value;
+      case 'category_boost': return effect.value;
+      case 'extra_life': return effect.value;
+      case 'second_chance': return "Second chance on questions";
+      default: return effect.value || 'Unknown effect';
+    }
+  },
+  
   // Save inventory to server
   saveInventory: function() {
     if (typeof ApiClient !== 'undefined') {
@@ -829,12 +851,6 @@ const InventorySystem = {
           .catch(err => console.error("Failed to save game state:", err));
       }
     }
-  },
-  
-  // Clear duplicate tracking (for testing/debugging)
-  clearDuplicateTracking: function() {
-    this.addedItems.clear();
-    console.log("Cleared duplicate item tracking");
   }
 };
 

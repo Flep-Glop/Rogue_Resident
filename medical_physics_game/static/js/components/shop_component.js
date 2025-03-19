@@ -1,9 +1,14 @@
-// shop_component.js - Complete replacement with fixed progression and tooltips
+// Enhanced shop_component.js with fixes for refresh issues and standardized item display
 
 const ShopComponent = ComponentUtils.createComponent('shop', {
   // Initialize component
   initialize: function() {
     console.log("Initializing enhanced shop component");
+    this.resetComponentState();
+  },
+  
+  // Reset component state - called on initialize and each render
+  resetComponentState: function() {
     this.itemsLoaded = false;
     this.shopItems = [];
     this.completedFlag = false; // Track if this node has been completed
@@ -18,8 +23,8 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
   render: function(nodeData, container) {
     console.log("Rendering shop component", nodeData);
     
-    // Reset completion flag
-    this.completedFlag = false;
+    // IMPORTANT: Reset state when rendering a new shop
+    this.resetComponentState();
     
     // Store nodeData for later use
     this.currentNodeData = nodeData;
@@ -209,7 +214,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     return basePrice + Math.floor(Math.random() * variance * 2) - variance;
   },
   
-  // Render items with enhanced layout
+  // Render items with enhanced layout and standardized item display
   renderEnhancedItems: function() {
     const container = document.getElementById('shop-items-container');
     if (!container) return;
@@ -280,7 +285,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     }
   },
   
-  // Create an item card
+  // Create a standardized item card with proper tooltips
   createItemCard: function(item) {
     const canAfford = this.getPlayerInsight() >= item.price;
     const isPurchased = this.purchasedItems.has(item.id);
@@ -303,7 +308,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
       buttonDisabled = true;
     }
     
-    // Create card content
+    // Create card content with standardized structure
     card.innerHTML = `
       <div class="card-header">
         <h4 class="item-name">${item.name}</h4>
@@ -332,6 +337,26 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
                 ${buttonDisabled ? 'disabled' : ''}>
           ${buttonText}
         </button>
+      </div>
+      
+      <!-- Standardized tooltip with invisible bridge -->
+      <div class="standardized-tooltip">
+        <div class="tooltip-bridge"></div>
+        <div class="tooltip-content">
+          <div class="tooltip-header ${item.rarity || 'common'}">
+            <span class="tooltip-title">${item.name}</span>
+            <span class="tooltip-rarity">${item.rarity || 'common'}</span>
+          </div>
+          <div class="tooltip-body">
+            <p class="tooltip-desc">${item.description}</p>
+            <div class="tooltip-effect">
+              ${item.itemType === 'relic' ? 
+                `<span class="passive-text">Passive: ${item.description}</span>` :
+                `<span>Effect: ${item.effect?.value || item.description}</span>`
+              }
+            </div>
+          </div>
+        </div>
       </div>
     `;
     
@@ -362,7 +387,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     );
   },
   
-  // Get item icon HTML
+  // Get item icon HTML using standardized approach
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
@@ -680,7 +705,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
     console.log("✅ All map view methods applied");
   },
   
-  // Add enhanced shop styles and tooltip fixes
+  // Add enhanced shop styles and standardized tooltip styles
   addEnhancedStyles: function() {
     if (document.getElementById('enhanced-shop-styles')) return;
     
@@ -771,6 +796,7 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         display: flex;
         flex-direction: column;
         border-left: 4px solid gray;
+        position: relative;
       }
       
       .shop-item-card:hover {
@@ -1008,63 +1034,117 @@ const ShopComponent = ComponentUtils.createComponent('shop', {
         color: #f0c866;
       }
       
-      /* Fix for tooltips - emergency styles */
-      .item-tooltip {
-        position: absolute !important;
-        bottom: 100% !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: 200px !important;
-        max-width: 90vw !important;
-        background-color: #1e1e2a !important;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
-        border-radius: 5px !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        transition: opacity 0.2s, transform 0.2s !important;
-        z-index: 9999 !important;
-        font-family: 'Press Start 2P', cursive !important;
-        font-size: 10px !important;
-        margin-bottom: 8px !important;
-        text-align: left !important;
-        border: 2px solid rgba(91, 141, 217, 0.5) !important;
+      /* STANDARDIZED TOOLTIP SYSTEM */
+      
+      /* Tooltip container */
+      .standardized-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 220px;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 9999;
+        transition: opacity 0.2s, transform 0.2s;
       }
       
       /* Show tooltip on hover */
-      .inventory-item:hover .item-tooltip {
-        opacity: 1 !important;
-        transform: translateX(-50%) translateY(-5px) !important;
-        pointer-events: auto !important;
+      .shop-item-card:hover .standardized-tooltip,
+      .inventory-item:hover .standardized-tooltip {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-5px);
+        pointer-events: auto; /* Enable mouse interaction with tooltip */
+      }
+      
+      /* Invisible bridge between item and tooltip */
+      .tooltip-bridge {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 20px;
+        /* For debugging: background-color: rgba(255, 0, 0, 0.3); */
+      }
+      
+      /* Tooltip content */
+      .tooltip-content {
+        background-color: #1e1e2a;
+        border-radius: 5px;
+        border: 2px solid rgba(91, 141, 217, 0.5);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 10px;
       }
       
       /* Tooltip header */
       .tooltip-header {
-        padding: 8px !important;
-        border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
+        padding: 8px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
       
       /* Tooltip title */
       .tooltip-title {
-        font-weight: bold !important;
-        font-size: 10px !important;
-        color: white !important;
-      }
-      
-      /* Tooltip rarity */
-      .tooltip-rarity {
-        font-size: 8px !important;
-        padding: 2px 4px !important;
-        border-radius: 3px !important;
-        background-color: rgba(0, 0, 0, 0.3) !important;
-        text-transform: capitalize !important;
+        font-weight: bold;
+        font-size: 10px;
+        color: white;
       }
       
       /* Tooltip body */
       .tooltip-body {
-        padding: 8px !important;
+        padding: 8px;
+      }
+      
+      /* Tooltip description */
+      .tooltip-desc {
+        margin-bottom: 8px;
+        line-height: 1.3;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      /* Tooltip effect */
+      .tooltip-effect {
+        color: #5b8dd9;
+        margin-bottom: 8px;
+        padding: 8px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+      }
+      
+      /* Passive text */
+      .passive-text {
+        color: #f0c866;
+      }
+      
+      /* Rarity colors for tooltip headers */
+      .tooltip-header.common {
+        background-color: rgba(170, 170, 170, 0.2);
+      }
+      
+      .tooltip-header.uncommon {
+        background-color: rgba(91, 141, 217, 0.2);
+      }
+      
+      .tooltip-header.rare {
+        background-color: rgba(156, 119, 219, 0.2);
+      }
+      
+      .tooltip-header.epic {
+        background-color: rgba(240, 200, 102, 0.2);
+      }
+      
+      /* Tooltip rarity badge */
+      .tooltip-rarity {
+        font-size: 8px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        background-color: rgba(0, 0, 0, 0.3);
+        text-transform: capitalize;
       }
     `;
     
