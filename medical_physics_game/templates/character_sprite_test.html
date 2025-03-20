@@ -117,7 +117,7 @@ h1 {
     justify-content: center;
     align-items: center;
     position: relative;
-    overflow: visible;
+    overflow: hidden; /* Default to hidden, can be toggled */
     background-color: rgba(0, 0, 0, 0.3);
     border: 2px solid #3d4c60;
     border-radius: 5px;
@@ -125,54 +125,59 @@ h1 {
     box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
-.character-sprite-container {
+/* Key spritesheet animation styles - IMPROVED */
+.sprite-container {
+    position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: visible;
-    position: relative;
-    z-index: 5;
+    overflow: hidden;
 }
 
-.character-sprite-container.wide-sprite {
-    width: auto !important;
-    max-width: none !important;
-    transform-origin: center center;
-    z-index: 10;
+.character-sprite {
+    position: absolute;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: none;
+    will-change: transform; /* Performance optimization */
+}
+
+.character-sprite.wide-sprite {
+    width: auto;
+    max-width: none;
 }
 
 .character-avatar.ability-mode {
     overflow: visible !important;
-    z-index: 10;
 }
 
-.character-sprite {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    transform-origin: center center !important;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
+/* Animation info section */
+.animation-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
 }
 
-.loading-spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #5b8dd9;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
+.animation-info div {
+    display: flex;
+    flex-direction: column;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.info-label {
+    font-size: 12px;
+    color: #a7adb5;
 }
 
-/* Animation controls */
+.info-value {
+    font-size: 14px;
+    color: #5b8dd9;
+    font-weight: bold;
+}
+
+/* Control Panels */
 .controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -229,24 +234,12 @@ button.primary {
     background-color: #5b8dd9;
 }
 
-button.primary:hover {
-    background-color: #4a7bc7;
-}
-
 button.success {
     background-color: #56b886;
 }
 
-button.success:hover {
-    background-color: #45a275;
-}
-
 button.danger {
     background-color: #e67e73;
-}
-
-button.danger:hover {
-    background-color: #d56c62;
 }
 
 button.special {
@@ -256,12 +249,7 @@ button.special {
     box-shadow: 0 0 10px rgba(211, 93, 179, 0.3);
 }
 
-button.special:hover {
-    background-color: #c14da2;
-    box-shadow: 0 0 15px rgba(211, 93, 179, 0.5);
-}
-
-/* Debug tools section */
+/* Debug controls */
 .range-control {
     display: flex;
     align-items: center;
@@ -284,7 +272,7 @@ button.special:hover {
     color: #5b8dd9;
 }
 
-/* Debug log and visualization */
+/* Debug log section */
 .debug-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -340,6 +328,7 @@ button.special:hover {
     color: #f0c866;
 }
 
+/* Animation visualizer */
 .debug-visualizer {
     height: 200px;
     background-color: rgba(0, 0, 0, 0.3);
@@ -384,79 +373,100 @@ button.special:hover {
     background-color: #5b8dd9;
 }
 
-/* Animation for ability activation */
-.ability-flash {
-    animation: ability-flash 0.5s ease-in-out;
+/* Function test panel */
+.function-test-panel {
+    margin-top: 20px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
 }
 
-@keyframes ability-flash {
-    0% { filter: brightness(1); }
-    50% { filter: brightness(1.5) saturate(1.5); }
-    100% { filter: brightness(1); }
+.function-test-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
 }
 
-/* Debug grid to help visualize sprite positioning */
-.debug-grid {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    border: 1px dashed rgba(255, 255, 255, 0.3);
-    z-index: 5;
-    display: none;
+.function-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.debug-grid::before, .debug-grid::after {
-    content: '';
-    position: absolute;
-    background-color: rgba(255, 255, 255, 0.2);
+.function-result {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
-.debug-grid::before {
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 1px;
-    transform: translateX(-0.5px);
+/* Image test panel */
+.image-test-panel {
+    margin-top: 20px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
 }
 
-.debug-grid::after {
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 1px;
-    transform: translateY(-0.5px);
+.image-test-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
 }
 
-.show-grid .debug-grid {
-    display: block;
+.image-test-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-.real-sprite img {
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    -webkit-font-smoothing: none;
-    position: relative;
+.image-test-form {
+    display: flex;
+    gap: 10px;
+}
+
+.image-test-form input {
+    flex: 1;
+    padding: 8px 12px;
+    background-color: #1e1e2a;
+    border: 1px solid #3d4c60;
+    border-radius: 5px;
+    color: white;
+}
+
+.image-display {
+    margin-top: 15px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a7adb5;
+}
+
+.image-display img {
     max-width: 100%;
     max-height: 100%;
+    object-fit: contain;
 }
 
-.debug-image-controls {
-    margin-top: 10px;
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-}
-
-.debug-image-controls button {
-    padding: 3px 8px;
-    font-size: 12px;
-}
-
-/* Character statistics visualization */
+/* Character stats styling */
 .character-stat {
     margin-bottom: 12px;
 }
@@ -520,147 +530,57 @@ button.special:hover {
     line-height: 1.4;
 }
 
-/* Animation States Section */
-.animation-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+/* Animation Effects */
+@keyframes ability-flash {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.5) saturate(1.5); }
+    100% { filter: brightness(1); }
 }
 
-.animation-info div {
-    display: flex;
-    flex-direction: column;
+.ability-flash {
+    animation: ability-flash 0.5s ease-in-out;
 }
 
-.info-label {
-    font-size: 12px;
-    color: #a7adb5;
+/* Debug grid */
+.debug-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    z-index: 5;
+    display: none;
 }
 
-.info-value {
-    font-size: 14px;
-    color: #5b8dd9;
-    font-weight: bold;
+.debug-grid::before, .debug-grid::after {
+    content: '';
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Function test panel */
-.function-test-panel {
-    margin-top: 20px;
-    background-color: #292936;
-    border: 1px solid #3d4c60;
-    border-radius: 8px;
-    padding: 15px;
+.debug-grid::before {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-0.5px);
 }
 
-.function-test-panel h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #d4dae0;
-    text-align: center;
-    font-size: 16px;
-    border-bottom: 1px solid #3d4c60;
-    padding-bottom: 8px;
+.debug-grid::after {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-0.5px);
 }
 
-.function-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+.show-grid .debug-grid {
+    display: block;
 }
 
-.function-result {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 5px;
-    font-family: monospace;
-    font-size: 12px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-/* Image testing section */
-.image-test-panel {
-    margin-top: 20px;
-    background-color: #292936;
-    border: 1px solid #3d4c60;
-    border-radius: 8px;
-    padding: 15px;
-}
-
-.image-test-panel h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #d4dae0;
-    text-align: center;
-    font-size: 16px;
-    border-bottom: 1px solid #3d4c60;
-    padding-bottom: 8px;
-}
-
-.image-test-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.image-test-form {
-    display: flex;
-    gap: 10px;
-}
-
-.image-test-form input {
-    flex: 1;
-    padding: 8px 12px;
-    background-color: #1e1e2a;
-    border: 1px solid #3d4c60;
-    border-radius: 5px;
-    color: white;
-}
-
-.image-display {
-    margin-top: 15px;
-    height: 150px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #a7adb5;
-}
-
-.image-display img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.image-test-result {
-    margin-top: 10px;
-    font-family: monospace;
-    font-size: 12px;
-}
-
-.image-load-status {
-    padding: 5px 10px;
-    border-radius: 3px;
-}
-
-.image-load-status.success {
-    background-color: rgba(86, 184, 134, 0.2);
-    color: #56b886;
-}
-
-.image-load-status.error {
-    background-color: rgba(230, 126, 115, 0.2);
-    color: #e67e73;
-}
-
-/* Tooltip styles */
+/* Tooltip styling */
 .tooltip {
     position: relative;
     display: inline-block;
@@ -688,6 +608,21 @@ button.special:hover {
 .tooltip:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
+}
+
+/* Loading indicator */
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #5b8dd9;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 </style>
 </head>
@@ -910,18 +845,16 @@ button.special:hover {
 
 <script>
 /**
- * Refactored Character Animation System
- * 
- * This file has been restructured to improve:
- * - Error handling
- * - Animation performance (using requestAnimationFrame)
- * - Code organization
- * - Animation system capabilities
+ * IMPROVED CHARACTER ANIMATION SYSTEM
+ * - Fixed spritesheet segmentation issues
+ * - Improved animation timing with proper requestAnimationFrame usage
+ * - Enhanced error handling and debugging
+ * - Optimized performance
  */
 
-// ------------------------------------------------------------
-// Module 1: Character Data Manager
-// ------------------------------------------------------------
+// ====================================================
+// MODULE 1: CHARACTER DATA MANAGER
+// ====================================================
 const CharacterDataManager = {
     // Character data repository
     characters: {
@@ -1145,9 +1078,9 @@ const CharacterDataManager = {
 // Make the CharacterDataManager globally available as CharacterAssets for backward compatibility
 window.CharacterAssets = CharacterDataManager;
 
-// ------------------------------------------------------------
-// Module 2: Debug Utility System
-// ------------------------------------------------------------
+// ====================================================
+// MODULE 2: DEBUG UTILITY SYSTEM
+// ====================================================
 const DebugSystem = {
     // Initialize the debug system
     initialize: function() {
@@ -1260,9 +1193,9 @@ const DebugSystem = {
     }
 };
 
-// ------------------------------------------------------------
-// Module 3: Animation System
-// ------------------------------------------------------------
+// ====================================================
+// MODULE 3: IMPROVED ANIMATION SYSTEM
+// ====================================================
 const AnimationSystem = {
     // Active animations registry
     activeAnimations: {},
@@ -1270,7 +1203,7 @@ const AnimationSystem = {
     // Global settings
     settings: {
         loopEnabled: true,
-        debugMode: false
+        debugMode: true
     },
     
     // Initialize the animation system
@@ -1287,7 +1220,7 @@ const AnimationSystem = {
         return this;
     },
     
-    // Create a new animation instance
+    // Create a new animation instance - IMPROVED
     createAnimation: function(characterId, containerId, options = {}) {
         // Parameter validation
         if (!characterId || !containerId) {
@@ -1321,17 +1254,7 @@ const AnimationSystem = {
             
             // Create animation container element
             const animationContainer = document.createElement('div');
-            animationContainer.className = 'character-animation-container';
-            animationContainer.style.position = 'relative';
-            animationContainer.style.width = '100%';
-            animationContainer.style.height = '100%';
-            
-            if (animOptions.centerImage) {
-                animationContainer.style.display = 'flex';
-                animationContainer.style.justifyContent = 'center';
-                animationContainer.style.alignItems = 'center';
-            }
-            
+            animationContainer.className = 'sprite-container';
             container.appendChild(animationContainer);
             
             // Create unique animation ID
@@ -1345,11 +1268,11 @@ const AnimationSystem = {
                 container: animationContainer,
                 currentAnimation: null,
                 frameIndex: 0,
-                animFrame: null,         // requestAnimationFrame ID
+                animFrame: null,
                 options: animOptions,
                 isPlaying: false,
-                lastFrameTime: 0,        // For requestAnimationFrame timing
-                duration: 0,             // Track total animation duration
+                lastFrameTime: 0,
+                frameTimeout: null,
                 stats: {
                     framesRendered: 0,
                     startTime: 0,
@@ -1375,7 +1298,7 @@ const AnimationSystem = {
         }
     },
     
-    // Play a specific animation
+    // Play a specific animation - COMPLETELY REWRITTEN
     playAnimation: function(animationId, animationName = 'idle', loop = null) {
         // Get animation instance
         const animation = this.activeAnimations[animationId];
@@ -1410,8 +1333,8 @@ const AnimationSystem = {
                 animation.options.loop = this.settings.loopEnabled;
             }
             
-            // Set up the sprite sheet animation
-            this._setupSpriteAnimation(animation, animData);
+            // CRITICAL FIX: Set up the sprite sheet animation with new approach
+            this._setupSpritesheet(animation, animData);
             
             // Update frame timeline
             DebugSystem.updateFrameTimeline(animData.frames);
@@ -1432,191 +1355,27 @@ const AnimationSystem = {
         }
     },
     
-    // Set up sprite animation with improved error handling
-    _setupSpriteAnimation: function(animation, animData) {
+    // NEW IMPLEMENTATION: Set up spritesheet animation
+    _setupSpritesheet: function(animation, animData) {
         try {
-            // Handle aspect ratio for wide sprites
-            const aspectRatio = animData.aspectRatio || 1;
+            // Clear container first
+            animation.container.innerHTML = '';
             
-            // Create sprite container
-            const spriteContainer = document.createElement('div');
-            spriteContainer.className = 'character-sprite-container';
-            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-                spriteContainer.classList.add('wide-sprite');
-            }
-            
-            spriteContainer.style.width = '100%';
-            spriteContainer.style.height = '100%';
-            spriteContainer.style.position = 'relative';
-            
-            // For wide sprites, adjust container
-            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-                spriteContainer.style.width = `${aspectRatio * 100}%`;
-                spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
-            }
-            
-            // Get character and animation data
+            // Get spritesheet path and full URL
             const characterId = animation.characterId;
             const animationName = animation.currentAnimation;
+            const spritesheetPath = `/static/img/characters/${characterId}/${animationName}.png`;
             
-            // Create the sprite element
+            // Create sprite element with proper sizing
             const sprite = document.createElement('div');
-            sprite.className = 'character-sprite real-sprite';
-            sprite.dataset.animation = animationName;
+            sprite.className = 'character-sprite';
             
-            // Get the sprite path and construct full image path
-            const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
-            
-            // Set explicit dimensions and styling
-            sprite.style.width = '100px';
-            sprite.style.height = '100px';
-            sprite.style.position = 'absolute';
-            sprite.style.display = 'flex';
-            sprite.style.justifyContent = 'center';
-            sprite.style.alignItems = 'center';
-            sprite.style.left = '50%';
-            sprite.style.top = '50%';
-            
-            // Create loading indicator
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'loading-spinner';
-            sprite.appendChild(loadingIndicator);
-            
-            // Create the image element for the sprite
-            const img = document.createElement('img');
-            img.src = imagePath;
-            img.alt = `${characterId} ${animationName}`;
-            img.className = 'character-image';
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '100%';
-            img.style.imageRendering = 'pixelated';
-            img.style.imageRendering = 'crisp-edges';
-            img.style.objectFit = 'contain';
-            img.style.display = 'none'; // Hide until loaded
-            
-            // Add debugging border to see image boundaries
-            if (this.settings.debugMode) {
-                img.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
-            }
-            
-            // Apply scale transformation
-            const scaleValue = animation.options.scale || 1;
-            animation.container.style.setProperty('--character-scale', scaleValue);
-            sprite.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
-            
-            // Add the image to the sprite
-            sprite.appendChild(img);
-            
-            // Frame indicator for debugging
-            const frameIndicator = document.createElement('div');
-            frameIndicator.style.position = 'absolute';
-            frameIndicator.style.bottom = '5px';
-            frameIndicator.style.right = '5px';
-            frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            frameIndicator.style.padding = '2px 5px';
-            frameIndicator.style.borderRadius = '3px';
-            frameIndicator.style.color = 'white';
-            frameIndicator.style.fontSize = '10px';
-            frameIndicator.textContent = `Frame 1/${animData.frames}`;
-            frameIndicator.id = 'frame-indicator';
-            sprite.appendChild(frameIndicator);
-            animation.frameIndicator = frameIndicator;
-            
-            // Handle image loading events
-            img.onload = () => {
-                DebugSystem.success(`Image loaded successfully: ${imagePath} (${img.naturalWidth}x${img.naturalHeight}px)`);
-                loadingIndicator.style.display = 'none';
-                img.style.display = 'block';
-                
-                // Update frame indicator text
-                if (animData.frames > 1) {
-                    animation.frameIndicator.textContent = `Frame 1/${animData.frames}`;
-                }
-                
-                // Show frame divisions for multi-frame animations
-                if (animData.frames > 1) {
-                    sprite.style.backgroundImage = `linear-gradient(90deg, 
-                        rgba(255,255,255,0.2) 1px, transparent 1px)`;
-                    sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
-                    sprite.style.backgroundRepeat = 'repeat-x';
-                }
-                
-                // Add retry button for testing
-                if (this.settings.debugMode) {
-                    const retryBtn = document.createElement('button');
-                    retryBtn.textContent = 'Reload';
-                    retryBtn.style.position = 'absolute';
-                    retryBtn.style.bottom = '5px';
-                    retryBtn.style.left = '5px';
-                    retryBtn.style.fontSize = '10px';
-                    retryBtn.style.padding = '2px 5px';
-                    retryBtn.onclick = () => img.src = imagePath + '?t=' + Date.now();
-                    sprite.appendChild(retryBtn);
-                }
-            };
-            
-            // Handle image loading errors
-            img.onerror = () => {
-                DebugSystem.error(`Failed to load image: ${imagePath}`);
-                loadingIndicator.style.display = 'none';
-                
-                // Create error message
-                const errorMsg = document.createElement('div');
-                errorMsg.textContent = 'Image not found';
-                errorMsg.style.color = '#e67e73';
-                errorMsg.style.position = 'absolute';
-                errorMsg.style.top = '50%';
-                errorMsg.style.left = '50%';
-                errorMsg.style.transform = 'translate(-50%, -50%)';
-                sprite.appendChild(errorMsg);
-                
-                // Show a colorful fallback box
-                sprite.style.backgroundColor = this._getAnimationColor(animationName);
-                sprite.style.width = '80px';
-                sprite.style.height = '80px';
-                sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
-                
-                // Add retry button
-                const retryBtn = document.createElement('button');
-                retryBtn.textContent = 'Retry';
-                retryBtn.style.position = 'absolute';
-                retryBtn.style.bottom = '5px';
-                retryBtn.style.left = '5px';
-                retryBtn.style.fontSize = '10px';
-                retryBtn.style.padding = '2px 5px';
-                retryBtn.onclick = () => {
-                    img.src = imagePath + '?t=' + Date.now(); // Force reload
-                    errorMsg.textContent = 'Retrying...';
-                };
-                sprite.appendChild(retryBtn);
-                
-                // Update frame indicator for fallback
-                animation.frameIndicator.style.position = 'absolute';
-                animation.frameIndicator.style.top = '5px';
-                animation.frameIndicator.style.right = '5px';
-                animation.frameIndicator.style.color = 'white';
-                animation.frameIndicator.style.fontSize = '12px';
-                animation.frameIndicator.style.fontWeight = 'bold';
-                animation.frameIndicator.textContent = '1';
-            };
-            
-            // Add sprite to container
-            spriteContainer.appendChild(sprite);
-            
-            // Clear container and add sprite
-            animation.container.innerHTML = '';
-            animation.container.appendChild(spriteContainer);
-            
-            // Set up animation parameters
-            animation.frameIndex = 0;
-            animation.sprite = sprite;
-            animation.frameIndicator = frameIndicator;
-            animation.frames = animData.frames;
-            animation.frameSpeed = animData.speed || 200;
-            animation.isLooping = animation.options.loop;
-            
-            // Handle wide mode for parent container
+            // Handle aspect ratio for wide sprites
+            const aspectRatio = animData.aspectRatio || 1;
             if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                sprite.classList.add('wide-sprite');
+                
+                // Handle parent container overflow
                 const avatarContainer = document.getElementById('character-avatar');
                 if (avatarContainer) {
                     avatarContainer.classList.add('ability-mode');
@@ -1624,51 +1383,112 @@ const AnimationSystem = {
                 }
             }
             
-            // Update UI displays
-            DebugSystem.updateFrameCounter(1, animData.frames);
+            // CRITICAL FIX: Set width proportional to frames for proper segmentation
+            sprite.style.width = `${animData.frames * 100}%`;
+            sprite.style.height = '100%';
             
-            // Start animation if more than one frame using requestAnimationFrame
+            // Set spritesheet background
+            sprite.style.backgroundImage = `url(${spritesheetPath})`;
+            sprite.style.backgroundRepeat = 'repeat-x';
+            sprite.style.backgroundSize = `${animData.frames * 100}% 100%`;
+            
+            // Apply scale transform
+            const scale = animation.options.scale || 1;
+            sprite.style.transform = `scale(${scale})`;
+            
+            // Add debug frame counter if in debug mode
+            if (this.settings.debugMode) {
+                const frameCounter = document.createElement('div');
+                frameCounter.id = 'sprite-frame-counter';
+                frameCounter.style.position = 'absolute';
+                frameCounter.style.bottom = '5px';
+                frameCounter.style.right = '5px';
+                frameCounter.style.background = 'rgba(0,0,0,0.7)';
+                frameCounter.style.color = '#5b8dd9';
+                frameCounter.style.padding = '2px 5px';
+                frameCounter.style.borderRadius = '3px';
+                frameCounter.style.fontSize = '10px';
+                frameCounter.textContent = `1/${animData.frames}`;
+                animation.container.appendChild(frameCounter);
+                animation.frameCounter = frameCounter;
+            }
+            
+            // Add sprite to container
+            animation.container.appendChild(sprite);
+            
+            // Store sprite reference
+            animation.sprite = sprite;
+            animation.frames = animData.frames;
+            animation.frameSpeed = animData.speed || 200;
+            
+            // Set initial frame
+            animation.frameIndex = 0;
+            this._updateSpritePosition(animation, 0);
+            
+            // Start animation loop for multi-frame animations
             if (animData.frames > 1) {
-                // Start the animation loop
                 this._startAnimationLoop(animation);
             }
             
+            // Make sure initial frame is displayed
+            DebugSystem.updateFrameCounter(1, animData.frames);
+            DebugSystem.updateActiveFrame(0);
+            
         } catch (error) {
-            DebugSystem.error(`Error setting up sprite animation: ${error.message}`);
+            DebugSystem.error(`Error setting up spritesheet: ${error.message}`);
             console.error(error);
             
-            // Attempt basic error recovery
-            const errorElement = document.createElement('div');
-            errorElement.textContent = 'Error loading animation';
-            errorElement.style.color = '#e67e73';
-            errorElement.style.padding = '10px';
-            animation.container.innerHTML = '';
-            animation.container.appendChild(errorElement);
+            // Show error in container
+            animation.container.innerHTML = `<div style="color: red; padding: 10px;">Error: ${error.message}</div>`;
         }
     },
     
-    // Start animation loop using requestAnimationFrame
+    // CRITICAL FIX: Update sprite position based on frame index
+    _updateSpritePosition: function(animation, frameIndex) {
+        if (!animation.sprite) return;
+        
+        // Calculate X position based on current frame
+        const position = -(frameIndex * (100 / animation.frames));
+        
+        // Apply transform to move the spritesheet horizontally
+        animation.sprite.style.backgroundPosition = `${position}% 0`;
+        
+        // Update frame counter if available
+        if (animation.frameCounter) {
+            animation.frameCounter.textContent = `${frameIndex + 1}/${animation.frames}`;
+        }
+    },
+    
+    // Start animation loop using requestAnimationFrame with controlled timing
     _startAnimationLoop: function(animation) {
         // Set initial time
         animation.lastFrameTime = performance.now();
         animation.stats.startTime = animation.lastFrameTime;
         
-        // Define the animation loop function
-        const animateFrame = (timestamp) => {
+        // Frame advancement function
+        const advanceFrame = () => {
+            this._advanceFrame(animation.id);
+        };
+        
+        // Animation loop function 
+        const animationLoop = (timestamp) => {
+            if (!animation.isPlaying) return;
+            
             // Only advance frame if enough time has passed
-            if (timestamp - animation.lastFrameTime >= animation.frameSpeed) {
-                this._advanceFrame(animation.id);
-                animation.lastFrameTime = timestamp;
+            const elapsed = timestamp - animation.lastFrameTime;
+            
+            if (elapsed >= animation.frameSpeed) {
+                // Update lastFrameTime tracking with adjustment to prevent drift
+                animation.lastFrameTime = timestamp - (elapsed % animation.frameSpeed);
+                advanceFrame();
             }
             
-            // Continue animation loop if still playing
-            if (animation.isPlaying) {
-                animation.animFrame = requestAnimationFrame(animateFrame);
-            }
+            // Continue animation loop
+            animation.animFrame = requestAnimationFrame(animationLoop);
         };
         
         // Start the animation loop
-        animation.animFrame = requestAnimationFrame(animateFrame);
+        animation.animFrame = requestAnimationFrame(animationLoop);
     },
     
     // Advance to the next animation frame
@@ -1682,43 +1502,26 @@ const AnimationSystem = {
             animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
             animation.stats.framesRendered++;
             
-            // Update frame indicator if available
-            if (animation.frameIndicator) {
-                animation.frameIndicator.textContent = animation.frameIndex + 1;
-            }
+            // CRITICAL: Update sprite position based on new frame index
+            this._updateSpritePosition(animation, animation.frameIndex);
             
             // Update UI displays
             DebugSystem.updateFrameCounter(animation.frameIndex + 1, animation.frames);
             DebugSystem.updateActiveFrame(animation.frameIndex);
             
-            // Calculate FPS
-            const currentTime = performance.now();
-            const elapsedTime = currentTime - animation.stats.startTime;
-            if (elapsedTime > 0) {
-                animation.stats.fps = (animation.stats.framesRendered * 1000) / elapsedTime;
-            }
-            
             // If we've reached the end and not looping, stop animation
-            if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
-                // Give a short delay to show the last frame
+            if (animation.frameIndex === animation.frames - 1 && !animation.options.loop) {
+                // Small delay to ensure the last frame is visible
                 setTimeout(() => {
                     this.stopAnimation(animationId);
-                    
-                    // Signal animation completion
                     this._triggerAnimationComplete(animation);
-                    
-                    // Clean up wide mode if needed
                     this._cleanupWideMode(animation);
-                    
-                    DebugSystem.success(`Animation completed: ${animation.currentAnimation}`);
                     DebugSystem.updateAnimationState('stopped');
                 }, 50);
             }
         } catch (error) {
             DebugSystem.error(`Error advancing animation frame: ${error.message}`);
             console.error(error);
-            
-            // Try to stop the animation to prevent further errors
             this.stopAnimation(animationId);
         }
     },
@@ -1733,6 +1536,7 @@ const AnimationSystem = {
             }
         });
         document.dispatchEvent(event);
+        DebugSystem.success(`Animation completed: ${animation.currentAnimation}`);
     },
     
     // Clean up wide mode settings
@@ -1741,9 +1545,8 @@ const AnimationSystem = {
             animation.avatarContainer.classList.remove('ability-mode');
         }
         
-        const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
-        if (container && container.classList.contains('wide-sprite')) {
-            container.classList.remove('wide-sprite');
+        if (animation.sprite) {
+            animation.sprite.classList.remove('wide-sprite');
         }
     },
     
@@ -1756,6 +1559,12 @@ const AnimationSystem = {
         if (animation.animFrame) {
             cancelAnimationFrame(animation.animFrame);
             animation.animFrame = null;
+        }
+        
+        // Clear any timeout
+        if (animation.frameTimeout) {
+            clearTimeout(animation.frameTimeout);
+            animation.frameTimeout = null;
         }
         
         animation.isPlaying = false;
@@ -1775,6 +1584,12 @@ const AnimationSystem = {
             animation.animFrame = null;
         }
         
+        // Clear any timeout
+        if (animation.frameTimeout) {
+            clearTimeout(animation.frameTimeout);
+            animation.frameTimeout = null;
+        }
+        
         animation.isPlaying = false;
         DebugSystem.updateAnimationState('paused');
         DebugSystem.info(`Paused animation: ${animation.currentAnimation}`);
@@ -1787,10 +1602,9 @@ const AnimationSystem = {
         const animation = this.activeAnimations[animationId];
         if (!animation || animation.isPlaying) return false;
         
-        // Set animation to playing
-        animation.isPlaying = true;
-        
         // Restart animation loop
+        animation.lastFrameTime = performance.now();
+        animation.isPlaying = true;
         this._startAnimationLoop(animation);
         
         DebugSystem.updateAnimationState('playing');
@@ -1806,11 +1620,7 @@ const AnimationSystem = {
         
         // Reset to first frame
         animation.frameIndex = 0;
-        
-        // Update frame indicator
-        if (animation.frameIndicator) {
-            animation.frameIndicator.textContent = '1';
-        }
+        this._updateSpritePosition(animation, 0);
         
         // Update UI displays
         DebugSystem.updateFrameCounter(1, animation.frames);
@@ -1884,14 +1694,10 @@ const AnimationSystem = {
         try {
             animation.options.scale = scaleValue;
             
-            // Update the CSS variable for scale
-            animation.container.style.setProperty('--character-scale', scaleValue);
-            
             // Update transform of current sprite
-            const elements = animation.container.querySelectorAll('.character-sprite');
-            elements.forEach(el => {
-                el.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
-            });
+            if (animation.sprite) {
+                animation.sprite.style.transform = `scale(${scaleValue})`;
+            }
             
             DebugSystem.info(`Scale set to: ${scaleValue}`);
             return true;
@@ -1909,9 +1715,6 @@ const AnimationSystem = {
         try {
             // Update speed setting
             animation.frameSpeed = speed;
-            
-            // If animation is playing, we don't need to do anything special
-            // The next frame advance will use the new speed
             
             DebugSystem.info(`Speed set to: ${speed}ms per frame`);
             return true;
@@ -1950,7 +1753,6 @@ const AnimationSystem = {
             for (const animId in this.activeAnimations) {
                 const animation = this.activeAnimations[animId];
                 animation.options.loop = this.settings.loopEnabled;
-                animation.isLooping = this.settings.loopEnabled;
             }
             
             DebugSystem.info(`Animation looping ${this.settings.loopEnabled ? 'enabled' : 'disabled'}`);
@@ -1983,17 +1785,6 @@ const AnimationSystem = {
         } catch (error) {
             DebugSystem.error(`Error destroying animation: ${error.message}`);
             return false;
-        }
-    },
-    
-    // Get color for different animation types
-    _getAnimationColor: function(animationName) {
-        switch(animationName) {
-            case 'idle': return '#4a90e2'; // Bright blue
-            case 'walking': return '#50e3c2'; // Bright teal
-            case 'ability': return '#f8e71c'; // Bright yellow
-            case 'specialAbility': return '#ff5cb4'; // Bright pink
-            default: return '#b8b8b8'; // Light gray
         }
     },
     
@@ -2038,9 +1829,9 @@ const AnimationSystem = {
     }
 };
 
-// ------------------------------------------------------------
-// Module 4: UI Controller
-// ------------------------------------------------------------
+// ====================================================
+// MODULE 4: UI CONTROLLER
+// ====================================================
 const UIController = {
     // State tracking
     state: {
@@ -2346,16 +2137,6 @@ const UIController = {
                 }
             );
             
-            // Force a redraw of the avatar area
-            const avatar = document.getElementById('character-avatar');
-            if (avatar) {
-                const displayState = avatar.style.display;
-                avatar.style.display = 'none';
-                setTimeout(() => {
-                    avatar.style.display = displayState || 'flex';
-                }, 0);
-            }
-            
             DebugSystem.success(`Loaded character: ${character.name}`);
             
         } catch (error) {
@@ -2430,21 +2211,6 @@ const UIController = {
             // Add reload button handler
             controls.querySelector('.reload-btn').addEventListener('click', () => {
                 img.src = path + '?t=' + Date.now(); // Force reload
-            });
-            
-            // Add test in animation handler
-            controls.querySelector('.test-in-sprite').addEventListener('click', () => {
-                // Set path in image input for easy reuse
-                document.getElementById('image-path-input').value = path;
-                
-                // Create a custom animation using this image
-                if (UIController.state.currentAnimationId) {
-                    AnimationSystem.destroyAnimation(UIController.state.currentAnimationId);
-                }
-                
-                DebugSystem.info(`Testing image in animation: ${path}`);
-                
-                // TODO: Implement custom animation loading in AnimationSystem
             });
             
             DebugSystem.success(`Image loaded successfully: ${path}`);
