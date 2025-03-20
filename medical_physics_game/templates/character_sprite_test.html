@@ -118,9 +118,11 @@
             align-items: center;
             position: relative;
             overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.2);
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 2px solid #3d4c60;
             border-radius: 5px;
             margin: 15px auto;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
         }
         
         .character-sprite-container {
@@ -129,8 +131,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
+            z-index: 5;
         }
         
         .character-sprite-container.wide-sprite {
@@ -1087,36 +1090,48 @@
                     spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
                 }
                 
-                // Create sprite element - in testing, we use a colored div
+                // Create sprite element - in testing, we use a colored div with clearer visibility
                 const sprite = document.createElement('div');
                 sprite.className = 'character-sprite';
                 sprite.dataset.animation = animation.currentAnimation;
-                sprite.style.width = '100%';
-                sprite.style.height = '100%';
                 
-                // In a real implementation, we'd set the background image
-                // For testing, we're using a colored div with dimensions
-                sprite.style.backgroundColor = this._getAnimationColor(animation.currentAnimation);
+                // Make sure the sprite is visible with explicit dimensions
+                sprite.style.width = '64px';
+                sprite.style.height = '64px';
+                sprite.style.border = '2px solid white';
+                
+                // Use a more visible color for the mock sprite
+                const bgColor = this._getAnimationColor(animation.currentAnimation);
+                sprite.style.backgroundColor = bgColor;
+                
+                // Add outer glow for better visibility
+                sprite.style.boxShadow = `0 0 10px ${bgColor}`;
                 
                 // Set dimensions based on frames
                 const frameWidth = 100 / animData.frames;
-                sprite.style.width = `${frameWidth}%`;
+                if (animData.frames > 1) {
+                    // Show frame divisions for multi-frame animations
+                    sprite.style.backgroundImage = `linear-gradient(90deg, 
+                        rgba(255,255,255,0.2) 1px, transparent 1px)`;
+                    sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
+                    sprite.style.backgroundRepeat = 'repeat-x';
+                }
                 
                 // Apply scale
                 const scale = animation.options.scale || 1;
                 animation.container.style.setProperty('--character-scale', scale);
                 sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
                 
-                // For testing, show frame number
+                // For testing, show frame number with high contrast
                 const frameIndicator = document.createElement('div');
                 frameIndicator.style.position = 'absolute';
                 frameIndicator.style.top = '50%';
                 frameIndicator.style.left = '50%';
                 frameIndicator.style.transform = 'translate(-50%, -50%)';
                 frameIndicator.style.color = 'white';
-                frameIndicator.style.fontSize = '16px';
+                frameIndicator.style.fontSize = '24px';
                 frameIndicator.style.fontWeight = 'bold';
-                frameIndicator.style.textShadow = '1px 1px 2px black';
+                frameIndicator.style.textShadow = '2px 2px 3px black, -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
                 frameIndicator.textContent = '1';
                 frameIndicator.id = 'frame-indicator';
                 sprite.appendChild(frameIndicator);
@@ -1406,14 +1421,14 @@
                 return this.loopEnabled;
             },
             
-            // Get a color for each animation type (for testing)
+            // Get a color for each animation type (for testing) - brighter colors
             _getAnimationColor: function(animationName) {
                 switch(animationName) {
-                    case 'idle': return '#5b8dd9';
-                    case 'walking': return '#56b886';
-                    case 'ability': return '#f0c866';
-                    case 'specialAbility': return '#d35db3';
-                    default: return '#888888';
+                    case 'idle': return '#4a90e2'; // Bright blue
+                    case 'walking': return '#50e3c2'; // Bright teal
+                    case 'ability': return '#f8e71c'; // Bright yellow
+                    case 'specialAbility': return '#ff5cb4'; // Bright pink
+                    default: return '#b8b8b8'; // Light gray
                 }
             },
             
@@ -1699,10 +1714,28 @@
             document.getElementById('ability-name').textContent = character.special_ability.name;
             document.getElementById('ability-description').textContent = character.special_ability.description;
             
-            // Create animation
+            // Create animation with visual debugging
             if (animationId) {
                 // Destroy any existing animation
                 CharacterAnimation.stopAnimation(animationId);
+            }
+            
+            // Make sure the container exists and is visible
+            const container = document.getElementById('character-sprite-container');
+            if (container) {
+                // Add a visual indicator that the container exists
+                container.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+                
+                // Add a text indicator if empty
+                if (!container.innerHTML) {
+                    const placeholder = document.createElement('div');
+                    placeholder.textContent = 'Animation Container';
+                    placeholder.style.color = 'rgba(255, 255, 255, 0.3)';
+                    placeholder.style.fontSize = '10px';
+                    container.appendChild(placeholder);
+                }
+            } else {
+                CharacterAnimation.logError("Animation container not found!");
             }
             
             animationId = CharacterAnimation.createAnimation(
@@ -1716,6 +1749,15 @@
                     centerImage: true
                 }
             );
+            
+            // Force a redraw of the avatar area
+            const avatar = document.getElementById('character-avatar');
+            if (avatar) {
+                avatar.style.display = 'none';
+                setTimeout(() => {
+                    avatar.style.display = 'flex';
+                }, 0);
+            }
             
             CharacterAnimation.logSuccess(`Loaded character: ${character.name}`);
         }
