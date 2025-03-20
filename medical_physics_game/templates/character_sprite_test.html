@@ -1,61 +1,81 @@
-document.getElementById('test-get-character').addEventListener('click', function() {
-    const result = CharacterAssets.getCharacter(currentCharacterId);
-    displayFunctionResult('getCharacter', result);
-});
+.real-sprite img {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: none;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+}
 
-document.getElementById('test-get-animations').addEventListener('click', function() {
-    const result = CharacterAssets.getCharacterAnimations(currentCharacterId);
-    displayFunctionResult('getCharacterAnimations', result);
-});
+.debug-image-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
 
-document.getElementById('test-animation-data').addEventListener('click', function() {
-    const result = CharacterAssets.getCharacterAnimation(currentCharacterId, 'walking');
-    displayFunctionResult('getCharacterAnimation', result);
-});
-
-document.getElementById('test-create-anim').addEventListener('click', function() {
-    const options = {
-        initialAnimation: 'idle',
-        autoPlay: true,
-        loop: true,
-        scale: currentScale,
-        centerImage: true
-    };
+.debug-image-controls button {
+    padding: 3px 8px;
+    font-size: 12px;
+}            document.getElementById('test-get-character').addEventListener('click', function() {
+        const result = CharacterAssets.getCharacter(currentCharacterId);
+        displayFunctionResult('getCharacter', result);
+    });
     
-    displayFunctionResult('createAnimation options', options);
-});
-
-document.getElementById('test-play-anim').addEventListener('click', function() {
-    const args = {
-        animationId: animationId,
-        animationName: 'walking',
-        loop: true
-    };
+    document.getElementById('test-get-animations').addEventListener('click', function() {
+        const result = CharacterAssets.getCharacterAnimations(currentCharacterId);
+        displayFunctionResult('getCharacterAnimations', result);
+    });
     
-    displayFunctionResult('playAnimation args', args);
-});
-
-document.getElementById('test-ability-anim').addEventListener('click', function() {
-    const args = {
-        animationId: animationId,
-        abilityName: 'specialAbility',
-        onCompleteCallback: '() => { /* Callback function */ }'
-    };
+    document.getElementById('test-animation-data').addEventListener('click', function() {
+        const result = CharacterAssets.getCharacterAnimation(currentCharacterId, 'walking');
+        displayFunctionResult('getCharacterAnimation', result);
+    });
     
-    displayFunctionResult('playAbilityAnimation args', args);
-});        <!-- Image Testing Section -->
+    document.getElementById('test-create-anim').addEventListener('click', function() {
+        const options = {
+            initialAnimation: 'idle',
+            autoPlay: true,
+            loop: true,
+            scale: currentScale,
+            centerImage: true
+        };
+        
+        displayFunctionResult('createAnimation options', options);
+    });
+    
+    document.getElementById('test-play-anim').addEventListener('click', function() {
+        const args = {
+            animationId: animationId,
+            animationName: 'walking',
+            loop: true
+        };
+        
+        displayFunctionResult('playAnimation args', args);
+    });
+    
+    document.getElementById('test-ability-anim').addEventListener('click', function() {
+        const args = {
+            animationId: animationId,
+            abilityName: 'specialAbility',
+            onCompleteCallback: '() => { /* Callback function */ }'
+        };
+        
+        displayFunctionResult('playAbilityAnimation args', args);
+    });        <!-- Image Testing Section -->
 <div class="image-test-panel">
-<h3>Character Image Tester</h3>
-<div class="image-test-controls">
-    <form class="image-test-form" id="image-test-form">
-        <input type="text" id="image-path-input" placeholder="/static/img/characters/resident/idle.png" value="/static/img/characters/resident/idle.png">
-        <button type="submit" class="primary">Load Image</button>
-    </form>
-</div>
-<div class="image-display" id="image-display">
-    <div>Enter a path to test image loading</div>
-</div>
-<div class="image-test-result" id="image-test-result"></div>
+    <h3>Character Image Tester</h3>
+    <div class="image-test-controls">
+        <form class="image-test-form" id="image-test-form">
+            <input type="text" id="image-path-input" placeholder="/static/img/characters/resident/idle.png" value="/static/img/characters/resident/idle.png">
+            <button type="submit" class="primary">Load Image</button>
+        </form>
+    </div>
+    <div class="image-display" id="image-display">
+        <div>Enter a path to test image loading</div>
+    </div>
+    <div class="image-test-result" id="image-test-result"></div>
 </div><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,543 +85,543 @@ document.getElementById('test-ability-anim').addEventListener('click', function(
 <style>
 /* Base styles */
 body {
-background-color: #121218;
-color: #ffffff;
-font-family: Arial, sans-serif;
-padding: 20px;
-margin: 0;
+    background-color: #121218;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
 }
 
 .test-container {
-max-width: 950px;
-margin: 20px auto;
-padding: 20px;
-background-color: #1e1e2a;
-border-radius: 10px;
-box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    max-width: 950px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #1e1e2a;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
-text-align: center;
-margin-bottom: 20px;
-color: #5b8dd9;
-font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #5b8dd9;
+    font-size: 28px;
 }
 
 /* Character selection panel */
 .character-select-panel {
-display: flex;
-justify-content: center;
-gap: 10px;
-margin-bottom: 20px;
-padding: 10px;
-background-color: #292936;
-border-radius: 8px;
-border: 1px solid #3d4c60;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #292936;
+    border-radius: 8px;
+    border: 1px solid #3d4c60;
 }
 
 .character-button {
-padding: 8px 15px;
-background-color: #3d4c60;
-border: 2px solid transparent;
-border-radius: 5px;
-color: white;
-cursor: pointer;
-transition: all 0.2s;
+    padding: 8px 15px;
+    background-color: #3d4c60;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .character-button:hover {
-background-color: #4a5d75;
-transform: translateY(-2px);
+    background-color: #4a5d75;
+    transform: translateY(-2px);
 }
 
 .character-button.active {
-border-color: #5b8dd9;
-background-color: #4a5d75;
-box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
+    border-color: #5b8dd9;
+    background-color: #4a5d75;
+    box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
 }
 
 /* Character display area */
 .character-display {
-display: flex;
-justify-content: center;
-margin-bottom: 30px;
-gap: 20px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    gap: 20px;
 }
 
 .character-view {
-width: 320px;
-padding: 15px;
-border: 2px solid #5b8dd9;
-border-radius: 8px;
-background-color: #292936;
+    width: 320px;
+    padding: 15px;
+    border: 2px solid #5b8dd9;
+    border-radius: 8px;
+    background-color: #292936;
 }
 
 .stats-view {
-width: 260px;
-padding: 15px;
-border: 2px solid #56b886;
-border-radius: 8px;
-background-color: #292936;
-display: flex;
-flex-direction: column;
+    width: 260px;
+    padding: 15px;
+    border: 2px solid #56b886;
+    border-radius: 8px;
+    background-color: #292936;
+    display: flex;
+    flex-direction: column;
 }
 
 .character-details {
-text-align: center;
+    text-align: center;
 }
 
 .character-name {
-margin-bottom: 10px;
-color: #5b8dd9;
-font-size: 18px;
-font-weight: bold;
+    margin-bottom: 10px;
+    color: #5b8dd9;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 .character-avatar-container {
-display: flex;
-justify-content: center;
-align-items: center;
-margin: 0 auto;
-position: relative;
-width: 100%;
-text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 10px;
+    position: relative;
+    width: 100%;
+    text-align: center;
 }
 
 .character-avatar {
-width: 120px;
-height: 120px;
-display: flex;
-justify-content: center;
-align-items: center;
-position: relative;
-overflow: hidden;
-background-color: rgba(0, 0, 0, 0.3);
-border: 2px solid #3d4c60;
-border-radius: 5px;
-margin: 15px auto;
-box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+    width: 160px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: visible;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid #3d4c60;
+    border-radius: 5px;
+    margin: 15px auto;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .character-sprite-container {
-width: 100%;
-height: 100%;
-display: flex;
-justify-content: center;
-align-items: center;
-overflow: visible;
-position: relative;
-z-index: 5;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    position: relative;
+    z-index: 5;
 }
 
 .character-sprite-container.wide-sprite {
-width: auto !important;
-max-width: none !important;
-transform-origin: center center;
-z-index: 10;
+    width: auto !important;
+    max-width: none !important;
+    transform-origin: center center;
+    z-index: 10;
 }
 
 .character-avatar.ability-mode {
-overflow: visible !important;
-z-index: 10;
+    overflow: visible !important;
+    z-index: 10;
 }
 
 .character-sprite {
-image-rendering: pixelated;
-image-rendering: crisp-edges;
-transform-origin: center center !important;
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%) scale(1);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    transform-origin: center center !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Animation controls */
 .controls {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 15px;
-margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .control-panel {
-background-color: #292936;
-border: 1px solid #3d4c60;
-border-radius: 8px;
-padding: 15px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
 }
 
 .control-panel h3 {
-margin-top: 0;
-margin-bottom: 15px;
-color: #d4dae0;
-text-align: center;
-font-size: 16px;
-border-bottom: 1px solid #3d4c60;
-padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
 }
 
 .button-group {
-display: flex;
-justify-content: center;
-gap: 10px;
-flex-wrap: wrap;
-margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
 }
 
 button {
-background-color: #3d4c60;
-color: white;
-border: none;
-padding: 8px 12px;
-border-radius: 5px;
-cursor: pointer;
-font-size: 14px;
-transition: all 0.2s;
+    background-color: #3d4c60;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
 button:hover {
-background-color: #4a5d75;
-transform: translateY(-2px);
+    background-color: #4a5d75;
+    transform: translateY(-2px);
 }
 
 button:active {
-transform: translateY(0);
+    transform: translateY(0);
 }
 
 button.primary {
-background-color: #5b8dd9;
+    background-color: #5b8dd9;
 }
 
 button.primary:hover {
-background-color: #4a7bc7;
+    background-color: #4a7bc7;
 }
 
 button.success {
-background-color: #56b886;
+    background-color: #56b886;
 }
 
 button.success:hover {
-background-color: #45a275;
+    background-color: #45a275;
 }
 
 button.danger {
-background-color: #e67e73;
+    background-color: #e67e73;
 }
 
 button.danger:hover {
-background-color: #d56c62;
+    background-color: #d56c62;
 }
 
 button.special {
-background-color: #d35db3;
-padding: 10px 15px;
-font-weight: bold;
-box-shadow: 0 0 10px rgba(211, 93, 179, 0.3);
+    background-color: #d35db3;
+    padding: 10px 15px;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(211, 93, 179, 0.3);
 }
 
 button.special:hover {
-background-color: #c14da2;
-box-shadow: 0 0 15px rgba(211, 93, 179, 0.5);
+    background-color: #c14da2;
+    box-shadow: 0 0 15px rgba(211, 93, 179, 0.5);
 }
 
 /* Debug tools section */
 .range-control {
-display: flex;
-align-items: center;
-margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .range-control label {
-width: 100px;
-font-size: 14px;
+    width: 100px;
+    font-size: 14px;
 }
 
 .range-control input {
-flex: 1;
+    flex: 1;
 }
 
 .range-value {
-width: 50px;
-text-align: center;
-font-size: 14px;
-color: #5b8dd9;
+    width: 50px;
+    text-align: center;
+    font-size: 14px;
+    color: #5b8dd9;
 }
 
 /* Debug log and visualization */
 .debug-section {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 15px;
-margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .debug-panel {
-background-color: #292936;
-border: 1px solid #3d4c60;
-border-radius: 8px;
-padding: 15px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
 }
 
 .debug-panel h3 {
-margin-top: 0;
-margin-bottom: 15px;
-color: #d4dae0;
-text-align: center;
-font-size: 16px;
-border-bottom: 1px solid #3d4c60;
-padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
 }
 
 .debug-log {
-height: 200px;
-padding: 10px;
-background-color: rgba(0, 0, 0, 0.3);
-border-radius: 5px;
-overflow-y: auto;
-font-family: monospace;
-font-size: 12px;
+    height: 200px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 12px;
 }
 
 .debug-log p {
-margin: 5px 0;
-color: #a7adb5;
+    margin: 5px 0;
+    color: #a7adb5;
 }
 
 .debug-log p.info {
-color: #5b8dd9;
+    color: #5b8dd9;
 }
 
 .debug-log p.success {
-color: #56b886;
+    color: #56b886;
 }
 
 .debug-log p.error {
-color: #e67e73;
+    color: #e67e73;
 }
 
 .debug-log p.warning {
-color: #f0c866;
+    color: #f0c866;
 }
 
 .debug-visualizer {
-height: 200px;
-background-color: rgba(0, 0, 0, 0.3);
-border-radius: 5px;
-position: relative;
-overflow: hidden;
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
 }
 
 .frame-counter {
-position: absolute;
-top: 10px;
-right: 10px;
-background-color: rgba(0, 0, 0, 0.5);
-padding: 5px 10px;
-border-radius: 3px;
-font-size: 12px;
-color: #5b8dd9;
-font-family: monospace;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #5b8dd9;
+    font-family: monospace;
 }
 
 .frame-timeline {
-position: absolute;
-bottom: 0;
-left: 0;
-height: 30px;
-width: 100%;
-background-color: rgba(0, 0, 0, 0.5);
-display: flex;
-padding: 5px;
-box-sizing: border-box;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 30px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 .frame-marker {
-flex: 1;
-height: 100%;
-background-color: #3d4c60;
-margin: 0 1px;
-transition: background-color 0.2s;
+    flex: 1;
+    height: 100%;
+    background-color: #3d4c60;
+    margin: 0 1px;
+    transition: background-color 0.2s;
 }
 
 .frame-marker.active {
-background-color: #5b8dd9;
+    background-color: #5b8dd9;
 }
 
 /* Animation for ability activation */
 .ability-flash {
-animation: ability-flash 0.5s ease-in-out;
+    animation: ability-flash 0.5s ease-in-out;
 }
 
 @keyframes ability-flash {
-0% { filter: brightness(1); }
-50% { filter: brightness(1.5) saturate(1.5); }
-100% { filter: brightness(1); }
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.5) saturate(1.5); }
+    100% { filter: brightness(1); }
 }
 
 /* Debug grid to help visualize sprite positioning */
 .debug-grid {
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-pointer-events: none;
-border: 1px dashed rgba(255, 255, 255, 0.3);
-z-index: 5;
-display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    z-index: 5;
+    display: none;
 }
 
 .debug-grid::before, .debug-grid::after {
-content: '';
-position: absolute;
-background-color: rgba(255, 255, 255, 0.2);
+    content: '';
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .debug-grid::before {
-top: 0;
-bottom: 0;
-left: 50%;
-width: 1px;
-transform: translateX(-0.5px);
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-0.5px);
 }
 
 .debug-grid::after {
-left: 0;
-right: 0;
-top: 50%;
-height: 1px;
-transform: translateY(-0.5px);
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-0.5px);
 }
 
 .show-grid .debug-grid {
-display: block;
+    display: block;
 }
 
 /* Character statistics visualization */
 .character-stat {
-margin-bottom: 12px;
+    margin-bottom: 12px;
 }
 
 .stat-label {
-display: flex;
-justify-content: space-between;
-font-size: 14px;
-margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 5px;
 }
 
 .stat-name {
-color: #d4dae0;
+    color: #d4dae0;
 }
 
 .stat-value {
-color: #5b8dd9;
-font-weight: bold;
+    color: #5b8dd9;
+    font-weight: bold;
 }
 
 .stat-bar {
-height: 8px;
-background-color: rgba(0, 0, 0, 0.3);
-border-radius: 4px;
-overflow: hidden;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .stat-fill {
-height: 100%;
-transition: width 0.3s;
+    height: 100%;
+    transition: width 0.3s;
 }
 
 .stat-fill.lives {
-background-color: #e67e73;
+    background-color: #e67e73;
 }
 
 .stat-fill.insight {
-background-color: #5b8dd9;
+    background-color: #5b8dd9;
 }
 
 .stat-fill.level {
-background-color: #f0c866;
+    background-color: #f0c866;
 }
 
 .special-ability {
-margin-top: auto;
-padding: 10px;
-background-color: rgba(0, 0, 0, 0.2);
-border-radius: 5px;
+    margin-top: auto;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
 }
 
 .ability-header {
-font-size: 14px;
-color: #f0c866;
-margin-bottom: 5px;
+    font-size: 14px;
+    color: #f0c866;
+    margin-bottom: 5px;
 }
 
 .ability-description {
-font-size: 12px;
-color: #d4dae0;
-line-height: 1.4;
+    font-size: 12px;
+    color: #d4dae0;
+    line-height: 1.4;
 }
 
 /* Animation States Section */
 .animation-info {
-display: flex;
-justify-content: space-between;
-margin-bottom: 10px;
-padding: 10px;
-background-color: rgba(0, 0, 0, 0.2);
-border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
 }
 
 .animation-info div {
-display: flex;
-flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .info-label {
-font-size: 12px;
-color: #a7adb5;
+    font-size: 12px;
+    color: #a7adb5;
 }
 
 .info-value {
-font-size: 14px;
-color: #5b8dd9;
-font-weight: bold;
+    font-size: 14px;
+    color: #5b8dd9;
+    font-weight: bold;
 }
 
 /* Function test panel */
 .function-test-panel {
-margin-top: 20px;
-background-color: #292936;
-border: 1px solid #3d4c60;
-border-radius: 8px;
-padding: 15px;
+    margin-top: 20px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
 }
 
 .function-test-panel h3 {
-margin-top: 0;
-margin-bottom: 15px;
-color: #d4dae0;
-text-align: center;
-font-size: 16px;
-border-bottom: 1px solid #3d4c60;
-padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
 }
 
 .function-buttons {
-display: flex;
-flex-wrap: wrap;
-gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .function-result {
-margin-top: 15px;
-padding: 10px;
-background-color: rgba(0, 0, 0, 0.3);
-border-radius: 5px;
-font-family: monospace;
-font-size: 12px;
-max-height: 150px;
-overflow-y: auto;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 </style>
 </head>
@@ -611,1026 +631,1043 @@ overflow-y: auto;
 
 <!-- Character Selection -->
 <div class="character-select-panel">
-<button class="character-button active" data-character="resident">Resident</button>
-<button class="character-button" data-character="physicist">Physicist</button>
-<button class="character-button" data-character="qa_specialist">QA Specialist</button>
-<button class="character-button" data-character="debug_mode">Debug Mode</button>
+    <button class="character-button active" data-character="resident">Resident</button>
+    <button class="character-button" data-character="physicist">Physicist</button>
+    <button class="character-button" data-character="qa_specialist">QA Specialist</button>
+    <button class="character-button" data-character="debug_mode">Debug Mode</button>
 </div>
 
 <!-- Character Display -->
 <div class="character-display">
-<div class="character-view">
-    <div class="character-details">
-        <p class="character-name" id="character-name">Medical Physics Resident</p>
-        <div class="character-avatar-container">
-            <div class="character-avatar" id="character-avatar">
-                <div id="character-sprite-container"></div>
-                <div class="debug-grid"></div>
+    <div class="character-view">
+        <div class="character-details">
+            <p class="character-name" id="character-name">Medical Physics Resident</p>
+            <div class="character-avatar-container">
+                <div class="character-avatar" id="character-avatar">
+                    <div id="character-sprite-container"></div>
+                    <div class="debug-grid"></div>
+                </div>
+            </div>
+            
+            <!-- Animation Info -->
+            <div class="animation-info">
+                <div>
+                    <span class="info-label">Current Animation</span>
+                    <span class="info-value" id="current-animation">idle</span>
+                </div>
+                <div>
+                    <span class="info-label">Frame</span>
+                    <span class="info-value" id="current-frame">1</span>
+                </div>
+                <div>
+                    <span class="info-label">State</span>
+                    <span class="info-value" id="animation-state">playing</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Character Stats -->
+    <div class="stats-view">
+        <div class="character-stat">
+            <div class="stat-label">
+                <span class="stat-name">Lives</span>
+                <span class="stat-value" id="lives-stat">3/3</span>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-fill lives" style="width: 100%"></div>
             </div>
         </div>
         
-        <!-- Animation Info -->
-        <div class="animation-info">
-            <div>
-                <span class="info-label">Current Animation</span>
-                <span class="info-value" id="current-animation">idle</span>
+        <div class="character-stat">
+            <div class="stat-label">
+                <span class="stat-name">Insight</span>
+                <span class="stat-value" id="insight-stat">20</span>
             </div>
-            <div>
-                <span class="info-label">Frame</span>
-                <span class="info-value" id="current-frame">1</span>
-            </div>
-            <div>
-                <span class="info-label">State</span>
-                <span class="info-value" id="animation-state">playing</span>
+            <div class="stat-bar">
+                <div class="stat-fill insight" style="width: 20%"></div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Character Stats -->
-<div class="stats-view">
-    <div class="character-stat">
-        <div class="stat-label">
-            <span class="stat-name">Lives</span>
-            <span class="stat-value" id="lives-stat">3/3</span>
+        
+        <div class="character-stat">
+            <div class="stat-label">
+                <span class="stat-name">Level</span>
+                <span class="stat-value" id="level-stat">1</span>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-fill level" style="width: 10%"></div>
+            </div>
         </div>
-        <div class="stat-bar">
-            <div class="stat-fill lives" style="width: 100%"></div>
-        </div>
-    </div>
-    
-    <div class="character-stat">
-        <div class="stat-label">
-            <span class="stat-name">Insight</span>
-            <span class="stat-value" id="insight-stat">20</span>
-        </div>
-        <div class="stat-bar">
-            <div class="stat-fill insight" style="width: 20%"></div>
+        
+        <div class="special-ability">
+            <div class="ability-header" id="ability-name">Literature Review</div>
+            <div class="ability-description" id="ability-description">
+                Once per floor, can skip a question node without penalty.
+            </div>
         </div>
     </div>
-    
-    <div class="character-stat">
-        <div class="stat-label">
-            <span class="stat-name">Level</span>
-            <span class="stat-value" id="level-stat">1</span>
-        </div>
-        <div class="stat-bar">
-            <div class="stat-fill level" style="width: 10%"></div>
-        </div>
-    </div>
-    
-    <div class="special-ability">
-        <div class="ability-header" id="ability-name">Literature Review</div>
-        <div class="ability-description" id="ability-description">
-            Once per floor, can skip a question node without penalty.
-        </div>
-    </div>
-</div>
 </div>
 
 <!-- Control Panels -->
 <div class="controls">
-<!-- Basic Animation Controls -->
-<div class="control-panel">
-    <h3>Animation Controls</h3>
-    <div class="button-group">
-        <button id="btn-idle" class="primary">Idle</button>
-        <button id="btn-walk">Walk</button>
-        <button id="btn-ability">Regular Ability</button>
-        <button id="btn-special-ability" class="special">Special Ability</button>
+    <!-- Basic Animation Controls -->
+    <div class="control-panel">
+        <h3>Animation Controls</h3>
+        <div class="button-group">
+            <button id="btn-idle" class="primary">Idle</button>
+            <button id="btn-walk">Walk</button>
+            <button id="btn-ability">Regular Ability</button>
+            <button id="btn-special-ability" class="special">Special Ability</button>
+        </div>
+        
+        <div class="button-group">
+            <button id="btn-play" class="success">Play</button>
+            <button id="btn-pause">Pause</button>
+            <button id="btn-stop" class="danger">Stop</button>
+            <button id="btn-reset">Reset</button>
+        </div>
     </div>
     
-    <div class="button-group">
-        <button id="btn-play" class="success">Play</button>
-        <button id="btn-pause">Pause</button>
-        <button id="btn-stop" class="danger">Stop</button>
-        <button id="btn-reset">Reset</button>
+    <!-- Debug Tools -->
+    <div class="control-panel">
+        <h3>Debug Tools</h3>
+        
+        <div class="range-control">
+            <label for="scale-range">Scale:</label>
+            <input type="range" id="scale-range" min="1" max="5" step="0.5" value="3">
+            <span class="range-value" id="scale-value">3.0</span>
+        </div>
+        
+        <div class="range-control">
+            <label for="speed-range">Speed:</label>
+            <input type="range" id="speed-range" min="50" max="500" step="10" value="200">
+            <span class="range-value" id="speed-value">200ms</span>
+        </div>
+        
+        <div class="button-group">
+            <button id="btn-toggle-grid">Toggle Grid</button>
+            <button id="btn-toggle-overflow">Toggle Overflow</button>
+            <button id="btn-toggle-loop">Toggle Looping</button>
+            <button id="btn-toggle-wide">Toggle Wide Mode</button>
+        </div>
     </div>
-</div>
-
-<!-- Debug Tools -->
-<div class="control-panel">
-    <h3>Debug Tools</h3>
-    
-    <div class="range-control">
-        <label for="scale-range">Scale:</label>
-        <input type="range" id="scale-range" min="1" max="5" step="0.5" value="3">
-        <span class="range-value" id="scale-value">3.0</span>
-    </div>
-    
-    <div class="range-control">
-        <label for="speed-range">Speed:</label>
-        <input type="range" id="speed-range" min="50" max="500" step="10" value="200">
-        <span class="range-value" id="speed-value">200ms</span>
-    </div>
-    
-    <div class="button-group">
-        <button id="btn-toggle-grid">Toggle Grid</button>
-        <button id="btn-toggle-overflow">Toggle Overflow</button>
-        <button id="btn-toggle-loop">Toggle Looping</button>
-        <button id="btn-toggle-wide">Toggle Wide Mode</button>
-    </div>
-</div>
 </div>
 
 <!-- Debug Section -->
 <div class="debug-section">
-<!-- Debug Log -->
-<div class="debug-panel">
-    <h3>Debug Log</h3>
-    <div class="debug-log" id="debug-log">
-        <p>Animation debug log:</p>
-    </div>
-</div>
-
-<!-- Animation Visualizer -->
-<div class="debug-panel">
-    <h3>Animation Visualizer</h3>
-    <div class="debug-visualizer">
-        <div class="frame-counter" id="frame-counter">Frame: 1/4</div>
-        <div class="frame-timeline" id="frame-timeline">
-            <!-- Frame markers will be added dynamically -->
+    <!-- Debug Log -->
+    <div class="debug-panel">
+        <h3>Debug Log</h3>
+        <div class="debug-log" id="debug-log">
+            <p>Animation debug log:</p>
         </div>
     </div>
-</div>
+    
+    <!-- Animation Visualizer -->
+    <div class="debug-panel">
+        <h3>Animation Visualizer</h3>
+        <div class="debug-visualizer">
+            <div class="frame-counter" id="frame-counter">Frame: 1/4</div>
+            <div class="frame-timeline" id="frame-timeline">
+                <!-- Frame markers will be added dynamically -->
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Function Testing Panel -->
 <div class="function-test-panel">
-<h3>Function Testing</h3>
-<div class="function-buttons">
-    <button id="test-get-character">Test getCharacter()</button>
-    <button id="test-get-animations">Test getCharacterAnimations()</button>
-    <button id="test-animation-data">Test getCharacterAnimation()</button>
-    <button id="test-create-anim">Test createAnimation()</button>
-    <button id="test-play-anim">Test playAnimation()</button>
-    <button id="test-ability-anim">Test playAbilityAnimation()</button>
-</div>
-<div class="function-result" id="function-result">
-    <p>Function test results will appear here.</p>
-</div>
+    <h3>Function Testing</h3>
+    <div class="function-buttons">
+        <button id="test-get-character">Test getCharacter()</button>
+        <button id="test-get-animations">Test getCharacterAnimations()</button>
+        <button id="test-animation-data">Test getCharacterAnimation()</button>
+        <button id="test-create-anim">Test createAnimation()</button>
+        <button id="test-play-anim">Test playAnimation()</button>
+        <button id="test-ability-anim">Test playAbilityAnimation()</button>
+    </div>
+    <div class="function-result" id="function-result">
+        <p>Function test results will appear here.</p>
+    </div>
 </div>
 </div>
 
 <script>
 // Simulated Character Assets (full implementation would be imported)
 window.CharacterAssets = {
-characters: {
-    resident: {
-        name: "Resident",
-        description: "A new medical physics resident.",
-        imagePath: "/static/img/characters/resident/idle.png",
-        spritePath: "/static/img/characters/resident/",
-        animations: {
-            idle: {
-                file: "idle.png", 
-                frames: 1
+    characters: {
+        resident: {
+            name: "Resident",
+            description: "A new medical physics resident.",
+            imagePath: "/static/img/characters/resident/idle.png",
+            spritePath: "/static/img/characters/resident/",
+            animations: {
+                idle: {
+                    file: "idle.png", 
+                    frames: 1
+                },
+                walking: {
+                    file: "walking.png", 
+                    frames: 4, 
+                    speed: 250
+                },
+                ability: {
+                    file: "ability.png", 
+                    frames: 6, 
+                    speed: 120
+                },
+                specialAbility: {
+                    file: "special_ability.png", 
+                    frames: 10, 
+                    speed: 80,
+                    aspectRatio: 2.5 // Wider sprite
+                }
             },
-            walking: {
-                file: "walking.png", 
-                frames: 4, 
-                speed: 250
+            stats: {
+                startingInsight: 20,
+                startingLives: 3,
+                maxLives: 3,
+                level: 1
             },
-            ability: {
-                file: "ability.png", 
-                frames: 6, 
-                speed: 120
-            },
-            specialAbility: {
-                file: "special_ability.png", 
-                frames: 10, 
-                speed: 80,
-                aspectRatio: 2.5 // Wider sprite
+            special_ability: {
+                name: "Literature Review",
+                description: "Once per floor, can skip a question node without penalty.",
+                uses_per_floor: 1
             }
         },
-        stats: {
-            startingInsight: 20,
-            startingLives: 3,
-            maxLives: 3,
-            level: 1
+        physicist: {
+            name: "Junior Physicist",
+            description: "More experienced with treatment planning but fewer lives.",
+            imagePath: "/static/img/characters/physicist/portrait.png",
+            spritePath: "/static/img/characters/physicist/",
+            animations: {
+                idle: {
+                    file: "idle.png", 
+                    frames: 1
+                },
+                walking: {
+                    file: "walking.png", 
+                    frames: 4, 
+                    speed: 250
+                },
+                ability: {
+                    file: "ability.png", 
+                    frames: 6, 
+                    speed: 120
+                },
+                specialAbility: {
+                    file: "special_ability.png", 
+                    frames: 10, 
+                    speed: 80,
+                    aspectRatio: 2.5
+                }
+            },
+            stats: {
+                startingInsight: 30,
+                startingLives: 2,
+                maxLives: 2,
+                level: 1
+            },
+            special_ability: {
+                name: "Peer Review",
+                description: "Can see the correct answer for one question per floor.",
+                uses_per_floor: 1
+            }
         },
-        special_ability: {
-            name: "Literature Review",
-            description: "Once per floor, can skip a question node without penalty.",
-            uses_per_floor: 1
+        qa_specialist: {
+            name: "QA Specialist",
+            description: "Quality Assurance expert with deep knowledge of machine checks.",
+            imagePath: "/static/img/characters/qa_specialist/portrait.png",
+            spritePath: "/static/img/characters/qa_specialist/",
+            animations: {
+                idle: {
+                    file: "idle.png", 
+                    frames: 1
+                },
+                walking: {
+                    file: "walking.png", 
+                    frames: 4, 
+                    speed: 250
+                },
+                ability: {
+                    file: "ability.png", 
+                    frames: 6, 
+                    speed: 120
+                },
+                specialAbility: {
+                    file: "special_ability.png", 
+                    frames: 10, 
+                    speed: 80,
+                    aspectRatio: 2.5
+                }
+            },
+            stats: {
+                startingInsight: 25,
+                startingLives: 3,
+                maxLives: 3,
+                level: 1
+            },
+            special_ability: {
+                name: "Measurement Uncertainty",
+                description: "Can retry one failed question per floor.",
+                uses_per_floor: 1
+            }
+        },
+        debug_mode: {
+            name: "Debug Physicist",
+            description: "A special character with godlike powers for testing purposes.",
+            imagePath: "/static/img/characters/debug_mode/portrait.png",
+            spritePath: "/static/img/characters/debug_mode/",
+            animations: {
+                idle: {
+                    file: "idle.png", 
+                    frames: 1
+                },
+                walking: {
+                    file: "walking.png", 
+                    frames: 4, 
+                    speed: 250
+                },
+                ability: {
+                    file: "ability.png", 
+                    frames: 6, 
+                    speed: 120
+                },
+                specialAbility: {
+                    file: "special_ability.png", 
+                    frames: 10, 
+                    speed: 80,
+                    aspectRatio: 2.5
+                }
+            },
+            stats: {
+                startingInsight: 999,
+                startingLives: 99,
+                maxLives: 99,
+                level: 42
+            },
+            special_ability: {
+                name: "Debug Override",
+                description: "Can instantly complete any node without penalties.",
+                uses_per_floor: 999
+            }
         }
     },
-    physicist: {
-        name: "Junior Physicist",
-        description: "More experienced with treatment planning but fewer lives.",
-        imagePath: "/static/img/characters/physicist/portrait.png",
-        spritePath: "/static/img/characters/physicist/",
-        animations: {
-            idle: {
-                file: "idle.png", 
-                frames: 1
-            },
-            walking: {
-                file: "walking.png", 
-                frames: 4, 
-                speed: 250
-            },
-            ability: {
-                file: "ability.png", 
-                frames: 6, 
-                speed: 120
-            },
-            specialAbility: {
-                file: "special_ability.png", 
-                frames: 10, 
-                speed: 80,
-                aspectRatio: 2.5
-            }
-        },
-        stats: {
-            startingInsight: 30,
-            startingLives: 2,
-            maxLives: 2,
-            level: 1
-        },
-        special_ability: {
-            name: "Peer Review",
-            description: "Can see the correct answer for one question per floor.",
-            uses_per_floor: 1
-        }
+    
+    // Helper methods
+    getCharacterKeys: function() {
+        return Object.keys(this.characters);
     },
-    qa_specialist: {
-        name: "QA Specialist",
-        description: "Quality Assurance expert with deep knowledge of machine checks.",
-        imagePath: "/static/img/characters/qa_specialist/portrait.png",
-        spritePath: "/static/img/characters/qa_specialist/",
-        animations: {
-            idle: {
-                file: "idle.png", 
-                frames: 1
-            },
-            walking: {
-                file: "walking.png", 
-                frames: 4, 
-                speed: 250
-            },
-            ability: {
-                file: "ability.png", 
-                frames: 6, 
-                speed: 120
-            },
-            specialAbility: {
-                file: "special_ability.png", 
-                frames: 10, 
-                speed: 80,
-                aspectRatio: 2.5
-            }
-        },
-        stats: {
-            startingInsight: 25,
-            startingLives: 3,
-            maxLives: 3,
-            level: 1
-        },
-        special_ability: {
-            name: "Measurement Uncertainty",
-            description: "Can retry one failed question per floor.",
-            uses_per_floor: 1
-        }
+    
+    getCharacter: function(key) {
+        return this.characters[key] || null;
     },
-    debug_mode: {
-        name: "Debug Physicist",
-        description: "A special character with godlike powers for testing purposes.",
-        imagePath: "/static/img/characters/debug_mode/portrait.png",
-        spritePath: "/static/img/characters/debug_mode/",
-        animations: {
-            idle: {
-                file: "idle.png", 
-                frames: 1
-            },
-            walking: {
-                file: "walking.png", 
-                frames: 4, 
-                speed: 250
-            },
-            ability: {
-                file: "ability.png", 
-                frames: 6, 
-                speed: 120
-            },
-            specialAbility: {
-                file: "special_ability.png", 
-                frames: 10, 
-                speed: 80,
-                aspectRatio: 2.5
+    
+    getCharacterImagePath: function(key) {
+        const character = this.getCharacter(key);
+        return character ? character.imagePath : '/static/img/characters/resident/portrait.png';
+    },
+    
+    getCharacterSpritePath: function(key, animation = "idle") {
+        const character = this.getCharacter(key);
+        if (!character || !character.animations || !character.animations[animation]) {
+            return null;
+        }
+        
+        return character.spritePath + character.animations[animation].file;
+    },
+    
+    getCharacterAnimation: function(key, animation = "idle") {
+        const character = this.getCharacter(key);
+        if (!character || !character.animations) return null;
+        
+        return character.animations[animation] || character.animations.idle;
+    },
+    
+    getCharacterAnimations: function(key) {
+        const character = this.getCharacter(key);
+        if (!character || !character.animations) return [];
+        
+        return Object.keys(character.animations);
+    },
+    
+    getCharacterIdFromName: function(name) {
+        for (const id in this.characters) {
+            if (this.characters[id].name === name) {
+                return id;
             }
-        },
-        stats: {
-            startingInsight: 999,
-            startingLives: 99,
-            maxLives: 99,
-            level: 42
-        },
-        special_ability: {
-            name: "Debug Override",
-            description: "Can instantly complete any node without penalties.",
-            uses_per_floor: 999
         }
-    }
-},
-
-// Helper methods
-getCharacterKeys: function() {
-    return Object.keys(this.characters);
-},
-
-getCharacter: function(key) {
-    return this.characters[key] || null;
-},
-
-getCharacterImagePath: function(key) {
-    const character = this.getCharacter(key);
-    return character ? character.imagePath : '/static/img/characters/resident/portrait.png';
-},
-
-getCharacterSpritePath: function(key, animation = "idle") {
-    const character = this.getCharacter(key);
-    if (!character || !character.animations || !character.animations[animation]) {
-        return null;
-    }
+        return 'resident';
+    },
     
-    return character.spritePath + character.animations[animation].file;
-},
-
-getCharacterAnimation: function(key, animation = "idle") {
-    const character = this.getCharacter(key);
-    if (!character || !character.animations) return null;
-    
-    return character.animations[animation] || character.animations.idle;
-},
-
-getCharacterAnimations: function(key) {
-    const character = this.getCharacter(key);
-    if (!character || !character.animations) return [];
-    
-    return Object.keys(character.animations);
-},
-
-getCharacterIdFromName: function(name) {
-    for (const id in this.characters) {
-        if (this.characters[id].name === name) {
-            return id;
-        }
+    getCharacterNameFromId: function(id) {
+        const character = this.getCharacter(id);
+        return character ? character.name : "Medical Physics Resident";
     }
-    return 'resident';
-},
-
-getCharacterNameFromId: function(id) {
-    const character = this.getCharacter(id);
-    return character ? character.name : "Medical Physics Resident";
-}
 };
 
 // Enhanced Character Animation System
 const CharacterAnimation = {
-// Track active animations
-activeAnimations: {},
-loopEnabled: true,
-
-// Initialize animation system
-initialize: function() {
-    this.logDebug("Character Animation system initialized");
+    // Track active animations
+    activeAnimations: {},
+    loopEnabled: true,
     
-    // Set up frame timeline
-    this.updateFrameTimeline(4); // Default to 4 frames
-    
-    return this;
-},
-
-// Create a new animation instance for a character
-createAnimation: function(characterId, containerId, options = {}) {
-    if (!characterId || !containerId) {
-        this.logError("Missing required parameters for createAnimation");
-        return null;
-    }
-    
-    // Get container element
-    const container = document.getElementById(containerId);
-    if (!container) {
-        this.logError(`Animation container not found: ${containerId}`);
-        return null;
-    }
-    
-    // Clear any existing content
-    container.innerHTML = '';
-    
-    // Default options
-    const defaultOptions = {
-        initialAnimation: 'idle',
-        autoPlay: true,
-        loop: this.loopEnabled,
-        scale: 3,
-        centerImage: true,
-        adaptiveWidth: false
-    };
-    
-    // Merge defaults with provided options
-    const animOptions = {...defaultOptions, ...options};
-    
-    // Create animation container element
-    const animationContainer = document.createElement('div');
-    animationContainer.className = 'character-animation-container';
-    animationContainer.style.position = 'relative';
-    animationContainer.style.width = '100%';
-    animationContainer.style.height = '100%';
-    
-    if (animOptions.centerImage) {
-        animationContainer.style.display = 'flex';
-        animationContainer.style.justifyContent = 'center';
-        animationContainer.style.alignItems = 'center';
-    }
-    
-    container.appendChild(animationContainer);
-    
-    // Create animation ID
-    const animationId = `anim_${characterId}_${containerId}_${Date.now()}`;
-    
-    // Create animation instance
-    const animation = {
-        id: animationId,
-        characterId: characterId,
-        containerId: containerId,
-        container: animationContainer,
-        currentAnimation: null,
-        frameIndex: 0,
-        animationTimer: null,
-        options: animOptions,
-        isPlaying: false,
-        debug: {
-            lastFrameTime: 0,
-            frameCount: 0,
-            frameRate: 0
-        }
-    };
-    
-    // Store in active animations
-    this.activeAnimations[animationId] = animation;
-    
-    // Set initial animation
-    if (animOptions.initialAnimation && animOptions.autoPlay) {
-        this.playAnimation(animationId, animOptions.initialAnimation);
-    }
-    
-    this.logInfo(`Created animation ${animationId} for character ${characterId}`);
-    
-    return animationId;
-},
-
-// Play a specific animation for a character
-playAnimation: function(animationId, animationName = 'idle', loop = null) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) {
-        this.logError(`Animation not found: ${animationId}`);
-        return false;
-    }
-    
-    // Stop any current animation
-    this.stopAnimation(animationId);
-    
-    // Get animation data
-    const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animationName);
-    if (!animData) {
-        this.logError(`Animation data not found for ${animationName}`);
-        return false;
-    }
-    
-    // Save current animation name
-    animation.currentAnimation = animationName;
-    
-    // Update animation info display
-    document.getElementById('current-animation').textContent = animationName;
-    document.getElementById('animation-state').textContent = 'playing';
-    
-    // Override loop behavior if specified
-    if (loop !== null) {
-        animation.options.loop = loop;
-    } else {
-        // Otherwise use global setting
-        animation.options.loop = this.loopEnabled;
-    }
-    
-    // For testing, we'll use colored boxes instead of actual sprites
-    this._setupMockSpriteAnimation(animation, animData);
-    
-    // Update frame timeline
-    this.updateFrameTimeline(animData.frames);
-    
-    animation.isPlaying = true;
-    this.logInfo(`Playing animation: ${animationName} (loop: ${animation.options.loop})`);
-    
-    return true;
-},
-
-// Set up mock sprite animation for testing with real image loading
-_setupMockSpriteAnimation: function(animation, animData) {
-    // Handle aspect ratio for wide sprites
-    const aspectRatio = animData.aspectRatio || 1;
-    
-    // Create sprite container
-    const spriteContainer = document.createElement('div');
-    spriteContainer.className = 'character-sprite-container';
-    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-        spriteContainer.classList.add('wide-sprite');
-    }
-    
-    spriteContainer.style.width = '100%';
-    spriteContainer.style.height = '100%';
-    spriteContainer.style.position = 'relative';
-    
-    // For wide sprites, adjust container
-    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-        spriteContainer.style.width = `${aspectRatio * 100}%`;
-        spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
-    }
-    
-    // Try to load actual character image if available
-    const characterId = animation.characterId;
-    const animationName = animation.currentAnimation;
-    const sprite = document.createElement('div');
-    sprite.className = 'character-sprite';
-    sprite.dataset.animation = animationName;
-    
-    // Get the sprite path from character assets
-    const spritePath = CharacterAssets.getCharacterSpritePath(characterId, animationName);
-    
-    // Create the image element to try loading the real sprite
-    const img = document.createElement('img');
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'contain';
-    img.style.imageRendering = 'pixelated';
-    img.style.imageRendering = 'crisp-edges';
-    img.alt = `${characterId} ${animationName} sprite`;
-    
-    // Start with placeholder image that clearly shows we're loading
-    sprite.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-    sprite.textContent = 'Loading...';
-    sprite.style.color = 'white';
-    sprite.style.display = 'flex';
-    sprite.style.justifyContent = 'center';
-    sprite.style.alignItems = 'center';
-    
-    // Set explicit dimensions and style
-    sprite.style.width = '80px';
-    sprite.style.height = '80px';
-    sprite.style.border = '2px solid rgba(255, 255, 255, 0.3)';
-    
-    // For testing purposes, create a URL that would work in the real environment
-    // This simulates actual sprite images but with placeholder paths
-    const placeholderPath = `/static/img/characters/${characterId}/${animationName}.png`;
-    
-    // Log the path we're trying to load
-    this.logInfo(`Trying to load sprite: ${placeholderPath}`);
-    
-    // In a real implementation with actual files, we would set the src to a real path:
-    // img.src = spritePath || placeholderPath;
-    
-    // Since this is a demo without real files, create a colored box based on animation type
-    sprite.style.backgroundColor = this._getAnimationColor(animationName);
-    sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
-    
-    // Create a frame visual indicator
-    const frameIndicator = document.createElement('div');
-    frameIndicator.style.position = 'absolute';
-    frameIndicator.style.top = '50%';
-    frameIndicator.style.left = '50%';
-    frameIndicator.style.transform = 'translate(-50%, -50%)';
-    frameIndicator.style.color = 'white';
-    frameIndicator.style.fontSize = '32px';
-    frameIndicator.style.fontWeight = 'bold';
-    frameIndicator.style.textShadow = '2px 2px 3px black, -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
-    frameIndicator.textContent = '1';
-    frameIndicator.id = 'frame-indicator';
-    
-    // Add a small character indicator
-    const characterIndicator = document.createElement('div');
-    characterIndicator.style.position = 'absolute';
-    characterIndicator.style.bottom = '5px';
-    characterIndicator.style.left = '50%';
-    characterIndicator.style.transform = 'translateX(-50%)';
-    characterIndicator.style.color = 'white';
-    characterIndicator.style.fontSize = '10px';
-    characterIndicator.style.fontWeight = 'bold';
-    characterIndicator.style.textShadow = '1px 1px 1px black';
-    characterIndicator.textContent = characterId;
-    
-    // Add the indicators to the sprite
-    sprite.appendChild(frameIndicator);
-    sprite.appendChild(characterIndicator);
-    
-    // Add an actual IMG tag (hidden) for users who want to debug image loading
-    img.style.display = 'none';
-    img.style.position = 'absolute';
-    img.style.top = '0';
-    img.style.left = '0';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.dataset.testSrc = placeholderPath;
-    sprite.appendChild(img);
-    
-    // Show a loading message if we have frames > 1
-    if (animData.frames > 1) {
-        // Show frame divisions for multi-frame animations
-        sprite.style.backgroundImage = `linear-gradient(90deg, 
-            rgba(255,255,255,0.2) 1px, transparent 1px)`;
-        sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
-        sprite.style.backgroundRepeat = 'repeat-x';
+    // Initialize animation system
+    initialize: function() {
+        this.logDebug("Character Animation system initialized");
         
-        const framesInfo = document.createElement('div');
-        framesInfo.style.position = 'absolute';
-        framesInfo.style.top = '3px';
-        framesInfo.style.right = '3px';
-        framesInfo.style.color = 'white';
-        framesInfo.style.fontSize = '9px';
-        framesInfo.style.padding = '1px 3px';
-        framesInfo.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        framesInfo.style.borderRadius = '3px';
-        framesInfo.textContent = `${animData.frames} frames`;
-        sprite.appendChild(framesInfo);
-    }
+        // Set up frame timeline
+        this.updateFrameTimeline(4); // Default to 4 frames
+        
+        return this;
+    },
     
-    // Apply scale
-    const scale = animation.options.scale || 1;
-    animation.container.style.setProperty('--character-scale', scale);
-    sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    
-    // Add sprite to container
-    spriteContainer.appendChild(sprite);
-    
-    // Clear container and add sprite
-    animation.container.innerHTML = '';
-    animation.container.appendChild(spriteContainer);
-    
-    // Set up animation
-    animation.frameIndex = 0;
-    animation.sprite = sprite;
-    animation.frameIndicator = frameIndicator;
-    animation.frames = animData.frames;
-    animation.frameSpeed = animData.speed || 200;
-    animation.isLooping = animation.options.loop;
-    
-    // Add "wide-mode" class to parent avatar container for wide animations
-    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-        const avatarContainer = document.getElementById('character-avatar');
-        if (avatarContainer) {
-            avatarContainer.classList.add('ability-mode');
-            animation.avatarContainer = avatarContainer;
+    // Create a new animation instance for a character
+    createAnimation: function(characterId, containerId, options = {}) {
+        if (!characterId || !containerId) {
+            this.logError("Missing required parameters for createAnimation");
+            return null;
         }
-    }
+        
+        // Get container element
+        const container = document.getElementById(containerId);
+        if (!container) {
+            this.logError(`Animation container not found: ${containerId}`);
+            return null;
+        }
+        
+        // Clear any existing content
+        container.innerHTML = '';
+        
+        // Default options
+        const defaultOptions = {
+            initialAnimation: 'idle',
+            autoPlay: true,
+            loop: this.loopEnabled,
+            scale: 3,
+            centerImage: true,
+            adaptiveWidth: false
+        };
+        
+        // Merge defaults with provided options
+        const animOptions = {...defaultOptions, ...options};
+        
+        // Create animation container element
+        const animationContainer = document.createElement('div');
+        animationContainer.className = 'character-animation-container';
+        animationContainer.style.position = 'relative';
+        animationContainer.style.width = '100%';
+        animationContainer.style.height = '100%';
+        
+        if (animOptions.centerImage) {
+            animationContainer.style.display = 'flex';
+            animationContainer.style.justifyContent = 'center';
+            animationContainer.style.alignItems = 'center';
+        }
+        
+        container.appendChild(animationContainer);
+        
+        // Create animation ID
+        const animationId = `anim_${characterId}_${containerId}_${Date.now()}`;
+        
+        // Create animation instance
+        const animation = {
+            id: animationId,
+            characterId: characterId,
+            containerId: containerId,
+            container: animationContainer,
+            currentAnimation: null,
+            frameIndex: 0,
+            animationTimer: null,
+            options: animOptions,
+            isPlaying: false,
+            debug: {
+                lastFrameTime: 0,
+                frameCount: 0,
+                frameRate: 0
+            }
+        };
+        
+        // Store in active animations
+        this.activeAnimations[animationId] = animation;
+        
+        // Set initial animation
+        if (animOptions.initialAnimation && animOptions.autoPlay) {
+            this.playAnimation(animationId, animOptions.initialAnimation);
+        }
+        
+        this.logInfo(`Created animation ${animationId} for character ${characterId}`);
+        
+        return animationId;
+    },
     
-    // Update frame counter
-    document.getElementById('current-frame').textContent = '1';
-    document.getElementById('frame-counter').textContent = `Frame: 1/${animData.frames}`;
+    // Play a specific animation for a character
+    playAnimation: function(animationId, animationName = 'idle', loop = null) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) {
+            this.logError(`Animation not found: ${animationId}`);
+            return false;
+        }
+        
+        // Stop any current animation
+        this.stopAnimation(animationId);
+        
+        // Get animation data
+        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animationName);
+        if (!animData) {
+            this.logError(`Animation data not found for ${animationName}`);
+            return false;
+        }
+        
+        // Save current animation name
+        animation.currentAnimation = animationName;
+        
+        // Update animation info display
+        document.getElementById('current-animation').textContent = animationName;
+        document.getElementById('animation-state').textContent = 'playing';
+        
+        // Override loop behavior if specified
+        if (loop !== null) {
+            animation.options.loop = loop;
+        } else {
+            // Otherwise use global setting
+            animation.options.loop = this.loopEnabled;
+        }
+        
+        // For testing, we'll use colored boxes instead of actual sprites
+        this._setupMockSpriteAnimation(animation, animData);
+        
+        // Update frame timeline
+        this.updateFrameTimeline(animData.frames);
+        
+        animation.isPlaying = true;
+        this.logInfo(`Playing animation: ${animationName} (loop: ${animation.options.loop})`);
+        
+        return true;
+    },
     
-    // Start animation loop if more than 1 frame
-    if (animData.frames > 1) {
-        this._advanceFrame(animation.id);
-        animation.animationTimer = setInterval(() => {
+    // Set up mock sprite animation for testing with real image loading
+    _setupMockSpriteAnimation: function(animation, animData) {
+        // Handle aspect ratio for wide sprites
+        const aspectRatio = animData.aspectRatio || 1;
+        
+        // Create sprite container
+        const spriteContainer = document.createElement('div');
+        spriteContainer.className = 'character-sprite-container';
+        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+            spriteContainer.classList.add('wide-sprite');
+        }
+        
+        spriteContainer.style.width = '100%';
+        spriteContainer.style.height = '100%';
+        spriteContainer.style.position = 'relative';
+        
+        // For wide sprites, adjust container
+        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+            spriteContainer.style.width = `${aspectRatio * 100}%`;
+            spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
+        }
+        
+    // Try to load actual character image if available
+        const characterId = animation.characterId;
+        const animationName = animation.currentAnimation;
+        
+        // Create the actual sprite with image
+        const sprite = document.createElement('div');
+        sprite.className = 'character-sprite real-sprite';
+        sprite.dataset.animation = animationName;
+        
+        // Get the sprite path
+        const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
+        
+        // Set explicit dimensions and styling for visibility
+        sprite.style.width = '100px';
+        sprite.style.height = '100px';
+        sprite.style.position = 'absolute';
+        sprite.style.display = 'flex';
+        sprite.style.justifyContent = 'center';
+        sprite.style.alignItems = 'center';
+        sprite.style.left = '50%';
+        sprite.style.top = '50%';
+        
+        // Create the image element
+        const img = document.createElement('img');
+        img.src = imagePath;
+        img.alt = `${characterId} ${animationName}`;
+        img.className = 'character-image';
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '100%';
+        img.style.imageRendering = 'pixelated';
+        img.style.imageRendering = 'crisp-edges';
+        img.style.objectFit = 'contain';
+        
+        // Add debugging border to see the image boundaries
+        img.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+        
+        // Apply scale directly to the image
+        const scale = animation.options.scale || 1;
+        sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        
+        // Add a loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.textContent = 'Loading...';
+        loadingIndicator.style.position = 'absolute';
+        loadingIndicator.style.fontSize = '10px';
+        loadingIndicator.style.color = 'white';
+        sprite.appendChild(loadingIndicator);
+        
+        // Add the image to the sprite
+        sprite.appendChild(img);
+        
+        // Handle image loading events
+        img.onload = () => {
+            this.logSuccess(`Image loaded successfully: ${imagePath} (${img.naturalWidth}x${img.naturalHeight}px)`);
+            loadingIndicator.style.display = 'none';
+            
+            // Add frame indicator only for multi-frame sprites
+            if (animData.frames > 1) {
+                const frameIndicator = document.createElement('div');
+                frameIndicator.style.position = 'absolute';
+                frameIndicator.style.bottom = '5px';
+                frameIndicator.style.right = '5px';
+                frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                frameIndicator.style.padding = '2px 5px';
+                frameIndicator.style.borderRadius = '3px';
+                frameIndicator.style.color = 'white';
+                frameIndicator.style.fontSize = '10px';
+                frameIndicator.textContent = `Frame 1/${animData.frames}`;
+                frameIndicator.id = 'frame-indicator';
+                sprite.appendChild(frameIndicator);
+                animation.frameIndicator = frameIndicator;
+            }
+        };
+        
+        img.onerror = () => {
+            this.logError(`Failed to load image: ${imagePath}`);
+            loadingIndicator.textContent = 'Image not found';
+            loadingIndicator.style.color = '#e67e73';
+            
+            // Show a colorful box as fallback
+            img.style.display = 'none';
+            sprite.style.backgroundColor = this._getAnimationColor(animationName);
+            sprite.style.width = '80px';
+            sprite.style.height = '80px';
+            sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
+            
+            // Add frame indicator for fallback
+            const frameIndicator = document.createElement('div');
+            frameIndicator.style.position = 'absolute';
+            frameIndicator.style.top = '50%';
+            frameIndicator.style.left = '50%';
+            frameIndicator.style.transform = 'translate(-50%, -50%)';
+            frameIndicator.style.color = 'white';
+            frameIndicator.style.fontSize = '32px';
+            frameIndicator.style.fontWeight = 'bold';
+            frameIndicator.style.textShadow = '2px 2px 3px black';
+            frameIndicator.textContent = '1';
+            frameIndicator.id = 'frame-indicator';
+            sprite.appendChild(frameIndicator);
+            animation.frameIndicator = frameIndicator;
+        };
+        
+        // Show a loading message if we have frames > 1
+        if (animData.frames > 1) {
+            // Show frame divisions for multi-frame animations
+            sprite.style.backgroundImage = `linear-gradient(90deg, 
+                rgba(255,255,255,0.2) 1px, transparent 1px)`;
+            sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
+            sprite.style.backgroundRepeat = 'repeat-x';
+            
+            const framesInfo = document.createElement('div');
+            framesInfo.style.position = 'absolute';
+            framesInfo.style.top = '3px';
+            framesInfo.style.right = '3px';
+            framesInfo.style.color = 'white';
+            framesInfo.style.fontSize = '9px';
+            framesInfo.style.padding = '1px 3px';
+            framesInfo.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            framesInfo.style.borderRadius = '3px';
+            framesInfo.textContent = `${animData.frames} frames`;
+            sprite.appendChild(framesInfo);
+        }
+        
+        // Apply scale
+        const scale = animation.options.scale || 1;
+        animation.container.style.setProperty('--character-scale', scale);
+        sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        
+        // Add sprite to container
+        spriteContainer.appendChild(sprite);
+        
+        // Clear container and add sprite
+        animation.container.innerHTML = '';
+        animation.container.appendChild(spriteContainer);
+        
+        // Set up animation
+        animation.frameIndex = 0;
+        animation.sprite = sprite;
+        animation.frameIndicator = frameIndicator;
+        animation.frames = animData.frames;
+        animation.frameSpeed = animData.speed || 200;
+        animation.isLooping = animation.options.loop;
+        
+        // Add "wide-mode" class to parent avatar container for wide animations
+        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+            const avatarContainer = document.getElementById('character-avatar');
+            if (avatarContainer) {
+                avatarContainer.classList.add('ability-mode');
+                animation.avatarContainer = avatarContainer;
+            }
+        }
+        
+        // Update frame counter
+        document.getElementById('current-frame').textContent = '1';
+        document.getElementById('frame-counter').textContent = `Frame: 1/${animData.frames}`;
+        
+        // Start animation loop if more than 1 frame
+        if (animData.frames > 1) {
             this._advanceFrame(animation.id);
-        }, animation.frameSpeed);
-    }
+            animation.animationTimer = setInterval(() => {
+                this._advanceFrame(animation.id);
+            }, animation.frameSpeed);
+        }
+        
+        // Add a message for the user about real sprites
+        this.logInfo(`Note: This tester uses colored boxes instead of real sprites.`);
+        this.logInfo(`In production, it would load: ${placeholderPath}`);
+    },
     
-    // Add a message for the user about real sprites
-    this.logInfo(`Note: This tester uses colored boxes instead of real sprites.`);
-    this.logInfo(`In production, it would load: ${placeholderPath}`);
-},
-
-// Advance to next frame in animation
-_advanceFrame: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation || !animation.sprite || !animation.frames) return;
-    
-    // Increment frame
-    animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
-    
-    // Update frame indicator
-    if (animation.frameIndicator) {
-        animation.frameIndicator.textContent = animation.frameIndex + 1;
-    }
-    
-    // Update frame counter in UI
-    document.getElementById('current-frame').textContent = (animation.frameIndex + 1).toString();
-    document.getElementById('frame-counter').textContent = `Frame: ${animation.frameIndex + 1}/${animation.frames}`;
-    
-    // Update frame timeline
-    this.updateActiveFrame(animation.frameIndex);
-    
-    // If we've reached the end and not looping, stop animation
-    if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
-        setTimeout(() => {
-            this.stopAnimation(animationId);
-            
-            // Signal animation complete
-            const event = new CustomEvent('animationComplete', {
-                detail: {
-                    animationId: animationId,
-                    animationName: animation.currentAnimation
+    // Advance to next frame in animation
+    _advanceFrame: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation || !animation.sprite || !animation.frames) return;
+        
+        // Increment frame
+        animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
+        
+        // Update frame indicator
+        if (animation.frameIndicator) {
+            animation.frameIndicator.textContent = animation.frameIndex + 1;
+        }
+        
+        // Update frame counter in UI
+        document.getElementById('current-frame').textContent = (animation.frameIndex + 1).toString();
+        document.getElementById('frame-counter').textContent = `Frame: ${animation.frameIndex + 1}/${animation.frames}`;
+        
+        // Update frame timeline
+        this.updateActiveFrame(animation.frameIndex);
+        
+        // If we've reached the end and not looping, stop animation
+        if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
+            setTimeout(() => {
+                this.stopAnimation(animationId);
+                
+                // Signal animation complete
+                const event = new CustomEvent('animationComplete', {
+                    detail: {
+                        animationId: animationId,
+                        animationName: animation.currentAnimation
+                    }
+                });
+                document.dispatchEvent(event);
+                
+                // Clean up wide mode if needed
+                if (animation.avatarContainer) {
+                    animation.avatarContainer.classList.remove('ability-mode');
                 }
-            });
-            document.dispatchEvent(event);
-            
-            // Clean up wide mode if needed
-            if (animation.avatarContainer) {
-                animation.avatarContainer.classList.remove('ability-mode');
-            }
-            
-            const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
-            if (container && container.classList.contains('wide-sprite')) {
-                container.classList.remove('wide-sprite');
-            }
-            
-            this.logSuccess(`Animation completed: ${animation.currentAnimation}`);
-            document.getElementById('animation-state').textContent = 'stopped';
-        }, animation.frameSpeed / 2);
-    }
+                
+                const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
+                if (container && container.classList.contains('wide-sprite')) {
+                    container.classList.remove('wide-sprite');
+                }
+                
+                this.logSuccess(`Animation completed: ${animation.currentAnimation}`);
+                document.getElementById('animation-state').textContent = 'stopped';
+            }, animation.frameSpeed / 2);
+        }
+        
+        // Calculate and display performance metrics
+        const now = performance.now();
+        if (animation.debug.lastFrameTime) {
+            const frameTime = now - animation.debug.lastFrameTime;
+            animation.debug.frameRate = 1000 / frameTime;
+        }
+        animation.debug.lastFrameTime = now;
+        animation.debug.frameCount++;
+    },
     
-    // Calculate and display performance metrics
-    const now = performance.now();
-    if (animation.debug.lastFrameTime) {
-        const frameTime = now - animation.debug.lastFrameTime;
-        animation.debug.frameRate = 1000 / frameTime;
-    }
-    animation.debug.lastFrameTime = now;
-    animation.debug.frameCount++;
-},
-
-// Stop an animation
-stopAnimation: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
+    // Stop an animation
+    stopAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        // Clear any running timer
+        if (animation.animationTimer) {
+            clearInterval(animation.animationTimer);
+            animation.animationTimer = null;
+        }
+        
+        animation.isPlaying = false;
+        document.getElementById('animation-state').textContent = 'stopped';
+        return true;
+    },
     
-    // Clear any running timer
-    if (animation.animationTimer) {
+    // Pause an animation
+    pauseAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation || !animation.animationTimer) return false;
+        
+        // Clear timer but don't reset state
         clearInterval(animation.animationTimer);
         animation.animationTimer = null;
-    }
+        animation.isPlaying = false;
+        
+        document.getElementById('animation-state').textContent = 'paused';
+        this.logInfo(`Paused animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
     
-    animation.isPlaying = false;
-    document.getElementById('animation-state').textContent = 'stopped';
-    return true;
-},
-
-// Pause an animation
-pauseAnimation: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation || !animation.animationTimer) return false;
-    
-    // Clear timer but don't reset state
-    clearInterval(animation.animationTimer);
-    animation.animationTimer = null;
-    animation.isPlaying = false;
-    
-    document.getElementById('animation-state').textContent = 'paused';
-    this.logInfo(`Paused animation: ${animation.currentAnimation}`);
-    
-    return true;
-},
-
-// Resume a paused animation
-resumeAnimation: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation || animation.isPlaying) return false;
-    
-    // Get current animation data
-    const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animation.currentAnimation);
-    if (!animData) return false;
-    
-    // Restart timer from current frame
-    animation.animationTimer = setInterval(() => {
-        this._advanceFrame(animation.id);
-    }, animation.frameSpeed);
-    
-    animation.isPlaying = true;
-    document.getElementById('animation-state').textContent = 'playing';
-    this.logInfo(`Resumed animation: ${animation.currentAnimation}`);
-    
-    return true;
-},
-
-// Reset animation to first frame
-resetAnimation: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
-    
-    // Reset to first frame
-    animation.frameIndex = 0;
-    
-    // Update frame indicator
-    if (animation.frameIndicator) {
-        animation.frameIndicator.textContent = '1';
-    }
-    
-    // Update frame counters
-    document.getElementById('current-frame').textContent = '1';
-    document.getElementById('frame-counter').textContent = `Frame: 1/${animation.frames}`;
-    this.updateActiveFrame(0);
-    
-    this.logInfo(`Reset animation: ${animation.currentAnimation}`);
-    
-    return true;
-},
-
-// Play ability animations
-playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
-    
-    const animData = CharacterAssets.getCharacterAnimation(animation.characterId, abilityName);
-    if (!animData) {
-        this.logError(`Ability animation not found: ${abilityName}`);
-        return false;
-    }
-    
-    const listener = (event) => {
-        if (event.detail.animationId === animationId) {
-            document.removeEventListener('animationComplete', listener);
-            
-            // Return to idle
-            this.playAnimation(animationId, 'idle', true);
-            
-            if (onCompleteCallback && typeof onCompleteCallback === 'function') {
-                onCompleteCallback();
-            }
-        }
-    };
-    
-    document.addEventListener('animationComplete', listener);
-    
-    // Enable wide mode for this animation if it has an aspect ratio
-    animation.options.adaptiveWidth = !!animData.aspectRatio && animData.aspectRatio !== 1;
-    
-    // Play the animation non-looping
-    this.playAnimation(animationId, abilityName, false);
-    
-    // Add flash effect to avatar
-    const avatar = document.getElementById('character-avatar');
-    if (avatar) {
-        avatar.classList.add('ability-flash');
-        setTimeout(() => {
-            avatar.classList.remove('ability-flash');
-        }, 500);
-    }
-    
-    this.logInfo(`Playing ability animation: ${abilityName}`);
-    
-    return true;
-},
-
-// Set animation scale
-setAnimationScale: function(animationId, scale) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
-    
-    animation.options.scale = scale;
-    
-    // Update scale of current animation
-    const elements = animation.container.querySelectorAll('.character-sprite');
-    elements.forEach(el => {
-        el.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    });
-    
-    this.logInfo(`Scale set to: ${scale}`);
-    return true;
-},
-
-// Set animation speed
-setAnimationSpeed: function(animationId, speed) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
-    
-    // Update speed
-    animation.frameSpeed = speed;
-    
-    // If animation is playing, restart timer with new speed
-    if (animation.isPlaying && animation.animationTimer) {
-        clearInterval(animation.animationTimer);
+    // Resume a paused animation
+    resumeAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation || animation.isPlaying) return false;
+        
+        // Get current animation data
+        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animation.currentAnimation);
+        if (!animData) return false;
+        
+        // Restart timer from current frame
         animation.animationTimer = setInterval(() => {
             this._advanceFrame(animation.id);
         }, animation.frameSpeed);
-    }
-    
-    this.logInfo(`Speed set to: ${speed}ms`);
-    return true;
-},
-
-// Toggle wide mode
-toggleWideMode: function(animationId) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
-    
-    animation.options.adaptiveWidth = !animation.options.adaptiveWidth;
-    
-    // Reapply current animation to update container
-    const currentAnim = animation.currentAnimation;
-    this.playAnimation(animationId, currentAnim);
-    
-    this.logInfo(`Wide mode ${animation.options.adaptiveWidth ? 'enabled' : 'disabled'}`);
-    return true;
-},
-
-// Toggle global looping setting
-toggleLooping: function() {
-    this.loopEnabled = !this.loopEnabled;
-    
-    // Update all active animations
-    for (const animId in this.activeAnimations) {
-        const animation = this.activeAnimations[animId];
-        animation.options.loop = this.loopEnabled;
-        animation.isLooping = this.loopEnabled;
-    }
-    
-    this.logInfo(`Looping ${this.loopEnabled ? 'enabled' : 'disabled'}`);
-    return this.loopEnabled;
-},
-
-// Get a color for each animation type (for testing) - brighter colors
-_getAnimationColor: function(animationName) {
-    switch(animationName) {
-        case 'idle': return '#4a90e2'; // Bright blue
-        case 'walking': return '#50e3c2'; // Bright teal
-        case 'ability': return '#f8e71c'; // Bright yellow
-        case 'specialAbility': return '#ff5cb4'; // Bright pink
-        default: return '#b8b8b8'; // Light gray
-    }
-},
-
-// Update frame timeline visualization
-updateFrameTimeline: function(frameCount) {
-    const timeline = document.getElementById('frame-timeline');
-    timeline.innerHTML = '';
-    
-    for (let i = 0; i < frameCount; i++) {
-        const marker = document.createElement('div');
-        marker.className = 'frame-marker';
-        marker.dataset.frameIndex = i;
         
-        if (i === 0) {
-            marker.classList.add('active');
+        animation.isPlaying = true;
+        document.getElementById('animation-state').textContent = 'playing';
+        this.logInfo(`Resumed animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
+    
+    // Reset animation to first frame
+    resetAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        // Reset to first frame
+        animation.frameIndex = 0;
+        
+        // Update frame indicator
+        if (animation.frameIndicator) {
+            animation.frameIndicator.textContent = '1';
         }
         
-        timeline.appendChild(marker);
-    }
-},
-
-// Update active frame in timeline
-updateActiveFrame: function(frameIndex) {
-    const markers = document.querySelectorAll('.frame-marker');
-    markers.forEach((marker, index) => {
-        if (index === frameIndex) {
-            marker.classList.add('active');
-        } else {
-            marker.classList.remove('active');
+        // Update frame counters
+        document.getElementById('current-frame').textContent = '1';
+        document.getElementById('frame-counter').textContent = `Frame: 1/${animation.frames}`;
+        this.updateActiveFrame(0);
+        
+        this.logInfo(`Reset animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
+    
+    // Play ability animations
+    playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, abilityName);
+        if (!animData) {
+            this.logError(`Ability animation not found: ${abilityName}`);
+            return false;
         }
-    });
-},
-
-// Debug logging functions
-logDebug: function(message) {
-    console.log(message);
-    this._addLogEntry(message);
-},
-
-logInfo: function(message) {
-    console.info(message);
-    this._addLogEntry(message, 'info');
-},
-
-logSuccess: function(message) {
-    console.log('%c' + message, 'color: green');
-    this._addLogEntry(message, 'success');
-},
-
-logError: function(message) {
-    console.error(message);
-    this._addLogEntry(message, 'error');
-},
-
-logWarning: function(message) {
-    console.warn(message);
-    this._addLogEntry(message, 'warning');
-},
-
-_addLogEntry: function(message, type = '') {
-    const logContainer = document.getElementById('debug-log');
-    if (!logContainer) return;
+        
+        const listener = (event) => {
+            if (event.detail.animationId === animationId) {
+                document.removeEventListener('animationComplete', listener);
+                
+                // Return to idle
+                this.playAnimation(animationId, 'idle', true);
+                
+                if (onCompleteCallback && typeof onCompleteCallback === 'function') {
+                    onCompleteCallback();
+                }
+            }
+        };
+        
+        document.addEventListener('animationComplete', listener);
+        
+        // Enable wide mode for this animation if it has an aspect ratio
+        animation.options.adaptiveWidth = !!animData.aspectRatio && animData.aspectRatio !== 1;
+        
+        // Play the animation non-looping
+        this.playAnimation(animationId, abilityName, false);
+        
+        // Add flash effect to avatar
+        const avatar = document.getElementById('character-avatar');
+        if (avatar) {
+            avatar.classList.add('ability-flash');
+            setTimeout(() => {
+                avatar.classList.remove('ability-flash');
+            }, 500);
+        }
+        
+        this.logInfo(`Playing ability animation: ${abilityName}`);
+        
+        return true;
+    },
     
-    const entry = document.createElement('p');
-    if (type) entry.className = type;
+    // Set animation scale
+    setAnimationScale: function(animationId, scale) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        animation.options.scale = scale;
+        
+        // Update scale of current animation
+        const elements = animation.container.querySelectorAll('.character-sprite');
+        elements.forEach(el => {
+            el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        });
+        
+        this.logInfo(`Scale set to: ${scale}`);
+        return true;
+    },
     
-    // Add timestamp
-    const now = new Date();
-    const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+    // Set animation speed
+    setAnimationSpeed: function(animationId, speed) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        // Update speed
+        animation.frameSpeed = speed;
+        
+        // If animation is playing, restart timer with new speed
+        if (animation.isPlaying && animation.animationTimer) {
+            clearInterval(animation.animationTimer);
+            animation.animationTimer = setInterval(() => {
+                this._advanceFrame(animation.id);
+            }, animation.frameSpeed);
+        }
+        
+        this.logInfo(`Speed set to: ${speed}ms`);
+        return true;
+    },
     
-    entry.textContent = `[${timestamp}] ${message}`;
+    // Toggle wide mode
+    toggleWideMode: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        animation.options.adaptiveWidth = !animation.options.adaptiveWidth;
+        
+        // Reapply current animation to update container
+        const currentAnim = animation.currentAnimation;
+        this.playAnimation(animationId, currentAnim);
+        
+        this.logInfo(`Wide mode ${animation.options.adaptiveWidth ? 'enabled' : 'disabled'}`);
+        return true;
+    },
     
-    logContainer.appendChild(entry);
-    logContainer.scrollTop = logContainer.scrollHeight;
-}
+    // Toggle global looping setting
+    toggleLooping: function() {
+        this.loopEnabled = !this.loopEnabled;
+        
+        // Update all active animations
+        for (const animId in this.activeAnimations) {
+            const animation = this.activeAnimations[animId];
+            animation.options.loop = this.loopEnabled;
+            animation.isLooping = this.loopEnabled;
+        }
+        
+        this.logInfo(`Looping ${this.loopEnabled ? 'enabled' : 'disabled'}`);
+        return this.loopEnabled;
+    },
+    
+    // Get a color for each animation type (for testing) - brighter colors
+    _getAnimationColor: function(animationName) {
+        switch(animationName) {
+            case 'idle': return '#4a90e2'; // Bright blue
+            case 'walking': return '#50e3c2'; // Bright teal
+            case 'ability': return '#f8e71c'; // Bright yellow
+            case 'specialAbility': return '#ff5cb4'; // Bright pink
+            default: return '#b8b8b8'; // Light gray
+        }
+    },
+    
+    // Update frame timeline visualization
+    updateFrameTimeline: function(frameCount) {
+        const timeline = document.getElementById('frame-timeline');
+        timeline.innerHTML = '';
+        
+        for (let i = 0; i < frameCount; i++) {
+            const marker = document.createElement('div');
+            marker.className = 'frame-marker';
+            marker.dataset.frameIndex = i;
+            
+            if (i === 0) {
+                marker.classList.add('active');
+            }
+            
+            timeline.appendChild(marker);
+        }
+    },
+    
+    // Update active frame in timeline
+    updateActiveFrame: function(frameIndex) {
+        const markers = document.querySelectorAll('.frame-marker');
+        markers.forEach((marker, index) => {
+            if (index === frameIndex) {
+                marker.classList.add('active');
+            } else {
+                marker.classList.remove('active');
+            }
+        });
+    },
+    
+    // Debug logging functions
+    logDebug: function(message) {
+        console.log(message);
+        this._addLogEntry(message);
+    },
+    
+    logInfo: function(message) {
+        console.info(message);
+        this._addLogEntry(message, 'info');
+    },
+    
+    logSuccess: function(message) {
+        console.log('%c' + message, 'color: green');
+        this._addLogEntry(message, 'success');
+    },
+    
+    logError: function(message) {
+        console.error(message);
+        this._addLogEntry(message, 'error');
+    },
+    
+    logWarning: function(message) {
+        console.warn(message);
+        this._addLogEntry(message, 'warning');
+    },
+    
+    _addLogEntry: function(message, type = '') {
+        const logContainer = document.getElementById('debug-log');
+        if (!logContainer) return;
+        
+        const entry = document.createElement('p');
+        if (type) entry.className = type;
+        
+        // Add timestamp
+        const now = new Date();
+        const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        
+        entry.textContent = `[${timestamp}] ${message}`;
+        
+        logContainer.appendChild(entry);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
 };
 
 // Global state
@@ -1641,274 +1678,274 @@ let currentSpeed = 200;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-// Initialize animation system
-CharacterAnimation.initialize();
-
-// Set up character buttons
-document.querySelectorAll('.character-button').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const characterId = this.dataset.character;
-        changeCharacter(characterId);
-        
-        // Update active button
-        document.querySelectorAll('.character-button').forEach(b => {
-            b.classList.remove('active');
+    // Initialize animation system
+    CharacterAnimation.initialize();
+    
+    // Set up character buttons
+    document.querySelectorAll('.character-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const characterId = this.dataset.character;
+            changeCharacter(characterId);
+            
+            // Update active button
+            document.querySelectorAll('.character-button').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
         });
-        this.classList.add('active');
     });
-});
-
-// Load initial character
-loadCharacter('resident');
-
-// Set up animation buttons
-document.getElementById('btn-idle').addEventListener('click', function() {
-    CharacterAnimation.playAnimation(animationId, 'idle', CharacterAnimation.loopEnabled);
-});
-
-document.getElementById('btn-walk').addEventListener('click', function() {
-    CharacterAnimation.playAnimation(animationId, 'walking', CharacterAnimation.loopEnabled);
-});
-
-document.getElementById('btn-ability').addEventListener('click', function() {
-    CharacterAnimation.playAbilityAnimation(animationId, 'ability', () => {
-        CharacterAnimation.logSuccess("Regular ability animation completed!");
-    });
-});
-
-document.getElementById('btn-special-ability').addEventListener('click', function() {
-    CharacterAnimation.playAbilityAnimation(animationId, 'specialAbility', () => {
-        CharacterAnimation.logSuccess("Special ability animation completed!");
-    });
-});
-
-// Set up playback control buttons
-document.getElementById('btn-play').addEventListener('click', function() {
-    if (animationId) {
-        CharacterAnimation.resumeAnimation(animationId);
-    }
-});
-
-document.getElementById('btn-pause').addEventListener('click', function() {
-    if (animationId) {
-        CharacterAnimation.pauseAnimation(animationId);
-    }
-});
-
-document.getElementById('btn-stop').addEventListener('click', function() {
-    if (animationId) {
-        CharacterAnimation.stopAnimation(animationId);
-    }
-});
-
-document.getElementById('btn-reset').addEventListener('click', function() {
-    if (animationId) {
-        CharacterAnimation.resetAnimation(animationId);
-    }
-});
-
-// Set up debug buttons
-document.getElementById('btn-toggle-grid').addEventListener('click', function() {
-    document.getElementById('character-avatar').classList.toggle('show-grid');
-    CharacterAnimation.logInfo("Grid visibility toggled");
-});
-
-document.getElementById('btn-toggle-overflow').addEventListener('click', function() {
-    const avatar = document.getElementById('character-avatar');
-    if (avatar.style.overflow === 'visible') {
-        avatar.style.overflow = 'hidden';
-        CharacterAnimation.logInfo("Overflow set to: hidden");
-    } else {
-        avatar.style.overflow = 'visible';
-        CharacterAnimation.logInfo("Overflow set to: visible");
-    }
-});
-
-document.getElementById('btn-toggle-loop').addEventListener('click', function() {
-    const looping = CharacterAnimation.toggleLooping();
-    this.textContent = looping ? "Disable Looping" : "Enable Looping";
-});
-
-document.getElementById('btn-toggle-wide').addEventListener('click', function() {
-    if (animationId) {
-        CharacterAnimation.toggleWideMode(animationId);
-    }
-});
-
-// Set up scale slider
-const scaleRange = document.getElementById('scale-range');
-scaleRange.addEventListener('input', function() {
-    currentScale = parseFloat(this.value);
-    document.getElementById('scale-value').textContent = currentScale.toFixed(1);
     
-    if (animationId) {
-        CharacterAnimation.setAnimationScale(animationId, currentScale);
-    }
-});
-
-// Set up speed slider
-const speedRange = document.getElementById('speed-range');
-speedRange.addEventListener('input', function() {
-    currentSpeed = parseInt(this.value);
-    document.getElementById('speed-value').textContent = `${currentSpeed}ms`;
+    // Load initial character
+    loadCharacter('resident');
     
-    if (animationId) {
-        CharacterAnimation.setAnimationSpeed(animationId, currentSpeed);
-    }
-});
-
-// Set up image test form
-document.getElementById('image-test-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const imagePath = document.getElementById('image-path-input').value;
-    testImageLoading(imagePath);
-});
+    // Set up animation buttons
+    document.getElementById('btn-idle').addEventListener('click', function() {
+        CharacterAnimation.playAnimation(animationId, 'idle', CharacterAnimation.loopEnabled);
+    });
+    
+    document.getElementById('btn-walk').addEventListener('click', function() {
+        CharacterAnimation.playAnimation(animationId, 'walking', CharacterAnimation.loopEnabled);
+    });
+    
+    document.getElementById('btn-ability').addEventListener('click', function() {
+        CharacterAnimation.playAbilityAnimation(animationId, 'ability', () => {
+            CharacterAnimation.logSuccess("Regular ability animation completed!");
+        });
+    });
+    
+    document.getElementById('btn-special-ability').addEventListener('click', function() {
+        CharacterAnimation.playAbilityAnimation(animationId, 'specialAbility', () => {
+            CharacterAnimation.logSuccess("Special ability animation completed!");
+        });
+    });
+    
+    // Set up playback control buttons
+    document.getElementById('btn-play').addEventListener('click', function() {
+        if (animationId) {
+            CharacterAnimation.resumeAnimation(animationId);
+        }
+    });
+    
+    document.getElementById('btn-pause').addEventListener('click', function() {
+        if (animationId) {
+            CharacterAnimation.pauseAnimation(animationId);
+        }
+    });
+    
+    document.getElementById('btn-stop').addEventListener('click', function() {
+        if (animationId) {
+            CharacterAnimation.stopAnimation(animationId);
+        }
+    });
+    
+    document.getElementById('btn-reset').addEventListener('click', function() {
+        if (animationId) {
+            CharacterAnimation.resetAnimation(animationId);
+        }
+    });
+    
+    // Set up debug buttons
+    document.getElementById('btn-toggle-grid').addEventListener('click', function() {
+        document.getElementById('character-avatar').classList.toggle('show-grid');
+        CharacterAnimation.logInfo("Grid visibility toggled");
+    });
+    
+    document.getElementById('btn-toggle-overflow').addEventListener('click', function() {
+        const avatar = document.getElementById('character-avatar');
+        if (avatar.style.overflow === 'visible') {
+            avatar.style.overflow = 'hidden';
+            CharacterAnimation.logInfo("Overflow set to: hidden");
+        } else {
+            avatar.style.overflow = 'visible';
+            CharacterAnimation.logInfo("Overflow set to: visible");
+        }
+    });
+    
+    document.getElementById('btn-toggle-loop').addEventListener('click', function() {
+        const looping = CharacterAnimation.toggleLooping();
+        this.textContent = looping ? "Disable Looping" : "Enable Looping";
+    });
+    
+    document.getElementById('btn-toggle-wide').addEventListener('click', function() {
+        if (animationId) {
+            CharacterAnimation.toggleWideMode(animationId);
+        }
+    });
+    
+    // Set up scale slider
+    const scaleRange = document.getElementById('scale-range');
+    scaleRange.addEventListener('input', function() {
+        currentScale = parseFloat(this.value);
+        document.getElementById('scale-value').textContent = currentScale.toFixed(1);
+        
+        if (animationId) {
+            CharacterAnimation.setAnimationScale(animationId, currentScale);
+        }
+    });
+    
+    // Set up speed slider
+    const speedRange = document.getElementById('speed-range');
+    speedRange.addEventListener('input', function() {
+        currentSpeed = parseInt(this.value);
+        document.getElementById('speed-value').textContent = `${currentSpeed}ms`;
+        
+        if (animationId) {
+            CharacterAnimation.setAnimationSpeed(animationId, currentSpeed);
+        }
+    });
+    
+    // Set up image test form
+    document.getElementById('image-test-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const imagePath = document.getElementById('image-path-input').value;
+        testImageLoading(imagePath);
+    });
 });
 
 // Test image loading function
 function testImageLoading(path) {
-const resultContainer = document.getElementById('image-test-result');
-const displayContainer = document.getElementById('image-display');
-
-// Clear previous results
-resultContainer.innerHTML = '';
-displayContainer.innerHTML = '<div>Loading image...</div>';
-
-// Create image element
-const img = new Image();
-
-// Set up load handlers
-img.onload = function() {
-    img.className = 'test-image';
-    displayContainer.innerHTML = '';
-    displayContainer.appendChild(img);
+    const resultContainer = document.getElementById('image-test-result');
+    const displayContainer = document.getElementById('image-display');
     
-    const status = document.createElement('div');
-    status.className = 'image-load-status success';
-    status.textContent = `Image loaded successfully: ${img.width}x${img.height}px`;
-    resultContainer.appendChild(status);
+    // Clear previous results
+    resultContainer.innerHTML = '';
+    displayContainer.innerHTML = '<div>Loading image...</div>';
     
-    CharacterAnimation.logSuccess(`Image loaded successfully: ${path}`);
-};
-
-img.onerror = function() {
-    displayContainer.innerHTML = '<div>Failed to load image</div>';
+    // Create image element
+    const img = new Image();
     
-    const status = document.createElement('div');
-    status.className = 'image-load-status error';
-    status.textContent = `Failed to load image from: ${path}`;
-    resultContainer.appendChild(status);
+    // Set up load handlers
+    img.onload = function() {
+        img.className = 'test-image';
+        displayContainer.innerHTML = '';
+        displayContainer.appendChild(img);
+        
+        const status = document.createElement('div');
+        status.className = 'image-load-status success';
+        status.textContent = `Image loaded successfully: ${img.width}x${img.height}px`;
+        resultContainer.appendChild(status);
+        
+        CharacterAnimation.logSuccess(`Image loaded successfully: ${path}`);
+    };
     
-    CharacterAnimation.logError(`Failed to load image: ${path}`);
-};
-
-// Set source to trigger loading
-img.src = path;
+    img.onerror = function() {
+        displayContainer.innerHTML = '<div>Failed to load image</div>';
+        
+        const status = document.createElement('div');
+        status.className = 'image-load-status error';
+        status.textContent = `Failed to load image from: ${path}`;
+        resultContainer.appendChild(status);
+        
+        CharacterAnimation.logError(`Failed to load image: ${path}`);
+    };
+    
+    // Set source to trigger loading
+    img.src = path;
 }
 
 // Load a character
 function loadCharacter(characterId) {
-// Store current character ID
-currentCharacterId = characterId;
-
-// Get character data
-const character = CharacterAssets.getCharacter(characterId);
-if (!character) {
-    CharacterAnimation.logError(`Character not found: ${characterId}`);
-    return;
-}
-
-// Update character name
-document.getElementById('character-name').textContent = character.name;
-
-// Update character stats
-const stats = character.stats;
-document.getElementById('lives-stat').textContent = `${stats.startingLives}/${stats.maxLives}`;
-document.getElementById('insight-stat').textContent = stats.startingInsight;
-document.getElementById('level-stat').textContent = stats.level;
-
-// Update stat bars
-const livesFill = document.querySelector('.stat-fill.lives');
-livesFill.style.width = `${(stats.startingLives / stats.maxLives) * 100}%`;
-
-const insightFill = document.querySelector('.stat-fill.insight');
-insightFill.style.width = `${(stats.startingInsight / 100) * 100}%`;
-
-const levelFill = document.querySelector('.stat-fill.level');
-levelFill.style.width = `${(stats.level / 10) * 100}%`;
-
-// Update ability info
-document.getElementById('ability-name').textContent = character.special_ability.name;
-document.getElementById('ability-description').textContent = character.special_ability.description;
-
-// Create animation with visual debugging
-if (animationId) {
-    // Destroy any existing animation
-    CharacterAnimation.stopAnimation(animationId);
-}
-
-// Make sure the container exists and is visible
-const container = document.getElementById('character-sprite-container');
-if (container) {
-    // Add a visual indicator that the container exists
-    container.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+    // Store current character ID
+    currentCharacterId = characterId;
     
-    // Add a text indicator if empty
-    if (!container.innerHTML) {
-        const placeholder = document.createElement('div');
-        placeholder.textContent = 'Animation Container';
-        placeholder.style.color = 'rgba(255, 255, 255, 0.3)';
-        placeholder.style.fontSize = '10px';
-        container.appendChild(placeholder);
+    // Get character data
+    const character = CharacterAssets.getCharacter(characterId);
+    if (!character) {
+        CharacterAnimation.logError(`Character not found: ${characterId}`);
+        return;
     }
-} else {
-    CharacterAnimation.logError("Animation container not found!");
-}
-
-animationId = CharacterAnimation.createAnimation(
-    characterId,
-    'character-sprite-container',
-    {
-        initialAnimation: 'idle',
-        autoPlay: true,
-        loop: true,
-        scale: currentScale,
-        centerImage: true
+    
+    // Update character name
+    document.getElementById('character-name').textContent = character.name;
+    
+    // Update character stats
+    const stats = character.stats;
+    document.getElementById('lives-stat').textContent = `${stats.startingLives}/${stats.maxLives}`;
+    document.getElementById('insight-stat').textContent = stats.startingInsight;
+    document.getElementById('level-stat').textContent = stats.level;
+    
+    // Update stat bars
+    const livesFill = document.querySelector('.stat-fill.lives');
+    livesFill.style.width = `${(stats.startingLives / stats.maxLives) * 100}%`;
+    
+    const insightFill = document.querySelector('.stat-fill.insight');
+    insightFill.style.width = `${(stats.startingInsight / 100) * 100}%`;
+    
+    const levelFill = document.querySelector('.stat-fill.level');
+    levelFill.style.width = `${(stats.level / 10) * 100}%`;
+    
+    // Update ability info
+    document.getElementById('ability-name').textContent = character.special_ability.name;
+    document.getElementById('ability-description').textContent = character.special_ability.description;
+    
+    // Create animation with visual debugging
+    if (animationId) {
+        // Destroy any existing animation
+        CharacterAnimation.stopAnimation(animationId);
     }
-);
-
-// Force a redraw of the avatar area
-const avatar = document.getElementById('character-avatar');
-if (avatar) {
-    avatar.style.display = 'none';
-    setTimeout(() => {
-        avatar.style.display = 'flex';
-    }, 0);
-}
-
-CharacterAnimation.logSuccess(`Loaded character: ${character.name}`);
+    
+    // Make sure the container exists and is visible
+    const container = document.getElementById('character-sprite-container');
+    if (container) {
+        // Add a visual indicator that the container exists
+        container.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+        
+        // Add a text indicator if empty
+        if (!container.innerHTML) {
+            const placeholder = document.createElement('div');
+            placeholder.textContent = 'Animation Container';
+            placeholder.style.color = 'rgba(255, 255, 255, 0.3)';
+            placeholder.style.fontSize = '10px';
+            container.appendChild(placeholder);
+        }
+    } else {
+        CharacterAnimation.logError("Animation container not found!");
+    }
+    
+    animationId = CharacterAnimation.createAnimation(
+        characterId,
+        'character-sprite-container',
+        {
+            initialAnimation: 'idle',
+            autoPlay: true,
+            loop: true,
+            scale: currentScale,
+            centerImage: true
+        }
+    );
+    
+    // Force a redraw of the avatar area
+    const avatar = document.getElementById('character-avatar');
+    if (avatar) {
+        avatar.style.display = 'none';
+        setTimeout(() => {
+            avatar.style.display = 'flex';
+        }, 0);
+    }
+    
+    CharacterAnimation.logSuccess(`Loaded character: ${character.name}`);
 }
 
 // Change character
 function changeCharacter(characterId) {
-loadCharacter(characterId);
+    loadCharacter(characterId);
 }
 
 // Display function test results
 function displayFunctionResult(functionName, result) {
-const resultContainer = document.getElementById('function-result');
-resultContainer.innerHTML = '';
-
-const header = document.createElement('p');
-header.textContent = `Result of ${functionName}:`;
-header.className = 'info';
-resultContainer.appendChild(header);
-
-const resultText = document.createElement('pre');
-resultText.textContent = JSON.stringify(result, null, 2);
-resultContainer.appendChild(resultText);
-
-CharacterAnimation.logInfo(`Tested function: ${functionName}`);
+    const resultContainer = document.getElementById('function-result');
+    resultContainer.innerHTML = '';
+    
+    const header = document.createElement('p');
+    header.textContent = `Result of ${functionName}:`;
+    header.className = 'info';
+    resultContainer.appendChild(header);
+    
+    const resultText = document.createElement('pre');
+    resultText.textContent = JSON.stringify(result, null, 2);
+    resultContainer.appendChild(resultText);
+    
+    CharacterAnimation.logInfo(`Tested function: ${functionName}`);
 }
 </script>
 </body>
