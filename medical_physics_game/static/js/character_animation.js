@@ -317,20 +317,81 @@ const CharacterAnimation = {
     }
   },
   
-  // Set animation scale
-  setAnimationScale: function(animationId, scale) {
-    const animation = this.activeAnimations[animationId];
-    if (!animation) return false;
+  // Update this method in character_animation.js
+
+// Set animation scale
+setAnimationScale: function(animationId, scale) {
+  const animation = this.activeAnimations[animationId];
+  if (!animation) return false;
+  
+  animation.options.scale = scale;
+  
+  // Set a CSS variable for the scale that we can use in our CSS
+  animation.container.style.setProperty('--character-scale', scale);
+  
+  // Update scale of current animation
+  const elements = animation.container.querySelectorAll('.character-sprite, .character-animation-gif');
+  elements.forEach(el => {
+    // Use CSS transform with translate to keep centered while scaling
+    el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  });
+  
+  return true;
+},
+
+// Also update the _setupSpriteSheetAnimation method to use centered positioning from the start:
+  _setupSpriteSheetAnimation: function(animation, animData) {
+    // Get sprite path
+    const spritePath = CharacterAssets.characters[animation.characterId].spritePath + animData.file;
     
-    animation.options.scale = scale;
+    // Create sprite container
+    const spriteContainer = document.createElement('div');
+    spriteContainer.className = 'character-sprite-container';
+    spriteContainer.style.width = '100%';
+    spriteContainer.style.height = '100%';
+    spriteContainer.style.position = 'relative';
+    spriteContainer.style.overflow = 'visible'; // Allow content to overflow
     
-    // Update scale of current animation
-    const elements = animation.container.querySelectorAll('.character-sprite, .character-animation-gif');
-    elements.forEach(el => {
-      el.style.transform = `scale(${scale})`;
-    });
+    // Create sprite element
+    const sprite = document.createElement('div');
+    sprite.className = 'character-sprite';
+    sprite.style.width = '100%';
+    sprite.style.height = '100%';
+    sprite.style.backgroundImage = `url(${spritePath})`;
+    sprite.style.backgroundRepeat = 'no-repeat';
+    sprite.style.backgroundPosition = '0 0';
+    sprite.style.backgroundSize = `${animData.frames * 100}% 100%`;
+    sprite.style.imageRendering = 'pixelated';
+    sprite.style.imageRendering = 'crisp-edges';
+    sprite.style.position = 'absolute';
+    sprite.style.top = '50%';
+    sprite.style.left = '50%';
     
-    return true;
+    // Set initial scale with centering transform
+    const scale = animation.options.scale || 1;
+    animation.container.style.setProperty('--character-scale', scale);
+    sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    
+    // Add sprite to container
+    spriteContainer.appendChild(sprite);
+    
+    // Clear container and add sprite
+    animation.container.innerHTML = '';
+    animation.container.appendChild(spriteContainer);
+    
+    // Set up animation
+    animation.frameIndex = 0;
+    animation.sprite = sprite;
+    animation.frames = animData.frames;
+    animation.frameSpeed = animData.speed || 200; // Default 200ms per frame
+    
+    // Start animation loop if more than 1 frame
+    if (animData.frames > 1) {
+      this._advanceFrame(animation.id);
+      animation.animationTimer = setInterval(() => {
+        this._advanceFrame(animation.id);
+      }, animation.frameSpeed);
+    }
   }
 };
 

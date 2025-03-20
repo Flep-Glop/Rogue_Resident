@@ -51,7 +51,6 @@ function fetchCharacters() {
         });
 }
 
-// Updated renderCharacters function
 function renderCharacters(characters) {
     const carousel = document.getElementById('character-carousel');
     const indicators = document.getElementById('carousel-indicators');
@@ -60,6 +59,9 @@ function renderCharacters(characters) {
     // Clear any existing content
     carousel.innerHTML = '';
     indicators.innerHTML = '';
+    
+    // Initialize animation containers to track them
+    window.characterAnimations = [];
     
     // Create cards for each character
     characters.forEach((character, index) => {
@@ -77,15 +79,13 @@ function renderCharacters(characters) {
         const insightPercent = Math.min(100, (character.starting_stats.insight / maxInsight) * 100);
         const levelPercent = Math.min(100, (character.starting_stats.level / maxLevel) * 100);
         
-        // Get character image path using the CharacterAssets helper
-        const imagePath = CharacterAssets.getCharacterImagePath(character.id);
-        
+        // CHANGE THIS PART: Create a sprite container instead of direct img
         card.innerHTML = `
             <div class="character-header">
                 <h3>${character.name}</h3>
             </div>
             <div class="character-avatar">
-                <img src="${imagePath}" alt="${character.name}" class="pixel-character-img">
+                <div id="character-sprite-${index}" class="character-sprite-container"></div>
             </div>
             <div class="character-description">
                 <p>${character.description}</p>
@@ -138,6 +138,44 @@ function renderCharacters(characters) {
         });
         
         indicators.appendChild(indicator);
+        
+        // ADD THIS PART: Initialize sprites after card is added to DOM
+        setTimeout(() => {
+            if (typeof CharacterAnimation !== 'undefined') {
+                // Get scale from config if available
+                const scale = window.CharacterConfig ? 
+                  CharacterConfig.getScaleFor(character.id) : 3;
+                
+                const animId = CharacterAnimation.createAnimation(
+                    character.id,
+                    `character-sprite-${index}`,
+                    {
+                        initialAnimation: 'idle',
+                        autoPlay: true,
+                        loop: true,
+                        scale: scale,
+                        centerImage: true
+                    }
+                );
+                
+                // Store animation ID for later reference
+                window.characterAnimations[index] = animId;
+            } else {
+                // Fallback to static image
+                const container = document.getElementById(`character-sprite-${index}`);
+                if (container) {
+                    const imagePath = CharacterAssets.getCharacterImagePath(character.id);
+                    const scale = window.CharacterConfig ? 
+                      CharacterConfig.getScaleFor(character.id) : 3;
+                      
+                    container.innerHTML = `
+                        <img src="${imagePath}" alt="${character.name}" 
+                             class="pixel-character-img" 
+                             style="transform: scale(${scale});">
+                    `;
+                }
+            }
+        }, 100);
     });
     
     // Show counter
@@ -146,7 +184,7 @@ function renderCharacters(characters) {
     // Set up initial state
     setActiveCharacter(0);
     
-    // Enable the start button immediately - it will use the active character
+    // Enable the start button
     document.getElementById('start-game-btn').disabled = false;
 }
 

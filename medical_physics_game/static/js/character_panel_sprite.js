@@ -47,9 +47,13 @@ function initializeCharacterPanel() {
     </div>
   `;
   
-  // Create character animation
+  // Initialize character sprite animation
   setTimeout(() => {
     if (window.CharacterAnimation) {
+      // Get scale from config if available, otherwise use default
+      const scale = window.CharacterConfig ? 
+        CharacterConfig.getScaleFor('resident') : 3;
+      
       // Initialize the animation
       const animId = CharacterAnimation.createAnimation(
         'resident',
@@ -58,7 +62,7 @@ function initializeCharacterPanel() {
           initialAnimation: 'idle',
           autoPlay: true,
           loop: true,
-          scale: 6,
+          scale: scale,
           centerImage: true
         }
       );
@@ -69,13 +73,17 @@ function initializeCharacterPanel() {
       // Add event listeners for animation testing
       addAnimationControls();
     } else {
-      // Fallback to static image if animation system not available
+      // Fallback to static image with scale
       const container = document.getElementById('character-sprite-container');
       if (container) {
+        const scale = window.CharacterConfig ? 
+          CharacterConfig.getScaleFor('resident') : 3;
+        
         container.innerHTML = `
           <img src="/static/img/characters/resident/portrait.png" 
-               alt="Medical Physics Resident" 
-               class="character-panel-img pixel-character-img">
+              alt="Medical Physics Resident" 
+              class="character-panel-img pixel-character-img"
+              style="transform: scale(${scale})">
         `;
       }
     }
