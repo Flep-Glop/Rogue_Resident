@@ -744,97 +744,33 @@ window.SpriteDebug = {
  * @param {Object} options Animation options
  * @returns {string} Animation ID
  */
+// In sprite-system.js, replace the createAnimation method
 SpriteSystem.createAnimation = function(entityId, container, options = {}) {
-  // Check if this is an NPC first
+  // Check if this is an NPC
   if (window.NPCAssets && NPCAssets.getNPC(entityId)) {
     return this._createNPCAnimation(entityId, container, options);
   }
   
-  // Otherwise, assume it's a player character
-  return this._createCharacterAnimation(entityId, container, options);
-};
-
-/**
- * Create a character animation (internal method)
- * @private
- */
-SpriteSystem._createCharacterAnimation = function(characterId, container, options = {}) {
-  // Get character data
-  if (!window.CharacterAssets) {
-    console.error('CharacterAssets not available');
-    return null;
+  // Character animations are deprecated, log warning and create static fallback
+  console.warn(`Character animations deprecated for: ${entityId}. Using static image fallback.`);
+  
+  // Create static fallback if container exists
+  if (container && typeof container === 'object') {
+    const imagePath = window.CharacterAssets && CharacterAssets.getCharacterImagePath ? 
+      CharacterAssets.getCharacterImagePath(entityId) : 
+      `/static/img/characters/${entityId}.png`;
+      
+    container.innerHTML = `
+      <img src="${imagePath}" alt="${entityId}" 
+          class="pixel-character-img pixel-bobbing" 
+          style="transform: scale(${options.scale || 3});"
+          onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+    `;
   }
   
-  const character = CharacterAssets.getCharacter(characterId);
-  if (!character) {
-    console.error(`Character not found: ${characterId}`);
-    return null;
-  }
-  
-  // Get animation name
-  const animName = options.animation || 'idle';
-  
-  // Get animation data
-  if (!character.animations || !character.animations[animName]) {
-    console.error(`Animation "${animName}" not found for character ${characterId}`);
-    return null;
-  }
-  
-  const animData = character.animations[animName];
-  
-  // Create animator instance
-  const animator = new CanvasSpriteAnimator({
-    imagePath: character.spritePath + animData.file,
-    frameCount: animData.frames || 1,
-    frameWidth: animData.width || 96,
-    frameHeight: animData.height 
-      ? (animData.height / animData.frames)
-      : 96,
-    fps: animData.speed 
-      ? (1000 / animData.speed) 
-      : 10,
-    scale: options.scale || 3,
-    loop: options.loop !== undefined ? options.loop : true,
-    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
-    layout: animData.layout || 'vertical',
-    columns: animData.columns || 1,
-    rows: animData.rows || 1,
-    offsetX: animData.offsetX || 0,
-    offsetY: animData.offsetY || 0,
-    debug: options.debug || false
-  });
-  
-  // Mount to container
-  const mounted = animator.mount(container);
-  if (!mounted) {
-    console.error('Failed to mount animator to container');
-    return null;
-  }
-  
-  // Generate unique ID
-  const id = `character_${characterId}_${this.nextId++}`;
-  
-  // Store animation data
-  this.animations[id] = {
-    id,
-    animator,
-    entityType: 'character',
-    entityId: characterId,
-    currentAnimation: animName,
-    container
-  };
-  
-  // Set up event handlers
-  if (options.onComplete) {
-    animator.addEventListener('complete', options.onComplete);
-  }
-  
-  if (options.onFrameChange) {
-    animator.addEventListener('framechange', options.onFrameChange);
-  }
-  
-  return id;
-};
+  // Return null so the caller knows no animation was created
+  return null;
+}
 
 /**
  * Create an NPC animation (internal method)

@@ -1,0 +1,31 @@
+/* boss_effects.css - Minimal implementation */
+.ion-chamber-glow {
+    box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
+    animation: glow-pulse 3s infinite;
+  }
+  
+  @keyframes glow-pulse {
+    0% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(255, 106, 0, 0.7); }
+    100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+  }
+  
+  .boss-effect-correct {
+    animation: correct-answer 0.5s ease-in-out;
+  }
+  
+  .boss-effect-incorrect {
+    animation: incorrect-answer 0.5s ease-in-out;
+  }
+  
+  @keyframes correct-answer {
+    0% { background-color: rgba(0, 0, 0, 0.2); }
+    50% { background-color: rgba(86, 184, 134, 0.3); }
+    100% { background-color: rgba(0, 0, 0, 0.2); }
+  }
+  
+  @keyframes incorrect-answer {
+    0% { background-color: rgba(0, 0, 0, 0.2); }
+    50% { background-color: rgba(230, 126, 115, 0.3); }
+    100% { background-color: rgba(0, 0, 0, 0.2); }
+  }

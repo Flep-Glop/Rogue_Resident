@@ -1,0 +1,41 @@
+/* simple_sprites.css - Minimal implementation */
+.pixel-bobbing {
+    animation: bobbing 3s infinite ease-in-out;
+  }
+  
+  @keyframes bobbing {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+  }
+  
+  .boss-idle {
+    animation: boss-idle 3s infinite ease-in-out;
+  }
+  
+  .boss-ability {
+    animation: boss-ability 0.8s ease-in-out;
+  }
+  
+  .boss-walking {
+    animation: boss-walking 1s infinite ease-in-out;
+  }
+  
+  @keyframes boss-idle {
+    0% { transform: translateY(0) scale(4); }
+    50% { transform: translateY(-3px) scale(4); }
+    100% { transform: translateY(0) scale(4); }
+  }
+  
+  @keyframes boss-ability {
+    0% { transform: scale(4) rotate(0deg); }
+    50% { transform: scale(4.2) rotate(-3deg); }
+    100% { transform: scale(4) rotate(0deg); }
+  }
+  
+  @keyframes boss-walking {
+    0% { transform: translateX(0) scale(4); }
+    25% { transform: translateX(-2px) scale(4); }
+    75% { transform: translateX(2px) scale(4); }
+    100% { transform: translateX(0) scale(4); }
+  }

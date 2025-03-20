@@ -95,7 +95,7 @@ const CharacterPanel = {
     this.initializeCharacterAnimation(characterId);
   },
   
-  // Update this function in CharacterPanel.js
+  // In CharacterPanel.initializeCharacterAnimation
   initializeCharacterAnimation: function(characterId) {
     // Get character container
     const spriteContainer = document.getElementById('character-avatar-sprite');
@@ -110,38 +110,20 @@ const CharacterPanel = {
       this.state.characterAnimId = null;
     }
     
-    // For player characters, use static images directly
-    const useStaticImage = ['resident', 'physicist', 'qa_specialist', 'debug_mode'].includes(characterId);
+    // Always use static images for player characters
+    // Get image path
+    const imagePath = this.getCharacterImagePath(characterId);
     
-    if (useStaticImage) {
-      // Get image path
-      const imagePath = this.getCharacterImagePath(characterId);
-      
-      // Create static image element
-      spriteContainer.innerHTML = `
-        <img src="${imagePath}" alt="${characterId}" 
-            class="pixel-character-img pixel-bobbing" 
-            style="transform: scale(3);"
-            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
-      `;
-      
-      this.applyAnimations(); // Apply CSS animations for static images
-      this.state.animationActive = true;
-    } 
-    // For NPCs or special characters, use sprite system
-    else if (typeof SpriteSystem !== 'undefined') {
-      this.state.characterAnimId = SpriteSystem.createAnimation(
-        characterId,
-        spriteContainer,
-        { 
-          animation: 'idle',
-          scale: 3,
-          autoPlay: true 
-        }
-      );
-      console.log(`Created character panel animation with ID: ${this.state.characterAnimId}`);
-      this.state.animationActive = true;
-    }
+    // Create static image element
+    spriteContainer.innerHTML = `
+      <img src="${imagePath}" alt="${characterId}" 
+          class="pixel-character-img pixel-bobbing" 
+          style="transform: scale(3);"
+          onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+    `;
+    
+    this.applyAnimations(); // Apply CSS animations for static images
+    this.state.animationActive = true;
   },
   
   // Get character ID from character data

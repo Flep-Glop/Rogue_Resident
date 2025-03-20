@@ -120,7 +120,7 @@ window.NPCAssets = {
 NPCAssets.npcs.ionChamberBoss = {
     name: "Professor Ionix",
     description: "A sentient ion chamber that was altered in a radiation accident. Now endowed with consciousness, it tests medical physics residents on their knowledge.",
-    imagePath: "/static/img/characters/ion_chamber.png", // You'll need to create this image
+    imagePath: "/static/img/characters/ion_chamber/idle.png", // You'll need to create this image
     spritePath: "/static/img/characters/ion_chamber/", // Directory for sprites
     animations: {
       idle: {

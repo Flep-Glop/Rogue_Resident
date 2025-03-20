@@ -168,7 +168,7 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // Initialize boss sprite animation
+  // In boss_component.js
   initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
     if (!container || typeof SpriteSystem === 'undefined') return;
@@ -179,59 +179,94 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
       SpriteSystem.removeAnimation(existingAnimId);
     }
     
-    // Create new animation based on boss type
-    let animId;
+    // Get boss data
     const bossData = this.getBossData(this.getCurrentNodeData());
     const bossType = bossData.bossType || 'medical';
+    let animId = null;
     
-    if (bossType === 'ionChamber' && window.NPCAssets && NPCAssets.npcs.ionChamberBoss) {
-      // Use Ion Chamber boss animations
-      console.log("Using Ion Chamber boss animations");
-      animId = SpriteSystem.createAnimation(
-        'ionChamberBoss', // NPC type matches the key in NPCAssets.npcs
-        container,
-        {
-          animation: 'idle',
-          scale: 4, // Larger scale for boss
-          autoPlay: true,
-          loop: true
-        }
-      );
-    } else if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
-      // Use standard Medical boss animations
-      animId = SpriteSystem.createAnimation(
-        'medicalBoss',
-        container,
-        {
-          animation: 'idle',
-          scale: 4,
-          autoPlay: true,
-          loop: true
-        }
-      );
-    } else {
-      // Fallback to using resident animations
-      animId = SpriteSystem.createAnimation(
-        'resident',
-        container,
-        {
-          animation: 'idle',
-          scale: 4,
-          autoPlay: true,
-          loop: true
-        }
-      );
+    // Handle different boss types
+    try {
+      if (bossType === 'ionChamber' && window.NPCAssets && 
+          NPCAssets.npcs.ionChamberBoss && 
+          NPCAssets.npcs.ionChamberBoss.animations) {
+        
+        console.log("Using Ion Chamber boss animations");
+        animId = SpriteSystem.createAnimation(
+          'ionChamberBoss',
+          container,
+          {
+            animation: 'idle',
+            scale: 4,
+            autoPlay: true,
+            loop: true
+          }
+        );
+      } else if (window.NPCAssets && 
+                NPCAssets.npcs.medicalBoss && 
+                NPCAssets.npcs.medicalBoss.animations) {
+        
+        console.log("Using standard Medical boss animations");
+        animId = SpriteSystem.createAnimation(
+          'medicalBoss',
+          container,
+          {
+            animation: 'idle',
+            scale: 4,
+            autoPlay: true,
+            loop: true
+          }
+        );
+      }
+      
+      // Fallback to static image if animation creation failed
+      if (!animId) {
+        console.warn("Boss animation creation failed, using static fallback");
+        container.innerHTML = `
+          <img src="/static/img/npcs/boss_${bossType}.png" 
+              alt="Boss" 
+              class="boss-static-img pixel-bobbing" 
+              style="transform: scale(4);"
+              onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+        `;
+      }
+    } catch (error) {
+      console.error("Error creating boss animation:", error);
+      // Fallback to static image on error
+      container.innerHTML = `
+        <img src="/static/img/npcs/boss_default.png" 
+            alt="Boss" 
+            class="boss-static-img" 
+            style="transform: scale(4);"
+            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+      `;
     }
     
-    // Store animation ID
+    // Store animation ID (might be null if using static image)
     this.setUiState('bossAnimation', animId);
     this.setUiState('bossState', 'idle');
   },
   
-  // Play a specific boss animation with optional return to idle
+  // In boss_component.js
   playBossAnimation: function(animationName, returnToIdle = true) {
     const animId = this.getUiState('bossAnimation');
-    if (!animId || typeof SpriteSystem === 'undefined') return;
+    if (!animId || typeof SpriteSystem === 'undefined') {
+      // Handle static image "animations" if no sprite animation
+      const bossElement = document.querySelector('.boss-static-img');
+      if (bossElement) {
+        // Simple class-based animations for static images
+        bossElement.className = 'boss-static-img';
+        bossElement.classList.add(`boss-${animationName}`);
+        
+        if (returnToIdle) {
+          setTimeout(() => {
+            bossElement.className = 'boss-static-img';
+            bossElement.classList.add('boss-idle');
+            this.setUiState('bossState', 'idle');
+          }, 1000); // Return to idle after 1 second
+        }
+      }
+      return;
+    }
     
     // Don't restart same animation
     if (this.getUiState('bossState') === animationName) return;
