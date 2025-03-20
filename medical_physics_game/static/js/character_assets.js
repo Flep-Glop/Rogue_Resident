@@ -12,7 +12,9 @@ window.CharacterAssets = {
       animations: {
         idle: {
           file: "idle.png", 
-          frames: 8,   // Change from 1 to 8
+          frames: 8,
+          width: 97,    // Specify the exact width
+          height: 864,  // Total height of all frames
           speed: 150 
         },
         walking: {
