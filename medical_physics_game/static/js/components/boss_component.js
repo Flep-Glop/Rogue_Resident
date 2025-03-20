@@ -79,10 +79,10 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.playBossAnimation('ability');
   },
 
-  // Main render function
+  // Update the render function to make Ionix larger and positioned to the side
   render: function(nodeData, container) {
     console.log("Rendering ion chamber boss component", nodeData);
-  
+
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
       container.id = 'boss-container';
@@ -106,9 +106,10 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     const bossClass = 'ion-chamber-boss';
     
     // Create a wrapper to hold both the boss content and inventory sidebar
+    // New layout with boss on the side and larger
     container.innerHTML = `
       <div class="boss-with-inventory">
-        <!-- Main boss exam panel -->
+        <!-- Main boss exam panel with revised layout -->
         <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in">
           <div id="exam-header" class="exam-header">
             <div class="exam-title-container">
@@ -127,23 +128,29 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
             </div>
           </div>
           
-          <!-- Boss character container -->
-          <div id="boss-character-container" class="boss-character-container">
-            <div id="boss-sprite" class="boss-sprite"></div>
-          </div>
-          
-          <div id="boss-dialogue" class="boss-dialogue">
-            <p>${this.getBossDialogue(bossData, currentPhase, phaseComplete)}</p>
-          </div>
-          
-          <div id="exam-phase-container" class="exam-phase-container"></div>
-          
-          <div id="exam-actions" class="exam-actions">
-            ${phaseComplete ? `
-              <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
-                ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
-              </button>
-            ` : ''}
+          <!-- New flexbox layout for boss and content -->
+          <div class="boss-battle-layout">
+            <!-- Boss character container - now larger and on the side -->
+            <div id="boss-character-container" class="boss-character-container boss-side-layout">
+              <div id="boss-sprite" class="boss-sprite boss-sprite-enlarged"></div>
+            </div>
+            
+            <!-- Content section -->
+            <div class="boss-content-section">
+              <div id="boss-dialogue" class="boss-dialogue">
+                <p>${this.getBossDialogue(bossData, currentPhase, phaseComplete)}</p>
+              </div>
+              
+              <div id="exam-phase-container" class="exam-phase-container"></div>
+              
+              <div id="exam-actions" class="exam-actions">
+                ${phaseComplete ? `
+                  <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
+                    ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
+                  </button>
+                ` : ''}
+              </div>
+            </div>
           </div>
         </div>
         
@@ -157,7 +164,48 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       </div>
     `;
     
-    // Initialize boss animation
+    // Add specific styles for the new layout
+    const layoutStyles = document.createElement('style');
+    layoutStyles.id = 'boss-layout-styles';
+    layoutStyles.textContent = `
+      .boss-battle-layout {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+      }
+      
+      .boss-side-layout {
+        min-width: 180px;
+        height: 360px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .boss-sprite-enlarged {
+        width: 180px !important;
+        height: 320px !important;
+      }
+      
+      .boss-content-section {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      @media (max-width: 768px) {
+        .boss-battle-layout {
+          flex-direction: column;
+        }
+        
+        .boss-side-layout {
+          width: 100%;
+          height: 200px !important;
+        }
+      }
+    `;
+    document.head.appendChild(layoutStyles);
+    
+    // Initialize boss animation with larger size
     this.initBossAnimation();
     
     // Render the current exam phase
@@ -179,6 +227,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
+  // Update initBossAnimation to support the larger size
   initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
     if (!container) {
@@ -189,19 +238,19 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     // Clear container
     container.innerHTML = '';
     
-    // Set container dimensions and styling - MAKE LARGER
-    container.style.width = '140px';  // Increased from 97px
-    container.style.height = '160px'; // Increased from 108px
+    // Set container dimensions and styling - MUCH LARGER NOW
+    container.style.width = '180px';  // Increased from 140px
+    container.style.height = '320px'; // Increased from 160px
     container.style.margin = '0 auto';
     container.style.position = 'relative';
     // Enhanced glow effect
-    container.style.boxShadow = '0 0 25px 10px rgba(255, 106, 0, 0.6)';
+    container.style.boxShadow = '0 0 35px 15px rgba(255, 106, 0, 0.6)';
     
     // Create canvas element
     const canvas = document.createElement('canvas');
     canvas.id = 'ion-chamber-canvas';
-    canvas.width = 140;  // Larger size
-    canvas.height = 160; // Larger size
+    canvas.width = 180;  // Larger size
+    canvas.height = 320; // Larger size
     canvas.style.display = 'block';
     canvas.style.imageRendering = 'pixelated';
     
@@ -212,10 +261,10 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     const glowOverlay = document.createElement('div');
     glowOverlay.className = 'ionix-glow-overlay';
     glowOverlay.style.position = 'absolute';
-    glowOverlay.style.top = '-20px';
-    glowOverlay.style.left = '-20px';
-    glowOverlay.style.right = '-20px';
-    glowOverlay.style.bottom = '-20px';
+    glowOverlay.style.top = '-30px';
+    glowOverlay.style.left = '-30px';
+    glowOverlay.style.right = '-30px';
+    glowOverlay.style.bottom = '-30px';
     glowOverlay.style.borderRadius = '50%';
     glowOverlay.style.pointerEvents = 'none';
     glowOverlay.style.zIndex = '-1';
@@ -1324,12 +1373,11 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     }
   },
   
-  // New function to render intro sequence
   renderIntroSequence: function(nodeData, container) {
     // Use ionChamber boss class for styling
     const bossClass = 'ion-chamber-boss';
     
-    // Create intro sequence HTML
+    // Create intro sequence HTML with a more subtle continue button
     container.innerHTML = `
       <div class="boss-with-inventory">
         <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in intro-sequence">
@@ -1340,13 +1388,47 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
               <p>...</p>
             </div>
             
-            <button id="intro-continue" class="game-btn game-btn--primary intro-continue">
-              Continue
+            <button id="intro-continue" class="game-btn game-btn--subtle intro-continue">
+              <span class="continue-text">Continue</span>
+              <span class="continue-icon">▶</span>
             </button>
           </div>
         </div>
       </div>
     `;
+    
+    // Add specific styles for the subtle continue button
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      .game-btn--subtle {
+        background: rgba(255, 106, 0, 0.3);
+        border: 1px solid rgba(255, 106, 0, 0.5);
+        color: #ff9d4c;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        border-radius: 4px;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      
+      .game-btn--subtle:hover {
+        background: rgba(255, 106, 0, 0.5);
+      }
+      
+      .continue-icon {
+        font-size: 0.8rem;
+      }
+      
+      .intro-dialogue {
+        margin-bottom: 40px !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
     
     // Initialize the boss sprite animation for intro
     this.initIntroAnimation();
@@ -1358,7 +1440,6 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.bindAction('intro-continue', 'click', 'advanceIntro');
   },
 
-  // Initialize the intro animation
   initIntroAnimation: function() {
     const container = document.getElementById('intro-boss-container');
     if (!container) return;
@@ -1366,7 +1447,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     // Set up container styles
     container.style.width = '140px';
     container.style.height = '160px';
-    container.style.margin = '0 auto';
+    container.style.margin = '40px auto';
     container.style.position = 'relative';
     container.style.opacity = '0';
     container.style.transform = 'scale(0.5)';
