@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Character Sprite Test</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/character_sprites.css">
+    <title>Wide Sprite Animation Test</title>
     <style>
         body {
             background-color: #121218;
             color: #ffffff;
             font-family: Arial, sans-serif;
+            padding: 20px;
         }
         
         .test-container {
@@ -25,6 +24,7 @@
         h1 {
             text-align: center;
             margin-bottom: 30px;
+            color: #5b8dd9;
         }
         
         .character-display {
@@ -41,109 +41,706 @@
             background-color: #292936;
         }
         
-        .controls {
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-            gap: 10px;
+        .character-details {
+            text-align: center;
         }
         
-        .controls button {
+        .character-name {
+            margin-bottom: 10px;
+            color: #5b8dd9;
+        }
+        
+        .character-avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            max-height: 150px;
+            position: relative;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .character-avatar {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+        
+        .character-sprite-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .character-sprite-container.wide-sprite {
+            width: auto !important;
+            max-width: none !important;
+            transform-origin: center center;
+            z-index: 10;
+        }
+        
+        .character-avatar.ability-mode {
+            overflow: visible !important;
+            z-index: 10;
+        }
+        
+        .character-sprite {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            transform-origin: center center !important;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .button-group h3 {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #d4dae0;
+        }
+        
+        button {
             background-color: #5b8dd9;
             color: white;
             border: none;
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.2s;
         }
         
-        .controls button:hover {
+        button:hover {
             background-color: #4a7bc7;
+            transform: translateY(-2px);
         }
         
-        .controls button:active {
-            transform: translateY(2px);
+        button:active {
+            transform: translateY(0);
         }
         
-        .player-info {
-            margin-bottom: 20px;
+        .special-button {
+            background-color: #d35db3;
+            padding: 12px 20px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(211, 93, 179, 0.3);
+        }
+        
+        .special-button:hover {
+            background-color: #c14da2;
+            box-shadow: 0 0 15px rgba(211, 93, 179, 0.5);
+        }
+        
+        .debug-log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .debug-log p {
+            margin: 5px 0;
+            color: #a7adb5;
+        }
+        
+        .debug-log p.info {
+            color: #5b8dd9;
+        }
+        
+        .debug-log p.success {
+            color: #56b886;
+        }
+        
+        .debug-log p.error {
+            color: #e67e73;
+        }
+        
+        /* Animation for ability activation */
+        .ability-flash {
+            animation: ability-flash 0.5s ease-in-out;
+        }
+        
+        @keyframes ability-flash {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.5) saturate(1.5); }
+            100% { filter: brightness(1); }
+        }
+        
+        /* Debug grid to help visualize sprite positioning */
+        .debug-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            z-index: 5;
+            display: none;
+        }
+        
+        .debug-grid::before, .debug-grid::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .debug-grid::before {
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            transform: translateX(-0.5px);
+        }
+        
+        .debug-grid::after {
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            transform: translateY(-0.5px);
+        }
+        
+        .show-grid .debug-grid {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="test-container">
-        <h1>Character Sprite System Test</h1>
+        <h1>Wide Sprite Animation Test</h1>
         
         <div class="character-display">
-            <div class="player-info">
-                <div class="character-stats">
-                    <div id="character-info">
-                        <!-- Character will be loaded here -->
-                        <div class="loading">Loading character...</div>
-                    </div>
-                    
-                    <div id="lives-container">
-                        <span class="life-icon active">❤️</span>
-                        <span class="life-icon active">❤️</span>
-                        <span class="life-icon active">❤️</span>
+            <div class="character-stats">
+                <div class="character-details">
+                    <p class="character-name"><strong>Medical Physics Resident</strong></p>
+                    <div class="character-avatar-container">
+                        <div class="character-avatar" id="character-avatar">
+                            <div id="character-sprite-container"></div>
+                            <div class="debug-grid"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="controls">
-            <button id="btn-idle">Idle Animation</button>
-            <button id="btn-walk">Walking Animation</button>
-            <button id="btn-ability">Ability Animation</button>
-            <button id="btn-hit">Hit Animation</button>
+            <div class="button-group">
+                <h3>Basic Animations</h3>
+                <button id="btn-idle">Idle</button>
+                <button id="btn-walk">Walk</button>
+                <button id="btn-ability">Regular Ability</button>
+            </div>
+            
+            <div class="button-group">
+                <h3>Special Wide Sprite Animation</h3>
+                <button id="btn-special-ability" class="special-button">Special Ability (Wide Sprite)</button>
+            </div>
+            
+            <div class="button-group">
+                <h3>Debug Tools</h3>
+                <button id="btn-toggle-grid">Toggle Grid</button>
+                <button id="btn-toggle-overflow">Toggle Overflow</button>
+                <button id="btn-increase-scale">Scale +</button>
+                <button id="btn-decrease-scale">Scale -</button>
+            </div>
+        </div>
+        
+        <div class="debug-log" id="debug-log">
+            <p>Animation debug log:</p>
         </div>
     </div>
     
-    <!-- Load the scripts -->
-    <script src="/static/js/character_assets.js"></script>
-    <script src="/static/js/character_animation.js"></script>
-    <script src="/static/js/character_panel_sprite.js"></script>
-    
     <script>
-        // Additional test controls
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add button event handlers once animations are loaded
-            setTimeout(function() {
-                document.getElementById('btn-idle').addEventListener('click', function() {
-                    if (window.residentAnimationId) {
-                        CharacterAnimation.playAnimation(window.residentAnimationId, 'idle');
+        // Character Assets (simplified for testing)
+        window.CharacterAssets = {
+            characters: {
+                resident: {
+                    name: "Resident",
+                    imagePath: "/static/img/characters/resident/portrait.png",
+                    spritePath: "/static/img/characters/resident/",
+                    animations: {
+                        idle: {
+                            file: "idle.png", 
+                            frames: 1
+                        },
+                        walking: {
+                            file: "walking.png", 
+                            frames: 4, 
+                            speed: 250
+                        },
+                        ability: {
+                            file: "ability.png", 
+                            frames: 6, 
+                            speed: 120
+                        },
+                        specialAbility: {
+                            file: "special_ability.png", 
+                            frames: 10, 
+                            speed: 80,
+                            aspectRatio: 2.5 // Wider sprite
+                        }
                     }
-                });
+                }
+            },
+            
+            getCharacter: function(key) {
+                return this.characters[key] || null;
+            },
+            
+            getCharacterAnimation: function(key, animation = "idle") {
+                const character = this.getCharacter(key);
+                if (!character || !character.animations) return null;
                 
-                document.getElementById('btn-walk').addEventListener('click', function() {
-                    if (window.residentAnimationId) {
-                        CharacterAnimation.playAnimation(window.residentAnimationId, 'walking');
+                return character.animations[animation] || character.animations.idle;
+            }
+        };
+        
+        // Character Animation System
+        const CharacterAnimation = {
+            activeAnimations: {},
+            
+            initialize: function() {
+                this.logDebug("Animation system initialized");
+                return this;
+            },
+            
+            createAnimation: function(characterId, containerId, options = {}) {
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    this.logError(`Animation container not found: ${containerId}`);
+                    return null;
+                }
+                
+                container.innerHTML = '';
+                
+                const defaultOptions = {
+                    initialAnimation: 'idle',
+                    autoPlay: true,
+                    loop: true,
+                    scale: 3,
+                    centerImage: true,
+                    adaptiveWidth: false
+                };
+                
+                const animOptions = {...defaultOptions, ...options};
+                
+                const animationContainer = document.createElement('div');
+                animationContainer.className = 'character-animation-container';
+                animationContainer.style.position = 'relative';
+                animationContainer.style.width = '100%';
+                animationContainer.style.height = '100%';
+                
+                if (animOptions.centerImage) {
+                    animationContainer.style.display = 'flex';
+                    animationContainer.style.justifyContent = 'center';
+                    animationContainer.style.alignItems = 'center';
+                }
+                
+                container.appendChild(animationContainer);
+                
+                const animationId = `anim_${characterId}_${Date.now()}`;
+                
+                const animation = {
+                    id: animationId,
+                    characterId: characterId,
+                    containerId: containerId,
+                    container: animationContainer,
+                    currentAnimation: null,
+                    frameIndex: 0,
+                    animationTimer: null,
+                    options: animOptions,
+                    isPlaying: false
+                };
+                
+                this.activeAnimations[animationId] = animation;
+                
+                if (animOptions.initialAnimation && animOptions.autoPlay) {
+                    this.playAnimation(animationId, animOptions.initialAnimation);
+                }
+                
+                return animationId;
+            },
+            
+            playAnimation: function(animationId, animationName = 'idle', loop = null) {
+                const animation = this.activeAnimations[animationId];
+                if (!animation) {
+                    this.logError(`Animation not found: ${animationId}`);
+                    return false;
+                }
+                
+                this.stopAnimation(animationId);
+                
+                const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animationName);
+                if (!animData) {
+                    this.logError(`Animation data not found: ${animationName}`);
+                    return false;
+                }
+                
+                animation.currentAnimation = animationName;
+                
+                if (loop !== null) {
+                    animation.options.loop = loop;
+                }
+                
+                this._setupSpriteSheetAnimation(animation, animData);
+                
+                animation.isPlaying = true;
+                this.logInfo(`Playing animation: ${animationName} (loop: ${animation.options.loop})`);
+                return true;
+            },
+            
+            _setupSpriteSheetAnimation: function(animation, animData) {
+                // For testing, we're using placeholder paths
+                // In a real implementation, you'd get the actual path
+                const spritePath = `/static/img/characters/${animation.characterId}/${animData.file}`;
+                this.logDebug(`Loading sprite: ${spritePath}`);
+                
+                // Handle aspect ratio for wide sprites
+                const aspectRatio = animData.aspectRatio || 1;
+                
+                // Create sprite container
+                const spriteContainer = document.createElement('div');
+                spriteContainer.className = 'character-sprite-container';
+                if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                    spriteContainer.classList.add('wide-sprite');
+                    this.logInfo(`Using wide sprite mode (aspect ratio: ${aspectRatio})`);
+                }
+                
+                spriteContainer.style.width = '100%';
+                spriteContainer.style.height = '100%';
+                spriteContainer.style.position = 'relative';
+                
+                // For wide sprites, adjust container
+                if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                    spriteContainer.style.width = `${aspectRatio * 100}%`;
+                    spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
+                }
+                
+                // Create sprite element - in testing, we use a colored div
+                const sprite = document.createElement('div');
+                sprite.className = 'character-sprite';
+                sprite.dataset.animation = animation.currentAnimation;
+                sprite.style.width = '100%';
+                sprite.style.height = '100%';
+                
+                // In a real implementation, we'd set the background image
+                // For testing, we're using a colored div with dimensions
+                sprite.style.backgroundColor = this._getAnimationColor(animation.currentAnimation);
+                
+                // Set dimensions based on frames
+                const frameWidth = 100 / animData.frames;
+                sprite.style.width = `${frameWidth}%`;
+                
+                // Style the sprite for animation
+                sprite.style.position = 'absolute';
+                sprite.style.top = '50%';
+                sprite.style.left = '50%';
+                
+                // Set initial scale with centering transform
+                const scale = animation.options.scale || 1;
+                animation.container.style.setProperty('--character-scale', scale);
+                sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                
+                // For testing, show frame number
+                const frameIndicator = document.createElement('div');
+                frameIndicator.style.position = 'absolute';
+                frameIndicator.style.top = '50%';
+                frameIndicator.style.left = '50%';
+                frameIndicator.style.transform = 'translate(-50%, -50%)';
+                frameIndicator.style.color = 'white';
+                frameIndicator.style.fontSize = '16px';
+                frameIndicator.style.fontWeight = 'bold';
+                frameIndicator.style.textShadow = '1px 1px 2px black';
+                frameIndicator.textContent = '1';
+                sprite.appendChild(frameIndicator);
+                
+                // Add sprite to container
+                spriteContainer.appendChild(sprite);
+                
+                // Clear container and add sprite
+                animation.container.innerHTML = '';
+                animation.container.appendChild(spriteContainer);
+                
+                // Set up animation
+                animation.frameIndex = 0;
+                animation.sprite = sprite;
+                animation.frameIndicator = frameIndicator;
+                animation.frames = animData.frames;
+                animation.frameSpeed = animData.speed || 200;
+                animation.isLooping = animation.options.loop;
+                
+                // Add "wide-mode" class to parent avatar container for wide animations
+                if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                    const avatarContainer = document.getElementById('character-avatar');
+                    if (avatarContainer) {
+                        avatarContainer.classList.add('ability-mode');
+                        animation.avatarContainer = avatarContainer;
                     }
-                });
+                }
                 
-                document.getElementById('btn-ability').addEventListener('click', function() {
-                    if (window.residentAnimationId) {
-                        CharacterAnimation.playAnimation(window.residentAnimationId, 'ability');
+                // Start animation loop if more than 1 frame
+                if (animData.frames > 1) {
+                    this._advanceFrame(animation.id);
+                    animation.animationTimer = setInterval(() => {
+                        this._advanceFrame(animation.id);
+                    }, animation.frameSpeed);
+                }
+            },
+            
+            _advanceFrame: function(animationId) {
+                const animation = this.activeAnimations[animationId];
+                if (!animation || !animation.sprite || !animation.frames) return;
+                
+                // Increment frame
+                animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
+                
+                // Update frame indicator (for testing)
+                if (animation.frameIndicator) {
+                    animation.frameIndicator.textContent = animation.frameIndex + 1;
+                }
+                
+                // If we've reached the end and not looping, stop animation
+                if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
+                    setTimeout(() => {
+                        this.stopAnimation(animationId);
                         
-                        // Return to idle after animation completes
-                        setTimeout(() => {
-                            CharacterAnimation.playAnimation(window.residentAnimationId, 'idle');
-                        }, 1000);
+                        // Signal animation complete
+                        const event = new CustomEvent('animationComplete', {
+                            detail: {
+                                animationId: animationId,
+                                animationName: animation.currentAnimation
+                            }
+                        });
+                        document.dispatchEvent(event);
+                        
+                        // Clean up wide mode
+                        if (animation.avatarContainer) {
+                            animation.avatarContainer.classList.remove('ability-mode');
+                        }
+                        
+                        const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
+                        if (container && container.classList.contains('wide-sprite')) {
+                            container.classList.remove('wide-sprite');
+                        }
+                        
+                        this.logSuccess(`Animation completed: ${animation.currentAnimation}`);
+                    }, animation.frameSpeed / 2);
+                }
+            },
+            
+            stopAnimation: function(animationId) {
+                const animation = this.activeAnimations[animationId];
+                if (!animation) return false;
+                
+                if (animation.animationTimer) {
+                    clearInterval(animation.animationTimer);
+                    animation.animationTimer = null;
+                }
+                
+                animation.isPlaying = false;
+                return true;
+            },
+            
+            // Play ability animations with auto-return to idle
+            playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
+                const animation = this.activeAnimations[animationId];
+                if (!animation) return false;
+                
+                const animData = CharacterAssets.getCharacterAnimation(animation.characterId, abilityName);
+                if (!animData) {
+                    this.logError(`Ability animation not found: ${abilityName}`);
+                    return false;
+                }
+                
+                const listener = (event) => {
+                    if (event.detail.animationId === animationId) {
+                        document.removeEventListener('animationComplete', listener);
+                        
+                        // Return to idle
+                        this.playAnimation(animationId, 'idle', true);
+                        
+                        if (onCompleteCallback && typeof onCompleteCallback === 'function') {
+                            onCompleteCallback();
+                        }
                     }
+                };
+                
+                document.addEventListener('animationComplete', listener);
+                
+                // Enable wide mode for this animation
+                animation.options.adaptiveWidth = true;
+                
+                // Play the animation non-looping
+                this.playAnimation(animationId, abilityName, false);
+                
+                return true;
+            },
+            
+            // For testing: get a color for each animation type
+            _getAnimationColor: function(animationName) {
+                switch(animationName) {
+                    case 'idle': return '#5b8dd9';
+                    case 'walking': return '#56b886';
+                    case 'ability': return '#f0c866';
+                    case 'specialAbility': return '#d35db3';
+                    default: return '#888888';
+                }
+            },
+            
+            // Debug logging
+            logDebug: function(message) {
+                console.log(message);
+                this._addLogEntry(message);
+            },
+            
+            logInfo: function(message) {
+                console.info(message);
+                this._addLogEntry(message, 'info');
+            },
+            
+            logSuccess: function(message) {
+                console.log('%c' + message, 'color: green');
+                this._addLogEntry(message, 'success');
+            },
+            
+            logError: function(message) {
+                console.error(message);
+                this._addLogEntry(message, 'error');
+            },
+            
+            _addLogEntry: function(message, type = '') {
+                const logContainer = document.getElementById('debug-log');
+                if (!logContainer) return;
+                
+                const entry = document.createElement('p');
+                if (type) entry.className = type;
+                entry.textContent = message;
+                
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            },
+            
+            // Set animation scale
+            setAnimationScale: function(animationId, scale) {
+                const animation = this.activeAnimations[animationId];
+                if (!animation) return false;
+                
+                animation.options.scale = scale;
+                
+                // Update scale of current animation
+                const elements = animation.container.querySelectorAll('.character-sprite');
+                elements.forEach(el => {
+                    // Use CSS transform with translate to keep centered while scaling
+                    el.style.transform = `translate(-50%, -50%) scale(${scale})`;
                 });
                 
-                document.getElementById('btn-hit').addEventListener('click', function() {
-                    const spriteContainer = document.getElementById('character-sprite-container');
-                    if (spriteContainer) {
-                        spriteContainer.classList.add('character-hit');
-                        setTimeout(() => {
-                            spriteContainer.classList.remove('character-hit');
-                        }, 300);
-                    }
+                this.logInfo(`Scale set to: ${scale}`);
+                return true;
+            }
+        };
+        
+        // Initialize on page load
+        let animationId;
+        let currentScale = 3;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            CharacterAnimation.initialize();
+            
+            // Create the animation
+            animationId = CharacterAnimation.createAnimation(
+                'resident',
+                'character-sprite-container',
+                {
+                    initialAnimation: 'idle',
+                    autoPlay: true,
+                    loop: true,
+                    scale: currentScale,
+                    centerImage: true
+                }
+            );
+            
+            // Set up buttons
+            document.getElementById('btn-idle').addEventListener('click', function() {
+                CharacterAnimation.playAnimation(animationId, 'idle', true);
+            });
+            
+            document.getElementById('btn-walk').addEventListener('click', function() {
+                CharacterAnimation.playAnimation(animationId, 'walking', true);
+            });
+            
+            document.getElementById('btn-ability').addEventListener('click', function() {
+                // Regular ability (6 frames)
+                CharacterAnimation.playAbilityAnimation(animationId, 'ability', () => {
+                    CharacterAnimation.logSuccess("Regular ability animation completed!");
                 });
-            }, 500);
+            });
+            
+            document.getElementById('btn-special-ability').addEventListener('click', function() {
+                // Special wide sprite ability (10 frames)
+                CharacterAnimation.playAbilityAnimation(animationId, 'specialAbility', () => {
+                    CharacterAnimation.logSuccess("Special wide ability animation completed!");
+                });
+            });
+            
+            // Debug buttons
+            document.getElementById('btn-toggle-grid').addEventListener('click', function() {
+                document.getElementById('character-avatar').classList.toggle('show-grid');
+            });
+            
+            document.getElementById('btn-toggle-overflow').addEventListener('click', function() {
+                const avatar = document.getElementById('character-avatar');
+                if (avatar.style.overflow === 'visible') {
+                    avatar.style.overflow = 'hidden';
+                    CharacterAnimation.logInfo("Overflow set to: hidden");
+                } else {
+                    avatar.style.overflow = 'visible';
+                    CharacterAnimation.logInfo("Overflow set to: visible");
+                }
+            });
+            
+            document.getElementById('btn-increase-scale').addEventListener('click', function() {
+                currentScale += 0.5;
+                CharacterAnimation.setAnimationScale(animationId, currentScale);
+            });
+            
+            document.getElementById('btn-decrease-scale').addEventListener('click', function() {
+                if (currentScale > 0.5) {
+                    currentScale -= 0.5;
+                    CharacterAnimation.setAnimationScale(animationId, currentScale);
+                }
+            });
         });
     </script>
 </body>

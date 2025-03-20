@@ -34,7 +34,9 @@ function initializeCharacterPanel() {
     <div class="character-details">
       <p class="character-name"><strong>Medical Physics Resident</strong></p>
       <div class="character-avatar-container">
-        <div class="character-avatar" id="character-sprite-container"></div>
+        <div class="character-avatar" id="character-sprite-container">
+          <div id="character-sprite"></div>
+        </div>
       </div>
       <div class="insight-bar-container">
         <div class="insight-bar-label">Insight</div>
@@ -57,13 +59,14 @@ function initializeCharacterPanel() {
       // Initialize the animation
       const animId = CharacterAnimation.createAnimation(
         'resident',
-        'character-sprite-container',
+        'character-sprite',
         {
           initialAnimation: 'idle',
           autoPlay: true,
           loop: true,
           scale: scale,
-          centerImage: true
+          centerImage: true,
+          adaptiveWidth: false // Only enable for special ability
         }
       );
       
@@ -74,7 +77,7 @@ function initializeCharacterPanel() {
       addAnimationControls();
     } else {
       // Fallback to static image with scale
-      const container = document.getElementById('character-sprite-container');
+      const container = document.getElementById('character-sprite');
       if (container) {
         const scale = window.CharacterConfig ? 
           CharacterConfig.getScaleFor('resident') : 3;
@@ -104,7 +107,8 @@ function addAnimationControls() {
   controls.innerHTML = `
     <button class="anim-btn" data-anim="idle">Idle</button>
     <button class="anim-btn" data-anim="walking">Walk</button>
-    <button class="anim-btn" data-anim="ability">Ability</button>
+    <button class="anim-btn" data-anim="ability">Regular</button>
+    <button class="anim-btn special-btn" data-anim="specialAbility">Special</button>
   `;
   
   // Find the character panel to append controls
@@ -116,23 +120,68 @@ function addAnimationControls() {
     controls.querySelectorAll('.anim-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const anim = this.dataset.anim;
-        if (window.CharacterAnimation && window.residentAnimationId) {
-          CharacterAnimation.playAnimation(window.residentAnimationId, anim);
+        
+        // For special ability, use the utility function
+        if (anim === 'specialAbility') {
+          playCharacterSpecialAbility();
+        } else if (anim === 'ability') {
+          playCharacterAbilityAnimation();
+        } else if (window.CharacterAnimation && window.residentAnimationId) {
+          CharacterAnimation.playAnimation(window.residentAnimationId, anim, true);
         }
       });
     });
   }
 }
 
-// Additional function to integrate with ability usage
+// Function to play the regular ability animation
 window.playCharacterAbilityAnimation = function() {
   if (window.CharacterAnimation && window.residentAnimationId) {
-    // Play ability animation
-    CharacterAnimation.playAnimation(window.residentAnimationId, 'ability');
+    CharacterAnimation.playAbilityAnimation(
+      window.residentAnimationId,
+      'ability',
+      () => console.log('Ability animation completed!')
+    );
+  }
+}
+
+// Function to play the special wide sprite ability animation
+window.playCharacterSpecialAbility = function() {
+  if (window.CharacterAnimation && window.residentAnimationId) {
+    // Get animation instance
+    const animation = CharacterAnimation.activeAnimations[window.residentAnimationId];
+    if (!animation) return;
     
-    // Return to idle after animation completes
-    setTimeout(() => {
-      CharacterAnimation.playAnimation(window.residentAnimationId, 'idle');
-    }, 1000);
+    // Enable wide mode for this animation
+    animation.options.adaptiveWidth = true;
+    
+    // Play the special ability animation
+    CharacterAnimation.playAbilityAnimation(
+      window.residentAnimationId,
+      'specialAbility',
+      () => {
+        console.log('Special ability animation completed!');
+        
+        // Disable wide mode after animation completes
+        animation.options.adaptiveWidth = false;
+      }
+    );
+    
+    // Flash effect on character
+    const avatar = document.querySelector('.character-avatar');
+    if (avatar) {
+      avatar.classList.add('ability-flash');
+      setTimeout(() => {
+        avatar.classList.remove('ability-flash');
+      }, 500);
+    }
+    
+    // Optionally trigger game events
+    if (window.EventSystem && typeof EventSystem.emit === 'function') {
+      EventSystem.emit('abilityUsed', {
+        abilityName: 'specialAbility',
+        characterId: 'resident'
+      });
+    }
   }
 };

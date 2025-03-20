@@ -1,4 +1,4 @@
-// character_assets.js - Simplified for single character implementation
+// character_assets.js - Character sprite and animation configuration
 
 // Define CharacterAssets globally
 window.CharacterAssets = {
@@ -6,13 +6,31 @@ window.CharacterAssets = {
   characters: {
     resident: {
       name: "Resident",
-      description: "A new resident.",
+      description: "A new medical physics resident.",
       imagePath: "/static/img/characters/resident/portrait.png",
       spritePath: "/static/img/characters/resident/",
       animations: {
-        idle: {file: "idle.png", frames: 1},
-        walking: {file: "walking.png", frames: 4, speed: 250},
-        ability: {file: "ability.png", frames: 6, speed: 120}
+        idle: {
+          file: "idle.png", 
+          frames: 1
+        },
+        walking: {
+          file: "walking.png", 
+          frames: 4, 
+          speed: 250
+        },
+        ability: {
+          file: "ability.png", 
+          frames: 6, 
+          speed: 120
+        },
+        // New wide sprite special ability animation
+        specialAbility: {
+          file: "special_ability.png", 
+          frames: 10, 
+          speed: 80,
+          aspectRatio: 2.5 // Wider sprite
+        }
       },
       stats: {
         startingInsight: 20,
@@ -23,6 +41,123 @@ window.CharacterAssets = {
         name: "Literature Review",
         description: "Once per floor, can skip a question node without penalty.",
         uses_per_floor: 1
+      }
+    },
+    
+    physicist: {
+      name: "Junior Physicist",
+      description: "More experienced with treatment planning but fewer lives.",
+      imagePath: "/static/img/characters/physicist/portrait.png",
+      spritePath: "/static/img/characters/physicist/",
+      animations: {
+        idle: {
+          file: "idle.png", 
+          frames: 1
+        },
+        walking: {
+          file: "walking.png", 
+          frames: 4, 
+          speed: 250
+        },
+        ability: {
+          file: "ability.png", 
+          frames: 6, 
+          speed: 120
+        },
+        specialAbility: {
+          file: "special_ability.png", 
+          frames: 10, 
+          speed: 80,
+          aspectRatio: 2.5 // Wider sprite
+        }
+      },
+      stats: {
+        startingInsight: 30,
+        startingLives: 2,
+        maxLives: 2
+      },
+      special_ability: {
+        name: "Peer Review",
+        description: "Can see the correct answer for one question per floor.",
+        uses_per_floor: 1
+      }
+    },
+    
+    qa_specialist: {
+      name: "QA Specialist",
+      description: "Quality Assurance expert with deep knowledge of machine checks.",
+      imagePath: "/static/img/characters/qa_specialist/portrait.png",
+      spritePath: "/static/img/characters/qa_specialist/",
+      animations: {
+        idle: {
+          file: "idle.png", 
+          frames: 1
+        },
+        walking: {
+          file: "walking.png", 
+          frames: 4, 
+          speed: 250
+        },
+        ability: {
+          file: "ability.png", 
+          frames: 6, 
+          speed: 120
+        },
+        specialAbility: {
+          file: "special_ability.png", 
+          frames: 10, 
+          speed: 80,
+          aspectRatio: 2.5 // Wider sprite
+        }
+      },
+      stats: {
+        startingInsight: 25,
+        startingLives: 3,
+        maxLives: 3
+      },
+      special_ability: {
+        name: "Measurement Uncertainty",
+        description: "Can retry one failed question per floor.",
+        uses_per_floor: 1
+      }
+    },
+    
+    debug_mode: {
+      name: "Debug Physicist",
+      description: "A special character with godlike powers for testing purposes.",
+      imagePath: "/static/img/characters/debug_mode/portrait.png",
+      spritePath: "/static/img/characters/debug_mode/",
+      animations: {
+        idle: {
+          file: "idle.png", 
+          frames: 1
+        },
+        walking: {
+          file: "walking.png", 
+          frames: 4, 
+          speed: 250
+        },
+        ability: {
+          file: "ability.png", 
+          frames: 6, 
+          speed: 120
+        },
+        specialAbility: {
+          file: "special_ability.png", 
+          frames: 10, 
+          speed: 80,
+          aspectRatio: 2.5 // Wider sprite
+        }
+      },
+      stats: {
+        startingInsight: 999,
+        startingLives: 99,
+        maxLives: 99
+      },
+      special_ability: {
+        name: "Debug Override",
+        description: "Can instantly complete any node without penalties.",
+        uses_per_floor: 999
       }
     }
   },
@@ -83,8 +218,12 @@ window.CharacterAssets = {
   
   // Get character ID from name
   getCharacterIdFromName: function(name) {
-    // Since we only have one character, default to resident
-    return "resident";
+    for (const id in this.characters) {
+      if (this.characters[id].name === name) {
+        return id;
+      }
+    }
+    return 'resident'; // Default to resident
   },
   
   // Convert character ID to name
@@ -94,7 +233,7 @@ window.CharacterAssets = {
   }
 };
 
-console.log("CharacterAssets initialized with resident character sprite data");
+console.log("CharacterAssets initialized with sprite animation data");
 
 // Export CharacterAssets to make sure it's globally available
 if (typeof module !== 'undefined' && module.exports) {

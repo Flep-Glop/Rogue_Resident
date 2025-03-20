@@ -7,6 +7,7 @@
  * 1. Single image sprites (static)
  * 2. Sprite sheets (animated)
  * 3. GIF animations
+ * 4. Wide sprite sheets (ability animations)
  * 
  * It can be used anywhere characters are displayed in the game.
  */
@@ -56,7 +57,8 @@ const CharacterAnimation = {
       autoPlay: true,
       loop: true,
       scale: 1,
-      centerImage: true
+      centerImage: true,
+      adaptiveWidth: false // New option for wide sprites
     };
     
     // Merge defaults with provided options
@@ -118,7 +120,7 @@ const CharacterAnimation = {
   },
   
   // Play a specific animation for a character
-  playAnimation: function(animationId, animationName = 'idle') {
+  playAnimation: function(animationId, animationName = 'idle', loop = null) {
     const animation = this.activeAnimations[animationId];
     if (!animation) {
       console.error(`Animation not found: ${animationId}`);
@@ -137,6 +139,11 @@ const CharacterAnimation = {
     
     // Save current animation name
     animation.currentAnimation = animationName;
+    
+    // Override loop behavior if specified
+    if (loop !== null) {
+      animation.options.loop = loop;
+    }
     
     // Check if this is a GIF or a sprite sheet
     const isGif = animData.file.toLowerCase().endsWith('.gif');
@@ -181,17 +188,31 @@ const CharacterAnimation = {
     // Get sprite path
     const spritePath = CharacterAssets.characters[animation.characterId].spritePath + animData.file;
     
+    // Handle aspect ratio for wide sprites
+    const aspectRatio = animData.aspectRatio || 1;
+    
     // Create sprite container
     const spriteContainer = document.createElement('div');
     spriteContainer.className = 'character-sprite-container';
+    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+      spriteContainer.classList.add('wide-sprite');
+    }
+    
     spriteContainer.style.width = '100%';
     spriteContainer.style.height = '100%';
     spriteContainer.style.position = 'relative';
-    spriteContainer.style.overflow = 'hidden';
+    spriteContainer.style.overflow = 'visible'; // Allow content to overflow
+    
+    // For wide sprites, adjust container
+    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+      spriteContainer.style.width = `${aspectRatio * 100}%`;
+      spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`; // Center wider sprites
+    }
     
     // Create sprite element
     const sprite = document.createElement('div');
     sprite.className = 'character-sprite';
+    sprite.dataset.animation = animation.currentAnimation;
     sprite.style.width = '100%';
     sprite.style.height = '100%';
     sprite.style.backgroundImage = `url(${spritePath})`;
@@ -200,11 +221,14 @@ const CharacterAnimation = {
     sprite.style.backgroundSize = `${animData.frames * 100}% 100%`;
     sprite.style.imageRendering = 'pixelated';
     sprite.style.imageRendering = 'crisp-edges';
+    sprite.style.position = 'absolute';
+    sprite.style.top = '50%';
+    sprite.style.left = '50%';
     
-    if (animation.options.scale !== 1) {
-      sprite.style.transform = `scale(${animation.options.scale})`;
-      sprite.style.transformOrigin = 'center center';
-    }
+    // Set initial scale with centering transform
+    const scale = animation.options.scale || 1;
+    animation.container.style.setProperty('--character-scale', scale);
+    sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
     
     // Add sprite to container
     spriteContainer.appendChild(sprite);
@@ -218,12 +242,24 @@ const CharacterAnimation = {
     animation.sprite = sprite;
     animation.frames = animData.frames;
     animation.frameSpeed = animData.speed || 200; // Default 200ms per frame
+    animation.isLooping = animation.options.loop;
+    
+    // Add "wide-mode" class to parent avatar container for wide animations
+    if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+      const avatarContainer = document.querySelector('.character-avatar');
+      if (avatarContainer) {
+        avatarContainer.classList.add('ability-mode');
+        
+        // Store for later removal
+        animation.avatarContainer = avatarContainer;
+      }
+    }
     
     // Start animation loop if more than 1 frame
     if (animData.frames > 1) {
-      this._advanceFrame(animationId);
+      this._advanceFrame(animation.id);
       animation.animationTimer = setInterval(() => {
-        this._advanceFrame(animationId);
+        this._advanceFrame(animation.id);
       }, animation.frameSpeed);
     }
   },
@@ -239,6 +275,34 @@ const CharacterAnimation = {
     // Calculate background position
     const posX = -(animation.frameIndex * (100 / animation.frames));
     animation.sprite.style.backgroundPosition = `${posX}% 0`;
+    
+    // If we've reached the end and not looping, stop animation
+    if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
+      // Add a small delay before stopping so the last frame is visible
+      setTimeout(() => {
+        this.stopAnimation(animationId);
+        
+        // Signal animation complete
+        const event = new CustomEvent('animationComplete', {
+          detail: {
+            animationId: animationId,
+            animationName: animation.currentAnimation
+          }
+        });
+        document.dispatchEvent(event);
+        
+        // Clean up wide mode if used
+        if (animation.avatarContainer) {
+          animation.avatarContainer.classList.remove('ability-mode');
+        }
+        
+        // If the sprite container has 'wide-sprite' class, remove it
+        const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
+        if (container && container.classList.contains('wide-sprite')) {
+          container.classList.remove('wide-sprite');
+        }
+      }, animation.frameSpeed / 2);
+    }
   },
   
   // Stop an animation
@@ -317,81 +381,63 @@ const CharacterAnimation = {
     }
   },
   
-  // Update this method in character_animation.js
-
-// Set animation scale
-setAnimationScale: function(animationId, scale) {
-  const animation = this.activeAnimations[animationId];
-  if (!animation) return false;
-  
-  animation.options.scale = scale;
-  
-  // Set a CSS variable for the scale that we can use in our CSS
-  animation.container.style.setProperty('--character-scale', scale);
-  
-  // Update scale of current animation
-  const elements = animation.container.querySelectorAll('.character-sprite, .character-animation-gif');
-  elements.forEach(el => {
-    // Use CSS transform with translate to keep centered while scaling
-    el.style.transform = `translate(-50%, -50%) scale(${scale})`;
-  });
-  
-  return true;
-},
-
-// Also update the _setupSpriteSheetAnimation method to use centered positioning from the start:
-  _setupSpriteSheetAnimation: function(animation, animData) {
-    // Get sprite path
-    const spritePath = CharacterAssets.characters[animation.characterId].spritePath + animData.file;
+  // Set animation scale
+  setAnimationScale: function(animationId, scale) {
+    const animation = this.activeAnimations[animationId];
+    if (!animation) return false;
     
-    // Create sprite container
-    const spriteContainer = document.createElement('div');
-    spriteContainer.className = 'character-sprite-container';
-    spriteContainer.style.width = '100%';
-    spriteContainer.style.height = '100%';
-    spriteContainer.style.position = 'relative';
-    spriteContainer.style.overflow = 'visible'; // Allow content to overflow
+    animation.options.scale = scale;
     
-    // Create sprite element
-    const sprite = document.createElement('div');
-    sprite.className = 'character-sprite';
-    sprite.style.width = '100%';
-    sprite.style.height = '100%';
-    sprite.style.backgroundImage = `url(${spritePath})`;
-    sprite.style.backgroundRepeat = 'no-repeat';
-    sprite.style.backgroundPosition = '0 0';
-    sprite.style.backgroundSize = `${animData.frames * 100}% 100%`;
-    sprite.style.imageRendering = 'pixelated';
-    sprite.style.imageRendering = 'crisp-edges';
-    sprite.style.position = 'absolute';
-    sprite.style.top = '50%';
-    sprite.style.left = '50%';
-    
-    // Set initial scale with centering transform
-    const scale = animation.options.scale || 1;
+    // Set a CSS variable for the scale that we can use in our CSS
     animation.container.style.setProperty('--character-scale', scale);
-    sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
     
-    // Add sprite to container
-    spriteContainer.appendChild(sprite);
+    // Update scale of current animation
+    const elements = animation.container.querySelectorAll('.character-sprite, .character-animation-gif');
+    elements.forEach(el => {
+      // Use CSS transform with translate to keep centered while scaling
+      el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    });
     
-    // Clear container and add sprite
-    animation.container.innerHTML = '';
-    animation.container.appendChild(spriteContainer);
+    return true;
+  },
+  
+  // Helper method to play ability animations
+  playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
+    // Get animation
+    const animation = this.activeAnimations[animationId];
+    if (!animation) return false;
     
-    // Set up animation
-    animation.frameIndex = 0;
-    animation.sprite = sprite;
-    animation.frames = animData.frames;
-    animation.frameSpeed = animData.speed || 200; // Default 200ms per frame
-    
-    // Start animation loop if more than 1 frame
-    if (animData.frames > 1) {
-      this._advanceFrame(animation.id);
-      animation.animationTimer = setInterval(() => {
-        this._advanceFrame(animation.id);
-      }, animation.frameSpeed);
+    // Ensure we have a character with this ability animation
+    const animData = CharacterAssets.getCharacterAnimation(animation.characterId, abilityName);
+    if (!animData) {
+      console.error(`Ability animation not found: ${abilityName}`);
+      return false;
     }
+    
+    // Set up event listener for animation completion
+    const listener = (event) => {
+      if (event.detail.animationId === animationId) {
+        document.removeEventListener('animationComplete', listener);
+        
+        // Return to idle
+        this.playAnimation(animationId, 'idle', true);
+        
+        // Call callback if provided
+        if (onCompleteCallback && typeof onCompleteCallback === 'function') {
+          onCompleteCallback();
+        }
+      }
+    };
+    
+    document.addEventListener('animationComplete', listener);
+    
+    // Temporarily enable wide mode
+    animation.options.adaptiveWidth = true;
+    
+    // Play the animation non-looping
+    this.playAnimation(animationId, abilityName, false);
+    
+    return true;
   }
 };
 
