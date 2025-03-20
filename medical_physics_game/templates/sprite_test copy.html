@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Sheet Diagnostics</title>
+    <style>
+        body {
+            background-color: #1e1e2a;
+            color: #ffffff;
+            font-family: monospace;
+            padding: 20px;
+        }
+        
+        h1, h2 {
+            color: #5b8dd9;
+        }
+        
+        .diagnostic-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .sprite-details {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #5b8dd9;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .sprite-image {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #5b8dd9;
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        .sprite-preview {
+            max-width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            border: 1px dashed #5b8dd9;
+        }
+        
+        .frame-viewer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .frame-box {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #5b8dd9;
+            text-align: center;
+        }
+        
+        .frame-canvas {
+            image-rendering: pixelated;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        
+        .info-label {
+            width: 150px;
+            color: #56b886;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .pixelated {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        button {
+            background-color: #5b8dd9;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sprite Sheet Diagnostics</h1>
+    
+    <div class="diagnostic-container">
+        <div class="sprite-details">
+            <h2>Sprite Information</h2>
+            
+            <div class="info-row">
+                <div class="info-label">Image Path:</div>
+                <div class="info-value" id="image-path">/static/img/characters/resident/idle.png</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Original Dimensions:</div>
+                <div class="info-value" id="original-dimensions">Loading...</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Frame Count:</div>
+                <div class="info-value">
+                    <input type="number" id="frame-count" value="8" min="1" max="20">
+                    <button id="update-frames">Update</button>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Frame Width:</div>
+                <div class="info-value" id="frame-width">Loading...</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Frame Height:</div>
+                <div class="info-value" id="frame-height">Loading...</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Sprite Layout:</div>
+                <div class="info-value">
+                    <select id="layout-type">
+                        <option value="vertical" selected>Vertical Strip</option>
+                        <option value="horizontal">Horizontal Strip</option>
+                        <option value="grid">Grid</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="info-row" id="grid-options" style="display: none;">
+                <div class="info-label">Grid:</div>
+                <div class="info-value">
+                    <input type="number" id="grid-columns" value="4" min="1" max="10" style="width: 50px;"> columns × 
+                    <input type="number" id="grid-rows" value="2" min="1" max="10" style="width: 50px;"> rows
+                </div>
+            </div>
+        </div>
+        
+        <div class="sprite-image">
+            <h2>Full Sprite Sheet</h2>
+            <img id="sprite-preview" src="/static/img/characters/resident/idle.png" class="sprite-preview" alt="Sprite Sheet">
+            <div>
+                <button id="toggle-grid">Toggle Grid</button>
+                <button id="analyze-sprite">Analyze Sprite</button>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Individual Frames</h2>
+    <p>These are the individual frames extracted from your sprite sheet based on the settings above:</p>
+    
+    <div class="frame-viewer" id="frame-viewer">
+        <!-- Frames will be generated here -->
+        <div class="frame-box">
+            <p>Loading frames...</p>
+        </div>
+    </div>
+    
+    <script>
+        // Elements
+        const imgPath = document.getElementById('image-path');
+        const originalDimensions = document.getElementById('original-dimensions');
+        const frameWidth = document.getElementById('frame-width');
+        const frameHeight = document.getElementById('frame-height');
+        const frameCount = document.getElementById('frame-count');
+        const layoutType = document.getElementById('layout-type');
+        const gridOptions = document.getElementById('grid-options');
+        const gridColumns = document.getElementById('grid-columns');
+        const gridRows = document.getElementById('grid-rows');
+        const spritePreview = document.getElementById('sprite-preview');
+        const frameViewer = document.getElementById('frame-viewer');
+        const toggleGridBtn = document.getElementById('toggle-grid');
+        const analyzeBtn = document.getElementById('analyze-sprite');
+        const updateFramesBtn = document.getElementById('update-frames');
+        
+        // Sprite information
+        let spriteInfo = {
+            width: 0,
+            height: 0,
+            frames: 8,
+            layout: 'vertical',
+            columns: 4,
+            rows: 2
+        };
+        
+        // Show/hide grid options based on layout type
+        layoutType.addEventListener('change', function() {
+            const layout = this.value;
+            gridOptions.style.display = layout === 'grid' ? 'flex' : 'none';
+            spriteInfo.layout = layout;
+            updateCalculations();
+            renderFrames();
+        });
+        
+        // Update frames when count changes
+        updateFramesBtn.addEventListener('click', function() {
+            spriteInfo.frames = parseInt(frameCount.value);
+            updateCalculations();
+            renderFrames();
+        });
+        
+        // Update when grid settings change
+        gridColumns.addEventListener('change', function() {
+            spriteInfo.columns = parseInt(this.value);
+            updateCalculations();
+            renderFrames();
+        });
+        
+        gridRows.addEventListener('change', function() {
+            spriteInfo.rows = parseInt(this.value);
+            updateCalculations();
+            renderFrames();
+        });
+        
+        // Toggle grid overlay
+        toggleGridBtn.addEventListener('click', function() {
+            const hasGrid = spritePreview.classList.contains('with-grid');
+            
+            if (hasGrid) {
+                // Remove grid
+                spritePreview.classList.remove('with-grid');
+                const canvas = document.getElementById('grid-overlay');
+                if (canvas) canvas.remove();
+            } else {
+                // Add grid overlay
+                spritePreview.classList.add('with-grid');
+                drawGridOverlay();
+            }
+        });
+        
+        // Analyze sprite
+        analyzeBtn.addEventListener('click', function() {
+            // Reset frame count to match actual frames
+            if (spriteInfo.layout === 'vertical') {
+                frameCount.value = Math.round(spriteInfo.height / (spriteInfo.height / spriteInfo.frames));
+            } else if (spriteInfo.layout === 'horizontal') {
+                frameCount.value = Math.round(spriteInfo.width / (spriteInfo.width / spriteInfo.frames));
+            } else if (spriteInfo.layout === 'grid') {
+                frameCount.value = spriteInfo.columns * spriteInfo.rows;
+            }
+            
+            spriteInfo.frames = parseInt(frameCount.value);
+            updateCalculations();
+            renderFrames();
+        });
+        
+        // Draw grid overlay on sprite
+        function drawGridOverlay() {
+            // Remove existing overlay
+            const existingCanvas = document.getElementById('grid-overlay');
+            if (existingCanvas) existingCanvas.remove();
+            
+            // Create canvas for grid
+            const canvas = document.createElement('canvas');
+            canvas.id = 'grid-overlay';
+            canvas.width = spriteInfo.width;
+            canvas.height = spriteInfo.height;
+            canvas.style.position = 'absolute';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            canvas.style.pointerEvents = 'none';
+            
+            // Get drawing context
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+            ctx.lineWidth = 1;
+            
+            // Draw frame divisions
+            if (spriteInfo.layout === 'vertical') {
+                const frameH = spriteInfo.height / spriteInfo.frames;
+                
+                for (let i = 1; i < spriteInfo.frames; i++) {
+                    const y = i * frameH;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(spriteInfo.width, y);
+                    ctx.stroke();
+                }
+            } else if (spriteInfo.layout === 'horizontal') {
+                const frameW = spriteInfo.width / spriteInfo.frames;
+                
+                for (let i = 1; i < spriteInfo.frames; i++) {
+                    const x = i * frameW;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, spriteInfo.height);
+                    ctx.stroke();
+                }
+            } else if (spriteInfo.layout === 'grid') {
+                const frameW = spriteInfo.width / spriteInfo.columns;
+                const frameH = spriteInfo.height / spriteInfo.rows;
+                
+                // Draw column lines
+                for (let i = 1; i < spriteInfo.columns; i++) {
+                    const x = i * frameW;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, spriteInfo.height);
+                    ctx.stroke();
+                }
+                
+                // Draw row lines
+                for (let i = 1; i < spriteInfo.rows; i++) {
+                    const y = i * frameH;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(spriteInfo.width, y);
+                    ctx.stroke();
+                }
+            }
+            
+            // Wrap the image in a container for overlay
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.display = 'inline-block';
+            
+            // Replace the image with the container
+            const parent = spritePreview.parentNode;
+            const next = spritePreview.nextSibling;
+            parent.removeChild(spritePreview);
+            container.appendChild(spritePreview);
+            container.appendChild(canvas);
+            
+            if (next) {
+                parent.insertBefore(container, next);
+            } else {
+                parent.appendChild(container);
+            }
+        }
+        
+        // Update calculations based on sprite info
+        function updateCalculations() {
+            if (spriteInfo.layout === 'vertical') {
+                const frameH = spriteInfo.height / spriteInfo.frames;
+                frameWidth.textContent = spriteInfo.width + 'px';
+                frameHeight.textContent = frameH + 'px';
+            } else if (spriteInfo.layout === 'horizontal') {
+                const frameW = spriteInfo.width / spriteInfo.frames;
+                frameWidth.textContent = frameW + 'px';
+                frameHeight.textContent = spriteInfo.height + 'px';
+            } else if (spriteInfo.layout === 'grid') {
+                const frameW = spriteInfo.width / spriteInfo.columns;
+                const frameH = spriteInfo.height / spriteInfo.rows;
+                frameWidth.textContent = frameW + 'px';
+                frameHeight.textContent = frameH + 'px';
+            }
+        }
+        
+        // Render individual frames
+        function renderFrames() {
+            // Clear existing frames
+            frameViewer.innerHTML = '';
+            
+            // Calculate frame dimensions
+            let frameW, frameH;
+            
+            if (spriteInfo.layout === 'vertical') {
+                frameW = spriteInfo.width;
+                frameH = spriteInfo.height / spriteInfo.frames;
+            } else if (spriteInfo.layout === 'horizontal') {
+                frameW = spriteInfo.width / spriteInfo.frames;
+                frameH = spriteInfo.height;
+            } else if (spriteInfo.layout === 'grid') {
+                frameW = spriteInfo.width / spriteInfo.columns;
+                frameH = spriteInfo.height / spriteInfo.rows;
+            }
+            
+            // Create frame views
+            for (let i = 0; i < spriteInfo.frames; i++) {
+                // Create frame container
+                const frameBox = document.createElement('div');
+                frameBox.className = 'frame-box';
+                
+                // Create canvas for this frame
+                const canvas = document.createElement('canvas');
+                canvas.className = 'frame-canvas';
+                canvas.width = frameW;
+                canvas.height = frameH;
+                
+                // Draw this frame on the canvas
+                const ctx = canvas.getContext('2d');
+                
+                if (spriteInfo.layout === 'vertical') {
+                    ctx.drawImage(
+                        spritePreview,
+                        0, i * frameH, frameW, frameH,
+                        0, 0, frameW, frameH
+                    );
+                } else if (spriteInfo.layout === 'horizontal') {
+                    ctx.drawImage(
+                        spritePreview,
+                        i * frameW, 0, frameW, frameH,
+                        0, 0, frameW, frameH
+                    );
+                } else if (spriteInfo.layout === 'grid') {
+                    const col = i % spriteInfo.columns;
+                    const row = Math.floor(i / spriteInfo.columns);
+                    
+                    ctx.drawImage(
+                        spritePreview,
+                        col * frameW, row * frameH, frameW, frameH,
+                        0, 0, frameW, frameH
+                    );
+                }
+                
+                // Add frame number
+                const frameNumber = document.createElement('p');
+                frameNumber.textContent = `Frame ${i+1}`;
+                
+                // Add to container
+                frameBox.appendChild(canvas);
+                frameBox.appendChild(frameNumber);
+                frameViewer.appendChild(frameBox);
+            }
+        }
+        
+        // Initialize the page when sprite is loaded
+        spritePreview.onload = function() {
+            // Store sprite dimensions
+            spriteInfo.width = this.naturalWidth;
+            spriteInfo.height = this.naturalHeight;
+            
+            // Update display
+            originalDimensions.textContent = `${spriteInfo.width}px × ${spriteInfo.height}px`;
+            
+            // Calculate and display
+            updateCalculations();
+            renderFrames();
+        };
+        
+        // Handle errors
+        spritePreview.onerror = function() {
+            alert('Error loading sprite image. Check the path and try again.');
+            originalDimensions.textContent = 'Error loading image';
+        };
+    </script>
+</body>
+</html>
