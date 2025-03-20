@@ -7,7 +7,7 @@ window.CharacterAssets = {
     resident: {
       name: "Resident",
       description: "A new medical physics resident.",
-      imagePath: "/static/img/characters/resident/portrait.png",
+      imagePath: "/static/img/characters/resident/idle.png",
       spritePath: "/static/img/characters/resident/",
       animations: {
         idle: {
