@@ -1,0 +1,124 @@
+/* Add these styles for the intro sequence */
+
+.intro-sequence {
+  min-height: 500px;
+  background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.intro-sequence::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 106, 0, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+  z-index: 0;
+  animation: pulse-subtle 4s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-subtle {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.7; }
+}
+
+.intro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.8s ease;
+}
+
+.intro-boss-container {
+  margin-bottom: 40px;
+  margin-top: 30px;
+  transform-origin: center;
+}
+
+.intro-dialogue {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+  min-height: 80px;
+}
+
+.intro-dialogue p {
+  color: #fff;
+  font-size: 1.2rem !important;
+  line-height: 1.6 !important;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+.intro-continue {
+  margin-top: 20px;
+  padding: 10px 25px !important;
+  font-size: 1.1rem !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s ease !important;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.intro-continue:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.intro-continue:active {
+  transform: translateY(0) !important;
+}
+
+/* Additional fixes for the main boss battle UI */
+
+/* Fix the question container to make all text visible */
+.phase-questions {
+  max-height: none !important; /* Remove height restriction */
+  overflow: visible !important; /* Show all content */
+}
+
+.question-card {
+  overflow: visible !important; /* Show all content */
+}
+
+.question-options {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  max-height: none !important; /* Remove height restriction */
+  overflow: visible !important; /* Show all content */
+}
+
+/* Nicer fade-in animations */
+.anim-fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Add a small animation to dialogue box */
+.boss-dialogue {
+  animation: dialoguePulse 5s infinite alternate ease-in-out;
+}
+
+@keyframes dialoguePulse {
+  0% { border-color: rgba(255, 106, 0, 0.6); }
+  100% { border-color: rgba(255, 106, 0, 1); }
+}

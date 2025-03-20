@@ -390,3 +390,149 @@
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
 }
+
+/* Add these styles to ion_chamber_boss.css */
+
+/* Improved glow effect for Ionix */
+.ionix-glow-overlay {
+  background: radial-gradient(
+    circle,
+    rgba(255, 106, 0, 0.6) 0%,
+    rgba(255, 106, 0, 0.3) 40%,
+    rgba(255, 106, 0, 0) 70%
+  );
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.1); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+
+/* Make the boss character container more prominent */
+.boss-character-container {
+  min-height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin: 20px 0 30px;
+}
+
+/* Enhance the boss dialogue box */
+.boss-dialogue {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border-left: 3px solid #ff6a00 !important;
+  border-radius: 8px !important;
+  padding: 15px 20px !important;
+  margin-bottom: 25px !important;
+  position: relative;
+  font-style: italic;
+  text-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.boss-dialogue.hidden {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* Make text more visible with better contrast */
+.boss-dialogue p {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Better styling for the title */
+.exam-title {
+  font-size: 1.6rem !important;
+  color: #ff6a00 !important;
+  text-shadow: 0 0 10px rgba(255, 106, 0, 0.5) !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.exam-subtitle {
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+/* Enhance the question section */
+.question-card {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-left: 3px solid #ff6a00 !important;
+  border-radius: 8px !important;
+  padding: 18px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  max-height: none !important; /* Ensure no height restriction */
+  overflow: visible !important; /* Show all content */
+}
+
+/* Make question text more visible */
+.question-text p {
+  color: #fff;
+  font-size: 1.1rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 20px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Better option buttons */
+.question-option {
+  text-align: left !important;
+  padding: 12px 18px !important;
+  background-color: rgba(30, 30, 50, 0.7) !important;
+  border: 1px solid rgba(138, 43, 226, 0.3) !important;
+  margin-bottom: 12px !important;
+  border-radius: 5px !important;
+  color: #fff !important;
+  transition: all 0.3s ease !important;
+  position: relative;
+  font-size: 1rem !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  white-space: normal !important; /* Allow text to wrap */
+  min-height: 48px; /* Minimum height for buttons */
+  width: 100% !important; /* Full width for better readability */
+}
+
+.question-option:hover:not(:disabled) {
+  background-color: rgba(255, 106, 0, 0.2) !important;
+  transform: translateX(5px) !important;
+  border-color: rgba(255, 106, 0, 0.5) !important;
+}
+
+/* Better timer display */
+.time-remaining {
+  font-family: monospace !important;
+  font-size: 1.3rem !important;
+  color: #ff9d4c !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  padding: 3px 10px !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #ff6a00 !important;
+  letter-spacing: 1px;
+}
+
+/* Better score display */
+.score-container {
+  padding: 5px 10px !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #ff6a00 !important;
+}
+
+.score-text {
+  font-size: 1rem !important;
+  color: #ff9d4c !important;
+  letter-spacing: 1px;
+  font-weight: bold;
+}

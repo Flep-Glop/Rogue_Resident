@@ -1,4 +1,6 @@
 // fixed_boss_component.js - Specifically for ion chamber boss
+// Add this property to the component
+introComplete: false
 
 const FixedBossComponent = ComponentUtils.createComponent('boss', {
   // Initialize component and set up initial state
@@ -78,11 +80,17 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
   // Main render function
   render: function(nodeData, container) {
     console.log("Rendering ion chamber boss component", nodeData);
-    
+  
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
       container.id = 'boss-container';
       container.className = 'interaction-container boss-exam';
+    }
+    
+    // Check if we should show the intro sequence
+    if (!this.introComplete && !this.getUiState('introComplete')) {
+      this.renderIntroSequence(nodeData, container);
+      return;
     }
     
     // Initialize or get the current exam phase
@@ -179,23 +187,37 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     // Clear container
     container.innerHTML = '';
     
-    // Set container dimensions and styling
-    container.style.width = '97px';
-    container.style.height = '108px';
+    // Set container dimensions and styling - MAKE LARGER
+    container.style.width = '140px';  // Increased from 97px
+    container.style.height = '160px'; // Increased from 108px
     container.style.margin = '0 auto';
     container.style.position = 'relative';
-    container.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
+    // Enhanced glow effect
+    container.style.boxShadow = '0 0 25px 10px rgba(255, 106, 0, 0.6)';
     
     // Create canvas element
     const canvas = document.createElement('canvas');
     canvas.id = 'ion-chamber-canvas';
-    canvas.width = 97;  // Single frame width
-    canvas.height = 108; // Single frame height
+    canvas.width = 140;  // Larger size
+    canvas.height = 160; // Larger size
     canvas.style.display = 'block';
     canvas.style.imageRendering = 'pixelated';
     
     // Add canvas to container
     container.appendChild(canvas);
+    
+    // Add a pulsing glow overlay div
+    const glowOverlay = document.createElement('div');
+    glowOverlay.className = 'ionix-glow-overlay';
+    glowOverlay.style.position = 'absolute';
+    glowOverlay.style.top = '-20px';
+    glowOverlay.style.left = '-20px';
+    glowOverlay.style.right = '-20px';
+    glowOverlay.style.bottom = '-20px';
+    glowOverlay.style.borderRadius = '50%';
+    glowOverlay.style.pointerEvents = 'none';
+    glowOverlay.style.zIndex = '-1';
+    container.appendChild(glowOverlay);
     
     // Load the sprite sheet
     const spriteSheet = new Image();
@@ -225,7 +247,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
         // Calculate source rectangle (from the sprite sheet)
         const sourceY = currentFrame * frameHeight;
         
-        // Draw the current frame
+        // Draw the current frame - scaled up to fill larger canvas
         ctx.drawImage(
           spriteSheet,       // Image
           0, sourceY,        // Source position (x, y)
@@ -245,7 +267,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       drawFrame();
       
       // Schedule next frame
-      animationId = setTimeout(animate, 150); // 150ms per frame (same as in npc_assets.js)
+      animationId = setTimeout(animate, 150); // 150ms per frame
     };
     
     // Start animation when the image is loaded
@@ -272,6 +294,30 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
         <div class="ion-chamber-placeholder"></div>
       `;
     };
+    
+    // Update the title to "Ionix" instead of "Department Supervisor"
+    const titleElement = document.querySelector('.exam-title');
+    if (titleElement) {
+      titleElement.textContent = 'Ionix';
+    }
+    
+    // Make the boss name more prominent in the header
+    const examHeader = document.querySelector('.exam-header');
+    if (examHeader) {
+      // Create a subtitle element if it doesn't exist
+      if (!document.querySelector('.exam-subtitle')) {
+        const subtitle = document.createElement('p');
+        subtitle.className = 'exam-subtitle';
+        subtitle.textContent = 'The Sentient Ion Chamber';
+        subtitle.style.color = '#ff9d4c';
+        subtitle.style.margin = '0';
+        subtitle.style.fontSize = '0.9rem';
+        subtitle.style.opacity = '0.8';
+        
+        // Insert after title
+        titleElement.parentNode.insertBefore(subtitle, titleElement.nextSibling);
+      }
+    }
   },
   
   // Add a method to clean up the animation when component is destroyed
@@ -734,7 +780,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     }
   },
   
-  // Get boss dialogue based on phase and state
+  // Update the dialogue to use just "Ionix" instead of "Professor Ionix"
   getBossDialogue: function(bossData, phaseIndex, phaseComplete) {
     // Use dialogue from NPCAssets if available
     if (window.NPCAssets && NPCAssets.getRandomDialogue) {
@@ -745,24 +791,29 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
           
           // Try to get dialogue from NPCAssets
           const dialogue = NPCAssets.getRandomDialogue('ionChamberBoss', 'completion');
-          if (dialogue) return typeof dialogue === 'object' ? 
+          let dialogueText = typeof dialogue === 'object' ? 
             (dialogue[success ? 'success' : 'failure'] || "Examination complete.") : 
             dialogue;
+            
+          // Replace "Professor Ionix" with just "Ionix"
+          return dialogueText.replace(/Professor Ionix/g, "Ionix");
         } else {
           // Phase transition dialogue
-          return NPCAssets.getRandomDialogue('ionChamberBoss', 'phase_transition') || 
+          let dialogueText = NPCAssets.getRandomDialogue('ionChamberBoss', 'phase_transition') || 
             "Section complete. Prepare for the next challenge.";
+          return dialogueText.replace(/Professor Ionix/g, "Ionix");
         }
       } else {
         // Standard phase dialogue
-        return NPCAssets.getRandomDialogue('ionChamberBoss', 'intro') || 
+        let dialogueText = NPCAssets.getRandomDialogue('ionChamberBoss', 'intro') || 
           "Welcome to your radiation metrology examination.";
+        return dialogueText.replace(/Professor Ionix/g, "Ionix");
       }
     }
     
     // Fallback dialogues if NPCAssets is not available
     const dialogues = [
-      "Welcome to your Radiation Metrology examination. I am Professor Ionix.",
+      "Welcome to your Radiation Metrology examination. I am Ionix.",
       "Now let's test your understanding of ion chamber principles.",
       "Excellent progress. This section will test your radiation detection knowledge."
     ];
@@ -1271,6 +1322,250 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     }
   },
   
+  // New function to render intro sequence
+  renderIntroSequence: function(nodeData, container) {
+    // Use ionChamber boss class for styling
+    const bossClass = 'ion-chamber-boss';
+    
+    // Create intro sequence HTML
+    container.innerHTML = `
+      <div class="boss-with-inventory">
+        <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in intro-sequence">
+          <div class="intro-container">
+            <div id="intro-boss-container" class="intro-boss-container"></div>
+            
+            <div id="intro-dialogue" class="boss-dialogue intro-dialogue">
+              <p>...</p>
+            </div>
+            
+            <button id="intro-continue" class="game-btn game-btn--primary intro-continue">
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Initialize the boss sprite animation for intro
+    this.initIntroAnimation();
+    
+    // Set up dialogue sequence
+    this.startIntroDialogue();
+    
+    // Bind continue button
+    this.bindAction('intro-continue', 'click', 'advanceIntro');
+  },
+
+  // Initialize the intro animation
+  initIntroAnimation: function() {
+    const container = document.getElementById('intro-boss-container');
+    if (!container) return;
+    
+    // Set up container styles
+    container.style.width = '140px';
+    container.style.height = '160px';
+    container.style.margin = '0 auto';
+    container.style.position = 'relative';
+    container.style.opacity = '0';
+    container.style.transform = 'scale(0.5)';
+    container.style.transition = 'opacity 1.5s ease, transform 1.5s ease';
+    
+    // Add delay and then fade in
+    setTimeout(() => {
+      container.style.opacity = '1';
+      container.style.transform = 'scale(1)';
+    }, 500);
+    
+    // Create canvas for animation (same code as before)
+    const canvas = document.createElement('canvas');
+    canvas.id = 'intro-ion-chamber-canvas';
+    canvas.width = 140;
+    canvas.height = 160;
+    canvas.style.display = 'block';
+    canvas.style.imageRendering = 'pixelated';
+    
+    // Add canvas to container
+    container.appendChild(canvas);
+    
+    // Add glow effect
+    const glowOverlay = document.createElement('div');
+    glowOverlay.className = 'ionix-glow-overlay';
+    glowOverlay.style.position = 'absolute';
+    glowOverlay.style.top = '-20px';
+    glowOverlay.style.left = '-20px';
+    glowOverlay.style.right = '-20px';
+    glowOverlay.style.bottom = '-20px';
+    glowOverlay.style.borderRadius = '50%';
+    glowOverlay.style.pointerEvents = 'none';
+    glowOverlay.style.zIndex = '-1';
+    glowOverlay.style.opacity = '0';
+    glowOverlay.style.transition = 'opacity 2s ease';
+    
+    // Add delay and then fade in glow
+    setTimeout(() => {
+      glowOverlay.style.opacity = '1';
+    }, 1500);
+    
+    container.appendChild(glowOverlay);
+    
+    // Load sprite sheet and animate (same animation code as before)
+    const spriteSheet = new Image();
+    spriteSheet.src = '/static/img/characters/ion_chamber/idle.png';
+    
+    // Animation variables
+    const frameCount = 8;
+    const frameWidth = 97;
+    const frameHeight = 108;
+    let currentFrame = 0;
+    let animationId = null;
+    
+    // Draw frame function
+    const drawFrame = () => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (spriteSheet.complete && spriteSheet.naturalHeight !== 0) {
+        const sourceY = currentFrame * frameHeight;
+        
+        ctx.drawImage(
+          spriteSheet,
+          0, sourceY,
+          frameWidth, frameHeight,
+          0, 0,
+          canvas.width, canvas.height
+        );
+      }
+    };
+    
+    // Animation loop
+    const animate = () => {
+      currentFrame = (currentFrame + 1) % frameCount;
+      drawFrame();
+      animationId = setTimeout(animate, 150);
+    };
+    
+    // Start animation when loaded
+    spriteSheet.onload = () => {
+      drawFrame();
+      animate();
+    };
+  },
+
+  // Start intro dialogue sequence
+  startIntroDialogue: function() {
+    const dialogueElement = document.getElementById('intro-dialogue');
+    const continueButton = document.getElementById('intro-continue');
+    
+    if (!dialogueElement || !continueButton) return;
+    
+    // Hide continue button initially
+    continueButton.style.display = 'none';
+    
+    // Initial dialogue element styling
+    dialogueElement.style.opacity = '0';
+    dialogueElement.style.transform = 'translateY(20px)';
+    dialogueElement.style.transition = 'opacity 1s ease, transform 1s ease';
+    
+    // Set up dialogue sequence
+    const dialogues = [
+      "...",
+      "Initializing radiation detection protocols...",
+      "I am Ionix, a sentient ion chamber.",
+      "Welcome to your Radiation Metrology examination.",
+      "Your knowledge will be measured with precision."
+    ];
+    
+    // Store dialogue index in UI state
+    this.setUiState('dialogueIndex', 0);
+    this.setUiState('dialogues', dialogues);
+    
+    // Show first dialogue after delay
+    setTimeout(() => {
+      dialogueElement.style.opacity = '1';
+      dialogueElement.style.transform = 'translateY(0)';
+      
+      // Show continue button after another delay
+      setTimeout(() => {
+        continueButton.style.display = 'block';
+        continueButton.style.opacity = '0';
+        continueButton.style.transform = 'translateY(10px)';
+        continueButton.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        
+        setTimeout(() => {
+          continueButton.style.opacity = '1';
+          continueButton.style.transform = 'translateY(0)';
+        }, 50);
+      }, 1000);
+    }, 2000);
+  },
+
+  // Advance intro dialogue
+  advanceIntro: function() {
+    const dialogueElement = document.getElementById('intro-dialogue');
+    const continueButton = document.getElementById('intro-continue');
+    
+    if (!dialogueElement || !continueButton) return;
+    
+    // Get current dialogue index
+    const currentIndex = this.getUiState('dialogueIndex');
+    const dialogues = this.getUiState('dialogues');
+    
+    // Advance to next dialogue
+    const nextIndex = currentIndex + 1;
+    
+    // Check if we've reached the end of the intro
+    if (nextIndex >= dialogues.length) {
+      // Complete intro and show main battle
+      this.completeIntro();
+      return;
+    }
+    
+    // Update the dialogue index
+    this.setUiState('dialogueIndex', nextIndex);
+    
+    // Hide dialogue and button
+    dialogueElement.style.opacity = '0';
+    dialogueElement.style.transform = 'translateY(-10px)';
+    continueButton.style.opacity = '0';
+    continueButton.style.transform = 'translateY(10px)';
+    
+    // Show next dialogue after transition
+    setTimeout(() => {
+      dialogueElement.querySelector('p').textContent = dialogues[nextIndex];
+      
+      // Fade in new dialogue
+      dialogueElement.style.opacity = '1';
+      dialogueElement.style.transform = 'translateY(0)';
+      
+      // Fade in continue button
+      setTimeout(() => {
+        continueButton.style.opacity = '1';
+        continueButton.style.transform = 'translateY(0)';
+      }, 500);
+    }, 500);
+  },
+
+  // Complete intro and transition to battle
+  completeIntro: function() {
+    // Mark intro as complete
+    this.introComplete = true;
+    this.setUiState('introComplete', true);
+    
+    // Fade out the intro container
+    const introContainer = document.querySelector('.intro-container');
+    if (introContainer) {
+      introContainer.style.opacity = '0';
+      introContainer.style.transition = 'opacity 0.8s ease';
+    }
+    
+    // After fade out, render the main battle
+    setTimeout(() => {
+      this.render(this.getCurrentNodeData(), document.getElementById('boss-container'));
+    }, 800);
+  },
+
   // Handle component actions
   handleAction: function(nodeData, action, data) {
     console.log(`Boss component handling action: ${action}`, data);
