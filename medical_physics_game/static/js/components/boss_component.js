@@ -1,25 +1,77 @@
-// simplified_boss_component.js - A streamlined boss encounter using sprites
+// improved_boss_component.js - Enhanced boss encounter with reliable asset loading
 
-const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
+const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
   // Initialize component and set up initial state
   initialize: function() {
-    console.log("Initializing simplified boss component");
+    console.log("Initializing improved boss component");
     
     // Initialize phase-specific UI state
     this.setUiState('currentPhase', 0);
     this.setUiState('phaseComplete', false);
     this.setUiState('selectedOption', null);
-    this.setUiState('timeRemaining', 90); // Reduced from 120
+    this.setUiState('timeRemaining', 90);
     this.setUiState('playerScore', 0);
     this.setUiState('phaseResults', []);
-    this.setUiState('bossAnimation', null); // Store animation ID
-    this.setUiState('bossState', 'idle'); // Current animation state
+    this.setUiState('bossAnimation', null);
+    this.setUiState('bossState', 'idle');
+    this.setUiState('loadedAssets', false);
     
     // Set up timer for exam pressure
     this._examTimer = null;
     
     // Register for events
     EventSystem.on('itemUsed', this.onItemUsed.bind(this));
+    
+    // Preload boss assets
+    this.preloadBossAssets();
+  },
+  
+  // Preload boss assets to check availability
+  preloadBossAssets: function() {
+    // Create hidden container for preloading
+    const preloadContainer = document.createElement('div');
+    preloadContainer.style.position = 'absolute';
+    preloadContainer.style.opacity = '0';
+    preloadContainer.style.pointerEvents = 'none';
+    preloadContainer.style.width = '1px';
+    preloadContainer.style.height = '1px';
+    preloadContainer.style.overflow = 'hidden';
+    preloadContainer.id = 'boss-preload-container';
+    document.body.appendChild(preloadContainer);
+    
+    // Try to load medical boss
+    const medicalImg = new Image();
+    medicalImg.onload = () => {
+      console.log("✅ Medical boss image loaded successfully");
+      this.setUiState('medicalBossLoaded', true);
+    };
+    medicalImg.onerror = () => {
+      console.warn("❌ Medical boss image failed to load");
+      this.setUiState('medicalBossLoaded', false);
+    };
+    medicalImg.src = '/static/img/characters/resident/idle.png'; // Default medical boss
+    
+    // Try to load ion chamber boss
+    const ionImg = new Image();
+    ionImg.onload = () => {
+      console.log("✅ Ion chamber boss image loaded successfully");
+      this.setUiState('ionChamberBossLoaded', true);
+    };
+    ionImg.onerror = () => {
+      console.warn("❌ Ion chamber boss image failed to load");
+      this.setUiState('ionChamberBossLoaded', false);
+    };
+    ionImg.src = '/static/img/characters/ion_chamber/idle.png';
+    
+    // Set a timeout to check loaded state
+    setTimeout(() => {
+      this.setUiState('loadedAssets', true);
+      
+      // Clean up preload container
+      if (preloadContainer && preloadContainer.parentNode) {
+        preloadContainer.parentNode.removeChild(preloadContainer);
+      }
+    }, 1000);
   },
   
   // Clean up when component is destroyed
@@ -76,7 +128,7 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
 
   // Main render function
   render: function(nodeData, container) {
-    console.log("Rendering simplified boss component", nodeData);
+    console.log("Rendering improved boss component", nodeData);
     
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
@@ -147,7 +199,7 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     `;
     
     // Initialize boss animation
-    this.initBossAnimation();
+    this.initBossAnimation(bossData.bossType);
     
     // Render the current exam phase
     this.renderExamPhase(bossData, currentPhase);
@@ -168,145 +220,159 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // In boss_component.js
-  initBossAnimation: function() {
+  // Improved boss animation initialization
+  initBossAnimation: function(bossType) {
     const container = document.getElementById('boss-sprite');
-    if (!container || typeof SpriteSystem === 'undefined') return;
+    if (!container) return;
     
     // Remove existing animation if any
     const existingAnimId = this.getUiState('bossAnimation');
-    if (existingAnimId) {
+    if (existingAnimId && typeof SpriteSystem !== 'undefined') {
       SpriteSystem.removeAnimation(existingAnimId);
     }
     
-    // Get boss data
-    const bossData = this.getBossData(this.getCurrentNodeData());
-    const bossType = bossData.bossType || 'medical';
+    // Determine boss type
+    bossType = bossType || 'medical';
     let animId = null;
+    let spriteCreated = false;
     
-    // Handle different boss types
+    // Handle boss animations or static fallbacks based on availability
     try {
-      if (bossType === 'ionChamber' && window.NPCAssets && 
-          NPCAssets.npcs.ionChamberBoss && 
-          NPCAssets.npcs.ionChamberBoss.animations) {
-        
-        console.log("Using Ion Chamber boss animations");
-        animId = SpriteSystem.createAnimation(
-          'ionChamberBoss',
-          container,
-          {
+      // 1. Try to use SpriteSystem with NPCAssets if available
+      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.createAnimation === 'function') {
+        if (bossType === 'ionChamber' && window.NPCAssets && NPCAssets.npcs.ionChamberBoss) {
+          console.log("Attempting to use Ion Chamber boss with sprite system");
+          animId = SpriteSystem.createAnimation('ionChamberBoss', container, {
             animation: 'idle',
             scale: 4,
             autoPlay: true,
             loop: true
+          });
+          
+          if (animId) {
+            spriteCreated = true;
+            console.log("✅ Ion Chamber boss animation created successfully");
           }
-        );
-      } else if (window.NPCAssets && 
-                NPCAssets.npcs.medicalBoss && 
-                NPCAssets.npcs.medicalBoss.animations) {
-        
-        console.log("Using standard Medical boss animations");
-        animId = SpriteSystem.createAnimation(
-          'medicalBoss',
-          container,
-          {
+        } else if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
+          console.log("Attempting to use Medical boss with sprite system");
+          animId = SpriteSystem.createAnimation('medicalBoss', container, {
             animation: 'idle',
             scale: 4,
             autoPlay: true,
             loop: true
+          });
+          
+          if (animId) {
+            spriteCreated = true;
+            console.log("✅ Medical boss animation created successfully");
           }
-        );
+        }
       }
       
-      // Fallback to static image if animation creation failed
-      if (!animId) {
-        console.warn("Boss animation creation failed, using static fallback");
+      // 2. If sprite creation failed, use static image based on boss type
+      if (!spriteCreated) {
+        // Choose image based on boss type and preload results
+        let imagePath;
+        if (bossType === 'ionChamber') {
+          // Choose based on what was successfully preloaded
+          if (this.getUiState('ionChamberBossLoaded')) {
+            imagePath = '/static/img/characters/ion_chamber/idle.png';
+          } else if (this.getUiState('medicalBossLoaded')) {
+            imagePath = '/static/img/characters/resident/idle.png';
+          } else {
+            // Default placeholder
+            imagePath = '/static/img/placeholder.png';
+          }
+        } else {
+          // Medical boss
+          if (this.getUiState('medicalBossLoaded')) {
+            imagePath = '/static/img/characters/resident/idle.png';
+          } else {
+            imagePath = '/static/img/placeholder.png';
+          }
+        }
+        
+        // Create static image with fallback
         container.innerHTML = `
-          <img src="/static/img/npcs/boss_${bossType}.png" 
+          <img src="${imagePath}" 
               alt="Boss" 
-              class="boss-static-img pixel-bobbing" 
+              class="boss-static-img boss-idle" 
               style="transform: scale(4);"
-              onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+              onerror="this.onerror=null; this.src='/static/img/placeholder.png';">
         `;
+        
+        console.log("⚠️ Using static image fallback for boss:", imagePath);
       }
     } catch (error) {
-      console.error("Error creating boss animation:", error);
-      // Fallback to static image on error
+      console.error("Error during boss animation initialization:", error);
+      
+      // Emergency fallback - ensures something is displayed
       container.innerHTML = `
-        <img src="/static/img/npcs/boss_default.png" 
-            alt="Boss" 
-            class="boss-static-img" 
-            style="transform: scale(4);"
-            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+        <div style="width: 96px; height: 108px; background-color: rgba(0,0,0,0.3); 
+                    display: flex; justify-content: center; align-items: center; 
+                    color: white; font-size: 20px; border-radius: 4px;">
+          ${bossType === 'ionChamber' ? '⚡' : '👨‍⚕️'}
+        </div>
       `;
     }
     
     // Store animation ID (might be null if using static image)
     this.setUiState('bossAnimation', animId);
     this.setUiState('bossState', 'idle');
-
-    // Debug info
-    console.group("Boss Animation Debug");
-    console.log("Boss type:", bossType);
-    
-    if (bossType === 'ionChamber' && window.NPCAssets) {
-      console.log("Ion Chamber NPC data:", NPCAssets.npcs.ionChamberBoss);
-      console.log("Sprite path:", NPCAssets.npcs.ionChamberBoss.spritePath);
-      console.log("Idle animation file:", NPCAssets.npcs.ionChamberBoss.animations.idle.file);
-      console.log("Full path:", NPCAssets.npcs.ionChamberBoss.spritePath + 
-                                NPCAssets.npcs.ionChamberBoss.animations.idle.file);
-      
-      // Test if the image exists
-      const img = new Image();
-      img.onload = () => console.log("Image loaded successfully ✅");
-      img.onerror = () => console.error("Image failed to load ❌");
-      img.src = NPCAssets.npcs.ionChamberBoss.spritePath + 
-                NPCAssets.npcs.ionChamberBoss.animations.idle.file;
-    }
-    console.groupEnd();
-
   },
   
-  // In boss_component.js
+  // Improved boss animation playing with better fallbacks
   playBossAnimation: function(animationName, returnToIdle = true) {
     const animId = this.getUiState('bossAnimation');
-    if (!animId || typeof SpriteSystem === 'undefined') {
-      // Handle static image "animations" if no sprite animation
-      const bossElement = document.querySelector('.boss-static-img');
-      if (bossElement) {
-        // Simple class-based animations for static images
-        bossElement.className = 'boss-static-img';
-        bossElement.classList.add(`boss-${animationName}`);
+    
+    // Handle sprite animations
+    if (animId && typeof SpriteSystem !== 'undefined') {
+      try {
+        // Don't restart same animation
+        if (this.getUiState('bossState') === animationName) return;
         
-        if (returnToIdle) {
-          setTimeout(() => {
-            bossElement.className = 'boss-static-img';
-            bossElement.classList.add('boss-idle');
-            this.setUiState('bossState', 'idle');
-          }, 1000); // Return to idle after 1 second
-        }
+        // Update state
+        this.setUiState('bossState', animationName);
+        
+        // Play animation
+        SpriteSystem.changeAnimation(
+          animId, 
+          animationName,
+          {
+            loop: !returnToIdle,
+            onComplete: returnToIdle ? () => {
+              SpriteSystem.changeAnimation(animId, 'idle');
+              this.setUiState('bossState', 'idle');
+            } : null
+          }
+        );
+        
+        return; // Success - exit function
+      } catch (error) {
+        console.error("Error playing boss animation, falling back to CSS:", error);
+        // Continue to static fallback
       }
-      return;
     }
     
-    // Don't restart same animation
-    if (this.getUiState('bossState') === animationName) return;
-    
-    // Update state
-    this.setUiState('bossState', animationName);
-    
-    // Play animation
-    SpriteSystem.changeAnimation(
-      animId, 
-      animationName,
-      {
-        loop: !returnToIdle,
-        onComplete: returnToIdle ? () => {
-          SpriteSystem.changeAnimation(animId, 'idle');
+    // Handle static image "animations" with CSS classes
+    const bossElement = document.querySelector('.boss-static-img');
+    if (bossElement) {
+      // Reset classes and add the new animation class
+      bossElement.className = 'boss-static-img';
+      bossElement.classList.add(`boss-${animationName}`);
+      
+      // Set timeout to return to idle if needed
+      if (returnToIdle) {
+        setTimeout(() => {
+          bossElement.className = 'boss-static-img';
+          bossElement.classList.add('boss-idle');
           this.setUiState('bossState', 'idle');
-        } : null
+        }, 1000);
       }
-    );
+      
+      // Update state
+      this.setUiState('bossState', animationName);
+    }
   },
 
   // Add inventory rendering function
@@ -380,29 +446,33 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     });
   },
 
-  // Helper function for item icons
+  // Helper function for item icons with better fallbacks
   getItemIcon: function(item) {
     // Check if the item has a custom icon path
     if (item.iconPath) {
-      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;">`;
+      return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" 
+              style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;"
+              onerror="this.onerror=null; this.src='/static/img/placeholder.png';">`;
     }
     
-    // Map common item types to icons with inline styling for better visibility
+    // Default icon based on item name patterns
     const itemName = (item.name || '').toLowerCase();
-    let iconClass = "box";
+    let iconFile = "Yellow Sticky Note.png";
     
+    // Map common item types to default icons
     if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
-      iconClass = "book";
+      iconFile = "Textbook.png";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconClass = "flask";
-    } else if (itemName.includes('shield') || itemName.includes('armor')) {
-      iconClass = "shield-alt";
-    } else if (itemName.includes('dosimeter') || itemName.includes('detector') || itemName.includes('badge')) {
-      iconClass = "id-badge";
+      iconFile = "Flask.png";
+    } else if (itemName.includes('badge') || itemName.includes('dosimeter')) {
+      iconFile = "Nametag.png";
+    } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
+      iconFile = "3D Glasses.png";
     }
     
-    // Use inline styling to ensure visibility
-    return `<i class="fas fa-${iconClass}" style="color: #5b8dd9; font-size: 24px;"></i>`;
+    return `<img src="/static/img/items/${iconFile}" alt="${item.name}" 
+            style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;"
+            onerror="this.onerror=null; this.src='/static/img/placeholder.png';">`;
   },
 
   // Use an item during the boss encounter
@@ -463,7 +533,7 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
       case "insight_boost":
         // Boost score
         const currentScore = this.getUiState('playerScore');
-        this.setUiState('playerScore', currentScore + (item.effect.value || 10));
+        this.setUiState('playerScore', currentScore + (parseInt(item.effect.value) || 10));
         
         // Update score display
         const scoreText = document.querySelector('.score-text');
@@ -477,8 +547,9 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
         return true;
         
       case "restore_life":
+      case "heal":
         // Add time
-        const timeBonus = item.effect.value || 15;
+        const timeBonus = parseInt(item.effect.value) || 15;
         const currentTime = this.getUiState('timeRemaining');
         this.setUiState('timeRemaining', currentTime + timeBonus);
         
@@ -507,8 +578,7 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
         return false;
         
       default:
-        // Generic effect
-        // Change boss animation
+        // Generic effect - just play animation
         this.playBossAnimation('ability');
         return true;
     }
@@ -596,7 +666,6 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
         if (phaseIndex >= this.getExamPhases(bossData).length - 1) {
           // Final completion dialogue
           const success = this.getUiState('playerScore') >= 70;
-          const key = success ? 'completion.success' : 'completion.failure';
           
           // Try to get dialogue from NPCAssets
           const dialogue = NPCAssets.getRandomDialogue('ionChamberBoss', 'completion');
@@ -941,9 +1010,21 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
       clearInterval(this._examTimer);
     }
     
+    // If phase is already complete, don't start timer
+    if (this.getUiState('phaseComplete')) {
+      return;
+    }
+    
     // Set up new timer
     this._examTimer = setInterval(() => {
       let timeRemaining = this.getUiState('timeRemaining');
+      
+      // If phase is complete, stop timer
+      if (this.getUiState('phaseComplete')) {
+        clearInterval(this._examTimer);
+        this._examTimer = null;
+        return;
+      }
       
       // Reduce time
       timeRemaining -= 1;
@@ -1029,13 +1110,29 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
   
   // Get current node data
   getCurrentNodeData: function() {
-    return GameState && GameState.data ? 
-      GameState.getNodeById(GameState.data.currentNode) : null;
+    return this.getUiState('currentNodeData') || 
+           (window.GameState && GameState.data ? 
+            GameState.getNodeById(GameState.data.currentNode) : null);
   },
   
   // Get exam phases from boss data
   getExamPhases: function(bossData) {
-    return bossData && bossData.phases ? bossData.phases : [];
+    if (!bossData) return [];
+    
+    // Try to get specific phases
+    if (bossData.phases && Array.isArray(bossData.phases)) {
+      return bossData.phases;
+    }
+    
+    // Fallback to creating a single phase from the question
+    if (bossData.question) {
+      return [{
+        title: bossData.title || 'Knowledge Assessment',
+        questions: [bossData.question]
+      }];
+    }
+    
+    return [];
   },
   
   // Get score text based on percentage
@@ -1051,6 +1148,9 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
   // Get boss data from node data with Ion Chamber support
   getBossData: function(nodeData) {
     if (!nodeData) return { title: 'Medical Physics Examination', phases: [] };
+    
+    // Store current node data for later reference
+    this.setUiState('currentNodeData', nodeData);
     
     // Check if this is specifically the Ion Chamber boss
     if (nodeData.bossType === 'ionChamber' || 
@@ -1102,6 +1202,8 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
       this.showToast(message, type);
     } else if (typeof this.showFloatingText === 'function') {
       this.showFloatingText(message, type);
+    } else if (window.UiUtils && typeof UiUtils.showToast === 'function') {
+      UiUtils.showToast(message, type);
     } else {
       console.log(`Feedback (${type}): ${message}`);
     }
@@ -1139,5 +1241,5 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
-  NodeComponents.register('boss', SimplifiedBossComponent);
+  NodeComponents.register('boss', ImprovedBossComponent);
 }
