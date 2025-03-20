@@ -1355,168 +1355,45 @@ const AnimationSystem = {
         }
     },
     
-    // NEW IMPLEMENTATION: Set up spritesheet animation
+    // Replace your _setupSpritesheet function with this simplified version
     _setupSpritesheet: function(animation, animData) {
-        console.log("SetupSpritesheet - beginning", animation, animData);
+        console.log("Using emergency direct image approach");
         
         try {
-            // Validate input parameters
-            if (!animation || !animData) {
-                throw new Error("Invalid animation or animData parameters");
-            }
-            
-            // Clear container first
-            if (!animation.container) {
-                throw new Error("Animation container is undefined");
-            }
+            // Clear container
             animation.container.innerHTML = '';
             
-            // Get spritesheet path and full URL
+            // Get image path
             const characterId = animation.characterId;
             const animationName = animation.currentAnimation;
+            const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
             
-            if (!characterId || !animationName) {
-                throw new Error("Missing characterId or animationName");
-            }
+            // Create a direct image element instead of background
+            const imgElement = document.createElement('img');
+            imgElement.src = imagePath;
+            imgElement.className = 'character-sprite';
+            imgElement.style.width = 'auto';
+            imgElement.style.height = 'auto';
+            imgElement.style.maxWidth = '100%';
+            imgElement.style.maxHeight = '100%';
+            imgElement.style.display = 'block';
+            imgElement.style.margin = '0 auto';
+            imgElement.style.border = '2px solid red'; // Make it obvious
             
-            const spritesheetPath = `/static/img/characters/${characterId}/${animationName}.png`;
-            console.log("Attempting to load sprite from:", spritesheetPath);
-            
-            // Create sprite element with proper sizing
-            console.log("About to create sprite element");
-            const sprite = document.createElement('div');
-            console.log("Sprite element created:", sprite);
-            
-            sprite.className = 'character-sprite';
-            console.log("Added class to sprite");
-            
-            // Handle aspect ratio for wide sprites
-            const aspectRatio = animData.aspectRatio || 1;
-            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-                sprite.classList.add('wide-sprite');
-                console.log("Added wide-sprite class for adaptive width");
-                
-                // Handle parent container overflow
-                const avatarContainer = document.getElementById('character-avatar');
-                if (avatarContainer) {
-                    avatarContainer.classList.add('ability-mode');
-                    animation.avatarContainer = avatarContainer;
-                    console.log("Set avatar container to ability mode");
-                }
-            }
-            
-            // CRITICAL FIX: Set width proportional to frames for proper segmentation
-            sprite.style.width = `${animData.frames * 100}%`;
-            sprite.style.height = '100%';
-            console.log(`Set sprite dimensions: width=${animData.frames * 100}%, height=100%`);
-            
-            // Set spritesheet background
-            sprite.style.backgroundImage = `url(${spritesheetPath})`;
-            sprite.style.backgroundRepeat = 'repeat-x';
-            sprite.style.backgroundSize = `${animData.frames * 100}% 100%`;
-            console.log("Set sprite background properties");
-            
-            // Apply scale transform
+            // Apply scale
             const scale = animation.options.scale || 1;
-            sprite.style.transform = `scale(${scale})`;
-            console.log(`Applied scale: ${scale}`);
+            imgElement.style.transform = `scale(${scale})`;
             
-            // Add debug frame counter if in debug mode
-            if (this.settings && this.settings.debugMode) {
-                const frameCounter = document.createElement('div');
-                frameCounter.id = 'sprite-frame-counter';
-                frameCounter.style.position = 'absolute';
-                frameCounter.style.bottom = '5px';
-                frameCounter.style.right = '5px';
-                frameCounter.style.background = 'rgba(0,0,0,0.7)';
-                frameCounter.style.color = '#5b8dd9';
-                frameCounter.style.padding = '2px 5px';
-                frameCounter.style.borderRadius = '3px';
-                frameCounter.style.fontSize = '10px';
-                frameCounter.textContent = `1/${animData.frames}`;
-                animation.container.appendChild(frameCounter);
-                animation.frameCounter = frameCounter;
-                console.log("Added debug frame counter");
-            }
+            // Add to container
+            animation.container.appendChild(imgElement);
             
-            // Test image loading before adding to DOM
-            const testImg = new Image();
-            testImg.onload = () => {
-                console.log("✅ Image loaded successfully:", spritesheetPath);
-                animation.container.appendChild(sprite);
-                console.log("Sprite added to container");
-            };
-            testImg.onerror = () => {
-                console.error("❌ Image failed to load:", spritesheetPath);
-                // Add visual error indicator
-                animation.container.innerHTML = `
-                    <div style="color: red; padding: 10px; text-align: center;">
-                        <p>Error loading image:</p>
-                        <p>${spritesheetPath}</p>
-                    </div>
-                `;
-                throw new Error(`Failed to load sprite image: ${spritesheetPath}`);
-            };
-            testImg.src = spritesheetPath;
+            // Store reference
+            animation.sprite = imgElement;
+            animation.frames = 1; // Force single frame mode
             
-            // Add sprite to container immediately (don't wait for image load)
-            // Comment this out if you want to use the async image loading approach above
-            animation.container.appendChild(sprite);
-            console.log("Sprite added to container synchronously");
-            
-            // Store sprite reference
-            animation.sprite = sprite;
-            animation.frames = animData.frames;
-            animation.frameSpeed = animData.speed || 200;
-            console.log("Stored sprite reference and animation properties");
-            
-            // Set initial frame
-            animation.frameIndex = 0;
-            this._updateSpritePosition(animation, 0);
-            console.log("Set initial frame position");
-            
-            // Start animation loop for multi-frame animations
-            if (animData.frames > 1) {
-                console.log("Starting animation loop for multi-frame animation");
-                this._startAnimationLoop(animation);
-            } else {
-                console.log("Single frame animation - no animation loop needed");
-            }
-            
-            // Make sure initial frame is displayed
-            if (typeof DebugSystem !== 'undefined') {
-                DebugSystem.updateFrameCounter(1, animData.frames);
-                DebugSystem.updateActiveFrame(0);
-            }
-            
-            // DEBUGGING - Add visible indicator for sprite position
-            const debugIndicator = document.createElement('div');
-            debugIndicator.style.position = 'absolute';
-            debugIndicator.style.top = '0';
-            debugIndicator.style.left = '0';
-            debugIndicator.style.width = '10px';
-            debugIndicator.style.height = '10px';
-            debugIndicator.style.backgroundColor = 'red';
-            debugIndicator.style.zIndex = '100';
-            sprite.appendChild(debugIndicator);
-            
-            console.log("Spritesheet setup complete");
             return true;
-            
         } catch (error) {
-            console.error("Error setting up spritesheet:", error);
-            if (animation && animation.container) {
-                animation.container.innerHTML = `
-                    <div style="color: red; padding: 10px; border: 1px solid red; background: rgba(255,0,0,0.1);">
-                        <strong>Error:</strong> ${error.message}<br>
-                        <small>Check console for details</small>
-                    </div>
-                `;
-            }
-            // Still define the sprite property to avoid further errors
-            if (animation) {
-                animation.sprite = null;
-            }
+            console.error("Emergency image approach failed:", error);
             return false;
         }
     },
