@@ -20,17 +20,20 @@ window.CharacterAssets = {
         walking: {
           file: "walking.png", 
           frames: 10, 
+          width: 97,    // Specify the exact width
           speed: 150
         },
         ability: {
           file: "ability.png", 
           frames: 18, 
+          width: 97,    // Specify the exact width
           speed: 150
         },
         // New wide sprite special ability animation
         specialAbility: {
           file: "special_ability.png", 
           frames: 9, 
+          width: 97,    // Specify the exact width
           speed: 150,
         }
       },
