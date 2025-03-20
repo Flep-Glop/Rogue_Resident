@@ -132,6 +132,7 @@
 │       │   ├── map_renderer.js
 │       │   ├── node_interaction.js
 │       │   └── special_interactions.js
+│       ├── advanced_sprites.js
 │       ├── api-client.js
 │       ├── character_assets.js
 │       ├── character_select.js
@@ -167,4 +168,4 @@
 ├── update_weights.py
 └── weight_manager.py
 
-16 directories, 151 files
+16 directories, 152 files
