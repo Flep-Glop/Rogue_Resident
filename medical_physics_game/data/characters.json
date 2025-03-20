@@ -2,8 +2,8 @@
   "characters": [
     {
       "id": "resident",
-      "name": "Medical Physics Resident",
-      "description": "A new resident with balanced stats and a focus on learning.",
+      "name": "Resident",
+      "description": "A new resident.",
       "ascii_art": "  O\n /|\\\n / \\",
       "starting_stats": {
         "level": 1,
