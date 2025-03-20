@@ -95,7 +95,7 @@ const CharacterPanel = {
     this.initializeCharacterAnimation(characterId);
   },
   
-  // Initialize character animation
+  // Update this function in CharacterPanel.js
   initializeCharacterAnimation: function(characterId) {
     // Get character container
     const spriteContainer = document.getElementById('character-avatar-sprite');
@@ -106,15 +106,30 @@ const CharacterPanel = {
       if (typeof SpriteSystem !== 'undefined' && 
           typeof SpriteSystem.removeAnimation === 'function') {
         SpriteSystem.removeAnimation(this.state.characterAnimId);
-      } else if (typeof CharacterAnimation !== 'undefined' && 
-                typeof CharacterAnimation.removeAnimation === 'function') {
-        CharacterAnimation.removeAnimation(this.state.characterAnimId);
       }
       this.state.characterAnimId = null;
     }
     
-    // Create new animation only for resident character
-    if (characterId === 'resident' && typeof SpriteSystem !== 'undefined') {
+    // For player characters, use static images directly
+    const useStaticImage = ['resident', 'physicist', 'qa_specialist', 'debug_mode'].includes(characterId);
+    
+    if (useStaticImage) {
+      // Get image path
+      const imagePath = this.getCharacterImagePath(characterId);
+      
+      // Create static image element
+      spriteContainer.innerHTML = `
+        <img src="${imagePath}" alt="${characterId}" 
+            class="pixel-character-img pixel-bobbing" 
+            style="transform: scale(3);"
+            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+      `;
+      
+      this.applyAnimations(); // Apply CSS animations for static images
+      this.state.animationActive = true;
+    } 
+    // For NPCs or special characters, use sprite system
+    else if (typeof SpriteSystem !== 'undefined') {
       this.state.characterAnimId = SpriteSystem.createAnimation(
         characterId,
         spriteContainer,
@@ -126,16 +141,6 @@ const CharacterPanel = {
       );
       console.log(`Created character panel animation with ID: ${this.state.characterAnimId}`);
       this.state.animationActive = true;
-    } else {
-      // Use static image for other characters
-      const imagePath = this.getCharacterImagePath(characterId);
-      spriteContainer.innerHTML = `
-          <img src="${imagePath}" alt="${characterId}" 
-               class="pixel-character-img pixel-bobbing" 
-               style="transform: scale(3);"
-               onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
-      `;
-      this.applyAnimations(); // Apply CSS animations for static images
     }
   },
   

@@ -1008,6 +1008,276 @@ SpriteSystem.changeAnimation = function(id, animationName, options = {}) {
   
   return true;
 };
+
+/**
+ * Create a character animation (internal method)
+ * @private
+ */
+SpriteSystem._createCharacterAnimation = function(characterId, container, options = {}) {
+  // Get character data
+  if (!window.CharacterAssets) {
+    console.error('CharacterAssets not available');
+    return null;
+  }
+  
+  const character = CharacterAssets.getCharacter(characterId);
+  if (!character) {
+    console.error(`Character not found: ${characterId}`);
+    return null;
+  }
+  
+  // For regular characters (resident, physicist, qa_specialist, debug_mode), use static images
+  // Only apply animations to specific types that need them
+  const useStaticImage = ['resident', 'physicist', 'qa_specialist', 'debug_mode'].includes(characterId);
+  
+  if (useStaticImage) {
+    // Create a static image instead of animated sprite
+    if (typeof container === 'string') {
+      container = document.querySelector(container);
+    }
+    
+    if (!container) {
+      console.error('Container element not found');
+      return null;
+    }
+    
+    // Get the image path
+    const imagePath = character.imagePath || `/static/img/characters/${characterId}.png`;
+    
+    // Create the static image element with bobbing animation
+    container.innerHTML = `
+      <img src="${imagePath}" 
+           alt="${characterId}" 
+           class="pixel-character-img pixel-bobbing" 
+           style="transform: scale(${options.scale || 3});"
+           onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+    `;
+    
+    // Generate unique ID
+    const id = `static_${characterId}_${this.nextId++}`;
+    
+    // Create a dummy animator to maintain API compatibility
+    const dummyAnimator = {
+      isPlaying: true,
+      play: function() { return true; },
+      pause: function() { return true; },
+      stop: function() { return true; },
+      goToFrame: function() { return true; },
+      setSpeed: function() { return true; },
+      setScale: function(scale) {
+        const img = container.querySelector('img');
+        if (img) img.style.transform = `scale(${scale})`;
+        return true;
+      },
+      destroy: function() {
+        if (container) container.innerHTML = '';
+        return true;
+      },
+      addEventListener: function() { return true; },
+      removeEventListener: function() { return true; }
+    };
+    
+    // Store animation data
+    this.animations[id] = {
+      id,
+      animator: dummyAnimator,
+      entityType: 'character',
+      entityId: characterId,
+      currentAnimation: 'static',
+      container,
+      isStatic: true
+    };
+    
+    return id;
+  }
+  
+  // For non-static characters, continue with regular sprite animation
+  const animName = options.animation || 'idle';
+  
+  // Get animation data
+  if (!character.animations || !character.animations[animName]) {
+    console.error(`Animation "${animName}" not found for character ${characterId}`);
+    return null;
+  }
+  
+  const animData = character.animations[animName];
+  
+  // Create animator instance
+  const animator = new CanvasSpriteAnimator({
+    imagePath: character.spritePath + animData.file,
+    frameCount: animData.frames || 1,
+    frameWidth: animData.width || 96,
+    frameHeight: animData.height 
+      ? (animData.height / animData.frames)
+      : 96,
+    fps: animData.speed 
+      ? (1000 / animData.speed) 
+      : 10,
+    scale: options.scale || 3,
+    loop: options.loop !== undefined ? options.loop : true,
+    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
+    layout: animData.layout || 'vertical',
+    columns: animData.columns || 1,
+    rows: animData.rows || 1,
+    offsetX: animData.offsetX || 0,
+    offsetY: animData.offsetY || 0,
+    debug: options.debug || false
+  });
+  
+  // Mount to container
+  const mounted = animator.mount(container);
+  if (!mounted) {
+    console.error('Failed to mount animator to container');
+    return null;
+  }
+  
+  // Generate unique ID
+  const id = `character_${characterId}_${this.nextId++}`;
+  
+  // Store animation data
+  this.animations[id] = {
+    id,
+    animator,
+    entityType: 'character',
+    entityId: characterId,
+    currentAnimation: animName,
+    container,
+    isStatic: false
+  };
+  
+  // Set up event handlers
+  if (options.onComplete) {
+    animator.addEventListener('complete', options.onComplete);
+  }
+  
+  if (options.onFrameChange) {
+    animator.addEventListener('framechange', options.onFrameChange);
+  }
+  
+  return id;
+};
+
+/**
+ * Change to a different animation - updated to handle NPCs and static images
+ * @param {string} id Animation ID
+ * @param {string} animationName New animation name
+ * @param {Object} options Animation options
+ * @returns {boolean} Success
+ */
+SpriteSystem.changeAnimation = function(id, animationName, options = {}) {
+  const anim = this.animations[id];
+  if (!anim) {
+    console.error(`Animation not found: ${id}`);
+    return false;
+  }
+  
+  // If this is a static image, do nothing unless we're changing scale
+  if (anim.isStatic) {
+    if (options.scale) {
+      anim.animator.setScale(options.scale);
+    }
+    return true;
+  }
+  
+  // Check entity type and get appropriate data
+  let entityData, animations;
+  
+  if (anim.entityType === 'npc' && window.NPCAssets) {
+    entityData = NPCAssets.getNPC(anim.entityId);
+    if (!entityData) {
+      console.error(`NPC not found: ${anim.entityId}`);
+      return false;
+    }
+    animations = entityData.animations;
+  } else {
+    // Assume character
+    if (!window.CharacterAssets) {
+      console.error('CharacterAssets not available');
+      return false;
+    }
+    entityData = CharacterAssets.getCharacter(anim.entityId);
+    if (!entityData) {
+      console.error(`Character not found: ${anim.entityId}`);
+      return false;
+    }
+    animations = entityData.animations;
+  }
+  
+  // Get animation data
+  if (!animations || !animations[animationName]) {
+    console.error(`Animation "${animationName}" not found for ${anim.entityType} ${anim.entityId}`);
+    return false;
+  }
+  
+  const animData = animations[animationName];
+  
+  // Clean up old animator
+  const wasPlaying = anim.animator.isPlaying;
+  anim.animator.destroy();
+  
+  // Create new animator
+  const animator = new CanvasSpriteAnimator({
+    imagePath: entityData.spritePath + animData.file,
+    frameCount: animData.frames || 1,
+    frameWidth: animData.width || 96,
+    frameHeight: animData.height 
+      ? (animData.height / animData.frames)
+      : 96,
+    fps: animData.speed 
+      ? (1000 / animData.speed) 
+      : 10,
+    scale: options.scale || anim.animator.scale,
+    loop: options.loop !== undefined ? options.loop : anim.animator.loop,
+    autoPlay: options.autoPlay !== undefined ? options.autoPlay : wasPlaying,
+    layout: animData.layout || 'vertical',
+    columns: animData.columns || 1,
+    rows: animData.rows || 1,
+    offsetX: animData.offsetX || 0,
+    offsetY: animData.offsetY || 0,
+    debug: options.debug || anim.animator.debug
+  });
+  
+  // Mount to container
+  animator.mount(anim.container);
+  
+  // Update animation data
+  anim.animator = animator;
+  anim.currentAnimation = animationName;
+  
+  // Set up event handlers
+  if (options.onComplete) {
+    animator.addEventListener('complete', options.onComplete);
+  }
+  
+  if (options.onFrameChange) {
+    animator.addEventListener('framechange', options.onFrameChange);
+  }
+  
+  return true;
+};
+
+/**
+ * Remove animation and clean up resources - updated for static images
+ * @param {string} id Animation ID
+ * @returns {boolean} Success
+ */
+SpriteSystem.removeAnimation = function(id) {
+  const anim = this.animations[id];
+  if (!anim) {
+    console.error(`Animation not found: ${id}`);
+    return false;
+  }
+  
+  // Clean up animator (works for both static and animated)
+  anim.animator.destroy();
+  
+  // Remove from tracking
+  delete this.animations[id];
+  
+  return true;
+};
+
+
   // Initialize on script load
   if (typeof window !== 'undefined') {
     window.CanvasSpriteAnimator = CanvasSpriteAnimator;
