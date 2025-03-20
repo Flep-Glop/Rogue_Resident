@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Vertical Sprite Animation Test</title>
+    <title>Universal Sprite Animation Test</title>
     <style>
         body {
             background-color: #1e1e2a;
@@ -23,15 +23,25 @@
             background-color: #292936;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
+            max-width: 800px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
         }
         
         .sprite-container-wrapper {
-            margin: 20px auto;
+            margin: 10px;
             background-color: rgba(0, 0, 0, 0.3);
             padding: 20px;
             border-radius: 8px;
             display: inline-block;
+            position: relative;
+        }
+        
+        .sprite-container-wrapper h3 {
+            margin-top: 0;
+            color: #5b8dd9;
         }
         
         .controls {
@@ -39,6 +49,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         button {
@@ -55,87 +66,244 @@
             background-color: #4a7cc7;
         }
         
-        .info {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #a7adb5;
+        button:disabled {
+            background-color: #3a5c97;
+            cursor: not-allowed;
+        }
+        
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #3d4c60;
+            color: white;
+            border: 1px solid #5b8dd9;
+        }
+        
+        .animation-type {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            background-color: rgba(91, 141, 217, 0.5);
+            padding: 2px 5px;
+            border-radius: 3px;
         }
     </style>
-    <!-- Important: No external CSS needed, styles are injected by JS -->
 </head>
 <body>
-    <h1>Fixed Vertical Sprite Animation Test</h1>
+    <h1>Universal Sprite Animation Test</h1>
     
     <div class="sprite-demo">
-        <h2>Idle Animation</h2>
+        <!-- Vertical Layout -->
         <div class="sprite-container-wrapper">
-            <div id="sprite-container"></div>
+            <div class="animation-type">Vertical</div>
+            <h3>Vertical Strip</h3>
+            <div id="vertical-sprite"></div>
+            <div class="controls">
+                <button id="vertical-play">Play</button>
+                <button id="vertical-pause">Pause</button>
+                <button id="vertical-stop">Reset</button>
+            </div>
         </div>
         
-        <div class="controls">
-            <button id="play-btn">Play</button>
-            <button id="pause-btn">Pause</button>
-            <button id="stop-btn">Stop</button>
-            <button id="scale-up-btn">Scale +</button>
-            <button id="scale-down-btn">Scale -</button>
+        <!-- Horizontal Layout -->
+        <div class="sprite-container-wrapper">
+            <div class="animation-type">Horizontal</div>
+            <h3>Horizontal Strip</h3>
+            <div id="horizontal-sprite"></div>
+            <div class="controls">
+                <button id="horizontal-play">Play</button>
+                <button id="horizontal-pause">Pause</button>
+                <button id="horizontal-stop">Reset</button>
+            </div>
         </div>
         
-        <div class="info">
-            <p>97x864 pixel sprite with 8 vertical frames</p>
-            <p id="frame-info">Current Frame: 0</p>
+        <!-- Grid Layout -->
+        <div class="sprite-container-wrapper">
+            <div class="animation-type">Grid</div>
+            <h3>Grid Layout</h3>
+            <div id="grid-sprite"></div>
+            <div class="controls">
+                <button id="grid-play">Play</button>
+                <button id="grid-pause">Pause</button>
+                <button id="grid-stop">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Sequence Layout -->
+        <div class="sprite-container-wrapper">
+            <div class="animation-type">Sequence</div>
+            <h3>Image Sequence</h3>
+            <div id="sequence-sprite"></div>
+            <div class="controls">
+                <button id="sequence-play">Play</button>
+                <button id="sequence-pause">Pause</button>
+                <button id="sequence-stop">Reset</button>
+            </div>
         </div>
     </div>
     
-    <script src="/static/js/fixed_sprite.js"></script>
+    <div class="controls">
+        <label>
+            Character:
+            <select id="character-select">
+                <option value="resident">Resident</option>
+                <option value="physicist">Physicist</option>
+                <option value="qa_specialist">QA Specialist</option>
+            </select>
+        </label>
+        
+        <label>
+            Animation:
+            <select id="animation-select">
+                <option value="idle">Idle</option>
+                <option value="walking">Walking</option>
+                <option value="ability">Ability</option>
+            </select>
+        </label>
+        
+        <button id="update-animations">Update All</button>
+        <button id="scale-up">Scale +</button>
+        <button id="scale-down">Scale -</button>
+    </div>
+    
+    <!-- Load our scripts -->
+    <script src="character_assets.js"></script>
+    <script src="CharacterConfig.js"></script>
+    <script src="UniversalSpriteAnimator.js"></script>
+    <script src="CharacterAnimation.js"></script>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create sprite animator using our improved version
-            const animator = new FixedVerticalSpriteAnimator({
-                imagePath: '/static/img/characters/resident/idle.png', // Make sure this path exists
+        // Sample animations for demonstration
+        const sampleAnimations = {
+            vertical: {
+                layout: 'vertical',
+                imagePath: '/static/img/characters/resident/idle.png',
+                frameWidth: 96,
+                frameHeight: 108,
                 frameCount: 8,
-                frameWidth: 97,
-                frameHeight: 108, // 864 ÷ 8 = 108
-                fps: 10,
-                scale: 2,
-                autoPlay: false,
-                loop: true,
-                debug: true // Enable debug mode for console output
+                fps: 10
+            },
+            horizontal: {
+                layout: 'horizontal',
+                imagePath: '/static/img/characters/resident/walking_horizontal.png',
+                frameWidth: 96,
+                frameHeight: 96,
+                frameCount: 4,
+                fps: 8
+            },
+            grid: {
+                layout: 'grid',
+                imagePath: '/static/img/characters/resident/ability_grid.png',
+                frameWidth: 48,
+                frameHeight: 48,
+                frameCount: 6,
+                columns: 3,
+                rows: 2,
+                fps: 10
+            },
+            sequence: {
+                layout: 'sequence',
+                imagePaths: [
+                    '/static/img/characters/resident/frame_00.png',
+                    '/static/img/characters/resident/frame_01.png',
+                    '/static/img/characters/resident/frame_02.png',
+                    '/static/img/characters/resident/frame_03.png'
+                ],
+                frameWidth: 96,
+                frameHeight: 96,
+                frameCount: 4,
+                fps: 5
+            }
+        };
+        
+        // Animation instances
+        const animators = {};
+        let currentScale = 3;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize animations
+            initializeAnimations();
+            
+            // Set up event listeners for controls
+            setupEventListeners();
+        });
+        
+        function initializeAnimations() {
+            // Create vertical animator
+            animators.vertical = new UniversalSpriteAnimator(sampleAnimations.vertical);
+            animators.vertical.mount('#vertical-sprite');
+            
+            // Create horizontal animator
+            animators.horizontal = new UniversalSpriteAnimator(sampleAnimations.horizontal);
+            animators.horizontal.mount('#horizontal-sprite');
+            
+            // Create grid animator
+            animators.grid = new UniversalSpriteAnimator(sampleAnimations.grid);
+            animators.grid.mount('#grid-sprite');
+            
+            // Create sequence animator
+            animators.sequence = new UniversalSpriteAnimator(sampleAnimations.sequence);
+            animators.sequence.mount('#sequence-sprite');
+            
+            // Set scale for all
+            updateAllScales(currentScale);
+        }
+        
+        function setupEventListeners() {
+            // Play buttons
+            document.getElementById('vertical-play').addEventListener('click', () => animators.vertical.play());
+            document.getElementById('horizontal-play').addEventListener('click', () => animators.horizontal.play());
+            document.getElementById('grid-play').addEventListener('click', () => animators.grid.play());
+            document.getElementById('sequence-play').addEventListener('click', () => animators.sequence.play());
+            
+            // Pause buttons
+            document.getElementById('vertical-pause').addEventListener('click', () => animators.vertical.pause());
+            document.getElementById('horizontal-pause').addEventListener('click', () => animators.horizontal.pause());
+            document.getElementById('grid-pause').addEventListener('click', () => animators.grid.pause());
+            document.getElementById('sequence-pause').addEventListener('click', () => animators.sequence.pause());
+            
+            // Stop buttons
+            document.getElementById('vertical-stop').addEventListener('click', () => animators.vertical.stop());
+            document.getElementById('horizontal-stop').addEventListener('click', () => animators.horizontal.stop());
+            document.getElementById('grid-stop').addEventListener('click', () => animators.grid.stop());
+            document.getElementById('sequence-stop').addEventListener('click', () => animators.sequence.stop());
+            
+            // Scale buttons
+            document.getElementById('scale-up').addEventListener('click', () => {
+                currentScale += 0.5;
+                updateAllScales(currentScale);
             });
             
-            // Mount to container
-            animator.mount('#sprite-container');
-            
-            // Set up control buttons
-            document.getElementById('play-btn').addEventListener('click', function() {
-                animator.play();
-            });
-            
-            document.getElementById('pause-btn').addEventListener('click', function() {
-                animator.pause();
-            });
-            
-            document.getElementById('stop-btn').addEventListener('click', function() {
-                animator.stop();
-            });
-            
-            document.getElementById('scale-up-btn').addEventListener('click', function() {
-                animator.setScale(animator.scale + 0.5);
-            });
-            
-            document.getElementById('scale-down-btn').addEventListener('click', function() {
-                if (animator.scale > 0.5) {
-                    animator.setScale(animator.scale - 0.5);
+            document.getElementById('scale-down').addEventListener('click', () => {
+                if (currentScale > 0.5) {
+                    currentScale -= 0.5;
+                    updateAllScales(currentScale);
                 }
             });
             
-            // Update frame info display
-            function updateFrameInfo() {
-                document.getElementById('frame-info').textContent = `Current Frame: ${animator.currentFrame}`;
-                requestAnimationFrame(updateFrameInfo);
-            }
+            // Update animations button
+            document.getElementById('update-animations').addEventListener('click', updateAnimationsFromSelects);
+        }
+        
+        function updateAllScales(scale) {
+            Object.values(animators).forEach(animator => {
+                animator.setScale(scale);
+            });
+        }
+        
+        function updateAnimationsFromSelects() {
+            const character = document.getElementById('character-select').value;
+            const animation = document.getElementById('animation-select').value;
             
-            updateFrameInfo();
-        });
+            // In a real implementation, we would update the animations using CharacterAnimation
+            // For this demo, we'll just log the selection
+            console.log(`Selected character: ${character}, animation: ${animation}`);
+            alert(`Selected ${animation} animation for ${character} character`);
+            
+            // TODO: In a real implementation with actual assets, you would update the sprites:
+            // CharacterAnimation.changeAnimation(animationId, animation);
+        }
     </script>
 </body>
 </html>
