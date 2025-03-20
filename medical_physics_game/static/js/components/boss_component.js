@@ -244,6 +244,27 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     // Store animation ID (might be null if using static image)
     this.setUiState('bossAnimation', animId);
     this.setUiState('bossState', 'idle');
+
+    // Debug info
+    console.group("Boss Animation Debug");
+    console.log("Boss type:", bossType);
+    
+    if (bossType === 'ionChamber' && window.NPCAssets) {
+      console.log("Ion Chamber NPC data:", NPCAssets.npcs.ionChamberBoss);
+      console.log("Sprite path:", NPCAssets.npcs.ionChamberBoss.spritePath);
+      console.log("Idle animation file:", NPCAssets.npcs.ionChamberBoss.animations.idle.file);
+      console.log("Full path:", NPCAssets.npcs.ionChamberBoss.spritePath + 
+                                NPCAssets.npcs.ionChamberBoss.animations.idle.file);
+      
+      // Test if the image exists
+      const img = new Image();
+      img.onload = () => console.log("Image loaded successfully ✅");
+      img.onerror = () => console.error("Image failed to load ❌");
+      img.src = NPCAssets.npcs.ionChamberBoss.spritePath + 
+                NPCAssets.npcs.ionChamberBoss.animations.idle.file;
+    }
+    console.groupEnd();
+
   },
   
   // In boss_component.js
