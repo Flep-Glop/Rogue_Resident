@@ -1355,7 +1355,6 @@ const AnimationSystem = {
         }
     },
     
-    // Improved multi-frame sprite handling
     _setupSpritesheet: function(animation, animData) {
         try {
             // Clear container
@@ -1369,23 +1368,20 @@ const AnimationSystem = {
             
             console.log(`Setting up ${frameCount}-frame animation from ${imagePath}`);
             
-            // Create container with controlled dimensions
-            const spriteContainer = document.createElement('div');
-            spriteContainer.className = 'sprite-frame-container';
-            spriteContainer.style.position = 'relative';
-            spriteContainer.style.width = '100%';
-            spriteContainer.style.height = '100%';
-            spriteContainer.style.overflow = 'hidden'; // Important!
-            spriteContainer.style.border = '1px solid blue'; // Debug border
-            
-            // Create the actual sprite element
-            const sprite = document.createElement('div');
-            sprite.className = 'character-sprite';
-            
-            // KEY DIFFERENCE: Handle single vs multi-frame animations differently
             if (frameCount > 1) {
-                // Multi-frame approach - set up sprite sheet
-                sprite.style.width = `${frameCount * 100}%`; // Important for sprite sheet
+                // MULTI-FRAME APPROACH
+                // Create an outer container for better positioning
+                const outerContainer = document.createElement('div');
+                outerContainer.style.width = '150px';  // Explicit width
+                outerContainer.style.height = '150px'; // Explicit height
+                outerContainer.style.position = 'relative';
+                outerContainer.style.margin = '0 auto';
+                outerContainer.style.border = '1px dashed yellow'; // Debug border
+                
+                // Create the sprite element
+                const sprite = document.createElement('div');
+                sprite.className = 'character-sprite';
+                sprite.style.width = `${frameCount * 100}%`;
                 sprite.style.height = '100%';
                 sprite.style.backgroundImage = `url(${imagePath})`;
                 sprite.style.backgroundRepeat = 'no-repeat';
@@ -1394,43 +1390,47 @@ const AnimationSystem = {
                 sprite.style.left = '0';
                 sprite.style.top = '0';
                 
-                // Apply scale with transform-origin for proper scaling
-                const scale = animation.options.scale || 1;
-                sprite.style.transformOrigin = 'top left';
-                sprite.style.transform = `scale(${scale})`;
+                // Add sprite to container
+                outerContainer.appendChild(sprite);
+                animation.container.appendChild(outerContainer);
                 
-                console.log(`Set up multi-frame sprite (${frameCount} frames)`);
+                // Store references
+                animation.sprite = sprite;
+                
+                // Add frame indicator
+                const frameIndicator = document.createElement('div');
+                frameIndicator.style.position = 'absolute';
+                frameIndicator.style.bottom = '5px';
+                frameIndicator.style.right = '5px';
+                frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                frameIndicator.style.color = 'white';
+                frameIndicator.style.padding = '3px 6px';
+                frameIndicator.style.fontSize = '12px';
+                frameIndicator.style.borderRadius = '3px';
+                frameIndicator.textContent = `Frame: 1/${frameCount}`;
+                outerContainer.appendChild(frameIndicator);
+                animation.frameIndicator = frameIndicator;
             } else {
-                // Single-frame approach - use our successful emergency method
+                // SINGLE-FRAME APPROACH
+                // Create an image with better sizing
                 const img = document.createElement('img');
                 img.src = imagePath;
                 img.style.display = 'block';
-                img.style.width = 'auto';
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '100%';
+                img.style.maxWidth = '150px';
+                img.style.maxHeight = '150px';
                 img.style.margin = '0 auto';
+                img.style.imageRendering = 'pixelated';
+                img.style.border = '1px solid #5b8dd9';
                 
                 // Apply scale
                 const scale = animation.options.scale || 1;
                 img.style.transform = `scale(${scale})`;
                 
-                sprite.appendChild(img);
-                sprite.style.position = 'relative';
-                sprite.style.width = '100%';
-                sprite.style.height = '100%';
-                sprite.style.display = 'flex';
-                sprite.style.justifyContent = 'center';
-                sprite.style.alignItems = 'center';
-                
-                console.log('Set up single-frame sprite (image)');
+                animation.container.appendChild(img);
+                animation.sprite = img;
             }
             
-            // Add sprite to container
-            spriteContainer.appendChild(sprite);
-            animation.container.appendChild(spriteContainer);
-            
-            // Store references
-            animation.sprite = sprite;
+            // Store animation properties
             animation.frames = frameCount;
             animation.frameSpeed = animData.speed || 200;
             animation.frameIndex = 0;
@@ -1444,13 +1444,7 @@ const AnimationSystem = {
             return true;
         } catch (error) {
             console.error("Sprite setup error:", error);
-            
-            // Add visual error message
-            animation.container.innerHTML = `
-                <div style="color:red; padding:10px; text-align:center; border:1px solid red;">
-                    Error: ${error.message}
-                </div>
-            `;
+            animation.container.innerHTML = `<div style="color:red;padding:10px;">Error: ${error.message}</div>`;
             return false;
         }
     },
