@@ -1220,26 +1220,29 @@ const CharacterAnimation = {
         // Add the image to the sprite
         sprite.appendChild(img);
         
+        // Default frame indicator (will be updated on load)
+        const frameIndicator = document.createElement('div');
+        frameIndicator.style.position = 'absolute';
+        frameIndicator.style.bottom = '5px';
+        frameIndicator.style.right = '5px';
+        frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        frameIndicator.style.padding = '2px 5px';
+        frameIndicator.style.borderRadius = '3px';
+        frameIndicator.style.color = 'white';
+        frameIndicator.style.fontSize = '10px';
+        frameIndicator.textContent = `Frame 1/${animData.frames}`;
+        frameIndicator.id = 'frame-indicator';
+        sprite.appendChild(frameIndicator);
+        animation.frameIndicator = frameIndicator;
+        
         // Handle image loading events
         img.onload = () => {
             this.logSuccess(`Image loaded successfully: ${imagePath} (${img.naturalWidth}x${img.naturalHeight}px)`);
             loadingIndicator.style.display = 'none';
             
-            // Add frame indicator only for multi-frame sprites
+            // Update frame indicator text (it already exists)
             if (animData.frames > 1) {
-                const frameIndicator = document.createElement('div');
-                frameIndicator.style.position = 'absolute';
-                frameIndicator.style.bottom = '5px';
-                frameIndicator.style.right = '5px';
-                frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                frameIndicator.style.padding = '2px 5px';
-                frameIndicator.style.borderRadius = '3px';
-                frameIndicator.style.color = 'white';
-                frameIndicator.style.fontSize = '10px';
-                frameIndicator.textContent = `Frame 1/${animData.frames}`;
-                frameIndicator.id = 'frame-indicator';
-                sprite.appendChild(frameIndicator);
-                animation.frameIndicator = frameIndicator;
+                animation.frameIndicator.textContent = `Frame 1/${animData.frames}`;
             }
         };
         
@@ -1255,20 +1258,16 @@ const CharacterAnimation = {
             sprite.style.height = '80px';
             sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
             
-            // Add frame indicator for fallback
-            const frameIndicator = document.createElement('div');
-            frameIndicator.style.position = 'absolute';
-            frameIndicator.style.top = '50%';
-            frameIndicator.style.left = '50%';
-            frameIndicator.style.transform = 'translate(-50%, -50%)';
-            frameIndicator.style.color = 'white';
-            frameIndicator.style.fontSize = '32px';
-            frameIndicator.style.fontWeight = 'bold';
-            frameIndicator.style.textShadow = '2px 2px 3px black';
-            frameIndicator.textContent = '1';
-            frameIndicator.id = 'frame-indicator';
-            sprite.appendChild(frameIndicator);
-            animation.frameIndicator = frameIndicator;
+            // Update frame indicator text for fallback
+            animation.frameIndicator.style.position = 'absolute';
+            animation.frameIndicator.style.top = '50%';
+            animation.frameIndicator.style.left = '50%';
+            animation.frameIndicator.style.transform = 'translate(-50%, -50%)';
+            animation.frameIndicator.style.color = 'white';
+            animation.frameIndicator.style.fontSize = '32px';
+            animation.frameIndicator.style.fontWeight = 'bold';
+            animation.frameIndicator.style.textShadow = '2px 2px 3px black';
+            animation.frameIndicator.textContent = '1';
         };
         
         // Show a loading message if we have frames > 1
