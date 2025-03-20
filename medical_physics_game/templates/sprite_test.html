@@ -3,77 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Sprite Animator Test</title>
+    <title>Sprite Animation Test</title>
     <style>
-        body {
-            background-color: #1e1e2a;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            text-align: center;
+        :root {
+            --primary: #5b8dd9;
+            --secondary: #56b886;
+            --danger: #e67e73;
+            --warning: #f0c866;
+            --background: #292b36;
+            --background-alt: #21232d;
+            --dark: #3d4c60;
+            --text: #d4dae0;
         }
         
-        h1 {
-            color: #5b8dd9;
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
         }
         
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 20px auto;
-            max-width: 800px;
-        }
-        
-        .sprite-container {
-            margin: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            display: inline-block;
         }
         
-        .controls {
-            margin-top: 20px;
+        h1, h2, h3 {
+            color: var(--primary);
+        }
+        
+        .panel {
+            background-color: var(--background-alt);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .test-card {
+            background-color: var(--dark);
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 350px;
+            flex: 1;
+        }
+        
+        .character-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .character-btn {
+            background-color: var(--background-alt);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .character-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .character-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .animation-select {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
+            margin-bottom: 20px;
         }
         
-        .control-group {
+        .animation-btn {
+            background-color: var(--background-alt);
+            color: var(--text);
+            border: 2px solid var(--secondary);
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .animation-btn:hover {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .animation-btn.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .sprite-container {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            margin: 10px;
-            padding: 15px;
+            min-height: 200px;
+            margin-bottom: 20px;
             background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
+            border-radius: 4px;
+            position: relative;
         }
         
-        .control-group h3 {
-            margin-top: 0;
-            color: #56b886;
-            margin-bottom: 15px;
+        .sprite-display {
+            width: 128px;
+            height: 128px;
         }
         
-        button {
-            background-color: #5b8dd9;
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 8px 15px;
             border-radius: 4px;
+            padding: 8px 16px;
             cursor: pointer;
-            margin: 5px;
+            transition: all 0.2s;
         }
         
-        button:hover {
-            background-color: #4a7cc7;
+        .btn:hover {
+            filter: brightness(1.1);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
         }
         
         .slider-container {
-            margin: 10px 0;
-            width: 100%;
+            margin-bottom: 15px;
         }
         
         .slider-container label {
@@ -84,160 +166,1144 @@
         
         input[type="range"] {
             width: 100%;
+            background-color: var(--background-alt);
+            height: 8px;
+            border-radius: 4px;
+            -webkit-appearance: none;
         }
         
-        .current-value {
-            font-weight: bold;
-            color: #56b886;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
         }
         
-        .frame-navigation {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-        }
-        
-        .frame-display {
-            margin: 0 10px;
-            font-weight: bold;
-            min-width: 60px;
-        }
-        
-        .notes {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: rgba(91, 141, 217, 0.1);
-            border-radius: 8px;
-            text-align: left;
+        .sprite-info {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
             font-size: 14px;
-            line-height: 1.6;
+            white-space: pre;
         }
     </style>
 </head>
 <body>
-    <h1>Enhanced Sprite Animator Test</h1>
-    
     <div class="container">
-        <div class="sprite-container">
-            <div id="sprite-display"></div>
-        </div>
+        <h1>Sprite Animation Test</h1>
         
-        <div class="controls">
-            <div class="control-group">
-                <h3>Animation Controls</h3>
-                <div>
-                    <button id="play-btn">Play</button>
-                    <button id="pause-btn">Pause</button>
-                    <button id="stop-btn">Reset</button>
-                </div>
-                
-                <div class="frame-navigation">
-                    <button id="prev-frame">←</button>
-                    <div class="frame-display" id="frame-display">1/8</div>
-                    <button id="next-frame">→</button>
-                </div>
-            </div>
+        <div class="panel">
+            <h2>Animation System Test</h2>
+            <p>Use this page to test sprite animations for different characters and settings.</p>
             
-            <div class="control-group">
-                <h3>Display Settings</h3>
-                
-                <div class="slider-container">
-                    <label>
-                        <span>FPS:</span>
-                        <span class="current-value" id="fps-value">5</span>
-                    </label>
-                    <input type="range" id="fps-slider" min="1" max="15" value="5" step="1">
+            <div class="test-area">
+                <div class="test-card">
+                    <h3>Basic Animation Test</h3>
+                    
+                    <div class="character-select">
+                        <button class="character-btn active" data-character="resident">Resident</button>
+                        <button class="character-btn" data-character="physicist">Physicist</button>
+                        <button class="character-btn" data-character="qa_specialist">QA Specialist</button>
+                    </div>
+                    
+                    <div class="animation-select">
+                        <button class="animation-btn active" data-animation="idle">Idle</button>
+                        <button class="animation-btn" data-animation="walking">Walking</button>
+                        <button class="animation-btn" data-animation="ability">Ability</button>
+                        <button class="animation-btn" data-animation="specialAbility">Special</button>
+                    </div>
+                    
+                    <div class="sprite-container">
+                        <div id="sprite-display-1" class="sprite-display"></div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="play-btn-1" class="btn">Play</button>
+                        <button id="pause-btn-1" class="btn btn-secondary">Pause</button>
+                        <button id="stop-btn-1" class="btn btn-danger">Stop</button>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>
+                            <span>Speed (FPS):</span>
+                            <span id="fps-value-1">10</span>
+                        </label>
+                        <input type="range" id="fps-slider-1" min="1" max="30" value="10" step="1">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>
+                            <span>Scale:</span>
+                            <span id="scale-value-1">3</span>
+                        </label>
+                        <input type="range" id="scale-slider-1" min="1" max="8" value="3" step="0.5">
+                    </div>
+                    
+                    <div class="sprite-info" id="sprite-info-1">No animation loaded</div>
                 </div>
                 
-                <div class="slider-container">
-                    <label>
-                        <span>Scale:</span>
-                        <span class="current-value" id="scale-value">4</span>
-                    </label>
-                    <input type="range" id="scale-slider" min="1" max="10" value="4" step="0.5">
+                <div class="test-card">
+                    <h3>Advanced Features Test</h3>
+                    
+                    <div class="character-select">
+                        <button class="character-btn active" data-character="resident">Resident</button>
+                        <button class="character-btn" data-character="physicist">Physicist</button>
+                        <button class="character-btn" data-character="qa_specialist">QA Specialist</button>
+                    </div>
+                    
+                    <div class="sprite-container">
+                        <div id="sprite-display-2" class="sprite-display"></div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="custom-seq-btn" class="btn">Custom Sequence</button>
+                        <button id="reset-seq-btn" class="btn btn-secondary">Reset Sequence</button>
+                        <button id="frame-by-frame-btn" class="btn">Frame-by-Frame</button>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>
+                            <span>Current Frame:</span>
+                            <span id="frame-value">0</span>
+                        </label>
+                        <input type="range" id="frame-slider" min="0" value="0" step="1">
+                    </div>
+                    
+                    <h4>Animation Events</h4>
+                    <div class="sprite-info" id="event-log">Event log...</div>
                 </div>
             </div>
-        </div>
-        
-        <div class="notes">
-            <h3>Notes on your sprite animation:</h3>
-            <ul>
-                <li>Your idle.png sprite is 97×864 pixels with 8 vertical frames (each 97×108 pixels)</li>
-                <li>The character in each frame is very small and positioned towards the bottom-right</li>
-                <li>The frames appear nearly identical, with very subtle differences</li>
-                <li>The enhanced animator uses canvas rendering for better pixel precision</li>
-                <li>Try increasing the scale slider to make the character larger</li>
-                <li>Use the frame navigation buttons to see individual frames clearly</li>
-            </ul>
         </div>
     </div>
     
-    <script src="/static/js/enhanced-animator.js"></script>
+    <!-- Character Assets -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize animator
-            const animator = new EnhancedSpriteAnimator({
-                imagePath: '/static/img/characters/resident/idle.png',
-                frameCount: 11,
-                frameWidth: 97,
-                frameHeight: 108,
-                fps: 5,
-                scale: 4,
-                debug: true
-            });
+        // Mock CharacterAssets for testing
+        window.CharacterAssets = {
+            characters: {
+                resident: {
+                    name: "Resident",
+                    description: "A new medical physics resident.",
+                    imagePath: "/static/img/characters/resident/idle.png",
+                    spritePath: "/static/img/characters/resident/",
+                    animations: {
+                        idle: {
+                            file: "idle.png", 
+                            frames: 11,
+                            width: 97,    
+                            height: 1188,  // Total height of all frames
+                            speed: 150 
+                        },
+                        walking: {
+                            file: "walking.png", 
+                            frames: 4, 
+                            width: 97,
+                            height: 432,
+                            speed: 250
+                        },
+                        ability: {
+                            file: "ability.png", 
+                            frames: 6, 
+                            width: 97,
+                            height: 648,
+                            speed: 120
+                        },
+                        specialAbility: {
+                            file: "special_ability.png", 
+                            frames: 10, 
+                            width: 242, // Wider sprite
+                            height: 1080,
+                            speed: 80,
+                            offsetX: -72 // Center the wider sprite
+                        }
+                    }
+                },
+                physicist: {
+                    name: "Physicist",
+                    description: "A medical physicist.",
+                    imagePath: "/static/img/characters/physicist/idle.png",
+                    spritePath: "/static/img/characters/physicist/",
+                    animations: {
+                        idle: {
+                            file: "idle.png", 
+                            frames: 8,
+                            width: 97,    
+                            height: 864,
+                            speed: 150 
+                        },
+                        walking: {
+                            file: "walking.png", 
+                            frames: 4, 
+                            width: 97,
+                            height: 432,
+                            speed: 250
+                        },
+                        ability: {
+                            file: "ability.png", 
+                            frames: 6, 
+                            width: 97,
+                            height: 648,
+                            speed: 120
+                        },
+                        specialAbility: {
+                            file: "special_ability.png", 
+                            frames: 10, 
+                            width: 242,
+                            height: 1080,
+                            speed: 80,
+                            offsetX: -72
+                        }
+                    }
+                },
+                qa_specialist: {
+                    name: "QA Specialist",
+                    description: "A QA specialist.",
+                    imagePath: "/static/img/characters/qa_specialist/idle.png",
+                    spritePath: "/static/img/characters/qa_specialist/",
+                    animations: {
+                        idle: {
+                            file: "idle.png", 
+                            frames: 8,
+                            width: 97,    
+                            height: 864,
+                            speed: 150 
+                        },
+                        walking: {
+                            file: "walking.png", 
+                            frames: 4, 
+                            width: 97,
+                            height: 432,
+                            speed: 250
+                        },
+                        ability: {
+                            file: "ability.png", 
+                            frames: 6, 
+                            width: 97,
+                            height: 648,
+                            speed: 120
+                        },
+                        specialAbility: {
+                            file: "special_ability.png", 
+                            frames: 10, 
+                            width: 242,
+                            height: 1080,
+                            speed: 80,
+                            offsetX: -72
+                        }
+                    }
+                }
+            },
             
-            // Mount to container
-            animator.mount('#sprite-display');
+            getCharacter: function(id) {
+                return this.characters[id] || null;
+            },
             
-            // Get UI elements
-            const playBtn = document.getElementById('play-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-            const stopBtn = document.getElementById('stop-btn');
-            const prevFrame = document.getElementById('prev-frame');
-            const nextFrame = document.getElementById('next-frame');
-            const frameDisplay = document.getElementById('frame-display');
-            const fpsSlider = document.getElementById('fps-slider');
-            const fpsValue = document.getElementById('fps-value');
-            const scaleSlider = document.getElementById('scale-slider');
-            const scaleValue = document.getElementById('scale-value');
-            
-            // Set up event listeners
-            playBtn.addEventListener('click', () => animator.play());
-            pauseBtn.addEventListener('click', () => animator.pause());
-            stopBtn.addEventListener('click', () => animator.stop());
-            
-            prevFrame.addEventListener('click', () => {
-                let frame = animator.currentFrame - 1;
-                if (frame < 0) frame = animator.frameCount - 1;
-                animator.goToFrame(frame);
-                updateFrameDisplay();
-            });
-            
-            nextFrame.addEventListener('click', () => {
-                let frame = (animator.currentFrame + 1) % animator.frameCount;
-                animator.goToFrame(frame);
-                updateFrameDisplay();
-            });
-            
-            fpsSlider.addEventListener('input', function() {
-                const fps = parseInt(this.value);
-                animator.setSpeed(fps);
-                fpsValue.textContent = fps;
-            });
-            
-            scaleSlider.addEventListener('input', function() {
-                const scale = parseFloat(this.value);
-                animator.setScale(scale);
-                scaleValue.textContent = scale;
-            });
-            
-            // Update frame display
-            function updateFrameDisplay() {
-                frameDisplay.textContent = `${animator.currentFrame + 1}/${animator.frameCount}`;
+            getCharacterKeys: function() {
+                return Object.keys(this.characters);
+            }
+        };
+    </script>
+    
+    <!-- Sprite Animation System -->
+    <script>
+        // This would be in your actual canvas-sprite-animator.js and sprite-system.js files
+        
+        /**
+         * Canvas Sprite Animator
+         */
+        class CanvasSpriteAnimator {
+            constructor(options) {
+                // Required options
+                this.imagePath = options.imagePath;
+                this.frameCount = options.frameCount || 1;
+                this.frameWidth = options.frameWidth;
+                this.frameHeight = options.frameHeight;
+                
+                // Optional settings
+                this.fps = options.fps || 10;
+                this.scale = options.scale || 1;
+                this.loop = options.loop !== undefined ? options.loop : true;
+                this.autoPlay = options.autoPlay !== undefined ? options.autoPlay : false;
+                this.layout = options.layout || 'vertical';
+                this.columns = options.columns || 1;
+                this.rows = options.rows || 1;
+                this.offsetX = options.offsetX || 0;
+                this.offsetY = options.offsetY || 0;
+                this.debug = options.debug || false;
+                
+                // Animation state
+                this.currentFrame = 0;
+                this.isPlaying = false;
+                this.animationId = null;
+                this.lastFrameTime = 0;
+                this.frameDuration = 1000 / this.fps;
+                
+                // DOM elements
+                this.container = null;
+                this.canvas = null;
+                this.ctx = null;
+                
+                // Event callbacks
+                this.callbacks = {
+                    complete: [],
+                    framechange: []
+                };
+                
+                // Custom animation sequence
+                this.sequence = null;
+                
+                // Load sprite image
+                this.loadSpriteImage();
             }
             
-            // Set interval to update frame display during animation
-            setInterval(updateFrameDisplay, 100);
+            loadSpriteImage() {
+                this.spriteImage = new Image();
+                this.spriteImage.src = this.imagePath;
+                
+                if (this.debug) {
+                    this.spriteImage.onload = () => {
+                        console.log(`Sprite image loaded: ${this.spriteImage.width}x${this.spriteImage.height}`);
+                    };
+                    
+                    this.spriteImage.onerror = (err) => {
+                        console.error(`Failed to load sprite image: ${this.imagePath}`, err);
+                    };
+                }
+            }
+            
+            mount(container) {
+                if (typeof container === 'string') {
+                    this.container = document.querySelector(container);
+                } else {
+                    this.container = container;
+                }
+                
+                if (!this.container) {
+                    console.error('Container element not found');
+                    return false;
+                }
+                
+                this.container.innerHTML = '';
+                
+                this.container.style.width = `${this.frameWidth * this.scale}px`;
+                this.container.style.height = `${this.frameHeight * this.scale}px`;
+                this.container.style.position = 'relative';
+                this.container.style.overflow = 'hidden';
+                
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = this.frameWidth * this.scale;
+                this.canvas.height = this.frameHeight * this.scale;
+                this.canvas.style.display = 'block';
+                this.canvas.style.imageRendering = 'pixelated';
+                
+                this.ctx = this.canvas.getContext('2d');
+                this.ctx.imageSmoothingEnabled = false;
+                
+                this.container.appendChild(this.canvas);
+                
+                if (this.debug) {
+                    this.createDebugOverlay();
+                }
+                
+                if (this.spriteImage.complete) {
+                    this.drawFrame(0);
+                    
+                    if (this.autoPlay) {
+                        this.play();
+                    }
+                } else {
+                    this.spriteImage.onload = () => {
+                        this.drawFrame(0);
+                        
+                        if (this.autoPlay) {
+                            this.play();
+                        }
+                    };
+                }
+                
+                return true;
+            }
+            
+            createDebugOverlay() {
+                const debugOverlay = document.createElement('div');
+                debugOverlay.className = 'sprite-debug-overlay';
+                debugOverlay.style.position = 'absolute';
+                debugOverlay.style.bottom = '0';
+                debugOverlay.style.left = '0';
+                debugOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                debugOverlay.style.color = 'white';
+                debugOverlay.style.padding = '4px';
+                debugOverlay.style.fontSize = '10px';
+                debugOverlay.style.fontFamily = 'monospace';
+                debugOverlay.style.pointerEvents = 'none';
+                debugOverlay.textContent = `Frame: 1/${this.frameCount}`;
+                debugOverlay.id = 'debug-overlay-' + Date.now();
+                this.container.appendChild(debugOverlay);
+                
+                this.container.style.border = '1px solid rgba(255,0,0,0.5)';
+                
+                this.debugOverlay = debugOverlay;
+            }
+            
+            updateDebugOverlay() {
+                if (!this.debugOverlay) return;
+                
+                this.debugOverlay.textContent = `Frame: ${this.currentFrame + 1}/${this.frameCount} | FPS: ${this.fps}`;
+            }
+            
+            drawFrame(frameIndex) {
+                if (!this.ctx || !this.spriteImage || !this.spriteImage.complete) return;
+                
+                this.currentFrame = frameIndex;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                let sx, sy;
+                
+                switch(this.layout) {
+                    case 'horizontal':
+                        sx = frameIndex * this.frameWidth;
+                        sy = 0;
+                        break;
+                        
+                    case 'grid':
+                        sx = (frameIndex % this.columns) * this.frameWidth;
+                        sy = Math.floor(frameIndex / this.columns) * this.frameHeight;
+                        break;
+                        
+                    case 'vertical':
+                    default:
+                        sx = 0;
+                        sy = frameIndex * this.frameHeight;
+                        break;
+                }
+                
+                const dx = this.offsetX * this.scale;
+                const dy = this.offsetY * this.scale;
+                const dWidth = this.frameWidth * this.scale;
+                const dHeight = this.frameHeight * this.scale;
+                
+                this.ctx.drawImage(
+                    this.spriteImage,
+                    sx, sy, this.frameWidth, this.frameHeight,
+                    dx, dy, dWidth, dHeight
+                );
+                
+                if (this.debug) {
+                    this.drawDebugInfo();
+                    this.updateDebugOverlay();
+                }
+                
+                this.triggerEvent('framechange', { frame: frameIndex });
+            }
+            
+            drawDebugInfo() {
+                this.ctx.strokeStyle = 'rgba(255,0,0,0.5)';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(
+                    this.offsetX * this.scale, 
+                    this.offsetY * this.scale, 
+                    this.frameWidth * this.scale, 
+                    this.frameHeight * this.scale
+                );
+                
+                this.ctx.fillStyle = 'rgba(0,255,0,0.5)';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    (this.offsetX + this.frameWidth/2) * this.scale, 
+                    (this.offsetY + this.frameHeight/2) * this.scale, 
+                    3, 0, Math.PI * 2
+                );
+                this.ctx.fill();
+            }
+            
+            animationLoop(timestamp) {
+                if (!this.isPlaying) return;
+                
+                const elapsed = timestamp - this.lastFrameTime;
+                
+                if (elapsed >= this.frameDuration) {
+                    this.lastFrameTime = timestamp - (elapsed % this.frameDuration);
+                    
+                    let nextFrame;
+                    
+                    if (this.sequence && this.sequence.length > 0) {
+                        const currentIndex = this.sequence.indexOf(this.currentFrame);
+                        const nextIndex = (currentIndex + 1) % this.sequence.length;
+                        nextFrame = this.sequence[nextIndex];
+                        
+                        if (nextIndex === 0 && !this.loop) {
+                            this.stop();
+                            this.triggerEvent('complete');
+                            return;
+                        }
+                    } else {
+                        nextFrame = (this.currentFrame + 1) % this.frameCount;
+                        
+                        if (nextFrame === 0 && !this.loop) {
+                            this.stop();
+                            this.triggerEvent('complete');
+                            return;
+                        }
+                    }
+                    
+                    this.drawFrame(nextFrame);
+                }
+                
+                this.animationId = requestAnimationFrame(this.animationLoop.bind(this));
+            }
+            
+            play() {
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                this.lastFrameTime = performance.now();
+                this.animationId = requestAnimationFrame(this.animationLoop.bind(this));
+                
+                if (this.debug) {
+                    console.log('Animation started');
+                }
+            }
+            
+            pause() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                
+                if (this.debug) {
+                    console.log('Animation paused');
+                }
+            }
+            
+            stop() {
+                this.pause();
+                this.currentFrame = 0;
+                this.drawFrame(0);
+                
+                if (this.debug) {
+                    console.log('Animation stopped');
+                }
+            }
+            
+            goToFrame(frameIndex) {
+                if (frameIndex < 0 || frameIndex >= this.frameCount) {
+                    console.error(`Invalid frame index: ${frameIndex}`);
+                    return;
+                }
+                
+                this.pause();
+                this.drawFrame(frameIndex);
+            }
+            
+            setSpeed(fps) {
+                this.fps = fps;
+                this.frameDuration = 1000 / fps;
+                
+                if (this.debug) {
+                    console.log(`Animation speed set to ${fps} fps`);
+                    this.updateDebugOverlay();
+                }
+            }
+            
+            setScale(scale) {
+                this.scale = scale;
+                
+                if (this.canvas) {
+                    this.canvas.width = this.frameWidth * scale;
+                    this.canvas.height = this.frameHeight * scale;
+                    
+                    this.container.style.width = `${this.frameWidth * scale}px`;
+                    this.container.style.height = `${this.frameHeight * scale}px`;
+                    
+                    this.ctx.imageSmoothingEnabled = false;
+                    
+                    this.drawFrame(this.currentFrame);
+                }
+                
+                if (this.debug) {
+                    console.log(`Animation scale set to ${scale}x`);
+                }
+            }
+            
+            setSequence(sequence) {
+                if (!Array.isArray(sequence)) {
+                    console.error('Sequence must be an array of frame indices');
+                    return;
+                }
+                
+                // Validate frames
+                for (const frameIndex of sequence) {
+                    if (frameIndex < 0 || frameIndex >= this.frameCount) {
+                        console.error(`Invalid frame index in sequence: ${frameIndex}`);
+                        return;
+                    }
+                }
+                
+                this.sequence = sequence;
+                
+                if (this.debug) {
+                    console.log(`Custom sequence set: ${sequence.join(', ')}`);
+                }
+            }
+            
+            clearSequence() {
+                this.sequence = null;
+                
+                if (this.debug) {
+                    console.log('Custom sequence cleared');
+                }
+            }
+            
+            addEventListener(event, callback) {
+                if (this.callbacks[event]) {
+                    this.callbacks[event].push(callback);
+                } else {
+                    console.error(`Unknown event: ${event}`);
+                }
+            }
+            
+            removeEventListener(event, callback) {
+                if (this.callbacks[event]) {
+                    this.callbacks[event] = this.callbacks[event].filter(cb => cb !== callback);
+                }
+            }
+            
+            triggerEvent(event, data = {}) {
+                if (this.callbacks[event]) {
+                    for (const callback of this.callbacks[event]) {
+                        callback({
+                            type: event,
+                            target: this,
+                            ...data
+                        });
+                    }
+                }
+            }
+            
+            destroy() {
+                this.pause();
+                
+                if (this.canvas && this.canvas.parentNode) {
+                    this.canvas.parentNode.removeChild(this.canvas);
+                }
+                
+                if (this.debugOverlay && this.debugOverlay.parentNode) {
+                    this.debugOverlay.parentNode.removeChild(this.debugOverlay);
+                }
+                
+                this.callbacks = {
+                    complete: [],
+                    framechange: []
+                };
+                
+                this.container = null;
+                this.canvas = null;
+                this.ctx = null;
+                this.debugOverlay = null;
+                
+                if (this.debug) {
+                    console.log('Animator destroyed');
+                }
+            }
+        }
+
+        const SpriteSystem = {
+            animations: {},
+            nextId: 1,
+            
+            initialize() {
+                console.log('Sprite Animation System initialized');
+                return this;
+            },
+            
+            createAnimation(characterId, container, options = {}) {
+                const character = CharacterAssets.getCharacter(characterId);
+                if (!character) {
+                    console.error(`Character not found: ${characterId}`);
+                    return null;
+                }
+                
+                const animName = options.animation || 'idle';
+                
+                if (!character.animations || !character.animations[animName]) {
+                    console.error(`Animation "${animName}" not found for character ${characterId}`);
+                    return null;
+                }
+                
+                const animData = character.animations[animName];
+                
+                // Image path may need to be adjusted for testing
+                let imagePath = character.spritePath + animData.file;
+                
+                // TESTING ONLY: If we're in the test page, use a placeholder
+                if (window.location.pathname.includes('test')) {
+                    imagePath = 'https://via.placeholder.com/' + 
+                        `${animData.width}x${animData.height}` +
+                        `?text=${characterId}-${animName}`;
+                }
+                
+                const animator = new CanvasSpriteAnimator({
+                    imagePath: imagePath,
+                    frameCount: animData.frames || 1,
+                    frameWidth: animData.width || 96,
+                    frameHeight: animData.height 
+                        ? Math.floor(animData.height / animData.frames)
+                        : 96,
+                    fps: animData.speed 
+                        ? Math.floor(1000 / animData.speed) 
+                        : 10,
+                    scale: options.scale || 3,
+                    loop: options.loop !== undefined ? options.loop : true,
+                    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
+                    layout: animData.layout || 'vertical',
+                    columns: animData.columns || 1,
+                    rows: animData.rows || 1,
+                    offsetX: animData.offsetX || 0,
+                    offsetY: animData.offsetY || 0,
+                    debug: options.debug || false
+                });
+                
+                animator.mount(container);
+                
+                const id = `${characterId}_${this.nextId++}`;
+                
+                this.animations[id] = {
+                    id,
+                    animator,
+                    character: characterId,
+                    currentAnimation: animName,
+                    container
+                };
+                
+                if (options.onComplete) {
+                    animator.addEventListener('complete', options.onComplete);
+                }
+                
+                if (options.onFrameChange) {
+                    animator.addEventListener('framechange', options.onFrameChange);
+                }
+                
+                return id;
+            },
+            
+            play(id) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.play();
+                return true;
+            },
+            
+            pause(id) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.pause();
+                return true;
+            },
+            
+            stop(id) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.stop();
+                return true;
+            },
+            
+            goToFrame(id, frameIndex) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.goToFrame(frameIndex);
+                return true;
+            },
+            
+            setSpeed(id, fps) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.setSpeed(fps);
+                return true;
+            },
+            
+            setScale(id, scale) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.setScale(scale);
+                return true;
+            },
+            
+            setSequence(id, sequence) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.setSequence(sequence);
+                return true;
+            },
+            
+            clearSequence(id) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.clearSequence();
+                return true;
+            },
+            
+            changeAnimation(id, animationName, options = {}) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                const character = CharacterAssets.getCharacter(anim.character);
+                if (!character) return false;
+                
+                if (!character.animations || !character.animations[animationName]) {
+                    console.error(`Animation "${animationName}" not found for character ${anim.character}`);
+                    return false;
+                }
+                
+                const animData = character.animations[animationName];
+                
+                // Image path may need to be adjusted for testing
+                let imagePath = character.spritePath + animData.file;
+                
+                // TESTING ONLY: If we're in the test page, use a placeholder
+                if (window.location.pathname.includes('test')) {
+                    imagePath = 'https://via.placeholder.com/' + 
+                        `${animData.width}x${animData.height}` +
+                        `?text=${anim.character}-${animationName}`;
+                }
+                
+                anim.animator.destroy();
+                
+                const animator = new CanvasSpriteAnimator({
+                    imagePath: imagePath,
+                    frameCount: animData.frames || 1,
+                    frameWidth: animData.width || 96,
+                    frameHeight: animData.height 
+                        ? Math.floor(animData.height / animData.frames)
+                        : 96,
+                    fps: animData.speed 
+                        ? Math.floor(1000 / animData.speed) 
+                        : 10,
+                    scale: options.scale || anim.animator.scale,
+                    loop: options.loop !== undefined ? options.loop : anim.animator.loop,
+                    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
+                    layout: animData.layout || 'vertical',
+                    columns: animData.columns || 1,
+                    rows: animData.rows || 1,
+                    offsetX: animData.offsetX || 0,
+                    offsetY: animData.offsetY || 0,
+                    debug: options.debug || anim.animator.debug
+                });
+                
+                animator.mount(anim.container);
+                
+                anim.animator = animator;
+                anim.currentAnimation = animationName;
+                
+                if (options.onComplete) {
+                    animator.addEventListener('complete', options.onComplete);
+                }
+                
+                if (options.onFrameChange) {
+                    animator.addEventListener('framechange', options.onFrameChange);
+                }
+                
+                return true;
+            },
+            
+            onAnimationComplete(id, callback) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.addEventListener('complete', callback);
+                return true;
+            },
+            
+            onFrameChange(id, callback) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.addEventListener('framechange', callback);
+                return true;
+            },
+            
+            removeAnimation(id) {
+                const anim = this.animations[id];
+                if (!anim) return false;
+                
+                anim.animator.destroy();
+                delete this.animations[id];
+                return true;
+            },
+            
+            getAnimationInfo(id) {
+                const anim = this.animations[id];
+                if (!anim) return null;
+                
+                return {
+                    id: anim.id,
+                    character: anim.character,
+                    currentAnimation: anim.currentAnimation,
+                    isPlaying: anim.animator.isPlaying,
+                    currentFrame: anim.animator.currentFrame,
+                    frameCount: anim.animator.frameCount,
+                    fps: anim.animator.fps,
+                    scale: anim.animator.scale
+                };
+            }
+        };
+        
+        window.CanvasSpriteAnimator = CanvasSpriteAnimator;
+        window.SpriteSystem = SpriteSystem;
+        
+        // Auto-initialize
+        SpriteSystem.initialize();
+    </script>
+    
+    <!-- Test Page Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize variables
+            let currentCharacter1 = 'resident';
+            let currentAnimation1 = 'idle';
+            let animationId1 = null;
+            
+            let currentCharacter2 = 'resident';
+            let animationId2 = null;
+            let frameByFrameMode = false;
+            
+            // Initialize first animation test
+            function initTest1() {
+                // Create animation
+                animationId1 = SpriteSystem.createAnimation(
+                    currentCharacter1,
+                    document.getElementById('sprite-display-1'),
+                    {
+                        animation: currentAnimation1,
+                        scale: 3,
+                        autoPlay: true,
+                        debug: true
+                    }
+                );
+                
+                updateInfo1();
+            }
+            
+            // Initialize second animation test
+            function initTest2() {
+                // Create animation
+                animationId2 = SpriteSystem.createAnimation(
+                    currentCharacter2,
+                    document.getElementById('sprite-display-2'),
+                    {
+                        animation: 'idle',
+                        scale: 3,
+                        autoPlay: true,
+                        debug: true,
+                        onFrameChange: function(e) {
+                            logEvent(`Frame changed: ${e.frame + 1}/${e.target.frameCount}`);
+                            
+                            // Update frame slider
+                            const frameSlider = document.getElementById('frame-slider');
+                            frameSlider.value = e.frame;
+                        },
+                        onComplete: function() {
+                            logEvent('Animation completed');
+                        }
+                    }
+                );
+                
+                // Update frame slider max value
+                const frameSlider = document.getElementById('frame-slider');
+                const info = SpriteSystem.getAnimationInfo(animationId2);
+                frameSlider.max = info.frameCount - 1;
+            }
+            
+            // Update info display for test 1
+            function updateInfo1() {
+                const info = SpriteSystem.getAnimationInfo(animationId1);
+                if (!info) return;
+                
+                const infoEl = document.getElementById('sprite-info-1');
+                infoEl.textContent = `Character: ${info.character}
+Animation: ${info.currentAnimation}
+Frame: ${info.currentFrame + 1}/${info.frameCount}
+FPS: ${info.fps}
+Scale: ${info.scale}
+Playing: ${info.isPlaying}`;
+            }
+            
+            // Log events for test 2
+            function logEvent(message) {
+                const logEl = document.getElementById('event-log');
+                const timestamp = new Date().toLocaleTimeString();
+                logEl.textContent = `[${timestamp}] ${message}\n${logEl.textContent.split('\n').slice(0, 10).join('\n')}`;
+            }
+            
+            // Event handlers for test 1
+            document.querySelectorAll('.test-card:first-child .character-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.test-card:first-child .character-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Change character
+                    currentCharacter1 = this.dataset.character;
+                    
+                    // Update animation
+                    if (animationId1) {
+                        SpriteSystem.removeAnimation(animationId1);
+                    }
+                    initTest1();
+                });
+            });
+            
+            document.querySelectorAll('.animation-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.animation-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Change animation
+                    currentAnimation1 = this.dataset.animation;
+                    
+                    // Update animation
+                    if (animationId1) {
+                        SpriteSystem.changeAnimation(animationId1, currentAnimation1);
+                        updateInfo1();
+                    }
+                });
+            });
+            
+            document.getElementById('play-btn-1').addEventListener('click', function() {
+                if (animationId1) {
+                    SpriteSystem.play(animationId1);
+                    updateInfo1();
+                }
+            });
+            
+            document.getElementById('pause-btn-1').addEventListener('click', function() {
+                if (animationId1) {
+                    SpriteSystem.pause(animationId1);
+                    updateInfo1();
+                }
+            });
+            
+            document.getElementById('stop-btn-1').addEventListener('click', function() {
+                if (animationId1) {
+                    SpriteSystem.stop(animationId1);
+                    updateInfo1();
+                }
+            });
+            
+            document.getElementById('fps-slider-1').addEventListener('input', function() {
+                if (animationId1) {
+                    const fps = parseInt(this.value);
+                    SpriteSystem.setSpeed(animationId1, fps);
+                    document.getElementById('fps-value-1').textContent = fps;
+                    updateInfo1();
+                }
+            });
+            
+            document.getElementById('scale-slider-1').addEventListener('input', function() {
+                if (animationId1) {
+                    const scale = parseFloat(this.value);
+                    SpriteSystem.setScale(animationId1, scale);
+                    document.getElementById('scale-value-1').textContent = scale;
+                    updateInfo1();
+                }
+            });
+            
+            // Event handlers for test 2
+            document.querySelectorAll('.test-card:last-child .character-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.test-card:last-child .character-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Change character
+                    currentCharacter2 = this.dataset.character;
+                    
+                    // Update animation
+                    if (animationId2) {
+                        SpriteSystem.removeAnimation(animationId2);
+                    }
+                    initTest2();
+                });
+            });
+            
+            document.getElementById('custom-seq-btn').addEventListener('click', function() {
+                if (animationId2) {
+                    // Example: Ping-pong sequence
+                    const info = SpriteSystem.getAnimationInfo(animationId2);
+                    const frames = [];
+                    
+                    // Create ping-pong sequence (0, 1, 2, 3, 4, 3, 2, 1)
+                    for (let i = 0; i < info.frameCount; i++) {
+                        frames.push(i);
+                    }
+                    for (let i = info.frameCount - 2; i > 0; i--) {
+                        frames.push(i);
+                    }
+                    
+                    SpriteSystem.setSequence(animationId2, frames);
+                    logEvent(`Custom sequence set: ${frames.join(', ')}`);
+                    SpriteSystem.play(animationId2);
+                }
+            });
+            
+            document.getElementById('reset-seq-btn').addEventListener('click', function() {
+                if (animationId2) {
+                    SpriteSystem.clearSequence(animationId2);
+                    logEvent('Custom sequence cleared');
+                }
+            });
+            
+            document.getElementById('frame-by-frame-btn').addEventListener('click', function() {
+                if (animationId2) {
+                    frameByFrameMode = !frameByFrameMode;
+                    
+                    if (frameByFrameMode) {
+                        SpriteSystem.pause(animationId2);
+                        this.textContent = 'Auto Play';
+                        logEvent('Entered frame-by-frame mode');
+                    } else {
+                        SpriteSystem.play(animationId2);
+                        this.textContent = 'Frame-by-Frame';
+                        logEvent('Resumed auto play');
+                    }
+                }
+            });
+            
+            document.getElementById('frame-slider').addEventListener('input', function() {
+                if (animationId2 && frameByFrameMode) {
+                    const frame = parseInt(this.value);
+                    SpriteSystem.goToFrame(animationId2, frame);
+                    document.getElementById('frame-value').textContent = frame;
+                }
+            });
+            
+            // Initialize tests
+            initTest1();
+            initTest2();
+            
+            // Set up interval to update info
+            setInterval(updateInfo1, 100);
         });
     </script>
 </body>
