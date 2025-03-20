@@ -169,7 +169,6 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // Enhanced version with better debugging and fallbacks
   initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
     if (!container) {
@@ -177,186 +176,117 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       return;
     }
     
-    console.log("Debug: Starting boss animation initialization");
+    // Clear container
+    container.innerHTML = '';
     
-    // Remove existing animation if any
-    const existingAnimId = this.getUiState('bossAnimation');
-    if (existingAnimId && typeof SpriteSystem !== 'undefined') {
-      try {
-        SpriteSystem.removeAnimation(existingAnimId);
-      } catch (error) {
-        console.error("Error removing existing animation:", error);
-      }
-    }
-    
-    // Add a background glow effect to the container
-    container.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
-    container.style.position = 'relative';
-    container.style.width = '96px';
-    container.style.height = '96px';
+    // Set container dimensions and styling
+    container.style.width = '97px';
+    container.style.height = '108px';
     container.style.margin = '0 auto';
-    container.style.display = 'flex';
-    container.style.justifyContent = 'center';
-    container.style.alignItems = 'center';
+    container.style.position = 'relative';
+    container.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
     
-    // Method 1: Create a static image with inline styles
-    try {
-      // Log the expected image path for debugging
-      const imagePath = '/static/img/characters/ion_chamber/idle.png';
-      console.log("Debug: Attempting to load image from", imagePath);
+    // Create canvas element
+    const canvas = document.createElement('canvas');
+    canvas.id = 'ion-chamber-canvas';
+    canvas.width = 97;  // Single frame width
+    canvas.height = 108; // Single frame height
+    canvas.style.display = 'block';
+    canvas.style.imageRendering = 'pixelated';
+    
+    // Add canvas to container
+    container.appendChild(canvas);
+    
+    // Load the sprite sheet
+    const spriteSheet = new Image();
+    spriteSheet.src = '/static/img/characters/ion_chamber/idle.png';
+    
+    // Animation variables
+    const frameCount = 8;
+    const frameWidth = 97;
+    const frameHeight = 108; // 864 / 8
+    let currentFrame = 0;
+    let animationId = null;
+    
+    // Draw the current frame
+    const drawFrame = () => {
+      const ctx = canvas.getContext('2d');
       
-      // Create an image element with detailed inline styles
-      const ionChamberImg = document.createElement('img');
-      ionChamberImg.src = imagePath;
-      ionChamberImg.alt = 'Ion Chamber Boss';
-      
-      // Apply styles directly to ensure they're applied
-      ionChamberImg.style.display = 'block';
-      ionChamberImg.style.width = '24px'; // 1/4 of container size since we're scaling 4x
-      ionChamberImg.style.height = '24px';
-      ionChamberImg.style.transform = 'scale(4)';
-      ionChamberImg.style.transformOrigin = 'center center';
-      ionChamberImg.style.imageRendering = 'pixelated';
-      ionChamberImg.style.position = 'relative';
-      ionChamberImg.style.zIndex = '2';
-      
-      // Add animation via class
-      ionChamberImg.className = 'boss-static-img boss-idle';
-      
-      // Add onload handler to verify the image loads
-      ionChamberImg.onload = function() {
-        console.log("✅ Ion chamber image loaded successfully!");
-      };
-      
-      // Add error handling for image with detailed fallback
-      ionChamberImg.onerror = function() {
-        console.warn("Primary ion chamber image failed to load - trying alternatives");
-        
-        // Try alternative paths - check if resident.png exists
-        this.src = '/static/img/characters/resident.png';
-        this.onerror = function() {
-          // If even that fails, try a minimal circle fallback
-          console.error("All image attempts failed, using circle fallback");
-          
-          // Replace the failed image with a colored div
-          const fallbackDiv = document.createElement('div');
-          fallbackDiv.style.width = '96px';
-          fallbackDiv.style.height = '96px';
-          fallbackDiv.style.borderRadius = '50%';
-          fallbackDiv.style.background = 'radial-gradient(circle, #ff6a00 0%, #000000 80%)';
-          fallbackDiv.style.position = 'relative';
-          fallbackDiv.style.animation = 'pulse 3s infinite';
-          
-          // Add animation keyframes
-          const style = document.createElement('style');
-          style.textContent = `
-            @keyframes pulse {
-              0% { transform: scale(1); box-shadow: 0 0 15px 5px rgba(255, 106, 0, 0.4); }
-              50% { transform: scale(1.05); box-shadow: 0 0 25px 10px rgba(255, 106, 0, 0.7); }
-              100% { transform: scale(1); box-shadow: 0 0 15px 5px rgba(255, 106, 0, 0.4); }
-            }
-          `;
-          document.head.appendChild(style);
-          
-          // Replace this image with the div
-          const parent = this.parentNode;
-          if (parent) {
-            parent.replaceChild(fallbackDiv, this);
-          }
-        };
-      };
-      
-      // Clear container and add the new image
-      container.innerHTML = '';
-      container.appendChild(ionChamberImg);
-      
-      console.log("✅ Using direct image for Ion Chamber boss");
-      this.setUiState('bossState', 'idle');
-      
-      // Create a debug button to test animations
-      if (true) { // Change to "if (true)" to enable the debug button
-        const debugPanel = document.createElement('div');
-        debugPanel.style.position = 'absolute';
-        debugPanel.style.bottom = '-40px';
-        debugPanel.style.left = '0';
-        debugPanel.style.width = '100%';
-        debugPanel.style.textAlign = 'center';
-        
-        const btnIdle = document.createElement('button');
-        btnIdle.textContent = 'Idle';
-        btnIdle.style.margin = '2px';
-        btnIdle.style.padding = '2px 5px';
-        btnIdle.style.fontSize = '10px';
-        btnIdle.onclick = () => this.playBossAnimation('idle');
-        
-        const btnAbility = document.createElement('button');
-        btnAbility.textContent = 'Ability';
-        btnAbility.style.margin = '2px';
-        btnAbility.style.padding = '2px 5px';
-        btnAbility.style.fontSize = '10px';
-        btnAbility.onclick = () => this.playBossAnimation('ability');
-        
-        const btnWalking = document.createElement('button');
-        btnWalking.textContent = 'Walking';
-        btnWalking.style.margin = '2px';
-        btnWalking.style.padding = '2px 5px';
-        btnWalking.style.fontSize = '10px';
-        btnWalking.onclick = () => this.playBossAnimation('walking');
-        
-        debugPanel.appendChild(btnIdle);
-        debugPanel.appendChild(btnAbility);
-        debugPanel.appendChild(btnWalking);
-        
-        container.parentNode.appendChild(debugPanel);
+      if (!ctx) {
+        console.error("Canvas context not available");
+        return;
       }
       
-      return;
-    } catch (error) {
-      console.error("Method 1 failed:", error);
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Only draw if the image is loaded
+      if (spriteSheet.complete && spriteSheet.naturalHeight !== 0) {
+        // Calculate source rectangle (from the sprite sheet)
+        const sourceY = currentFrame * frameHeight;
+        
+        // Draw the current frame
+        ctx.drawImage(
+          spriteSheet,       // Image
+          0, sourceY,        // Source position (x, y)
+          frameWidth, frameHeight, // Source dimensions (width, height)
+          0, 0,              // Destination position (x, y)
+          canvas.width, canvas.height // Destination dimensions (width, height)
+        );
+      }
+    };
+    
+    // Animation loop
+    const animate = () => {
+      // Advance to next frame
+      currentFrame = (currentFrame + 1) % frameCount;
+      
+      // Draw the current frame
+      drawFrame();
+      
+      // Schedule next frame
+      animationId = setTimeout(animate, 150); // 150ms per frame (same as in npc_assets.js)
+    };
+    
+    // Start animation when the image is loaded
+    spriteSheet.onload = () => {
+      console.log("✅ Sprite sheet loaded successfully");
+      
+      // Draw initial frame
+      drawFrame();
+      
+      // Start animation
+      animate();
+      
+      // Store animation ID for cleanup
+      this.setUiState('bossAnimation', 'canvas-animation');
+      this.setUiState('bossState', 'idle');
+    };
+    
+    // Handle image loading error
+    spriteSheet.onerror = () => {
+      console.error("Failed to load sprite sheet");
+      
+      // Create fallback placeholder
+      container.innerHTML = `
+        <div class="ion-chamber-placeholder"></div>
+      `;
+    };
+  },
+  
+  // Add a method to clean up the animation when component is destroyed
+  destroyBossAnimation: function() {
+    // Stop canvas animation if running
+    if (this.getUiState('bossAnimation') === 'canvas-animation') {
+      if (this._animationId) {
+        clearTimeout(this._animationId);
+        this._animationId = null;
+      }
     }
     
-    // Fallback method - create a circular div
-    console.log("Debug: Using fallback method for boss display");
-    
-    // Create a circular element with a glow effect and inline styles
-    container.innerHTML = `
-      <div style="
-        width: 96px;
-        height: 96px;
-        background-color: #000;
-        border-radius: 50%;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
-      ">
-        <div style="
-          width: 80%;
-          height: 80%;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
-          position: relative;
-        "></div>
-      </div>
-    `;
-    
-    // Add animation via JavaScript
-    const glowElement = container.querySelector('div');
-    if (glowElement) {
-      // Create animation
-      glowElement.animate([
-        { boxShadow: '0 0 20px 5px rgba(255, 106, 0, 0.5)', transform: 'scale(1)' },
-        { boxShadow: '0 0 30px 10px rgba(255, 106, 0, 0.7)', transform: 'scale(1.05)' },
-        { boxShadow: '0 0 20px 5px rgba(255, 106, 0, 0.5)', transform: 'scale(1)' }
-      ], {
-        duration: 3000,
-        iterations: Infinity
-      });
-    }
-    
-    console.log("✅ Using fallback HTML/CSS for Ion Chamber boss");
-    this.setUiState('bossState', 'idle');
+    // Clear animation state
+    this.setUiState('bossAnimation', null);
+    this.setUiState('bossState', null);
   },
 
   // Enhanced version of playBossAnimation with better debug output
