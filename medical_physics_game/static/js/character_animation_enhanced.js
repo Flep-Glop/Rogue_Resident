@@ -159,3 +159,98 @@ if (document.readyState === 'loading') {
 } else {
     initializeAnimationStyles();
 }
+// Add this to your character_animation_enhanced.js file
+
+// Override the spritesheet setup function to handle your specific sprite
+AnimationSystem._setupSpritesheet = function(animation, animData) {
+    try {
+      // Clear container
+      animation.container.innerHTML = '';
+      
+      // Get paths and info
+      const characterId = animation.characterId;
+      const animationName = animation.currentAnimation;
+      const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
+      const frameCount = animData.frames || 1;
+      
+      console.log(`Setting up ${frameCount}-frame animation from ${imagePath}`);
+      
+      // Create a visible container with border for debugging
+      const outerContainer = document.createElement('div');
+      outerContainer.className = 'sprite-outer-container';
+      outerContainer.style.width = '97px';  // Width of a single frame
+      outerContainer.style.height = '108px'; // Height of a single frame (864px/8)
+      outerContainer.style.position = 'relative';
+      outerContainer.style.margin = '0 auto';
+      outerContainer.style.border = '1px dashed yellow'; // Debug border
+      outerContainer.style.overflow = 'hidden'; // Important: hide overflow
+      
+      // Create the sprite element
+      const sprite = document.createElement('div');
+      sprite.className = 'character-sprite';
+      sprite.style.width = '97px';  // Width of a single frame
+      sprite.style.height = '864px'; // Total height of all frames
+      sprite.style.backgroundImage = `url(${imagePath})`;
+      sprite.style.backgroundRepeat = 'no-repeat';
+      sprite.style.position = 'absolute';
+      sprite.style.left = '0';
+      sprite.style.top = '0';
+      
+      // Add sprite to container
+      outerContainer.appendChild(sprite);
+      animation.container.appendChild(outerContainer);
+      
+      // Store references
+      animation.sprite = sprite;
+      animation.outerContainer = outerContainer;
+      
+      // Add frame indicator for debugging
+      const frameIndicator = document.createElement('div');
+      frameIndicator.style.position = 'absolute';
+      frameIndicator.style.bottom = '5px';
+      frameIndicator.style.right = '5px';
+      frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      frameIndicator.style.color = 'white';
+      frameIndicator.style.padding = '3px 6px';
+      frameIndicator.style.fontSize = '12px';
+      frameIndicator.style.borderRadius = '3px';
+      frameIndicator.style.zIndex = '10';
+      frameIndicator.textContent = `Frame: 1/${frameCount}`;
+      outerContainer.appendChild(frameIndicator);
+      animation.frameIndicator = frameIndicator;
+      
+      // Store animation properties
+      animation.frames = frameCount;
+      animation.frameSpeed = animData.speed || 150;
+      animation.frameIndex = 0;
+      
+      // Start animation loop
+      this._updateSpritePosition(animation, 0);
+      this._startAnimationLoop(animation);
+      
+      return true;
+    } catch (error) {
+      console.error("Sprite setup error:", error);
+      animation.container.innerHTML = `<div style="color:red;padding:10px;">Error: ${error.message}</div>`;
+      return false;
+    }
+  };
+  
+  // Override the sprite position update function
+  AnimationSystem._updateSpritePosition = function(animation, frameIndex) {
+    if (!animation.sprite || animation.frames <= 1) return;
+    
+    // For vertical spritesheet, calculate Y position
+    const frameHeight = 108; // 864px / 8 frames
+    const posY = -(frameIndex * frameHeight);
+    
+    // Apply position
+    animation.sprite.style.top = `${posY}px`;
+    
+    // Update frame indicator
+    if (animation.frameIndicator) {
+      animation.frameIndicator.textContent = `Frame: ${frameIndex+1}/${animation.frames}`;
+    }
+    
+    console.log(`Updated to frame ${frameIndex+1}/${animation.frames}, position: ${posY}px`);
+  };

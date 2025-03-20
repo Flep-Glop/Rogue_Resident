@@ -219,3 +219,19 @@
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+/* Debug styling */
+.character-avatar {
+  border: 2px solid #5b8dd9 !important;
+  background-color: rgba(91, 141, 217, 0.1) !important;
+}
+
+.sprite-outer-container {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.character-sprite {
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+  -webkit-font-smoothing: none;
+}
