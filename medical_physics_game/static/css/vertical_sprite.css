@@ -1,0 +1,24 @@
+/* vertical_sprite.css - Simple vertical sprite animation */
+
+.sprite-container {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  /* Size will be set in JavaScript based on sprite dimensions */
+}
+
+.vertical-sprite {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* Height will be set to frame count * 100% in JavaScript */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Optional debugging border */
+.debug-mode .sprite-container {
+  border: 1px dashed #5b8dd9;
+}

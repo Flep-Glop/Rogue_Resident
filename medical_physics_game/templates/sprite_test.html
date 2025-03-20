@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Sprite Animation Test</title>
+    <link rel="stylesheet" href="vertical_sprite.css">
+    <style>
+        body {
+            background-color: #1e1e2a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #5b8dd9;
+        }
+        
+        .sprite-demo {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #292936;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        
+        .sprite-container-wrapper {
+            margin: 20px auto;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #5b8dd9;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #4a7cc7;
+        }
+        
+        .info {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #a7adb5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vertical Sprite Animation Test</h1>
+    
+    <div class="sprite-demo">
+        <h2>Idle Animation</h2>
+        <div class="sprite-container-wrapper">
+            <div id="sprite-container"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="play-btn">Play</button>
+            <button id="pause-btn">Pause</button>
+            <button id="stop-btn">Stop</button>
+            <button id="scale-up-btn">Scale +</button>
+            <button id="scale-down-btn">Scale -</button>
+        </div>
+        
+        <div class="info">
+            <p>97x864 pixel sprite with 8 vertical frames</p>
+            <p id="frame-info">Current Frame: 0</p>
+        </div>
+    </div>
+    
+    <script src="vertical_sprite.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create sprite animator
+            const animator = new VerticalSpriteAnimator({
+                imagePath: '/path/to/your/idle.png', // Update this with the actual path
+                frameCount: 8,
+                frameWidth: 97,
+                frameHeight: 108, // 864 ÷ 8 = 108
+                fps: 10,
+                scale: 2,
+                autoPlay: false,
+                loop: true,
+                debug: true
+            });
+            
+            // Mount to container
+            animator.mount('#sprite-container');
+            
+            // Set up control buttons
+            document.getElementById('play-btn').addEventListener('click', function() {
+                animator.play();
+            });
+            
+            document.getElementById('pause-btn').addEventListener('click', function() {
+                animator.pause();
+            });
+            
+            document.getElementById('stop-btn').addEventListener('click', function() {
+                animator.stop();
+            });
+            
+            document.getElementById('scale-up-btn').addEventListener('click', function() {
+                animator.setScale(animator.scale + 0.5);
+            });
+            
+            document.getElementById('scale-down-btn').addEventListener('click', function() {
+                if (animator.scale > 0.5) {
+                    animator.setScale(animator.scale - 0.5);
+                }
+            });
+            
+            // Update frame info display
+            function updateFrameInfo() {
+                document.getElementById('frame-info').textContent = `Current Frame: ${animator.currentFrame}`;
+                requestAnimationFrame(updateFrameInfo);
+            }
+            
+            updateFrameInfo();
+        });
+    </script>
+</body>
+</html>
