@@ -19,18 +19,18 @@ window.CharacterAssets = {
         },
         walking: {
           file: "walking.png", 
-          frames: 4, 
+          frames: 10, 
           speed: 250
         },
         ability: {
           file: "ability.png", 
-          frames: 6, 
+          frames: 18, 
           speed: 120
         },
         // New wide sprite special ability animation
         specialAbility: {
           file: "special_ability.png", 
-          frames: 10, 
+          frames: 9, 
           speed: 80,
           aspectRatio: 2.5 // Wider sprite
         }
