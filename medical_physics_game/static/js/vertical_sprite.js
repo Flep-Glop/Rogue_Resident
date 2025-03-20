@@ -96,8 +96,14 @@ class VerticalSpriteAnimator {
       if (!this.sprite) return;
       
       // For vertical sprite sheets, we need to adjust the top position
+      // Make sure we're using exactly (frameIndex / frameCount * 100)%
       const position = -(frameIndex * (100 / this.frameCount));
       this.sprite.style.top = `${position}%`;
+      
+      // Add this log to debug frame transitions
+      if (this.debug) {
+        console.log(`Frame ${frameIndex}, Position: ${position}%`);
+      }
     }
     
     /**
