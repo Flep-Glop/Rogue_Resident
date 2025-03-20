@@ -207,3 +207,15 @@
     padding: 3px 6px;
   }
 }
+
+/* In character_sprites.css or through the character_animation_enhanced.js */
+.character-avatar {
+  width: 97px;  /* Match the width of a single frame */
+  height: 108px; /* Height of a single frame (864/8) */
+  overflow: hidden;
+}
+
+.character-sprite {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

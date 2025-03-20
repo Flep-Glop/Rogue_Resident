@@ -12,7 +12,8 @@ window.CharacterAssets = {
       animations: {
         idle: {
           file: "idle.png", 
-          frames: 1
+          frames: 8,   // Change from 1 to 8
+          speed: 150 
         },
         walking: {
           file: "walking.png", 
