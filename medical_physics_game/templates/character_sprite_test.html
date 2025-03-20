@@ -1204,9 +1204,10 @@ const CharacterAnimation = {
         // Add debugging border to see the image boundaries
         img.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
         
-        // Apply scale directly to the image
-        const scale = animation.options.scale || 1;
-        sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        // Apply scale to the sprite
+        const scaleValue = animation.options.scale || 1;
+        animation.container.style.setProperty('--character-scale', scaleValue);
+        sprite.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
         
         // Add a loading indicator
         const loadingIndicator = document.createElement('div');
@@ -1519,19 +1520,19 @@ const CharacterAnimation = {
     },
     
     // Set animation scale
-    setAnimationScale: function(animationId, scale) {
+    setAnimationScale: function(animationId, scaleValue) {
         const animation = this.activeAnimations[animationId];
         if (!animation) return false;
         
-        animation.options.scale = scale;
+        animation.options.scale = scaleValue;
         
         // Update scale of current animation
         const elements = animation.container.querySelectorAll('.character-sprite');
         elements.forEach(el => {
-            el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            el.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
         });
         
-        this.logInfo(`Scale set to: ${scale}`);
+        this.logInfo(`Scale set to: ${scaleValue}`);
         return true;
     },
     
