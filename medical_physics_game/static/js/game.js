@@ -398,6 +398,12 @@ function initializeGame() {
         InventorySystem.initialize();
       }
 
+      // Initialize sprite system (new addition)
+      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.initialize === 'function') {
+        console.log("Initializing Sprite Animation System...");
+        SpriteSystem.initialize();
+      }
+
       // 14. Initialize tooltip system (new step)
       if (typeof TooltipSystem !== 'undefined' && typeof TooltipSystem.initialize === 'function') {
         TooltipSystem.initialize();
