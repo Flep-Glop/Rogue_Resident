@@ -1,263 +1,6 @@
-/* ion_chamber_boss.css - Specific styling for Ion Chamber Boss */
+/* ion_chamber_boss.css - Enhanced styling for Ion Chamber Boss */
 
-/* Ion Chamber boss animations */
-@keyframes ion-chamber-idle {
-    0% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-    50% { transform: scale(4.1); filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.5)); }
-    100% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-  }
-  
-  @keyframes ion-chamber-ability {
-    0% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)); }
-    50% { transform: scale(4.4) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.8)); }
-    100% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)); }
-  }
-  
-  @keyframes ion-chamber-walking {
-    0% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-    25% { transform: scale(4) translateX(-3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
-    75% { transform: scale(4) translateX(3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
-    100% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-  }
-  
-  @keyframes ion-chamber-special {
-    0% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-    20% { transform: scale(4.5) rotate(-5deg); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.8)); }
-    40% { transform: scale(4.2) rotate(3deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
-    60% { transform: scale(4.4) rotate(-3deg); filter: drop-shadow(0 0 18px rgba(255, 106, 0, 0.7)); }
-    80% { transform: scale(4.3) rotate(2deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
-    100% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-  }
-  
-  /* Apply animations to the boss static image */
-  .ion-chamber-boss .boss-static-img.boss-idle {
-    animation: ion-chamber-idle 3s infinite ease-in-out;
-  }
-  
-  .ion-chamber-boss .boss-static-img.boss-ability {
-    animation: ion-chamber-ability 1s ease-in-out;
-  }
-  
-  .ion-chamber-boss .boss-static-img.boss-walking {
-    animation: ion-chamber-walking 1s infinite ease-in-out;
-  }
-  
-  .ion-chamber-boss .boss-static-img.boss-specialAbility {
-    animation: ion-chamber-special 1.5s ease-in-out;
-  }
-  
-  /* Ion Chamber boss UI styles */
-  .ion-chamber-boss {
-    background-color: rgba(30, 23, 45, 0.95);
-    border-color: #ff6a00;
-    background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
-    box-shadow: 0 0 20px rgba(255, 106, 0, 0.3), inset 0 0 30px rgba(138, 43, 226, 0.2);
-  }
-  
-  .ion-chamber-boss .exam-header {
-    border-bottom: 2px solid rgba(255, 106, 0, 0.5);
-    padding-bottom: 15px;
-  }
-  
-  .ion-chamber-boss .exam-title {
-    font-size: 1.4rem;
-    color: #ff6a00;
-    text-shadow: 0 0 5px rgba(255, 106, 0, 0.5);
-  }
-  
-  .ion-chamber-boss .time-remaining {
-    font-family: monospace;
-    font-size: 1.2rem;
-    color: #ff9d4c;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border-left: 3px solid #ff6a00;
-  }
-  
-  .ion-chamber-boss .time-remaining.time-warning {
-    color: #ffd000;
-    animation: pulse-warning 1.5s infinite;
-  }
-  
-  .ion-chamber-boss .time-remaining.time-critical {
-    color: #ff3030;
-    animation: pulse-critical 0.8s infinite;
-  }
-  
-  .ion-chamber-boss .phase-title {
-    color: #ff9d4c;
-    font-size: 1.2rem;
-    text-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
-  }
-  
-  .ion-chamber-boss .question-card {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-left: 3px solid #ff6a00;
-    box-shadow: 0 2px 10px rgba(138, 43, 226, 0.1);
-  }
-  
-  .ion-chamber-boss .question-option {
-    text-align: left;
-    padding: 12px 18px;
-    background-color: rgba(50, 28, 69, 0.5);
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    margin-bottom: 8px;
-    border-radius: 5px;
-    color: white;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-  
-  .ion-chamber-boss .question-option:hover:not(:disabled) {
-    background-color: rgba(255, 106, 0, 0.2);
-    transform: translateX(5px);
-    border-color: rgba(255, 106, 0, 0.5);
-  }
-  
-  .ion-chamber-boss .question-option.correct-option {
-    background-color: rgba(39, 174, 96, 0.3);
-    border-color: rgba(39, 174, 96, 0.7);
-  }
-  
-  .ion-chamber-boss .question-option.incorrect-option {
-    background-color: rgba(231, 76, 60, 0.3);
-    border-color: rgba(231, 76, 60, 0.7);
-  }
-  
-  .ion-chamber-boss .boss-dialogue {
-    background-color: rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
-    border-left: 3px solid #ff6a00;
-    padding: 15px 20px;
-    margin-bottom: 25px;
-    position: relative;
-    font-style: italic;
-    text-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
-  }
-  
-  /* Glow effect for ion chamber sprite container */
-  .ion-chamber-boss .boss-sprite {
-    position: relative;
-  }
-  
-  .ion-chamber-boss .boss-sprite::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 50%;
-    box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.4);
-    animation: glow-pulse 3s infinite;
-    z-index: -1;
-  }
-  
-  @keyframes glow-pulse {
-    0% { box-shadow: 0 0 30px 5px rgba(255, 106, 0, 0.4); }
-    50% { box-shadow: 0 0 40px 10px rgba(255, 106, 0, 0.6); }
-    100% { box-shadow: 0 0 30px 5px rgba(255, 106, 0, 0.4); }
-  }
-  
-  /* Emergency placeholder styling */
-  .ion-chamber-boss .emergency-placeholder {
-    width: 96px;
-    height: 108px;
-    background: radial-gradient(circle, rgba(255,106,0,0.3) 0%, rgba(138,43,226,0.2) 100%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 36px;
-    color: #ff6a00;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    animation: pulse-glow 3s infinite;
-  }
-  
-  @keyframes pulse-glow {
-    0% { box-shadow: 0 0 15px 5px rgba(255, 106, 0, 0.3); transform: scale(1); }
-    50% { box-shadow: 0 0 25px 10px rgba(255, 106, 0, 0.5); transform: scale(1.05); }
-    100% { box-shadow: 0 0 15px 5px rgba(255, 106, 0, 0.3); transform: scale(1); }
-  }
-  
-  /* Finish button styling */
-  .ion-chamber-boss .game-btn.game-btn--primary {
-    background: linear-gradient(to bottom, #ff8f30, #e55b00);
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-  
-  .ion-chamber-boss .game-btn.game-btn--primary:hover {
-    background: linear-gradient(to bottom, #ffaa30, #ff6a00);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* Examination results styling */
-  .ion-chamber-boss .final-score-circle.passed {
-    border-color: #27ae60;
-    box-shadow: 0 0 15px rgba(39, 174, 96, 0.5);
-  }
-  
-  .ion-chamber-boss .final-score-circle.failed {
-    border-color: #e74c3c;
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
-  }
-  
-  .ion-chamber-boss .reward-item {
-    background-color: rgba(50, 28, 69, 0.5);
-    border-left: 3px solid #ff6a00;
-  }
-
-  /* Enhanced ion_chamber_boss.css - Improved animations with better fallbacks */
-
-/* Basic glow effect for the boss container */
-.ion-chamber-glow {
-  box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
-  animation: glow-pulse 3s infinite ease-in-out;
-  position: relative;
-}
-
-/* Animations for the boss static image */
-.boss-static-img.boss-idle {
-  animation: ion-chamber-idle 3s infinite ease-in-out;
-  transform-origin: center center;
-  display: block;
-}
-
-.boss-static-img.boss-ability {
-  animation: ion-chamber-ability 1s ease-in-out;
-  transform-origin: center center;
-  display: block;
-}
-
-.boss-static-img.boss-walking {
-  animation: ion-chamber-walking 1s infinite ease-in-out;
-  transform-origin: center center;
-  display: block;
-}
-
-.boss-static-img.boss-specialAbility {
-  animation: ion-chamber-special 1.5s ease-in-out;
-  transform-origin: center center;
-  display: block;
-}
-
-/* Ion Chamber keyframe animations */
-@keyframes glow-pulse {
-  0% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
-  50% { box-shadow: 0 0 25px rgba(255, 106, 0, 0.7); }
-  100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
-}
-
+/* === Core Animation Keyframes === */
 @keyframes ion-chamber-idle {
   0% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
   50% { transform: scale(4.1); filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.5)); }
@@ -286,112 +29,173 @@
   100% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
 }
 
-/* Placeholder styling for when images fail to load */
-.ion-chamber-placeholder {
-  width: 96px;
-  height: 96px;
-  background-color: #000;
-  border-radius: 50%;
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 40px 10px rgba(255, 106, 0, 0.4); opacity: 0.6; }
+  50% { box-shadow: 0 0 60px 20px rgba(255, 106, 0, 0.6); opacity: 0.9; }
+  100% { box-shadow: 0 0 40px 10px rgba(255, 106, 0, 0.4); opacity: 0.6; }
+}
+
+@keyframes pulse-warning {
+  0% { color: #ffd000; }
+  50% { color: #ffb400; }
+  100% { color: #ffd000; }
+}
+
+@keyframes pulse-critical {
+  0% { color: #ff3030; }
+  50% { color: #ff6000; }
+  100% { color: #ff3030; }
+}
+
+@keyframes boss-transform {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* === Wider Container for Boss Battle === */
+.boss-exam-panel {
+  max-width: 1200px !important;
+  width: 95% !important;
+  margin: 0 auto;
+}
+
+.boss-with-inventory {
+  max-width: 1400px !important;
+  width: 98% !important;
+  margin: 0 auto;
+  display: flex;
+  gap: 20px;
+}
+
+/* Boss battle active class for page-wide changes */
+.boss-battle-active .game-board-container,
+.boss-battle-active .container {
+  max-width: 1400px !important;
+  width: 98% !important;
+}
+
+.boss-battle-active .col-md-3 {
+  flex: 0 0 20%;
+  max-width: 20%;
+}
+
+.boss-battle-active .col-md-9 {
+  flex: 0 0 80%;
+  max-width: 80%;
+}
+
+/* === Core Boss Styling === */
+.ion-chamber-boss {
+  background-color: rgba(30, 23, 45, 0.95);
+  border-color: #ff6a00;
+  background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
+  box-shadow: 0 0 20px rgba(255, 106, 0, 0.3), inset 0 0 30px rgba(138, 43, 226, 0.2);
+}
+
+/* Apply animations to the boss static image */
+.ion-chamber-boss .boss-static-img.boss-idle {
+  animation: ion-chamber-idle 3s infinite ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.ion-chamber-boss .boss-static-img.boss-ability {
+  animation: ion-chamber-ability 1s ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.ion-chamber-boss .boss-static-img.boss-walking {
+  animation: ion-chamber-walking 1s infinite ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.ion-chamber-boss .boss-static-img.boss-specialAbility {
+  animation: ion-chamber-special 1.5s ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+/* === Enhanced Boss Layout === */
+.boss-battle-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  width: 100%;
+  padding: 15px 0;
+}
+
+.boss-side-layout {
+  min-width: 250px;
+  width: 25%;
+  height: 500px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
   position: relative;
+  background: rgba(30, 15, 40, 0.4);
+  border-radius: 10px;
+  box-shadow: inset 0 0 40px rgba(255, 106, 0, 0.2);
+  overflow: visible;
+}
+
+.boss-sprite-enlarged {
+  width: 220px !important;
+  height: 400px !important;
+  position: relative;
+  transform: scale(1.1);
+  margin-top: -20px;
+}
+
+.boss-content-section {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  background: rgba(30, 15, 40, 0.3);
+  border-radius: 10px;
+  border-left: 3px solid rgba(255, 106, 0, 0.5);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === Boss Character === */
+.boss-character-container {
+  min-height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
-  animation: pulse-glow 3s infinite ease-in-out;
+  position: relative;
+  margin: 20px 0 30px;
 }
 
-.ion-chamber-placeholder::after {
+.boss-sprite {
+  position: relative;
+  overflow: visible !important;
+}
+
+.boss-sprite::after {
   content: '';
   position: absolute;
-  width: 80%;
-  height: 80%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
+  box-shadow: 0 0 40px 15px rgba(255, 106, 0, 0.5) !important;
+  animation: glow-pulse 3s infinite;
+  z-index: -1;
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
-  50% { box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.7); transform: scale(1.05); }
-  100% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
-}
-
-/* Make sure the image renders properly in pixelated form */
-.boss-sprite img {
+.boss-sprite img, .boss-sprite canvas {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   position: relative;
   z-index: 2;
 }
-
-/* Fix image display for browsers that might hide it */
-.boss-static-img {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Additional fixes for Safari and Firefox */
-@supports (-webkit-touch-callout: none) {
-  .boss-static-img {
-    transform: scale(4) !important; /* Force scale on Safari */
-  }
-}
-
-@-moz-document url-prefix() {
-  .boss-static-img {
-    image-rendering: -moz-crisp-edges !important;
-  }
-}
-
-/* Add this to ion_chamber_boss.css or create a new style tag in the head */
-
-.ion-chamber-placeholder {
-  width: 96px;
-  height: 96px;
-  background-color: #000;
-  border-radius: 50%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
-  animation: pulse-glow 3s infinite ease-in-out;
-}
-
-.ion-chamber-placeholder::after {
-  content: '';
-  position: absolute;
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
-}
-
-/* Fix overflow issues with animation container */
-.boss-sprite {
-  position: relative;
-  overflow: hidden !important;
-}
-
-/* Make sure the sprite sheet is handled correctly */
-.ion-chamber-sprite {
-  position: absolute;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-  will-change: transform;
-  transform-origin: top left;
-}
-
-/* Alternative approach - if you want to use canvas instead */
-#ion-chamber-canvas {
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-}
-
-/* Add these styles to ion_chamber_boss.css */
 
 /* Improved glow effect for Ionix */
 .ionix-glow-overlay {
@@ -404,23 +208,72 @@
   animation: pulse-glow 3s infinite ease-in-out;
 }
 
-@keyframes pulse-glow {
-  0% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.1); }
-  100% { opacity: 0.6; transform: scale(1); }
-}
-
-/* Make the boss character container more prominent */
-.boss-character-container {
-  min-height: 200px;
+/* === Enhanced UI Elements === */
+/* Header */
+.exam-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  position: relative;
-  margin: 20px 0 30px;
+  padding: 15px 20px;
+  background: rgba(30, 15, 40, 0.5);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 106, 0, 0.5);
 }
 
-/* Enhance the boss dialogue box */
+.exam-title {
+  font-size: 2rem !important;
+  color: #ff6a00 !important;
+  text-shadow: 0 0 10px rgba(255, 106, 0, 0.5) !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.exam-subtitle {
+  font-size: 1.1rem !important;
+  color: #ff9d4c;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Timer and Score */
+.time-remaining {
+  font-family: monospace !important;
+  font-size: 1.3rem !important;
+  color: #ff9d4c !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  padding: 3px 10px !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #ff6a00 !important;
+  letter-spacing: 1px;
+}
+
+.time-remaining.time-warning {
+  color: #ffd000;
+  animation: pulse-warning 1.5s infinite;
+}
+
+.time-remaining.time-critical {
+  color: #ff3030;
+  animation: pulse-critical 0.8s infinite;
+}
+
+.score-container {
+  padding: 5px 10px !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 4px !important;
+  border-left: 3px solid #ff6a00 !important;
+}
+
+.score-text {
+  font-size: 1rem !important;
+  color: #ff9d4c !important;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+/* Dialogue Box */
 .boss-dialogue {
   background-color: rgba(0, 0, 0, 0.5) !important;
   border-left: 3px solid #ff6a00 !important;
@@ -440,7 +293,6 @@
   opacity: 0;
 }
 
-/* Make text more visible with better contrast */
 .boss-dialogue p {
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
@@ -449,46 +301,39 @@
   margin: 0;
 }
 
-/* Better styling for the title */
-.exam-title {
-  font-size: 1.6rem !important;
-  color: #ff6a00 !important;
-  text-shadow: 0 0 10px rgba(255, 106, 0, 0.5) !important;
-  font-weight: bold;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
+/* Questions */
+.ion-chamber-boss .phase-title {
+  color: #ff9d4c;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
 }
 
-.exam-subtitle {
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
-}
-
-/* Enhance the question section */
 .question-card {
   background-color: rgba(0, 0, 0, 0.4) !important;
   border-left: 3px solid #ff6a00 !important;
   border-radius: 8px !important;
-  padding: 18px !important;
-  margin-bottom: 20px !important;
+  padding: 25px !important;
+  margin-bottom: 25px !important;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
-  max-height: none !important; /* Ensure no height restriction */
-  overflow: visible !important; /* Show all content */
+  max-height: none !important;
+  overflow: visible !important;
 }
 
-/* Make question text more visible */
 .question-text p {
   color: #fff;
-  font-size: 1.1rem !important;
-  line-height: 1.5 !important;
+  font-size: 1.2rem !important;
+  line-height: 1.6 !important;
   margin-bottom: 20px !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Better option buttons */
+.question-options {
+  gap: 15px !important;
+}
+
 .question-option {
   text-align: left !important;
-  padding: 12px 18px !important;
+  padding: 15px 20px !important;
   background-color: rgba(30, 30, 50, 0.7) !important;
   border: 1px solid rgba(138, 43, 226, 0.3) !important;
   margin-bottom: 12px !important;
@@ -496,12 +341,12 @@
   color: #fff !important;
   transition: all 0.3s ease !important;
   position: relative;
-  font-size: 1rem !important;
+  font-size: 1.1rem !important;
   line-height: 1.4 !important;
   overflow: visible !important;
-  white-space: normal !important; /* Allow text to wrap */
-  min-height: 48px; /* Minimum height for buttons */
-  width: 100% !important; /* Full width for better readability */
+  white-space: normal !important;
+  min-height: 48px;
+  width: 100% !important;
 }
 
 .question-option:hover:not(:disabled) {
@@ -510,29 +355,177 @@
   border-color: rgba(255, 106, 0, 0.5) !important;
 }
 
-/* Better timer display */
-.time-remaining {
-  font-family: monospace !important;
-  font-size: 1.3rem !important;
-  color: #ff9d4c !important;
-  background-color: rgba(0, 0, 0, 0.4) !important;
-  padding: 3px 10px !important;
-  border-radius: 4px !important;
-  border-left: 3px solid #ff6a00 !important;
-  letter-spacing: 1px;
+.ion-chamber-boss .question-option.correct-option {
+  background-color: rgba(39, 174, 96, 0.3);
+  border-color: rgba(39, 174, 96, 0.7);
 }
 
-/* Better score display */
-.score-container {
-  padding: 5px 10px !important;
-  background-color: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 4px !important;
-  border-left: 3px solid #ff6a00 !important;
+.ion-chamber-boss .question-option.incorrect-option {
+  background-color: rgba(231, 76, 60, 0.3);
+  border-color: rgba(231, 76, 60, 0.7);
 }
 
-.score-text {
-  font-size: 1rem !important;
-  color: #ff9d4c !important;
-  letter-spacing: 1px;
+/* === Intro Sequence === */
+.intro-sequence {
+  padding: 30px;
+  position: relative;
+}
+
+.intro-boss-container {
+  margin: 40px auto;
+  position: relative;
+  transition: all 1.5s ease-out;
+}
+
+.boss-transform-effect {
+  animation: boss-transform 1.2s ease-out;
+}
+
+/* Subtle continue button */
+.game-btn--subtle {
+  background: rgba(255, 106, 0, 0.3);
+  border: 1px solid rgba(255, 106, 0, 0.5);
+  color: #ff9d4c;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.game-btn--subtle:hover {
+  background: rgba(255, 106, 0, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.3);
+}
+
+.game-btn--subtle:active {
+  transform: translateY(0);
+}
+
+.continue-icon {
+  font-size: 0.8rem;
+}
+
+.intro-dialogue {
+  margin-bottom: 40px !important;
+}
+
+/* === Examination Results === */
+.exam-complete {
+  text-align: center;
+  padding: 30px 20px;
+  position: relative;
+}
+
+.final-score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
+  border: 3px solid;
+  transition: all 0.5s ease;
+}
+
+.final-score {
+  font-size: 2.5rem !important;
   font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 106, 0, 0.5);
+}
+
+.ion-chamber-boss .final-score-circle.passed {
+  border-color: #27ae60;
+  box-shadow: 0 0 15px rgba(39, 174, 96, 0.5);
+}
+
+.ion-chamber-boss .final-score-circle.failed {
+  border-color: #e74c3c;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+}
+
+/* Fallback & Emergency Styling */
+.ion-chamber-placeholder {
+  width: 96px;
+  height: 96px;
+  background-color: #000;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.ion-chamber-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
+}
+
+/* Inventory Sidebar */
+.question-inventory-sidebar {
+  background: rgba(30, 30, 50, 0.8) !important;
+  border: 2px solid #3b4c60 !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+}
+
+.inventory-sidebar-title {
+  color: #5b8dd9 !important;
+  font-size: 1.1rem !important;
+  text-align: center;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(91, 141, 217, 0.4);
+}
+
+/* === Responsive Design === */
+@media (max-width: 1024px) {
+  .boss-battle-layout {
+    flex-direction: column;
+  }
+  
+  .boss-side-layout {
+    width: 100%;
+    height: 300px !important;
+    margin-bottom: 20px;
+  }
+  
+  .boss-sprite-enlarged {
+    width: 180px !important;
+    height: 280px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .boss-side-layout {
+    height: 240px !important;
+  }
+  
+  .boss-sprite-enlarged {
+    width: 140px !important;
+    height: 220px !important;
+  }
+  
+  .boss-with-inventory {
+    flex-direction: column;
+  }
+  
+  .question-inventory-sidebar {
+    width: 100% !important;
+    max-height: none !important;
+  }
 }

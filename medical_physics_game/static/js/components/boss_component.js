@@ -82,7 +82,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
   // Update the render function to make Ionix larger and positioned to the side
   render: function(nodeData, container) {
     console.log("Rendering ion chamber boss component", nodeData);
-
+  
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
       container.id = 'boss-container';
@@ -205,6 +205,9 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     `;
     document.head.appendChild(layoutStyles);
     
+    // Add special wide container class
+    document.body.classList.add('boss-battle-active');
+    
     // Initialize boss animation with larger size
     this.initBossAnimation();
     
@@ -227,7 +230,6 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // Update initBossAnimation to support the larger size
   initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
     if (!container) {
@@ -239,8 +241,8 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     container.innerHTML = '';
     
     // Set container dimensions and styling - MUCH LARGER NOW
-    container.style.width = '180px';  // Increased from 140px
-    container.style.height = '320px'; // Increased from 160px
+    container.style.width = '220px';  // Increased from 180px
+    container.style.height = '400px'; // Increased from 320px
     container.style.margin = '0 auto';
     container.style.position = 'relative';
     // Enhanced glow effect
@@ -1373,6 +1375,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     }
   },
   
+  // Update the renderIntroSequence function to use a less obtrusive continue button
   renderIntroSequence: function(nodeData, container) {
     // Use ionChamber boss class for styling
     const bossClass = 'ion-chamber-boss';
