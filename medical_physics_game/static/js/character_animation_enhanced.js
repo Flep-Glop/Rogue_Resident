@@ -161,11 +161,13 @@ if (document.readyState === 'loading') {
 }
 // Add this to your character_animation_enhanced.js file
 
-// Override the spritesheet setup function to handle your specific sprite
+// Add this to character_animation_enhanced.js - completely replace your existing overrides
+
+// SUPER AGGRESSIVE DEBUG VERSION
 AnimationSystem._setupSpritesheet = function(animation, animData) {
     try {
-      // Clear container
-      animation.container.innerHTML = '';
+      // Clear container and add debug info
+      animation.container.innerHTML = '<div style="color:yellow;padding:5px;background:rgba(0,0,0,0.5);position:absolute;top:0;left:0;z-index:999;">Debug: Setting up sprite</div>';
       
       // Get paths and info
       const characterId = animation.characterId;
@@ -175,82 +177,153 @@ AnimationSystem._setupSpritesheet = function(animation, animData) {
       
       console.log(`Setting up ${frameCount}-frame animation from ${imagePath}`);
       
-      // Create a visible container with border for debugging
-      const outerContainer = document.createElement('div');
-      outerContainer.className = 'sprite-outer-container';
-      outerContainer.style.width = '97px';  // Width of a single frame
-      outerContainer.style.height = '108px'; // Height of a single frame (864px/8)
-      outerContainer.style.position = 'relative';
-      outerContainer.style.margin = '0 auto';
-      outerContainer.style.border = '1px dashed yellow'; // Debug border
-      outerContainer.style.overflow = 'hidden'; // Important: hide overflow
+      // DIRECT IMAGE APPROACH - bypass all the complex container setup
+      // Create a single image element
+      const img = document.createElement('img');
+      img.src = imagePath;
+      img.className = 'debug-sprite-image';
+      img.style.position = 'absolute';
+      img.style.top = '0';
+      img.style.left = '0';
+      img.style.width = '97px';
+      img.style.height = '108px'; // Show only one frame (864/8)
+      img.style.objectFit = 'cover';
+      img.style.objectPosition = '0 0'; // Start at first frame
+      img.style.zIndex = '100'; // Force to front
+      img.style.border = '3px solid red'; // Obvious border
+      img.style.background = 'rgba(255,0,0,0.2)'; // Red tint for debugging
+      img.style.imageRendering = 'pixelated';
       
-      // Create the sprite element
-      const sprite = document.createElement('div');
-      sprite.className = 'character-sprite';
-      sprite.style.width = '97px';  // Width of a single frame
-      sprite.style.height = '864px'; // Total height of all frames
-      sprite.style.backgroundImage = `url(${imagePath})`;
-      sprite.style.backgroundRepeat = 'no-repeat';
-      sprite.style.position = 'absolute';
-      sprite.style.left = '0';
-      sprite.style.top = '0';
+      // Add to container
+      animation.container.appendChild(img);
+      animation.sprite = img;
       
-      // Add sprite to container
-      outerContainer.appendChild(sprite);
-      animation.container.appendChild(outerContainer);
-      
-      // Store references
-      animation.sprite = sprite;
-      animation.outerContainer = outerContainer;
-      
-      // Add frame indicator for debugging
+      // Add frame indicator with high z-index
       const frameIndicator = document.createElement('div');
       frameIndicator.style.position = 'absolute';
       frameIndicator.style.bottom = '5px';
       frameIndicator.style.right = '5px';
-      frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      frameIndicator.style.backgroundColor = 'red';
       frameIndicator.style.color = 'white';
       frameIndicator.style.padding = '3px 6px';
       frameIndicator.style.fontSize = '12px';
       frameIndicator.style.borderRadius = '3px';
-      frameIndicator.style.zIndex = '10';
+      frameIndicator.style.zIndex = '101'; // Above the image
       frameIndicator.textContent = `Frame: 1/${frameCount}`;
-      outerContainer.appendChild(frameIndicator);
+      animation.container.appendChild(frameIndicator);
       animation.frameIndicator = frameIndicator;
       
       // Store animation properties
       animation.frames = frameCount;
-      animation.frameSpeed = animData.speed || 150;
+      animation.frameSpeed = animData.speed || 200;
       animation.frameIndex = 0;
       
+      // Make the character avatar container visible
+      const avatarEl = document.getElementById('character-avatar');
+      if (avatarEl) {
+        avatarEl.style.border = '5px solid lime';
+        avatarEl.style.background = 'rgba(0,0,0,0.5)';
+        avatarEl.style.position = 'relative';
+        avatarEl.style.zIndex = '50';
+        avatarEl.style.overflow = 'visible';
+        avatarEl.style.minHeight = '150px';
+      }
+      
       // Start animation loop
-      this._updateSpritePosition(animation, 0);
       this._startAnimationLoop(animation);
       
+      // FORCE PARENT CONTAINERS TO BE VISIBLE
+      let parent = animation.container.parentElement;
+      while (parent) {
+        parent.style.display = 'block';
+        parent.style.visibility = 'visible';
+        parent.style.opacity = '1';
+        parent = parent.parentElement;
+      }
+      
+      console.log("✅ Sprite setup complete with debug mode");
       return true;
     } catch (error) {
-      console.error("Sprite setup error:", error);
-      animation.container.innerHTML = `<div style="color:red;padding:10px;">Error: ${error.message}</div>`;
+      console.error("🔴 Sprite setup error:", error);
+      animation.container.innerHTML = `<div style="color:red;padding:10px;z-index:999;position:relative;">Error: ${error.message}</div>`;
       return false;
     }
   };
   
-  // Override the sprite position update function
-  AnimationSystem._updateSpritePosition = function(animation, frameIndex) {
-    if (!animation.sprite || animation.frames <= 1) return;
+  // Update the frame advancement function for the direct image approach
+  AnimationSystem._advanceFrame = function(animationId) {
+    const animation = this.activeAnimations[animationId];
+    if (!animation || !animation.sprite) return;
     
-    // For vertical spritesheet, calculate Y position
-    const frameHeight = 108; // 864px / 8 frames
-    const posY = -(frameIndex * frameHeight);
-    
-    // Apply position
-    animation.sprite.style.top = `${posY}px`;
-    
-    // Update frame indicator
-    if (animation.frameIndicator) {
-      animation.frameIndicator.textContent = `Frame: ${frameIndex+1}/${animation.frames}`;
+    try {
+      // Increment frame with wrap-around
+      animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
+      
+      // Calculate object position for sprite
+      const frameHeight = 108; // 864px / 8 frames
+      const posY = -(animation.frameIndex * frameHeight);
+      
+      // Set object-position to show the current frame
+      animation.sprite.style.objectPosition = `0px ${posY}px`;
+      
+      // Update frame indicator
+      if (animation.frameIndicator) {
+        animation.frameIndicator.textContent = `Frame: ${animation.frameIndex+1}/${animation.frames}`;
+        animation.frameIndicator.style.backgroundColor = 'red';
+      }
+      
+      console.log(`Frame updated to: ${animation.frameIndex+1}/${animation.frames}, position: ${posY}px`);
+    } catch (error) {
+      console.error("🔴 Error advancing frame:", error);
     }
-    
-    console.log(`Updated to frame ${frameIndex+1}/${animation.frames}, position: ${posY}px`);
   };
+  
+  // Add this global CSS through JavaScript to ensure it's applied
+  function addEmergencyCSS() {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* EMERGENCY OVERRIDE STYLES */
+      .character-avatar, #character-avatar, [id^="character-sprite"] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 50 !important;
+        min-height: 150px !important;
+        overflow: visible !important;
+      }
+      
+      .debug-sprite-image {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      
+      /* Force all parent containers to be visible */
+      .character-details, .character-avatar-container {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    console.log("🆘 Emergency CSS applied");
+  }
+  
+  // Call this immediately
+  addEmergencyCSS();
+  
+  // After page load, check if containers exist
+  setTimeout(function() {
+    console.log("Character Avatar Element:", document.getElementById('character-avatar'));
+    console.log("Character Sprite Container:", document.getElementById('character-sprite-container'));
+    
+    // Check if any sprite animations are active
+    console.log("Active Animations:", Object.keys(AnimationSystem.activeAnimations).length);
+    
+    // Force play the animation again
+    if (window.residentAnimationId) {
+      AnimationSystem.playAnimation(window.residentAnimationId, 'idle', true);
+      console.log("🔄 Animation restarted");
+    }
+  }, 1000);
