@@ -1441,6 +1441,15 @@ const AnimationSystem = {
             // Show error in container
             animation.container.innerHTML = `<div style="color: red; padding: 10px;">Error: ${error.message}</div>`;
         }
+        // DEBUGGING - Force sprite to be visible
+        if (sprite) {
+        sprite.style.width = "137px";  // Set to actual image width
+        sprite.style.height = "91px";  // Set to actual image height
+        sprite.style.background = "none"; // Remove background positioning
+        sprite.style.border = "2px solid red"; // Make it obvious
+        sprite.style.position = "static"; // Remove positioning
+        sprite.innerHTML = `<img src="${spritesheetPath}" style="width:100%;height:100%;" />`;
+        }
     },
     
     // CRITICAL FIX: Update sprite position based on frame index
