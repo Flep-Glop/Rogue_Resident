@@ -467,3 +467,184 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Add this to your styles or create a new CSS file */
+
+/* Special Ion Chamber boss styling */
+.boss-exam-panel.ion-chamber-boss {
+  background-color: rgba(30, 23, 45, 0.95);
+  border-color: #ff6a00;
+  background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
+  box-shadow: 0 0 20px rgba(255, 106, 0, 0.3), inset 0 0 30px rgba(138, 43, 226, 0.2);
+}
+
+/* Header styling for Ion Chamber boss */
+.ion-chamber-boss .exam-header {
+  border-bottom: 2px solid rgba(255, 106, 0, 0.5);
+  padding-bottom: 15px;
+}
+
+.ion-chamber-boss .exam-title {
+  font-size: 1.4rem;
+  color: #ff6a00;
+  text-shadow: 0 0 5px rgba(255, 106, 0, 0.5);
+}
+
+/* Timer styling */
+.ion-chamber-boss .time-remaining {
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: #ff9d4c;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border-left: 3px solid #ff6a00;
+}
+
+.ion-chamber-boss .time-remaining.time-warning {
+  color: #ffd000;
+  animation: pulse-warning 1.5s infinite;
+}
+
+.ion-chamber-boss .time-remaining.time-critical {
+  color: #ff3030;
+  animation: pulse-critical 0.8s infinite;
+}
+
+/* Question styling */
+.ion-chamber-boss .phase-title {
+  color: #ff9d4c;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
+}
+
+.ion-chamber-boss .question-card {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid #ff6a00;
+  box-shadow: 0 2px 10px rgba(138, 43, 226, 0.1);
+}
+
+.ion-chamber-boss .question-option {
+  text-align: left;
+  padding: 12px 18px;
+  background-color: rgba(50, 28, 69, 0.5);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  margin-bottom: 8px;
+  border-radius: 5px;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.ion-chamber-boss .question-option:hover:not(:disabled) {
+  background-color: rgba(255, 106, 0, 0.2);
+  transform: translateX(5px);
+  border-color: rgba(255, 106, 0, 0.5);
+}
+
+.ion-chamber-boss .question-option.correct-option {
+  background-color: rgba(39, 174, 96, 0.3);
+  border-color: rgba(39, 174, 96, 0.7);
+}
+
+.ion-chamber-boss .question-option.incorrect-option {
+  background-color: rgba(231, 76, 60, 0.3);
+  border-color: rgba(231, 76, 60, 0.7);
+}
+
+/* Boss dialogue styling */
+.ion-chamber-boss .boss-dialogue {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  border-left: 3px solid #ff6a00;
+  padding: 15px 20px;
+  margin-bottom: 25px;
+  position: relative;
+  font-style: italic;
+  text-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+}
+
+/* Glow effect for ion chamber */
+.ion-chamber-boss .boss-sprite {
+  position: relative;
+}
+
+.ion-chamber-boss .boss-sprite::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.4);
+  animation: glow-pulse 3s infinite;
+  z-index: -1;
+}
+
+/* Responsive styling to fit better on screen */
+.boss-exam-panel {
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 106, 0, 0.5) rgba(0, 0, 0, 0.2);
+}
+
+.boss-exam-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.boss-exam-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.boss-exam-panel::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 106, 0, 0.5);
+  border-radius: 4px;
+}
+
+/* Make text more readable */
+.question-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes pulse-critical {
+  0% { opacity: 1; color: #ff3030; }
+  50% { opacity: 0.7; color: #ff6000; }
+  100% { opacity: 1; color: #ff3030; }
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 30px 5px rgba(255, 106, 0, 0.4); }
+  50% { box-shadow: 0 0 40px 10px rgba(255, 106, 0, 0.6); }
+  100% { box-shadow: 0 0 30px 5px rgba(255, 106, 0, 0.4); }
+}
+
+/* Make sure buttons are visible and properly styled */
+.game-btn.game-btn--primary {
+  background: linear-gradient(to bottom, #ff8f30, #e55b00);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.game-btn.game-btn--primary:hover {
+  background: linear-gradient(to bottom, #ffaa30, #ff6a00);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
