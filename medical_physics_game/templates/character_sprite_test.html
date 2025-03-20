@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Sprite Test</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/character_sprites.css">
+    <style>
+        body {
+            background-color: #121218;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #1e1e2a;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .character-display {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .character-stats {
+            width: 300px;
+            padding: 15px;
+            border: 2px solid #5b8dd9;
+            border-radius: 8px;
+            background-color: #292936;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        
+        .controls button {
+            background-color: #5b8dd9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .controls button:hover {
+            background-color: #4a7bc7;
+        }
+        
+        .controls button:active {
+            transform: translateY(2px);
+        }
+        
+        .player-info {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Character Sprite System Test</h1>
+        
+        <div class="character-display">
+            <div class="player-info">
+                <div class="character-stats">
+                    <div id="character-info">
+                        <!-- Character will be loaded here -->
+                        <div class="loading">Loading character...</div>
+                    </div>
+                    
+                    <div id="lives-container">
+                        <span class="life-icon active">❤️</span>
+                        <span class="life-icon active">❤️</span>
+                        <span class="life-icon active">❤️</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="btn-idle">Idle Animation</button>
+            <button id="btn-walk">Walking Animation</button>
+            <button id="btn-ability">Ability Animation</button>
+            <button id="btn-hit">Hit Animation</button>
+        </div>
+    </div>
+    
+    <!-- Load the scripts -->
+    <script src="/static/js/character_assets.js"></script>
+    <script src="/static/js/character_animation.js"></script>
+    <script src="/static/js/character_panel_sprite.js"></script>
+    
+    <script>
+        // Additional test controls
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add button event handlers once animations are loaded
+            setTimeout(function() {
+                document.getElementById('btn-idle').addEventListener('click', function() {
+                    if (window.residentAnimationId) {
+                        CharacterAnimation.playAnimation(window.residentAnimationId, 'idle');
+                    }
+                });
+                
+                document.getElementById('btn-walk').addEventListener('click', function() {
+                    if (window.residentAnimationId) {
+                        CharacterAnimation.playAnimation(window.residentAnimationId, 'walking');
+                    }
+                });
+                
+                document.getElementById('btn-ability').addEventListener('click', function() {
+                    if (window.residentAnimationId) {
+                        CharacterAnimation.playAnimation(window.residentAnimationId, 'ability');
+                        
+                        // Return to idle after animation completes
+                        setTimeout(() => {
+                            CharacterAnimation.playAnimation(window.residentAnimationId, 'idle');
+                        }, 1000);
+                    }
+                });
+                
+                document.getElementById('btn-hit').addEventListener('click', function() {
+                    const spriteContainer = document.getElementById('character-sprite-container');
+                    if (spriteContainer) {
+                        spriteContainer.classList.add('character-hit');
+                        setTimeout(() => {
+                            spriteContainer.classList.remove('character-hit');
+                        }, 300);
+                    }
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

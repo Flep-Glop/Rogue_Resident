@@ -166,6 +166,11 @@ def get_characters():
     characters_data = load_json_data('characters.json')
     return jsonify(characters_data)
 
+@app.route('/sprite-test')
+def sprite_test():
+    """Test page for sprite system"""
+    return render_template('character_sprite_test.html')
+
 @app.route('/api/item/<item_id>')
 def get_item(item_id):
     """Get item data by ID"""
