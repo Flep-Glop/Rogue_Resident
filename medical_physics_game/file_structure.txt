@@ -29,12 +29,23 @@
 │   │   │   └── retro-theme.css
 │   │   ├── animations.css
 │   │   ├── character_image_styles.css
+│   │   ├── character_sprites.css
 │   │   ├── components.css
 │   │   ├── item_editor.css
 │   │   ├── main.css
-│   │   └── utilities.css
+│   │   ├── question-inventory.css
+│   │   ├── shop-styles.css
+│   │   ├── tooltip-fix.css
+│   │   ├── utilities.css
+│   │   └── vertical_sprite.css
 │   ├── img
 │   │   ├── characters
+│   │   │   ├── resident
+│   │   │   │   ├── ability.png
+│   │   │   │   ├── idle.png
+│   │   │   │   ├── specialAbility.png
+│   │   │   │   ├── special_ability.png
+│   │   │   │   └── walking.png
 │   │   │   ├── bonus.png
 │   │   │   ├── debug_mode.png
 │   │   │   ├── physicist.png
@@ -128,13 +139,19 @@
 │       ├── error_handler.js
 │       ├── game.js
 │       ├── item_editor.js
+│       ├── simple_sprites.js
+│       ├── tooltip-debugger.js
+│       ├── tooltip-system.js
 │       ├── ui-utils.js
+│       ├── unified-tooltip-system.js
+│       ├── vertical_sprite.js
 │       └── visual-effects.js
 ├── templates
 │   ├── character_select.html
 │   ├── index.html
 │   ├── item_editor.html
-│   └── landing.html
+│   ├── landing.html
+│   └── sprite_test.html
 ├── README.md
 ├── app.py
 ├── data_manager.py
@@ -146,6 +163,8 @@
 ├── game_state.py
 ├── map_generator.py
 ├── node_plugins.py
-└── requirements.txt
+├── requirements.txt
+├── update_weights.py
+└── weight_manager.py
 
-15 directories, 133 files
+16 directories, 151 files
