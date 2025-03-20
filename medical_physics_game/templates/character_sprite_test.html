@@ -1,82 +1,4 @@
-.real-sprite img {
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    -webkit-font-smoothing: none;
-    position: relative;
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.debug-image-controls {
-    margin-top: 10px;
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-}
-
-.debug-image-controls button {
-    padding: 3px 8px;
-    font-size: 12px;
-}            document.getElementById('test-get-character').addEventListener('click', function() {
-        const result = CharacterAssets.getCharacter(currentCharacterId);
-        displayFunctionResult('getCharacter', result);
-    });
-    
-    document.getElementById('test-get-animations').addEventListener('click', function() {
-        const result = CharacterAssets.getCharacterAnimations(currentCharacterId);
-        displayFunctionResult('getCharacterAnimations', result);
-    });
-    
-    document.getElementById('test-animation-data').addEventListener('click', function() {
-        const result = CharacterAssets.getCharacterAnimation(currentCharacterId, 'walking');
-        displayFunctionResult('getCharacterAnimation', result);
-    });
-    
-    document.getElementById('test-create-anim').addEventListener('click', function() {
-        const options = {
-            initialAnimation: 'idle',
-            autoPlay: true,
-            loop: true,
-            scale: currentScale,
-            centerImage: true
-        };
-        
-        displayFunctionResult('createAnimation options', options);
-    });
-    
-    document.getElementById('test-play-anim').addEventListener('click', function() {
-        const args = {
-            animationId: animationId,
-            animationName: 'walking',
-            loop: true
-        };
-        
-        displayFunctionResult('playAnimation args', args);
-    });
-    
-    document.getElementById('test-ability-anim').addEventListener('click', function() {
-        const args = {
-            animationId: animationId,
-            abilityName: 'specialAbility',
-            onCompleteCallback: '() => { /* Callback function */ }'
-        };
-        
-        displayFunctionResult('playAbilityAnimation args', args);
-    });        <!-- Image Testing Section -->
-<div class="image-test-panel">
-    <h3>Character Image Tester</h3>
-    <div class="image-test-controls">
-        <form class="image-test-form" id="image-test-form">
-            <input type="text" id="image-path-input" placeholder="/static/img/characters/resident/idle.png" value="/static/img/characters/resident/idle.png">
-            <button type="submit" class="primary">Load Image</button>
-        </form>
-    </div>
-    <div class="image-display" id="image-display">
-        <div>Enter a path to test image loading</div>
-    </div>
-    <div class="image-test-result" id="image-test-result"></div>
-</div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -234,6 +156,20 @@ h1 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1);
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #5b8dd9;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Animation controls */
@@ -498,6 +434,28 @@ button.special:hover {
     display: block;
 }
 
+.real-sprite img {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: none;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.debug-image-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.debug-image-controls button {
+    padding: 3px 8px;
+    font-size: 12px;
+}
+
 /* Character statistics visualization */
 .character-stat {
     margin-bottom: 12px;
@@ -623,6 +581,114 @@ button.special:hover {
     max-height: 150px;
     overflow-y: auto;
 }
+
+/* Image testing section */
+.image-test-panel {
+    margin-top: 20px;
+    background-color: #292936;
+    border: 1px solid #3d4c60;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.image-test-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #d4dae0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #3d4c60;
+    padding-bottom: 8px;
+}
+
+.image-test-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.image-test-form {
+    display: flex;
+    gap: 10px;
+}
+
+.image-test-form input {
+    flex: 1;
+    padding: 8px 12px;
+    background-color: #1e1e2a;
+    border: 1px solid #3d4c60;
+    border-radius: 5px;
+    color: white;
+}
+
+.image-display {
+    margin-top: 15px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a7adb5;
+}
+
+.image-display img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.image-test-result {
+    margin-top: 10px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.image-load-status {
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.image-load-status.success {
+    background-color: rgba(86, 184, 134, 0.2);
+    color: #56b886;
+}
+
+.image-load-status.error {
+    background-color: rgba(230, 126, 115, 0.2);
+    color: #e67e73;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 120px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 100;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    font-size: 12px;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
 </style>
 </head>
 <body>
@@ -714,17 +780,41 @@ button.special:hover {
     <div class="control-panel">
         <h3>Animation Controls</h3>
         <div class="button-group">
-            <button id="btn-idle" class="primary">Idle</button>
-            <button id="btn-walk">Walk</button>
-            <button id="btn-ability">Regular Ability</button>
-            <button id="btn-special-ability" class="special">Special Ability</button>
+            <button id="btn-idle" class="primary tooltip">
+                Idle
+                <span class="tooltip-text">Play idle animation</span>
+            </button>
+            <button id="btn-walk" class="tooltip">
+                Walk
+                <span class="tooltip-text">Play walking animation</span>
+            </button>
+            <button id="btn-ability" class="tooltip">
+                Regular Ability
+                <span class="tooltip-text">Play normal ability animation</span>
+            </button>
+            <button id="btn-special-ability" class="special tooltip">
+                Special Ability
+                <span class="tooltip-text">Play wide special ability animation</span>
+            </button>
         </div>
         
         <div class="button-group">
-            <button id="btn-play" class="success">Play</button>
-            <button id="btn-pause">Pause</button>
-            <button id="btn-stop" class="danger">Stop</button>
-            <button id="btn-reset">Reset</button>
+            <button id="btn-play" class="success tooltip">
+                Play
+                <span class="tooltip-text">Resume animation</span>
+            </button>
+            <button id="btn-pause" class="tooltip">
+                Pause
+                <span class="tooltip-text">Pause animation</span>
+            </button>
+            <button id="btn-stop" class="danger tooltip">
+                Stop
+                <span class="tooltip-text">Stop animation</span>
+            </button>
+            <button id="btn-reset" class="tooltip">
+                Reset
+                <span class="tooltip-text">Reset to first frame</span>
+            </button>
         </div>
     </div>
     
@@ -745,10 +835,22 @@ button.special:hover {
         </div>
         
         <div class="button-group">
-            <button id="btn-toggle-grid">Toggle Grid</button>
-            <button id="btn-toggle-overflow">Toggle Overflow</button>
-            <button id="btn-toggle-loop">Toggle Looping</button>
-            <button id="btn-toggle-wide">Toggle Wide Mode</button>
+            <button id="btn-toggle-grid" class="tooltip">
+                Toggle Grid
+                <span class="tooltip-text">Show/hide alignment grid</span>
+            </button>
+            <button id="btn-toggle-overflow" class="tooltip">
+                Toggle Overflow
+                <span class="tooltip-text">Show/hide content outside boundaries</span>
+            </button>
+            <button id="btn-toggle-loop" class="tooltip">
+                Toggle Looping
+                <span class="tooltip-text">Enable/disable animation looping</span>
+            </button>
+            <button id="btn-toggle-wide" class="tooltip">
+                Toggle Wide Mode
+                <span class="tooltip-text">Enable/disable wide sprite container</span>
+            </button>
         </div>
     </div>
 </div>
@@ -790,11 +892,38 @@ button.special:hover {
         <p>Function test results will appear here.</p>
     </div>
 </div>
+
+<!-- Image Testing Section -->
+<div class="image-test-panel">
+    <h3>Character Image Tester</h3>
+    <div class="image-test-controls">
+        <form class="image-test-form" id="image-test-form">
+            <input type="text" id="image-path-input" placeholder="/static/img/characters/resident/idle.png" value="/static/img/characters/resident/idle.png">
+            <button type="submit" class="primary">Load Image</button>
+        </form>
+    </div>
+    <div class="image-display" id="image-display">
+        <div>Enter a path to test image loading</div>
+    </div>
+    <div class="image-test-result" id="image-test-result"></div>
 </div>
 
 <script>
-// Simulated Character Assets (full implementation would be imported)
-window.CharacterAssets = {
+/**
+ * Refactored Character Animation System
+ * 
+ * This file has been restructured to improve:
+ * - Error handling
+ * - Animation performance (using requestAnimationFrame)
+ * - Code organization
+ * - Animation system capabilities
+ */
+
+// ------------------------------------------------------------
+// Module 1: Character Data Manager
+// ------------------------------------------------------------
+const CharacterDataManager = {
+    // Character data repository
     characters: {
         resident: {
             name: "Resident",
@@ -954,20 +1083,23 @@ window.CharacterAssets = {
         }
     },
     
-    // Helper methods
+    // Get all character keys
     getCharacterKeys: function() {
         return Object.keys(this.characters);
     },
     
+    // Get character data by key
     getCharacter: function(key) {
         return this.characters[key] || null;
     },
     
+    // Get character portrait image path
     getCharacterImagePath: function(key) {
         const character = this.getCharacter(key);
         return character ? character.imagePath : '/static/img/characters/resident/portrait.png';
     },
     
+    // Get sprite path for a specific animation
     getCharacterSpritePath: function(key, animation = "idle") {
         const character = this.getCharacter(key);
         if (!character || !character.animations || !character.animations[animation]) {
@@ -977,6 +1109,7 @@ window.CharacterAssets = {
         return character.spritePath + character.animations[animation].file;
     },
     
+    // Get animation data for a character
     getCharacterAnimation: function(key, animation = "idle") {
         const character = this.getCharacter(key);
         if (!character || !character.animations) return null;
@@ -984,6 +1117,7 @@ window.CharacterAssets = {
         return character.animations[animation] || character.animations.idle;
     },
     
+    // Get all available animations for a character
     getCharacterAnimations: function(key) {
         const character = this.getCharacter(key);
         if (!character || !character.animations) return [];
@@ -991,6 +1125,7 @@ window.CharacterAssets = {
         return Object.keys(character.animations);
     },
     
+    // Get character ID from name
     getCharacterIdFromName: function(name) {
         for (const id in this.characters) {
             if (this.characters[id].name === name) {
@@ -1000,605 +1135,82 @@ window.CharacterAssets = {
         return 'resident';
     },
     
+    // Convert character ID to name
     getCharacterNameFromId: function(id) {
         const character = this.getCharacter(id);
         return character ? character.name : "Medical Physics Resident";
     }
 };
 
-// Enhanced Character Animation System
-const CharacterAnimation = {
-    // Track active animations
-    activeAnimations: {},
-    loopEnabled: true,
-    
-    // Initialize animation system
+// Make the CharacterDataManager globally available as CharacterAssets for backward compatibility
+window.CharacterAssets = CharacterDataManager;
+
+// ------------------------------------------------------------
+// Module 2: Debug Utility System
+// ------------------------------------------------------------
+const DebugSystem = {
+    // Initialize the debug system
     initialize: function() {
-        this.logDebug("Character Animation system initialized");
-        
-        // Set up frame timeline
-        this.updateFrameTimeline(4); // Default to 4 frames
-        
+        this.logContainer = document.getElementById('debug-log');
         return this;
     },
     
-    // Create a new animation instance for a character
-    createAnimation: function(characterId, containerId, options = {}) {
-        if (!characterId || !containerId) {
-            this.logError("Missing required parameters for createAnimation");
-            return null;
-        }
-        
-        // Get container element
-        const container = document.getElementById(containerId);
-        if (!container) {
-            this.logError(`Animation container not found: ${containerId}`);
-            return null;
-        }
-        
-        // Clear any existing content
-        container.innerHTML = '';
-        
-        // Default options
-        const defaultOptions = {
-            initialAnimation: 'idle',
-            autoPlay: true,
-            loop: this.loopEnabled,
-            scale: 3,
-            centerImage: true,
-            adaptiveWidth: false
-        };
-        
-        // Merge defaults with provided options
-        const animOptions = {...defaultOptions, ...options};
-        
-        // Create animation container element
-        const animationContainer = document.createElement('div');
-        animationContainer.className = 'character-animation-container';
-        animationContainer.style.position = 'relative';
-        animationContainer.style.width = '100%';
-        animationContainer.style.height = '100%';
-        
-        if (animOptions.centerImage) {
-            animationContainer.style.display = 'flex';
-            animationContainer.style.justifyContent = 'center';
-            animationContainer.style.alignItems = 'center';
-        }
-        
-        container.appendChild(animationContainer);
-        
-        // Create animation ID
-        const animationId = `anim_${characterId}_${containerId}_${Date.now()}`;
-        
-        // Create animation instance
-        const animation = {
-            id: animationId,
-            characterId: characterId,
-            containerId: containerId,
-            container: animationContainer,
-            currentAnimation: null,
-            frameIndex: 0,
-            animationTimer: null,
-            options: animOptions,
-            isPlaying: false,
-            debug: {
-                lastFrameTime: 0,
-                frameCount: 0,
-                frameRate: 0
-            }
-        };
-        
-        // Store in active animations
-        this.activeAnimations[animationId] = animation;
-        
-        // Set initial animation
-        if (animOptions.initialAnimation && animOptions.autoPlay) {
-            this.playAnimation(animationId, animOptions.initialAnimation);
-        }
-        
-        this.logInfo(`Created animation ${animationId} for character ${characterId}`);
-        
-        return animationId;
+    // Log levels with corresponding methods
+    log: function(message) {
+        console.log(message);
+        this._addLogEntry(message);
     },
     
-    // Play a specific animation for a character
-    playAnimation: function(animationId, animationName = 'idle', loop = null) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) {
-            this.logError(`Animation not found: ${animationId}`);
-            return false;
-        }
-        
-        // Stop any current animation
-        this.stopAnimation(animationId);
-        
-        // Get animation data
-        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animationName);
-        if (!animData) {
-            this.logError(`Animation data not found for ${animationName}`);
-            return false;
-        }
-        
-        // Save current animation name
-        animation.currentAnimation = animationName;
-        
-        // Update animation info display
-        document.getElementById('current-animation').textContent = animationName;
-        document.getElementById('animation-state').textContent = 'playing';
-        
-        // Override loop behavior if specified
-        if (loop !== null) {
-            animation.options.loop = loop;
-        } else {
-            // Otherwise use global setting
-            animation.options.loop = this.loopEnabled;
-        }
-        
-        // For testing, we'll use colored boxes instead of actual sprites
-        this._setupMockSpriteAnimation(animation, animData);
-        
-        // Update frame timeline
-        this.updateFrameTimeline(animData.frames);
-        
-        animation.isPlaying = true;
-        this.logInfo(`Playing animation: ${animationName} (loop: ${animation.options.loop})`);
-        
-        return true;
+    info: function(message) {
+        console.info(message);
+        this._addLogEntry(message, 'info');
     },
     
-    // Set up mock sprite animation for testing with real image loading
-    _setupMockSpriteAnimation: function(animation, animData) {
-        // Handle aspect ratio for wide sprites
-        const aspectRatio = animData.aspectRatio || 1;
-        
-        // Create sprite container
-        const spriteContainer = document.createElement('div');
-        spriteContainer.className = 'character-sprite-container';
-        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-            spriteContainer.classList.add('wide-sprite');
-        }
-        
-        spriteContainer.style.width = '100%';
-        spriteContainer.style.height = '100%';
-        spriteContainer.style.position = 'relative';
-        
-        // For wide sprites, adjust container
-        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-            spriteContainer.style.width = `${aspectRatio * 100}%`;
-            spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
-        }
-        
-    // Try to load actual character image if available
-        const characterId = animation.characterId;
-        const animationName = animation.currentAnimation;
-        
-        // Create the actual sprite with image
-        const sprite = document.createElement('div');
-        sprite.className = 'character-sprite real-sprite';
-        sprite.dataset.animation = animationName;
-        
-        // Get the sprite path
-        const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
-        
-        // Set explicit dimensions and styling for visibility
-        sprite.style.width = '100px';
-        sprite.style.height = '100px';
-        sprite.style.position = 'absolute';
-        sprite.style.display = 'flex';
-        sprite.style.justifyContent = 'center';
-        sprite.style.alignItems = 'center';
-        sprite.style.left = '50%';
-        sprite.style.top = '50%';
-        
-        // Create the image element
-        const img = document.createElement('img');
-        img.src = imagePath;
-        img.alt = `${characterId} ${animationName}`;
-        img.className = 'character-image';
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '100%';
-        img.style.imageRendering = 'pixelated';
-        img.style.imageRendering = 'crisp-edges';
-        img.style.objectFit = 'contain';
-        
-        // Add debugging border to see the image boundaries
-        img.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
-        
-        // Apply scale to the sprite
-        const scaleValue = animation.options.scale || 1;
-        animation.container.style.setProperty('--character-scale', scaleValue);
-        sprite.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
-        
-        // Add a loading indicator
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.textContent = 'Loading...';
-        loadingIndicator.style.position = 'absolute';
-        loadingIndicator.style.fontSize = '10px';
-        loadingIndicator.style.color = 'white';
-        sprite.appendChild(loadingIndicator);
-        
-        // Add the image to the sprite
-        sprite.appendChild(img);
-        
-        // Default frame indicator (will be updated on load)
-        const frameIndicator = document.createElement('div');
-        frameIndicator.style.position = 'absolute';
-        frameIndicator.style.bottom = '5px';
-        frameIndicator.style.right = '5px';
-        frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        frameIndicator.style.padding = '2px 5px';
-        frameIndicator.style.borderRadius = '3px';
-        frameIndicator.style.color = 'white';
-        frameIndicator.style.fontSize = '10px';
-        frameIndicator.textContent = `Frame 1/${animData.frames}`;
-        frameIndicator.id = 'frame-indicator';
-        sprite.appendChild(frameIndicator);
-        animation.frameIndicator = frameIndicator;
-        
-        // Handle image loading events
-        img.onload = () => {
-            this.logSuccess(`Image loaded successfully: ${imagePath} (${img.naturalWidth}x${img.naturalHeight}px)`);
-            loadingIndicator.style.display = 'none';
-            
-            // Update frame indicator text (it already exists)
-            if (animData.frames > 1) {
-                animation.frameIndicator.textContent = `Frame 1/${animData.frames}`;
-            }
-        };
-        
-        img.onerror = () => {
-            this.logError(`Failed to load image: ${imagePath}`);
-            loadingIndicator.textContent = 'Image not found';
-            loadingIndicator.style.color = '#e67e73';
-            
-            // Show a colorful box as fallback
-            img.style.display = 'none';
-            sprite.style.backgroundColor = this._getAnimationColor(animationName);
-            sprite.style.width = '80px';
-            sprite.style.height = '80px';
-            sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
-            
-            // Update frame indicator text for fallback
-            animation.frameIndicator.style.position = 'absolute';
-            animation.frameIndicator.style.top = '50%';
-            animation.frameIndicator.style.left = '50%';
-            animation.frameIndicator.style.transform = 'translate(-50%, -50%)';
-            animation.frameIndicator.style.color = 'white';
-            animation.frameIndicator.style.fontSize = '32px';
-            animation.frameIndicator.style.fontWeight = 'bold';
-            animation.frameIndicator.style.textShadow = '2px 2px 3px black';
-            animation.frameIndicator.textContent = '1';
-        };
-        
-        // Show a loading message if we have frames > 1
-        if (animData.frames > 1) {
-            // Show frame divisions for multi-frame animations
-            sprite.style.backgroundImage = `linear-gradient(90deg, 
-                rgba(255,255,255,0.2) 1px, transparent 1px)`;
-            sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
-            sprite.style.backgroundRepeat = 'repeat-x';
-            
-            const framesInfo = document.createElement('div');
-            framesInfo.style.position = 'absolute';
-            framesInfo.style.top = '3px';
-            framesInfo.style.right = '3px';
-            framesInfo.style.color = 'white';
-            framesInfo.style.fontSize = '9px';
-            framesInfo.style.padding = '1px 3px';
-            framesInfo.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            framesInfo.style.borderRadius = '3px';
-            framesInfo.textContent = `${animData.frames} frames`;
-            sprite.appendChild(framesInfo);
-        }
-        
-        // Apply scale
-        const scale = animation.options.scale || 1;
-        animation.container.style.setProperty('--character-scale', scale);
-        sprite.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        
-        // Add sprite to container
-        spriteContainer.appendChild(sprite);
-        
-        // Clear container and add sprite
-        animation.container.innerHTML = '';
-        animation.container.appendChild(spriteContainer);
-        
-        // Set up animation
-        animation.frameIndex = 0;
-        animation.sprite = sprite;
-        animation.frameIndicator = frameIndicator;
-        animation.frames = animData.frames;
-        animation.frameSpeed = animData.speed || 200;
-        animation.isLooping = animation.options.loop;
-        
-        // Add "wide-mode" class to parent avatar container for wide animations
-        if (animation.options.adaptiveWidth && aspectRatio !== 1) {
-            const avatarContainer = document.getElementById('character-avatar');
-            if (avatarContainer) {
-                avatarContainer.classList.add('ability-mode');
-                animation.avatarContainer = avatarContainer;
-            }
-        }
-        
-        // Update frame counter
-        document.getElementById('current-frame').textContent = '1';
-        document.getElementById('frame-counter').textContent = `Frame: 1/${animData.frames}`;
-        
-        // Start animation loop if more than 1 frame
-        if (animData.frames > 1) {
-            this._advanceFrame(animation.id);
-            animation.animationTimer = setInterval(() => {
-                this._advanceFrame(animation.id);
-            }, animation.frameSpeed);
-        }
-        
-        // Add a message for the user about real sprites
-        this.logInfo(`Note: This tester uses colored boxes instead of real sprites.`);
-        this.logInfo(`In production, it would load: ${placeholderPath}`);
+    success: function(message) {
+        console.log('%c' + message, 'color: green');
+        this._addLogEntry(message, 'success');
     },
     
-    // Advance to next frame in animation
-    _advanceFrame: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation || !animation.sprite || !animation.frames) return;
-        
-        // Increment frame
-        animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
-        
-        // Update frame indicator
-        if (animation.frameIndicator) {
-            animation.frameIndicator.textContent = animation.frameIndex + 1;
-        }
-        
-        // Update frame counter in UI
-        document.getElementById('current-frame').textContent = (animation.frameIndex + 1).toString();
-        document.getElementById('frame-counter').textContent = `Frame: ${animation.frameIndex + 1}/${animation.frames}`;
-        
-        // Update frame timeline
-        this.updateActiveFrame(animation.frameIndex);
-        
-        // If we've reached the end and not looping, stop animation
-        if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
-            setTimeout(() => {
-                this.stopAnimation(animationId);
-                
-                // Signal animation complete
-                const event = new CustomEvent('animationComplete', {
-                    detail: {
-                        animationId: animationId,
-                        animationName: animation.currentAnimation
-                    }
-                });
-                document.dispatchEvent(event);
-                
-                // Clean up wide mode if needed
-                if (animation.avatarContainer) {
-                    animation.avatarContainer.classList.remove('ability-mode');
-                }
-                
-                const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
-                if (container && container.classList.contains('wide-sprite')) {
-                    container.classList.remove('wide-sprite');
-                }
-                
-                this.logSuccess(`Animation completed: ${animation.currentAnimation}`);
-                document.getElementById('animation-state').textContent = 'stopped';
-            }, animation.frameSpeed / 2);
-        }
-        
-        // Calculate and display performance metrics
-        const now = performance.now();
-        if (animation.debug.lastFrameTime) {
-            const frameTime = now - animation.debug.lastFrameTime;
-            animation.debug.frameRate = 1000 / frameTime;
-        }
-        animation.debug.lastFrameTime = now;
-        animation.debug.frameCount++;
+    error: function(message) {
+        console.error(message);
+        this._addLogEntry(message, 'error');
     },
     
-    // Stop an animation
-    stopAnimation: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        // Clear any running timer
-        if (animation.animationTimer) {
-            clearInterval(animation.animationTimer);
-            animation.animationTimer = null;
-        }
-        
-        animation.isPlaying = false;
-        document.getElementById('animation-state').textContent = 'stopped';
-        return true;
+    warning: function(message) {
+        console.warn(message);
+        this._addLogEntry(message, 'warning');
     },
     
-    // Pause an animation
-    pauseAnimation: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation || !animation.animationTimer) return false;
-        
-        // Clear timer but don't reset state
-        clearInterval(animation.animationTimer);
-        animation.animationTimer = null;
-        animation.isPlaying = false;
-        
-        document.getElementById('animation-state').textContent = 'paused';
-        this.logInfo(`Paused animation: ${animation.currentAnimation}`);
-        
-        return true;
-    },
-    
-    // Resume a paused animation
-    resumeAnimation: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation || animation.isPlaying) return false;
-        
-        // Get current animation data
-        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, animation.currentAnimation);
-        if (!animData) return false;
-        
-        // Restart timer from current frame
-        animation.animationTimer = setInterval(() => {
-            this._advanceFrame(animation.id);
-        }, animation.frameSpeed);
-        
-        animation.isPlaying = true;
-        document.getElementById('animation-state').textContent = 'playing';
-        this.logInfo(`Resumed animation: ${animation.currentAnimation}`);
-        
-        return true;
-    },
-    
-    // Reset animation to first frame
-    resetAnimation: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        // Reset to first frame
-        animation.frameIndex = 0;
-        
-        // Update frame indicator
-        if (animation.frameIndicator) {
-            animation.frameIndicator.textContent = '1';
-        }
-        
-        // Update frame counters
-        document.getElementById('current-frame').textContent = '1';
-        document.getElementById('frame-counter').textContent = `Frame: 1/${animation.frames}`;
-        this.updateActiveFrame(0);
-        
-        this.logInfo(`Reset animation: ${animation.currentAnimation}`);
-        
-        return true;
-    },
-    
-    // Play ability animations
-    playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        const animData = CharacterAssets.getCharacterAnimation(animation.characterId, abilityName);
-        if (!animData) {
-            this.logError(`Ability animation not found: ${abilityName}`);
-            return false;
-        }
-        
-        const listener = (event) => {
-            if (event.detail.animationId === animationId) {
-                document.removeEventListener('animationComplete', listener);
-                
-                // Return to idle
-                this.playAnimation(animationId, 'idle', true);
-                
-                if (onCompleteCallback && typeof onCompleteCallback === 'function') {
-                    onCompleteCallback();
-                }
-            }
-        };
-        
-        document.addEventListener('animationComplete', listener);
-        
-        // Enable wide mode for this animation if it has an aspect ratio
-        animation.options.adaptiveWidth = !!animData.aspectRatio && animData.aspectRatio !== 1;
-        
-        // Play the animation non-looping
-        this.playAnimation(animationId, abilityName, false);
-        
-        // Add flash effect to avatar
-        const avatar = document.getElementById('character-avatar');
-        if (avatar) {
-            avatar.classList.add('ability-flash');
-            setTimeout(() => {
-                avatar.classList.remove('ability-flash');
-            }, 500);
-        }
-        
-        this.logInfo(`Playing ability animation: ${abilityName}`);
-        
-        return true;
-    },
-    
-    // Set animation scale
-    setAnimationScale: function(animationId, scaleValue) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        animation.options.scale = scaleValue;
-        
-        // Update scale of current animation
-        const elements = animation.container.querySelectorAll('.character-sprite');
-        elements.forEach(el => {
-            el.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
-        });
-        
-        this.logInfo(`Scale set to: ${scaleValue}`);
-        return true;
-    },
-    
-    // Set animation speed
-    setAnimationSpeed: function(animationId, speed) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        // Update speed
-        animation.frameSpeed = speed;
-        
-        // If animation is playing, restart timer with new speed
-        if (animation.isPlaying && animation.animationTimer) {
-            clearInterval(animation.animationTimer);
-            animation.animationTimer = setInterval(() => {
-                this._advanceFrame(animation.id);
-            }, animation.frameSpeed);
-        }
-        
-        this.logInfo(`Speed set to: ${speed}ms`);
-        return true;
-    },
-    
-    // Toggle wide mode
-    toggleWideMode: function(animationId) {
-        const animation = this.activeAnimations[animationId];
-        if (!animation) return false;
-        
-        animation.options.adaptiveWidth = !animation.options.adaptiveWidth;
-        
-        // Reapply current animation to update container
-        const currentAnim = animation.currentAnimation;
-        this.playAnimation(animationId, currentAnim);
-        
-        this.logInfo(`Wide mode ${animation.options.adaptiveWidth ? 'enabled' : 'disabled'}`);
-        return true;
-    },
-    
-    // Toggle global looping setting
-    toggleLooping: function() {
-        this.loopEnabled = !this.loopEnabled;
-        
-        // Update all active animations
-        for (const animId in this.activeAnimations) {
-            const animation = this.activeAnimations[animId];
-            animation.options.loop = this.loopEnabled;
-            animation.isLooping = this.loopEnabled;
-        }
-        
-        this.logInfo(`Looping ${this.loopEnabled ? 'enabled' : 'disabled'}`);
-        return this.loopEnabled;
-    },
-    
-    // Get a color for each animation type (for testing) - brighter colors
-    _getAnimationColor: function(animationName) {
-        switch(animationName) {
-            case 'idle': return '#4a90e2'; // Bright blue
-            case 'walking': return '#50e3c2'; // Bright teal
-            case 'ability': return '#f8e71c'; // Bright yellow
-            case 'specialAbility': return '#ff5cb4'; // Bright pink
-            default: return '#b8b8b8'; // Light gray
+    // Clear the debug log
+    clear: function() {
+        if (this.logContainer) {
+            this.logContainer.innerHTML = '';
+            this._addLogEntry('Log cleared', 'info');
         }
     },
     
-    // Update frame timeline visualization
+    // Add entry to the visual log
+    _addLogEntry: function(message, type = '') {
+        if (!this.logContainer) return;
+        
+        const entry = document.createElement('p');
+        if (type) entry.className = type;
+        
+        // Add timestamp
+        const now = new Date();
+        const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        
+        entry.textContent = `[${timestamp}] ${message}`;
+        
+        this.logContainer.appendChild(entry);
+        this.logContainer.scrollTop = this.logContainer.scrollHeight;
+    },
+    
+    // Update the frame timeline visualization
     updateFrameTimeline: function(frameCount) {
         const timeline = document.getElementById('frame-timeline');
+        if (!timeline) return;
+        
         timeline.innerHTML = '';
         
         for (let i = 0; i < frameCount; i++) {
@@ -1626,327 +1238,1280 @@ const CharacterAnimation = {
         });
     },
     
-    // Debug logging functions
-    logDebug: function(message) {
-        console.log(message);
-        this._addLogEntry(message);
-    },
-    
-    logInfo: function(message) {
-        console.info(message);
-        this._addLogEntry(message, 'info');
-    },
-    
-    logSuccess: function(message) {
-        console.log('%c' + message, 'color: green');
-        this._addLogEntry(message, 'success');
-    },
-    
-    logError: function(message) {
-        console.error(message);
-        this._addLogEntry(message, 'error');
-    },
-    
-    logWarning: function(message) {
-        console.warn(message);
-        this._addLogEntry(message, 'warning');
-    },
-    
-    _addLogEntry: function(message, type = '') {
-        const logContainer = document.getElementById('debug-log');
-        if (!logContainer) return;
+    // Update frame counter display
+    updateFrameCounter: function(currentFrame, totalFrames) {
+        const counter = document.getElementById('frame-counter');
+        if (counter) {
+            counter.textContent = `Frame: ${currentFrame}/${totalFrames}`;
+        }
         
-        const entry = document.createElement('p');
-        if (type) entry.className = type;
-        
-        // Add timestamp
-        const now = new Date();
-        const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
-        
-        entry.textContent = `[${timestamp}] ${message}`;
-        
-        logContainer.appendChild(entry);
-        logContainer.scrollTop = logContainer.scrollHeight;
+        const currentFrameElement = document.getElementById('current-frame');
+        if (currentFrameElement) {
+            currentFrameElement.textContent = currentFrame;
+        }
+    },
+    
+    // Update animation state display
+    updateAnimationState: function(state) {
+        const stateElement = document.getElementById('animation-state');
+        if (stateElement) {
+            stateElement.textContent = state;
+        }
     }
 };
 
-// Global state
-let currentCharacterId = 'resident';
-let animationId = null;
-let currentScale = 3.0;
-let currentSpeed = 200;
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize animation system
-    CharacterAnimation.initialize();
+// ------------------------------------------------------------
+// Module 3: Animation System
+// ------------------------------------------------------------
+const AnimationSystem = {
+    // Active animations registry
+    activeAnimations: {},
     
-    // Set up character buttons
-    document.querySelectorAll('.character-button').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const characterId = this.dataset.character;
-            changeCharacter(characterId);
+    // Global settings
+    settings: {
+        loopEnabled: true,
+        debugMode: false
+    },
+    
+    // Initialize the animation system
+    initialize: function() {
+        DebugSystem.info("Animation System initialized");
+        
+        // Set up frame timeline visualization
+        DebugSystem.updateFrameTimeline(4); // Default to 4 frames
+        
+        // Set up animation event listeners
+        window.addEventListener('resize', this._handleWindowResize.bind(this));
+        document.addEventListener('visibilitychange', this._handleVisibilityChange.bind(this));
+        
+        return this;
+    },
+    
+    // Create a new animation instance
+    createAnimation: function(characterId, containerId, options = {}) {
+        // Parameter validation
+        if (!characterId || !containerId) {
+            DebugSystem.error("Missing required parameters for createAnimation");
+            return null;
+        }
+        
+        // Get target container
+        const container = document.getElementById(containerId);
+        if (!container) {
+            DebugSystem.error(`Animation container not found: ${containerId}`);
+            return null;
+        }
+        
+        try {
+            // Clear container content
+            container.innerHTML = '';
             
-            // Update active button
-            document.querySelectorAll('.character-button').forEach(b => {
-                b.classList.remove('active');
+            // Default animation options
+            const defaultOptions = {
+                initialAnimation: 'idle',
+                autoPlay: true,
+                loop: this.settings.loopEnabled,
+                scale: 3,
+                centerImage: true,
+                adaptiveWidth: false
+            };
+            
+            // Merge with provided options
+            const animOptions = {...defaultOptions, ...options};
+            
+            // Create animation container element
+            const animationContainer = document.createElement('div');
+            animationContainer.className = 'character-animation-container';
+            animationContainer.style.position = 'relative';
+            animationContainer.style.width = '100%';
+            animationContainer.style.height = '100%';
+            
+            if (animOptions.centerImage) {
+                animationContainer.style.display = 'flex';
+                animationContainer.style.justifyContent = 'center';
+                animationContainer.style.alignItems = 'center';
+            }
+            
+            container.appendChild(animationContainer);
+            
+            // Create unique animation ID
+            const animationId = `anim_${characterId}_${containerId}_${Date.now()}`;
+            
+            // Create animation instance
+            const animation = {
+                id: animationId,
+                characterId: characterId,
+                containerId: containerId,
+                container: animationContainer,
+                currentAnimation: null,
+                frameIndex: 0,
+                animFrame: null,         // requestAnimationFrame ID
+                options: animOptions,
+                isPlaying: false,
+                lastFrameTime: 0,        // For requestAnimationFrame timing
+                duration: 0,             // Track total animation duration
+                stats: {
+                    framesRendered: 0,
+                    startTime: 0,
+                    fps: 0
+                }
+            };
+            
+            // Register the animation
+            this.activeAnimations[animationId] = animation;
+            
+            // Start initial animation if specified
+            if (animOptions.initialAnimation && animOptions.autoPlay) {
+                this.playAnimation(animationId, animOptions.initialAnimation);
+            }
+            
+            DebugSystem.success(`Created animation ${animationId} for character ${characterId}`);
+            return animationId;
+            
+        } catch (error) {
+            DebugSystem.error(`Error creating animation: ${error.message}`);
+            console.error(error);
+            return null;
+        }
+    },
+    
+    // Play a specific animation
+    playAnimation: function(animationId, animationName = 'idle', loop = null) {
+        // Get animation instance
+        const animation = this.activeAnimations[animationId];
+        if (!animation) {
+            DebugSystem.error(`Animation not found: ${animationId}`);
+            return false;
+        }
+        
+        try {
+            // Stop any current animation
+            this.stopAnimation(animationId);
+            
+            // Get animation data from character
+            const animData = CharacterDataManager.getCharacterAnimation(animation.characterId, animationName);
+            if (!animData) {
+                DebugSystem.error(`Animation data not found for ${animationName}`);
+                return false;
+            }
+            
+            // Save current animation name
+            animation.currentAnimation = animationName;
+            
+            // Update animation info display
+            document.getElementById('current-animation').textContent = animationName;
+            DebugSystem.updateAnimationState('playing');
+            
+            // Set looping behavior
+            if (loop !== null) {
+                animation.options.loop = loop;
+            } else {
+                // Otherwise use global setting
+                animation.options.loop = this.settings.loopEnabled;
+            }
+            
+            // Set up the sprite sheet animation
+            this._setupSpriteAnimation(animation, animData);
+            
+            // Update frame timeline
+            DebugSystem.updateFrameTimeline(animData.frames);
+            
+            // Set animation state
+            animation.isPlaying = true;
+            animation.stats.startTime = performance.now();
+            animation.stats.framesRendered = 0;
+            
+            DebugSystem.info(`Playing animation: ${animationName} (loop: ${animation.options.loop})`);
+            
+            return true;
+        
+        } catch (error) {
+            DebugSystem.error(`Error playing animation: ${error.message}`);
+            console.error(error);
+            return false;
+        }
+    },
+    
+    // Set up sprite animation with improved error handling
+    _setupSpriteAnimation: function(animation, animData) {
+        try {
+            // Handle aspect ratio for wide sprites
+            const aspectRatio = animData.aspectRatio || 1;
+            
+            // Create sprite container
+            const spriteContainer = document.createElement('div');
+            spriteContainer.className = 'character-sprite-container';
+            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                spriteContainer.classList.add('wide-sprite');
+            }
+            
+            spriteContainer.style.width = '100%';
+            spriteContainer.style.height = '100%';
+            spriteContainer.style.position = 'relative';
+            
+            // For wide sprites, adjust container
+            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                spriteContainer.style.width = `${aspectRatio * 100}%`;
+                spriteContainer.style.left = `${(1 - aspectRatio) * 50}%`;
+            }
+            
+            // Get character and animation data
+            const characterId = animation.characterId;
+            const animationName = animation.currentAnimation;
+            
+            // Create the sprite element
+            const sprite = document.createElement('div');
+            sprite.className = 'character-sprite real-sprite';
+            sprite.dataset.animation = animationName;
+            
+            // Get the sprite path and construct full image path
+            const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
+            
+            // Set explicit dimensions and styling
+            sprite.style.width = '100px';
+            sprite.style.height = '100px';
+            sprite.style.position = 'absolute';
+            sprite.style.display = 'flex';
+            sprite.style.justifyContent = 'center';
+            sprite.style.alignItems = 'center';
+            sprite.style.left = '50%';
+            sprite.style.top = '50%';
+            
+            // Create loading indicator
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'loading-spinner';
+            sprite.appendChild(loadingIndicator);
+            
+            // Create the image element for the sprite
+            const img = document.createElement('img');
+            img.src = imagePath;
+            img.alt = `${characterId} ${animationName}`;
+            img.className = 'character-image';
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.imageRendering = 'pixelated';
+            img.style.imageRendering = 'crisp-edges';
+            img.style.objectFit = 'contain';
+            img.style.display = 'none'; // Hide until loaded
+            
+            // Add debugging border to see image boundaries
+            if (this.settings.debugMode) {
+                img.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
+            }
+            
+            // Apply scale transformation
+            const scaleValue = animation.options.scale || 1;
+            animation.container.style.setProperty('--character-scale', scaleValue);
+            sprite.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
+            
+            // Add the image to the sprite
+            sprite.appendChild(img);
+            
+            // Frame indicator for debugging
+            const frameIndicator = document.createElement('div');
+            frameIndicator.style.position = 'absolute';
+            frameIndicator.style.bottom = '5px';
+            frameIndicator.style.right = '5px';
+            frameIndicator.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            frameIndicator.style.padding = '2px 5px';
+            frameIndicator.style.borderRadius = '3px';
+            frameIndicator.style.color = 'white';
+            frameIndicator.style.fontSize = '10px';
+            frameIndicator.textContent = `Frame 1/${animData.frames}`;
+            frameIndicator.id = 'frame-indicator';
+            sprite.appendChild(frameIndicator);
+            animation.frameIndicator = frameIndicator;
+            
+            // Handle image loading events
+            img.onload = () => {
+                DebugSystem.success(`Image loaded successfully: ${imagePath} (${img.naturalWidth}x${img.naturalHeight}px)`);
+                loadingIndicator.style.display = 'none';
+                img.style.display = 'block';
+                
+                // Update frame indicator text
+                if (animData.frames > 1) {
+                    animation.frameIndicator.textContent = `Frame 1/${animData.frames}`;
+                }
+                
+                // Show frame divisions for multi-frame animations
+                if (animData.frames > 1) {
+                    sprite.style.backgroundImage = `linear-gradient(90deg, 
+                        rgba(255,255,255,0.2) 1px, transparent 1px)`;
+                    sprite.style.backgroundSize = `${100/animData.frames}% 100%`;
+                    sprite.style.backgroundRepeat = 'repeat-x';
+                }
+                
+                // Add retry button for testing
+                if (this.settings.debugMode) {
+                    const retryBtn = document.createElement('button');
+                    retryBtn.textContent = 'Reload';
+                    retryBtn.style.position = 'absolute';
+                    retryBtn.style.bottom = '5px';
+                    retryBtn.style.left = '5px';
+                    retryBtn.style.fontSize = '10px';
+                    retryBtn.style.padding = '2px 5px';
+                    retryBtn.onclick = () => img.src = imagePath + '?t=' + Date.now();
+                    sprite.appendChild(retryBtn);
+                }
+            };
+            
+            // Handle image loading errors
+            img.onerror = () => {
+                DebugSystem.error(`Failed to load image: ${imagePath}`);
+                loadingIndicator.style.display = 'none';
+                
+                // Create error message
+                const errorMsg = document.createElement('div');
+                errorMsg.textContent = 'Image not found';
+                errorMsg.style.color = '#e67e73';
+                errorMsg.style.position = 'absolute';
+                errorMsg.style.top = '50%';
+                errorMsg.style.left = '50%';
+                errorMsg.style.transform = 'translate(-50%, -50%)';
+                sprite.appendChild(errorMsg);
+                
+                // Show a colorful fallback box
+                sprite.style.backgroundColor = this._getAnimationColor(animationName);
+                sprite.style.width = '80px';
+                sprite.style.height = '80px';
+                sprite.style.boxShadow = `0 0 10px ${this._getAnimationColor(animationName)}`;
+                
+                // Add retry button
+                const retryBtn = document.createElement('button');
+                retryBtn.textContent = 'Retry';
+                retryBtn.style.position = 'absolute';
+                retryBtn.style.bottom = '5px';
+                retryBtn.style.left = '5px';
+                retryBtn.style.fontSize = '10px';
+                retryBtn.style.padding = '2px 5px';
+                retryBtn.onclick = () => {
+                    img.src = imagePath + '?t=' + Date.now(); // Force reload
+                    errorMsg.textContent = 'Retrying...';
+                };
+                sprite.appendChild(retryBtn);
+                
+                // Update frame indicator for fallback
+                animation.frameIndicator.style.position = 'absolute';
+                animation.frameIndicator.style.top = '5px';
+                animation.frameIndicator.style.right = '5px';
+                animation.frameIndicator.style.color = 'white';
+                animation.frameIndicator.style.fontSize = '12px';
+                animation.frameIndicator.style.fontWeight = 'bold';
+                animation.frameIndicator.textContent = '1';
+            };
+            
+            // Add sprite to container
+            spriteContainer.appendChild(sprite);
+            
+            // Clear container and add sprite
+            animation.container.innerHTML = '';
+            animation.container.appendChild(spriteContainer);
+            
+            // Set up animation parameters
+            animation.frameIndex = 0;
+            animation.sprite = sprite;
+            animation.frameIndicator = frameIndicator;
+            animation.frames = animData.frames;
+            animation.frameSpeed = animData.speed || 200;
+            animation.isLooping = animation.options.loop;
+            
+            // Handle wide mode for parent container
+            if (animation.options.adaptiveWidth && aspectRatio !== 1) {
+                const avatarContainer = document.getElementById('character-avatar');
+                if (avatarContainer) {
+                    avatarContainer.classList.add('ability-mode');
+                    animation.avatarContainer = avatarContainer;
+                }
+            }
+            
+            // Update UI displays
+            DebugSystem.updateFrameCounter(1, animData.frames);
+            
+            // Start animation if more than one frame using requestAnimationFrame
+            if (animData.frames > 1) {
+                // Start the animation loop
+                this._startAnimationLoop(animation);
+            }
+            
+        } catch (error) {
+            DebugSystem.error(`Error setting up sprite animation: ${error.message}`);
+            console.error(error);
+            
+            // Attempt basic error recovery
+            const errorElement = document.createElement('div');
+            errorElement.textContent = 'Error loading animation';
+            errorElement.style.color = '#e67e73';
+            errorElement.style.padding = '10px';
+            animation.container.innerHTML = '';
+            animation.container.appendChild(errorElement);
+        }
+    },
+    
+    // Start animation loop using requestAnimationFrame
+    _startAnimationLoop: function(animation) {
+        // Set initial time
+        animation.lastFrameTime = performance.now();
+        animation.stats.startTime = animation.lastFrameTime;
+        
+        // Define the animation loop function
+        const animateFrame = (timestamp) => {
+            // Only advance frame if enough time has passed
+            if (timestamp - animation.lastFrameTime >= animation.frameSpeed) {
+                this._advanceFrame(animation.id);
+                animation.lastFrameTime = timestamp;
+            }
+            
+            // Continue animation loop if still playing
+            if (animation.isPlaying) {
+                animation.animFrame = requestAnimationFrame(animateFrame);
+            }
+        };
+        
+        // Start the animation loop
+        animation.animFrame = requestAnimationFrame(animateFrame);
+    },
+    
+    // Advance to the next animation frame
+    _advanceFrame: function(animationId) {
+        // Get animation instance
+        const animation = this.activeAnimations[animationId];
+        if (!animation || !animation.sprite || !animation.frames) return;
+        
+        try {
+            // Increment frame index
+            animation.frameIndex = (animation.frameIndex + 1) % animation.frames;
+            animation.stats.framesRendered++;
+            
+            // Update frame indicator if available
+            if (animation.frameIndicator) {
+                animation.frameIndicator.textContent = animation.frameIndex + 1;
+            }
+            
+            // Update UI displays
+            DebugSystem.updateFrameCounter(animation.frameIndex + 1, animation.frames);
+            DebugSystem.updateActiveFrame(animation.frameIndex);
+            
+            // Calculate FPS
+            const currentTime = performance.now();
+            const elapsedTime = currentTime - animation.stats.startTime;
+            if (elapsedTime > 0) {
+                animation.stats.fps = (animation.stats.framesRendered * 1000) / elapsedTime;
+            }
+            
+            // If we've reached the end and not looping, stop animation
+            if (animation.frameIndex === animation.frames - 1 && !animation.isLooping) {
+                // Give a short delay to show the last frame
+                setTimeout(() => {
+                    this.stopAnimation(animationId);
+                    
+                    // Signal animation completion
+                    this._triggerAnimationComplete(animation);
+                    
+                    // Clean up wide mode if needed
+                    this._cleanupWideMode(animation);
+                    
+                    DebugSystem.success(`Animation completed: ${animation.currentAnimation}`);
+                    DebugSystem.updateAnimationState('stopped');
+                }, 50);
+            }
+        } catch (error) {
+            DebugSystem.error(`Error advancing animation frame: ${error.message}`);
+            console.error(error);
+            
+            // Try to stop the animation to prevent further errors
+            this.stopAnimation(animationId);
+        }
+    },
+    
+    // Trigger animation complete event
+    _triggerAnimationComplete: function(animation) {
+        const event = new CustomEvent('animationComplete', {
+            detail: {
+                animationId: animation.id,
+                animationName: animation.currentAnimation,
+                stats: animation.stats
+            }
+        });
+        document.dispatchEvent(event);
+    },
+    
+    // Clean up wide mode settings
+    _cleanupWideMode: function(animation) {
+        if (animation.avatarContainer) {
+            animation.avatarContainer.classList.remove('ability-mode');
+        }
+        
+        const container = document.querySelector(`#${animation.containerId} .character-sprite-container`);
+        if (container && container.classList.contains('wide-sprite')) {
+            container.classList.remove('wide-sprite');
+        }
+    },
+    
+    // Stop an animation
+    stopAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        // Cancel animation frame request
+        if (animation.animFrame) {
+            cancelAnimationFrame(animation.animFrame);
+            animation.animFrame = null;
+        }
+        
+        animation.isPlaying = false;
+        DebugSystem.updateAnimationState('stopped');
+        
+        return true;
+    },
+    
+    // Pause an animation
+    pauseAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation || !animation.isPlaying) return false;
+        
+        // Cancel animation frame but keep state
+        if (animation.animFrame) {
+            cancelAnimationFrame(animation.animFrame);
+            animation.animFrame = null;
+        }
+        
+        animation.isPlaying = false;
+        DebugSystem.updateAnimationState('paused');
+        DebugSystem.info(`Paused animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
+    
+    // Resume a paused animation
+    resumeAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation || animation.isPlaying) return false;
+        
+        // Set animation to playing
+        animation.isPlaying = true;
+        
+        // Restart animation loop
+        this._startAnimationLoop(animation);
+        
+        DebugSystem.updateAnimationState('playing');
+        DebugSystem.info(`Resumed animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
+    
+    // Reset animation to first frame
+    resetAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        // Reset to first frame
+        animation.frameIndex = 0;
+        
+        // Update frame indicator
+        if (animation.frameIndicator) {
+            animation.frameIndicator.textContent = '1';
+        }
+        
+        // Update UI displays
+        DebugSystem.updateFrameCounter(1, animation.frames);
+        DebugSystem.updateActiveFrame(0);
+        
+        DebugSystem.info(`Reset animation: ${animation.currentAnimation}`);
+        
+        return true;
+    },
+    
+    // Play ability animation with completion callback
+    playAbilityAnimation: function(animationId, abilityName, onCompleteCallback) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        try {
+            // Verify animation exists
+            const animData = CharacterDataManager.getCharacterAnimation(animation.characterId, abilityName);
+            if (!animData) {
+                DebugSystem.error(`Ability animation not found: ${abilityName}`);
+                return false;
+            }
+            
+            // Set up completion listener
+            const listener = (event) => {
+                if (event.detail.animationId === animationId) {
+                    document.removeEventListener('animationComplete', listener);
+                    
+                    // Return to idle animation
+                    this.playAnimation(animationId, 'idle', true);
+                    
+                    // Call callback if provided
+                    if (onCompleteCallback && typeof onCompleteCallback === 'function') {
+                        onCompleteCallback();
+                    }
+                }
+            };
+            
+            document.addEventListener('animationComplete', listener);
+            
+            // Enable wide mode for ability animations with aspect ratio
+            animation.options.adaptiveWidth = !!animData.aspectRatio && animData.aspectRatio !== 1;
+            
+            // Play the animation without looping
+            this.playAnimation(animationId, abilityName, false);
+            
+            // Add flash effect to avatar
+            const avatar = document.getElementById('character-avatar');
+            if (avatar) {
+                avatar.classList.add('ability-flash');
+                setTimeout(() => {
+                    avatar.classList.remove('ability-flash');
+                }, 500);
+            }
+            
+            DebugSystem.info(`Playing ability animation: ${abilityName}`);
+            
+            return true;
+        } catch (error) {
+            DebugSystem.error(`Error playing ability animation: ${error.message}`);
+            console.error(error);
+            return false;
+        }
+    },
+    
+    // Set animation scale
+    setAnimationScale: function(animationId, scaleValue) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        try {
+            animation.options.scale = scaleValue;
+            
+            // Update the CSS variable for scale
+            animation.container.style.setProperty('--character-scale', scaleValue);
+            
+            // Update transform of current sprite
+            const elements = animation.container.querySelectorAll('.character-sprite');
+            elements.forEach(el => {
+                el.style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
             });
-            this.classList.add('active');
-        });
-    });
-    
-    // Load initial character
-    loadCharacter('resident');
-    
-    // Set up animation buttons
-    document.getElementById('btn-idle').addEventListener('click', function() {
-        CharacterAnimation.playAnimation(animationId, 'idle', CharacterAnimation.loopEnabled);
-    });
-    
-    document.getElementById('btn-walk').addEventListener('click', function() {
-        CharacterAnimation.playAnimation(animationId, 'walking', CharacterAnimation.loopEnabled);
-    });
-    
-    document.getElementById('btn-ability').addEventListener('click', function() {
-        CharacterAnimation.playAbilityAnimation(animationId, 'ability', () => {
-            CharacterAnimation.logSuccess("Regular ability animation completed!");
-        });
-    });
-    
-    document.getElementById('btn-special-ability').addEventListener('click', function() {
-        CharacterAnimation.playAbilityAnimation(animationId, 'specialAbility', () => {
-            CharacterAnimation.logSuccess("Special ability animation completed!");
-        });
-    });
-    
-    // Set up playback control buttons
-    document.getElementById('btn-play').addEventListener('click', function() {
-        if (animationId) {
-            CharacterAnimation.resumeAnimation(animationId);
+            
+            DebugSystem.info(`Scale set to: ${scaleValue}`);
+            return true;
+        } catch (error) {
+            DebugSystem.error(`Error setting animation scale: ${error.message}`);
+            return false;
         }
-    });
+    },
     
-    document.getElementById('btn-pause').addEventListener('click', function() {
-        if (animationId) {
-            CharacterAnimation.pauseAnimation(animationId);
+    // Set animation speed
+    setAnimationSpeed: function(animationId, speed) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        try {
+            // Update speed setting
+            animation.frameSpeed = speed;
+            
+            // If animation is playing, we don't need to do anything special
+            // The next frame advance will use the new speed
+            
+            DebugSystem.info(`Speed set to: ${speed}ms per frame`);
+            return true;
+        } catch (error) {
+            DebugSystem.error(`Error setting animation speed: ${error.message}`);
+            return false;
         }
-    });
+    },
     
-    document.getElementById('btn-stop').addEventListener('click', function() {
-        if (animationId) {
-            CharacterAnimation.stopAnimation(animationId);
+    // Toggle wide mode on/off
+    toggleWideMode: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        try {
+            animation.options.adaptiveWidth = !animation.options.adaptiveWidth;
+            
+            // Reapply current animation to update container
+            const currentAnim = animation.currentAnimation;
+            this.playAnimation(animationId, currentAnim);
+            
+            DebugSystem.info(`Wide mode ${animation.options.adaptiveWidth ? 'enabled' : 'disabled'}`);
+            return true;
+        } catch (error) {
+            DebugSystem.error(`Error toggling wide mode: ${error.message}`);
+            return false;
         }
-    });
+    },
     
-    document.getElementById('btn-reset').addEventListener('click', function() {
-        if (animationId) {
-            CharacterAnimation.resetAnimation(animationId);
+    // Toggle global looping setting
+    toggleLooping: function() {
+        try {
+            this.settings.loopEnabled = !this.settings.loopEnabled;
+            
+            // Update all active animations
+            for (const animId in this.activeAnimations) {
+                const animation = this.activeAnimations[animId];
+                animation.options.loop = this.settings.loopEnabled;
+                animation.isLooping = this.settings.loopEnabled;
+            }
+            
+            DebugSystem.info(`Animation looping ${this.settings.loopEnabled ? 'enabled' : 'disabled'}`);
+            return this.settings.loopEnabled;
+        } catch (error) {
+            DebugSystem.error(`Error toggling animation looping: ${error.message}`);
+            return this.settings.loopEnabled;
         }
-    });
+    },
     
-    // Set up debug buttons
-    document.getElementById('btn-toggle-grid').addEventListener('click', function() {
-        document.getElementById('character-avatar').classList.toggle('show-grid');
-        CharacterAnimation.logInfo("Grid visibility toggled");
-    });
+    // Destroy an animation instance and clean up
+    destroyAnimation: function(animationId) {
+        const animation = this.activeAnimations[animationId];
+        if (!animation) return false;
+        
+        try {
+            // Stop animation first
+            this.stopAnimation(animationId);
+            
+            // Clean up container
+            if (animation.container) {
+                animation.container.innerHTML = '';
+            }
+            
+            // Remove from registry
+            delete this.activeAnimations[animationId];
+            
+            DebugSystem.info(`Destroyed animation: ${animationId}`);
+            return true;
+        } catch (error) {
+            DebugSystem.error(`Error destroying animation: ${error.message}`);
+            return false;
+        }
+    },
     
-    document.getElementById('btn-toggle-overflow').addEventListener('click', function() {
-        const avatar = document.getElementById('character-avatar');
-        if (avatar.style.overflow === 'visible') {
-            avatar.style.overflow = 'hidden';
-            CharacterAnimation.logInfo("Overflow set to: hidden");
+    // Get color for different animation types
+    _getAnimationColor: function(animationName) {
+        switch(animationName) {
+            case 'idle': return '#4a90e2'; // Bright blue
+            case 'walking': return '#50e3c2'; // Bright teal
+            case 'ability': return '#f8e71c'; // Bright yellow
+            case 'specialAbility': return '#ff5cb4'; // Bright pink
+            default: return '#b8b8b8'; // Light gray
+        }
+    },
+    
+    // Handle window resize event
+    _handleWindowResize: function() {
+        // Adjust any active animations that need sizing updates
+        for (const animId in this.activeAnimations) {
+            const animation = this.activeAnimations[animId];
+            
+            // Only re-adjust active animations
+            if (animation.isPlaying && animation.currentAnimation) {
+                // Restart animation to refresh layout
+                const currentAnim = animation.currentAnimation;
+                const isLooping = animation.options.loop;
+                this.playAnimation(animId, currentAnim, isLooping);
+            }
+        }
+    },
+    
+    // Handle visibility change event
+    _handleVisibilityChange: function() {
+        if (document.hidden) {
+            // Pause all animations when tab is not visible
+            for (const animId in this.activeAnimations) {
+                const animation = this.activeAnimations[animId];
+                if (animation.isPlaying) {
+                    // Remember which animations were playing
+                    animation.wasPlaying = true;
+                    this.pauseAnimation(animId);
+                }
+            }
         } else {
-            avatar.style.overflow = 'visible';
-            CharacterAnimation.logInfo("Overflow set to: visible");
+            // Resume animations that were playing when tab is visible again
+            for (const animId in this.activeAnimations) {
+                const animation = this.activeAnimations[animId];
+                if (animation.wasPlaying) {
+                    animation.wasPlaying = false;
+                    this.resumeAnimation(animId);
+                }
+            }
         }
-    });
-    
-    document.getElementById('btn-toggle-loop').addEventListener('click', function() {
-        const looping = CharacterAnimation.toggleLooping();
-        this.textContent = looping ? "Disable Looping" : "Enable Looping";
-    });
-    
-    document.getElementById('btn-toggle-wide').addEventListener('click', function() {
-        if (animationId) {
-            CharacterAnimation.toggleWideMode(animationId);
-        }
-    });
-    
-    // Set up scale slider
-    const scaleRange = document.getElementById('scale-range');
-    scaleRange.addEventListener('input', function() {
-        currentScale = parseFloat(this.value);
-        document.getElementById('scale-value').textContent = currentScale.toFixed(1);
-        
-        if (animationId) {
-            CharacterAnimation.setAnimationScale(animationId, currentScale);
-        }
-    });
-    
-    // Set up speed slider
-    const speedRange = document.getElementById('speed-range');
-    speedRange.addEventListener('input', function() {
-        currentSpeed = parseInt(this.value);
-        document.getElementById('speed-value').textContent = `${currentSpeed}ms`;
-        
-        if (animationId) {
-            CharacterAnimation.setAnimationSpeed(animationId, currentSpeed);
-        }
-    });
-    
-    // Set up image test form
-    document.getElementById('image-test-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const imagePath = document.getElementById('image-path-input').value;
-        testImageLoading(imagePath);
-    });
-});
+    }
+};
 
-// Test image loading function
-function testImageLoading(path) {
-    const resultContainer = document.getElementById('image-test-result');
-    const displayContainer = document.getElementById('image-display');
+// ------------------------------------------------------------
+// Module 4: UI Controller
+// ------------------------------------------------------------
+const UIController = {
+    // State tracking
+    state: {
+        currentCharacterId: 'resident',
+        currentAnimationId: null,
+        scaleValue: 3.0,
+        speedValue: 200,
+        showGrid: false,
+        debounceTimers: {}
+    },
     
-    // Clear previous results
-    resultContainer.innerHTML = '';
-    displayContainer.innerHTML = '<div>Loading image...</div>';
+    // Initialize the UI
+    initialize: function() {
+        DebugSystem.info("UI Controller initialized");
+        
+        // Set up character selection buttons
+        this._setupCharacterButtons();
+        
+        // Set up animation control buttons
+        this._setupAnimationControls();
+        
+        // Set up debug tools
+        this._setupDebugTools();
+        
+        // Set up function test buttons
+        this._setupFunctionTests();
+        
+        // Set up image test form
+        this._setupImageTester();
+        
+        // Load initial character
+        this.loadCharacter('resident');
+        
+        return this;
+    },
     
-    // Create image element
-    const img = new Image();
+    // Set up character selection buttons
+    _setupCharacterButtons: function() {
+        document.querySelectorAll('.character-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const characterId = btn.dataset.character;
+                this.changeCharacter(characterId);
+                
+                // Update active button
+                document.querySelectorAll('.character-button').forEach(b => {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+            });
+        });
+    },
     
-    // Set up load handlers
-    img.onload = function() {
-        img.className = 'test-image';
+    // Set up animation control buttons
+    _setupAnimationControls: function() {
+        // Animation type buttons
+        document.getElementById('btn-idle').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.playAnimation(
+                    this.state.currentAnimationId, 
+                    'idle', 
+                    AnimationSystem.settings.loopEnabled
+                );
+            }
+        });
+        
+        document.getElementById('btn-walk').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.playAnimation(
+                    this.state.currentAnimationId, 
+                    'walking', 
+                    AnimationSystem.settings.loopEnabled
+                );
+            }
+        });
+        
+        document.getElementById('btn-ability').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.playAbilityAnimation(
+                    this.state.currentAnimationId, 
+                    'ability', 
+                    () => {
+                        DebugSystem.success("Regular ability animation completed!");
+                    }
+                );
+            }
+        });
+        
+        document.getElementById('btn-special-ability').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.playAbilityAnimation(
+                    this.state.currentAnimationId, 
+                    'specialAbility', 
+                    () => {
+                        DebugSystem.success("Special ability animation completed!");
+                    }
+                );
+            }
+        });
+        
+        // Playback control buttons
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.resumeAnimation(this.state.currentAnimationId);
+            }
+        });
+        
+        document.getElementById('btn-pause').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.pauseAnimation(this.state.currentAnimationId);
+            }
+        });
+        
+        document.getElementById('btn-stop').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.stopAnimation(this.state.currentAnimationId);
+            }
+        });
+        
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.resetAnimation(this.state.currentAnimationId);
+            }
+        });
+    },
+    
+    // Set up debug tools
+    _setupDebugTools: function() {
+        // Scale slider
+        const scaleRange = document.getElementById('scale-range');
+        scaleRange.addEventListener('input', this._debounce(() => {
+            this.state.scaleValue = parseFloat(scaleRange.value);
+            document.getElementById('scale-value').textContent = this.state.scaleValue.toFixed(1);
+            
+            if (this.state.currentAnimationId) {
+                AnimationSystem.setAnimationScale(
+                    this.state.currentAnimationId, 
+                    this.state.scaleValue
+                );
+            }
+        }, 50));
+        
+        // Speed slider
+        const speedRange = document.getElementById('speed-range');
+        speedRange.addEventListener('input', this._debounce(() => {
+            this.state.speedValue = parseInt(speedRange.value);
+            document.getElementById('speed-value').textContent = `${this.state.speedValue}ms`;
+            
+            if (this.state.currentAnimationId) {
+                AnimationSystem.setAnimationSpeed(
+                    this.state.currentAnimationId, 
+                    this.state.speedValue
+                );
+            }
+        }, 50));
+        
+        // Toggle buttons
+        document.getElementById('btn-toggle-grid').addEventListener('click', () => {
+            const avatar = document.getElementById('character-avatar');
+            if (avatar) {
+                avatar.classList.toggle('show-grid');
+                this.state.showGrid = avatar.classList.contains('show-grid');
+                DebugSystem.info(`Grid visibility ${this.state.showGrid ? 'enabled' : 'disabled'}`);
+            }
+        });
+        
+        document.getElementById('btn-toggle-overflow').addEventListener('click', () => {
+            const avatar = document.getElementById('character-avatar');
+            if (avatar) {
+                if (avatar.style.overflow === 'visible') {
+                    avatar.style.overflow = 'hidden';
+                    DebugSystem.info("Overflow set to: hidden");
+                } else {
+                    avatar.style.overflow = 'visible';
+                    DebugSystem.info("Overflow set to: visible");
+                }
+            }
+        });
+        
+        document.getElementById('btn-toggle-loop').addEventListener('click', () => {
+            const looping = AnimationSystem.toggleLooping();
+            document.getElementById('btn-toggle-loop').textContent = 
+                looping ? "Disable Looping" : "Enable Looping";
+        });
+        
+        document.getElementById('btn-toggle-wide').addEventListener('click', () => {
+            if (this.state.currentAnimationId) {
+                AnimationSystem.toggleWideMode(this.state.currentAnimationId);
+            }
+        });
+    },
+    
+    // Set up function test buttons
+    _setupFunctionTests: function() {
+        document.getElementById('test-get-character').addEventListener('click', () => {
+            const result = CharacterDataManager.getCharacter(this.state.currentCharacterId);
+            this._displayFunctionResult('getCharacter', result);
+        });
+        
+        document.getElementById('test-get-animations').addEventListener('click', () => {
+            const result = CharacterDataManager.getCharacterAnimations(this.state.currentCharacterId);
+            this._displayFunctionResult('getCharacterAnimations', result);
+        });
+        
+        document.getElementById('test-animation-data').addEventListener('click', () => {
+            const result = CharacterDataManager.getCharacterAnimation(this.state.currentCharacterId, 'walking');
+            this._displayFunctionResult('getCharacterAnimation', result);
+        });
+        
+        document.getElementById('test-create-anim').addEventListener('click', () => {
+            const options = {
+                initialAnimation: 'idle',
+                autoPlay: true,
+                loop: AnimationSystem.settings.loopEnabled,
+                scale: this.state.scaleValue,
+                centerImage: true
+            };
+            
+            this._displayFunctionResult('createAnimation options', options);
+        });
+        
+        document.getElementById('test-play-anim').addEventListener('click', () => {
+            const args = {
+                animationId: this.state.currentAnimationId,
+                animationName: 'walking',
+                loop: true
+            };
+            
+            this._displayFunctionResult('playAnimation args', args);
+        });
+        
+        document.getElementById('test-ability-anim').addEventListener('click', () => {
+            const args = {
+                animationId: this.state.currentAnimationId,
+                abilityName: 'specialAbility',
+                onCompleteCallback: '() => { /* Callback function */ }'
+            };
+            
+            this._displayFunctionResult('playAbilityAnimation args', args);
+        });
+    },
+    
+    // Set up image tester
+    _setupImageTester: function() {
+        document.getElementById('image-test-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const imagePath = document.getElementById('image-path-input').value;
+            this._testImageLoading(imagePath);
+        });
+    },
+    
+    // Load a character
+    loadCharacter: function(characterId) {
+        // Store current character ID
+        this.state.currentCharacterId = characterId;
+        
+        // Get character data
+        const character = CharacterDataManager.getCharacter(characterId);
+        if (!character) {
+            DebugSystem.error(`Character not found: ${characterId}`);
+            return;
+        }
+        
+        try {
+            // Update character name
+            document.getElementById('character-name').textContent = character.name;
+            
+            // Update character stats
+            const stats = character.stats;
+            document.getElementById('lives-stat').textContent = `${stats.startingLives}/${stats.maxLives}`;
+            document.getElementById('insight-stat').textContent = stats.startingInsight;
+            document.getElementById('level-stat').textContent = stats.level;
+            
+            // Update stat bars
+            const livesFill = document.querySelector('.stat-fill.lives');
+            livesFill.style.width = `${(stats.startingLives / stats.maxLives) * 100}%`;
+            
+            const insightFill = document.querySelector('.stat-fill.insight');
+            insightFill.style.width = `${(stats.startingInsight / 100) * 100}%`;
+            
+            const levelFill = document.querySelector('.stat-fill.level');
+            levelFill.style.width = `${(stats.level / 10) * 100}%`;
+            
+            // Update ability info
+            document.getElementById('ability-name').textContent = character.special_ability.name;
+            document.getElementById('ability-description').textContent = character.special_ability.description;
+            
+            // Create new animation instance
+            if (this.state.currentAnimationId) {
+                // Destroy any existing animation
+                AnimationSystem.destroyAnimation(this.state.currentAnimationId);
+            }
+            
+            // Create the new animation
+            this.state.currentAnimationId = AnimationSystem.createAnimation(
+                characterId,
+                'character-sprite-container',
+                {
+                    initialAnimation: 'idle',
+                    autoPlay: true,
+                    loop: true,
+                    scale: this.state.scaleValue,
+                    centerImage: true
+                }
+            );
+            
+            // Force a redraw of the avatar area
+            const avatar = document.getElementById('character-avatar');
+            if (avatar) {
+                const displayState = avatar.style.display;
+                avatar.style.display = 'none';
+                setTimeout(() => {
+                    avatar.style.display = displayState || 'flex';
+                }, 0);
+            }
+            
+            DebugSystem.success(`Loaded character: ${character.name}`);
+            
+        } catch (error) {
+            DebugSystem.error(`Error loading character: ${error.message}`);
+            console.error(error);
+        }
+    },
+    
+    // Change character
+    changeCharacter: function(characterId) {
+        this.loadCharacter(characterId);
+    },
+    
+    // Display function test results
+    _displayFunctionResult: function(functionName, result) {
+        const resultContainer = document.getElementById('function-result');
+        resultContainer.innerHTML = '';
+        
+        const header = document.createElement('p');
+        header.textContent = `Result of ${functionName}:`;
+        header.className = 'info';
+        resultContainer.appendChild(header);
+        
+        const resultText = document.createElement('pre');
+        resultText.textContent = JSON.stringify(result, null, 2);
+        resultContainer.appendChild(resultText);
+        
+        DebugSystem.info(`Tested function: ${functionName}`);
+    },
+    
+    // Test image loading
+    _testImageLoading: function(path) {
+        const resultContainer = document.getElementById('image-test-result');
+        const displayContainer = document.getElementById('image-display');
+        
+        // Clear previous results
+        resultContainer.innerHTML = '';
         displayContainer.innerHTML = '';
-        displayContainer.appendChild(img);
         
-        const status = document.createElement('div');
-        status.className = 'image-load-status success';
-        status.textContent = `Image loaded successfully: ${img.width}x${img.height}px`;
-        resultContainer.appendChild(status);
+        // Add loading indicator
+        const loadingSpinner = document.createElement('div');
+        loadingSpinner.className = 'loading-spinner';
+        displayContainer.appendChild(loadingSpinner);
         
-        CharacterAnimation.logSuccess(`Image loaded successfully: ${path}`);
-    };
+        // Create image element
+        const img = new Image();
+        
+        // Set up load handlers
+        img.onload = function() {
+            // Remove loading indicator
+            displayContainer.innerHTML = '';
+            
+            // Display the image
+            img.className = 'test-image';
+            displayContainer.appendChild(img);
+            
+            // Show success message
+            const status = document.createElement('div');
+            status.className = 'image-load-status success';
+            status.textContent = `Image loaded successfully: ${img.width}x${img.height}px`;
+            resultContainer.appendChild(status);
+            
+            // Add debug controls
+            const controls = document.createElement('div');
+            controls.className = 'debug-image-controls';
+            controls.innerHTML = `
+                <button class="reload-btn">Reload Image</button>
+                <button class="test-in-sprite">Test in Animation</button>
+            `;
+            resultContainer.appendChild(controls);
+            
+            // Add reload button handler
+            controls.querySelector('.reload-btn').addEventListener('click', () => {
+                img.src = path + '?t=' + Date.now(); // Force reload
+            });
+            
+            // Add test in animation handler
+            controls.querySelector('.test-in-sprite').addEventListener('click', () => {
+                // Set path in image input for easy reuse
+                document.getElementById('image-path-input').value = path;
+                
+                // Create a custom animation using this image
+                if (UIController.state.currentAnimationId) {
+                    AnimationSystem.destroyAnimation(UIController.state.currentAnimationId);
+                }
+                
+                DebugSystem.info(`Testing image in animation: ${path}`);
+                
+                // TODO: Implement custom animation loading in AnimationSystem
+            });
+            
+            DebugSystem.success(`Image loaded successfully: ${path}`);
+        };
+        
+        img.onerror = function() {
+            // Remove loading indicator
+            displayContainer.innerHTML = '';
+            
+            // Show error message
+            const errorMsg = document.createElement('div');
+            errorMsg.textContent = 'Failed to load image';
+            errorMsg.style.color = '#e67e73';
+            displayContainer.appendChild(errorMsg);
+            
+            // Show status
+            const status = document.createElement('div');
+            status.className = 'image-load-status error';
+            status.textContent = `Failed to load image from: ${path}`;
+            resultContainer.appendChild(status);
+            
+            // Add retry button
+            const retryBtn = document.createElement('button');
+            retryBtn.textContent = 'Retry';
+            retryBtn.className = 'primary';
+            retryBtn.style.marginTop = '10px';
+            retryBtn.addEventListener('click', () => {
+                // Retry loading with cache buster
+                UIController._testImageLoading(path + '?t=' + Date.now());
+            });
+            resultContainer.appendChild(retryBtn);
+            
+            DebugSystem.error(`Failed to load image: ${path}`);
+        };
+        
+        // Set source to trigger loading
+        img.src = path;
+    },
     
-    img.onerror = function() {
-        displayContainer.innerHTML = '<div>Failed to load image</div>';
+    // Debounce helper for input handling
+    _debounce: function(func, wait) {
+        let timeout;
         
-        const status = document.createElement('div');
-        status.className = 'image-load-status error';
-        status.textContent = `Failed to load image from: ${path}`;
-        resultContainer.appendChild(status);
-        
-        CharacterAnimation.logError(`Failed to load image: ${path}`);
-    };
-    
-    // Set source to trigger loading
-    img.src = path;
-}
+        return function() {
+            const context = this;
+            const args = arguments;
+            
+            const later = function() {
+                timeout = null;
+                func.apply(context, args);
+            };
+            
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+};
 
-// Load a character
-function loadCharacter(characterId) {
-    // Store current character ID
-    currentCharacterId = characterId;
+// Initialize systems on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize systems in sequence
+    DebugSystem.initialize();
+    AnimationSystem.initialize();
+    UIController.initialize();
     
-    // Get character data
-    const character = CharacterAssets.getCharacter(characterId);
-    if (!character) {
-        CharacterAnimation.logError(`Character not found: ${characterId}`);
-        return;
-    }
-    
-    // Update character name
-    document.getElementById('character-name').textContent = character.name;
-    
-    // Update character stats
-    const stats = character.stats;
-    document.getElementById('lives-stat').textContent = `${stats.startingLives}/${stats.maxLives}`;
-    document.getElementById('insight-stat').textContent = stats.startingInsight;
-    document.getElementById('level-stat').textContent = stats.level;
-    
-    // Update stat bars
-    const livesFill = document.querySelector('.stat-fill.lives');
-    livesFill.style.width = `${(stats.startingLives / stats.maxLives) * 100}%`;
-    
-    const insightFill = document.querySelector('.stat-fill.insight');
-    insightFill.style.width = `${(stats.startingInsight / 100) * 100}%`;
-    
-    const levelFill = document.querySelector('.stat-fill.level');
-    levelFill.style.width = `${(stats.level / 10) * 100}%`;
-    
-    // Update ability info
-    document.getElementById('ability-name').textContent = character.special_ability.name;
-    document.getElementById('ability-description').textContent = character.special_ability.description;
-    
-    // Create animation with visual debugging
-    if (animationId) {
-        // Destroy any existing animation
-        CharacterAnimation.stopAnimation(animationId);
-    }
-    
-    // Make sure the container exists and is visible
-    const container = document.getElementById('character-sprite-container');
-    if (container) {
-        // Add a visual indicator that the container exists
-        container.style.border = '1px dashed rgba(255, 255, 255, 0.3)';
-        
-        // Add a text indicator if empty
-        if (!container.innerHTML) {
-            const placeholder = document.createElement('div');
-            placeholder.textContent = 'Animation Container';
-            placeholder.style.color = 'rgba(255, 255, 255, 0.3)';
-            placeholder.style.fontSize = '10px';
-            container.appendChild(placeholder);
-        }
-    } else {
-        CharacterAnimation.logError("Animation container not found!");
-    }
-    
-    animationId = CharacterAnimation.createAnimation(
-        characterId,
-        'character-sprite-container',
-        {
-            initialAnimation: 'idle',
-            autoPlay: true,
-            loop: true,
-            scale: currentScale,
-            centerImage: true
-        }
-    );
-    
-    // Force a redraw of the avatar area
-    const avatar = document.getElementById('character-avatar');
-    if (avatar) {
-        avatar.style.display = 'none';
-        setTimeout(() => {
-            avatar.style.display = 'flex';
-        }, 0);
-    }
-    
-    CharacterAnimation.logSuccess(`Loaded character: ${character.name}`);
-}
-
-// Change character
-function changeCharacter(characterId) {
-    loadCharacter(characterId);
-}
-
-// Display function test results
-function displayFunctionResult(functionName, result) {
-    const resultContainer = document.getElementById('function-result');
-    resultContainer.innerHTML = '';
-    
-    const header = document.createElement('p');
-    header.textContent = `Result of ${functionName}:`;
-    header.className = 'info';
-    resultContainer.appendChild(header);
-    
-    const resultText = document.createElement('pre');
-    resultText.textContent = JSON.stringify(result, null, 2);
-    resultContainer.appendChild(resultText);
-    
-    CharacterAnimation.logInfo(`Tested function: ${functionName}`);
-}
+    DebugSystem.success("Character Animation Tester initialized");
+});
 </script>
 </body>
 </html>
