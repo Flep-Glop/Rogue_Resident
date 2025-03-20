@@ -58,7 +58,7 @@ function initializeCharacterPanel() {
           initialAnimation: 'idle',
           autoPlay: true,
           loop: true,
-          scale: 1.5,
+          scale: 6,
           centerImage: true
         }
       );
