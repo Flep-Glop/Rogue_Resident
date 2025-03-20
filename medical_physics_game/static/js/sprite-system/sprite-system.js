@@ -380,7 +380,362 @@ const SpriteSystem = {
       };
     }
   };
+  // Simple debugger for sprite system migrations
+window.SpriteDebug = {
+  // Log active animations
+  logAnimations: function() {
+    console.group('Active SpriteSystem Animations');
+    
+    if (typeof SpriteSystem === 'undefined') {
+      console.error('SpriteSystem not available');
+      console.groupEnd();
+      return;
+    }
+    
+    const animations = SpriteSystem.animations;
+    const count = Object.keys(animations).length;
+    
+    console.log(`Total active animations: ${count}`);
+    
+    for (const id in animations) {
+      const anim = animations[id];
+      const info = SpriteSystem.getAnimationInfo(id);
+      
+      console.log(`Animation ID: ${id}`, {
+        character: info.character,
+        animation: info.currentAnimation,
+        playing: info.isPlaying,
+        frame: `${info.currentFrame + 1}/${info.frameCount}`
+      });
+    }
+    
+    console.groupEnd();
+  },
   
+  // Check for old animation systems
+  checkLegacySystems: function() {
+    console.group('Animation Systems Check');
+    
+    const systems = {
+      'SpriteSystem': typeof SpriteSystem !== 'undefined',
+      'CharacterAnimation': typeof CharacterAnimation !== 'undefined',
+      'FixedVerticalSpriteAnimator': typeof FixedVerticalSpriteAnimator !== 'undefined',
+      'UniversalSpriteAnimator': typeof UniversalSpriteAnimator !== 'undefined',
+      'SpriteManager': typeof SpriteManager !== 'undefined',
+      'EnhancedSpriteAnimator': typeof EnhancedSpriteAnimator !== 'undefined',
+      'SimpleSpriteSystem': typeof SimpleSpriteSystem !== 'undefined'
+    };
+    
+    console.table(systems);
+    console.groupEnd();
+  },
+  
+  // Test sprite animation
+  testAnimation: function(characterId, containerId, animation = 'idle') {
+    if (typeof SpriteSystem === 'undefined') {
+      console.error('SpriteSystem not available');
+      return null;
+    }
+    
+    // Create test container if not provided
+    let container = null;
+    if (containerId) {
+      container = document.getElementById(containerId);
+    }
+    
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'sprite-test-container';
+      container.style.position = 'fixed';
+      container.style.top = '20px';
+      container.style.right = '20px';
+      container.style.width = '128px';
+      container.style.height = '128px';
+      container.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      container.style.zIndex = '9999';
+      document.body.appendChild(container);
+    }
+    
+    // Create test animation
+    const animId = SpriteSystem.createAnimation(
+      characterId,
+      container,
+      {
+        animation: animation,
+        scale: 3,
+        autoPlay: true,
+        debug: true
+      }
+    );
+    
+    console.log(`Test animation created: ${animId}`);
+    return animId;
+  },
+  
+  // Compare old and new systems
+  compareAnimations: function(characterId = 'resident') {
+    if (typeof SpriteSystem === 'undefined') {
+      console.error('SpriteSystem not available');
+      return;
+    }
+    
+    // Create test containers
+    const testDiv = document.createElement('div');
+    testDiv.innerHTML = `
+      <div style="position:fixed; top:20px; right:20px; z-index:9999; 
+                  background:rgba(0,0,0,0.8); padding:10px; border-radius:5px;">
+        <h3 style="color:white; margin:0 0 10px 0; font-size:14px;">Animation Comparison</h3>
+        <div style="display:flex; gap:10px;">
+          <div>
+            <p style="color:white; margin:0 0 5px 0; font-size:12px;">New System</p>
+            <div id="new-system-test" style="width:96px; height:96px; background:rgba(255,255,255,0.1);"></div>
+          </div>
+          <div>
+            <p style="color:white; margin:0 0 5px 0; font-size:12px;">Old System</p>
+            <div id="old-system-test" style="width:96px; height:96px; background:rgba(255,255,255,0.1);"></div>
+          </div>
+        </div>
+        <button id="close-test" style="margin-top:10px; padding:5px; font-size:12px;">Close</button>
+      </div>
+    `;
+    document.body.appendChild(testDiv);
+    
+    // Create animations
+    const newAnimId = SpriteSystem.createAnimation(
+      characterId,
+      document.getElementById('new-system-test'),
+      {
+        animation: 'idle',
+        scale: 2,
+        autoPlay: true
+      }
+    );
+    
+    // Create old system animation if available
+    let oldAnimId = null;
+    if (typeof CharacterAnimation !== 'undefined' && 
+        typeof CharacterAnimation.createAnimation === 'function') {
+      oldAnimId = CharacterAnimation.createAnimation(
+        characterId,
+        document.getElementById('old-system-test'),
+        {
+          initialAnimation: 'idle',
+          scale: 2,
+          autoPlay: true
+        }
+      );
+    } else {
+      document.getElementById('old-system-test').innerHTML = 
+        '<p style="color:red; font-size:10px;">Old system not available</p>';
+    }
+    
+    // Add close button handler
+    document.getElementById('close-test').addEventListener('click', function() {
+      // Clean up animations
+      if (newAnimId) SpriteSystem.removeAnimation(newAnimId);
+      if (oldAnimId && typeof CharacterAnimation !== 'undefined' && 
+          typeof CharacterAnimation.removeAnimation === 'function') {
+        CharacterAnimation.removeAnimation(oldAnimId);
+      }
+      
+      // Remove test div
+      document.body.removeChild(testDiv);
+    });
+  }
+};
+
+// Console help message
+console.log(
+  '%cSprite System Migration Tools Available',
+  'background: #4a70b0; color: white; padding: 5px; border-radius: 3px;'
+);
+console.log(
+  '%cTry these commands:\n' +
+  '- SpriteDebug.logAnimations()\n' +
+  '- SpriteDebug.checkLegacySystems()\n' +
+  '- SpriteDebug.testAnimation("resident")\n' +
+  '- SpriteDebug.compareAnimations()',
+  'color: #5b8dd9;'
+);
+
+// Simple debugger for sprite system migrations
+window.SpriteDebug = {
+    // Log active animations
+    logAnimations: function() {
+      console.group('Active SpriteSystem Animations');
+      
+      if (typeof SpriteSystem === 'undefined') {
+        console.error('SpriteSystem not available');
+        console.groupEnd();
+        return;
+      }
+      
+      const animations = SpriteSystem.animations;
+      const count = Object.keys(animations).length;
+      
+      console.log(`Total active animations: ${count}`);
+      
+      for (const id in animations) {
+        const anim = animations[id];
+        const info = SpriteSystem.getAnimationInfo(id);
+        
+        console.log(`Animation ID: ${id}`, {
+          character: info.character,
+          animation: info.currentAnimation,
+          playing: info.isPlaying,
+          frame: `${info.currentFrame + 1}/${info.frameCount}`
+        });
+      }
+      
+      console.groupEnd();
+    },
+    
+    // Check for old animation systems
+    checkLegacySystems: function() {
+      console.group('Animation Systems Check');
+      
+      const systems = {
+        'SpriteSystem': typeof SpriteSystem !== 'undefined',
+        'CharacterAnimation': typeof CharacterAnimation !== 'undefined',
+        'FixedVerticalSpriteAnimator': typeof FixedVerticalSpriteAnimator !== 'undefined',
+        'UniversalSpriteAnimator': typeof UniversalSpriteAnimator !== 'undefined',
+        'SpriteManager': typeof SpriteManager !== 'undefined',
+        'EnhancedSpriteAnimator': typeof EnhancedSpriteAnimator !== 'undefined',
+        'SimpleSpriteSystem': typeof SimpleSpriteSystem !== 'undefined'
+      };
+      
+      console.table(systems);
+      console.groupEnd();
+    },
+    
+    // Test sprite animation
+    testAnimation: function(characterId, containerId, animation = 'idle') {
+      if (typeof SpriteSystem === 'undefined') {
+        console.error('SpriteSystem not available');
+        return null;
+      }
+      
+      // Create test container if not provided
+      let container = null;
+      if (containerId) {
+        container = document.getElementById(containerId);
+      }
+      
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'sprite-test-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.width = '128px';
+        container.style.height = '128px';
+        container.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+      }
+      
+      // Create test animation
+      const animId = SpriteSystem.createAnimation(
+        characterId,
+        container,
+        {
+          animation: animation,
+          scale: 3,
+          autoPlay: true,
+          debug: true
+        }
+      );
+      
+      console.log(`Test animation created: ${animId}`);
+      return animId;
+    },
+    
+    // Compare old and new systems
+    compareAnimations: function(characterId = 'resident') {
+      if (typeof SpriteSystem === 'undefined') {
+        console.error('SpriteSystem not available');
+        return;
+      }
+      
+      // Create test containers
+      const testDiv = document.createElement('div');
+      testDiv.innerHTML = `
+        <div style="position:fixed; top:20px; right:20px; z-index:9999; 
+                    background:rgba(0,0,0,0.8); padding:10px; border-radius:5px;">
+          <h3 style="color:white; margin:0 0 10px 0; font-size:14px;">Animation Comparison</h3>
+          <div style="display:flex; gap:10px;">
+            <div>
+              <p style="color:white; margin:0 0 5px 0; font-size:12px;">New System</p>
+              <div id="new-system-test" style="width:96px; height:96px; background:rgba(255,255,255,0.1);"></div>
+            </div>
+            <div>
+              <p style="color:white; margin:0 0 5px 0; font-size:12px;">Old System</p>
+              <div id="old-system-test" style="width:96px; height:96px; background:rgba(255,255,255,0.1);"></div>
+            </div>
+          </div>
+          <button id="close-test" style="margin-top:10px; padding:5px; font-size:12px;">Close</button>
+        </div>
+      `;
+      document.body.appendChild(testDiv);
+      
+      // Create animations
+      const newAnimId = SpriteSystem.createAnimation(
+        characterId,
+        document.getElementById('new-system-test'),
+        {
+          animation: 'idle',
+          scale: 2,
+          autoPlay: true
+        }
+      );
+      
+      // Create old system animation if available
+      let oldAnimId = null;
+      if (typeof CharacterAnimation !== 'undefined' && 
+          typeof CharacterAnimation.createAnimation === 'function') {
+        oldAnimId = CharacterAnimation.createAnimation(
+          characterId,
+          document.getElementById('old-system-test'),
+          {
+            initialAnimation: 'idle',
+            scale: 2,
+            autoPlay: true
+          }
+        );
+      } else {
+        document.getElementById('old-system-test').innerHTML = 
+          '<p style="color:red; font-size:10px;">Old system not available</p>';
+      }
+      
+      // Add close button handler
+      document.getElementById('close-test').addEventListener('click', function() {
+        // Clean up animations
+        if (newAnimId) SpriteSystem.removeAnimation(newAnimId);
+        if (oldAnimId && typeof CharacterAnimation !== 'undefined' && 
+            typeof CharacterAnimation.removeAnimation === 'function') {
+          CharacterAnimation.removeAnimation(oldAnimId);
+        }
+        
+        // Remove test div
+        document.body.removeChild(testDiv);
+      });
+    }
+  };
+  
+  // Console help message
+  console.log(
+    '%cSprite System Migration Tools Available',
+    'background: #4a70b0; color: white; padding: 5px; border-radius: 3px;'
+  );
+  console.log(
+    '%cTry these commands:\n' +
+    '- SpriteDebug.logAnimations()\n' +
+    '- SpriteDebug.checkLegacySystems()\n' +
+    '- SpriteDebug.testAnimation("resident")\n' +
+    '- SpriteDebug.compareAnimations()',
+    'color: #5b8dd9;'
+  );
+
   // Initialize on script load
   if (typeof window !== 'undefined') {
     window.CanvasSpriteAnimator = CanvasSpriteAnimator;

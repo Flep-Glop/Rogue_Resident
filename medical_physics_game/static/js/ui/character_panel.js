@@ -5,7 +5,8 @@ const CharacterPanel = {
   // State tracking
   state: {
     currentCharacterId: null,
-    animationActive: false
+    animationActive: false,
+    characterAnimId: null  // Track animation ID
   },
 
   // Initialize the character panel
@@ -45,19 +46,13 @@ const CharacterPanel = {
     let characterId = this.getCharacterId(character);
     this.state.currentCharacterId = characterId;
     
-    // Get image path
-    const imagePath = this.getCharacterImagePath(characterId);
-    
     // Create HTML for character display
     const charInfoHtml = `
       <div class="character-details">
         <p class="character-name"><strong>${character.name}</strong></p>
         <div class="character-avatar-container">
           <div class="character-avatar">
-            <img src="${imagePath}" 
-                 alt="${character.name}" 
-                 class="character-panel-img pixel-character-img"
-                 onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+            <div id="character-avatar-sprite" class="character-sprite-container"></div>
           </div>
         </div>
         <div class="insight-bar-container">
@@ -96,8 +91,52 @@ const CharacterPanel = {
       this.updateSpecialAbility(character.special_ability);
     }
     
-    // Apply animations
-    this.applyAnimations();
+    // Initialize character animation
+    this.initializeCharacterAnimation(characterId);
+  },
+  
+  // Initialize character animation
+  initializeCharacterAnimation: function(characterId) {
+    // Get character container
+    const spriteContainer = document.getElementById('character-avatar-sprite');
+    if (!spriteContainer) return;
+    
+    // Clear existing animation if any
+    if (this.state.characterAnimId) {
+      if (typeof SpriteSystem !== 'undefined' && 
+          typeof SpriteSystem.removeAnimation === 'function') {
+        SpriteSystem.removeAnimation(this.state.characterAnimId);
+      } else if (typeof CharacterAnimation !== 'undefined' && 
+                typeof CharacterAnimation.removeAnimation === 'function') {
+        CharacterAnimation.removeAnimation(this.state.characterAnimId);
+      }
+      this.state.characterAnimId = null;
+    }
+    
+    // Create new animation only for resident character
+    if (characterId === 'resident' && typeof SpriteSystem !== 'undefined') {
+      this.state.characterAnimId = SpriteSystem.createAnimation(
+        characterId,
+        spriteContainer,
+        { 
+          animation: 'idle',
+          scale: 3,
+          autoPlay: true 
+        }
+      );
+      console.log(`Created character panel animation with ID: ${this.state.characterAnimId}`);
+      this.state.animationActive = true;
+    } else {
+      // Use static image for other characters
+      const imagePath = this.getCharacterImagePath(characterId);
+      spriteContainer.innerHTML = `
+          <img src="${imagePath}" alt="${characterId}" 
+               class="pixel-character-img pixel-bobbing" 
+               style="transform: scale(3);"
+               onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+      `;
+      this.applyAnimations(); // Apply CSS animations for static images
+    }
   },
   
   // Get character ID from character data
@@ -262,72 +301,106 @@ const CharacterPanel = {
       return;
     }
     
-    // Decrease remaining uses
-    specialAbility.remaining_uses--;
-    
-    // Emit the ability used event
-    EventSystem.emit('abilityUsed', {
-      abilityName: specialAbility.name,
-      remainingUses: specialAbility.remaining_uses
-    });
-    
-    // Handle ability based on type
-    switch (specialAbility.name) {
-      case 'Literature Review':
-        // Skip question node implementation
-        UiUtils.showFloatingText('Skipped node without penalty', 'success');
-        // Mark current node as visited and return to map
-        if (GameState.data.currentNode) {
-          GameState.completeNode(GameState.data.currentNode);
-        }
-        break;
-        
-      case 'Peer Review':
-        // Reveal correct answer implementation
-        if (typeof NodeInteraction !== 'undefined' && 
-            typeof NodeInteraction.currentQuestion !== 'undefined' &&
-            NodeInteraction.currentQuestion) {
-          // Show correct answer in UI
-          UiUtils.showFloatingText('Revealed correct answer', 'success');
+    // Play ability animation if available
+    this.playAbilityAnimation().then(() => {
+      // Decrease remaining uses
+      specialAbility.remaining_uses--;
+      
+      // Emit the ability used event
+      EventSystem.emit('abilityUsed', {
+        abilityName: specialAbility.name,
+        remainingUses: specialAbility.remaining_uses
+      });
+      
+      // Handle ability based on type
+      switch (specialAbility.name) {
+        case 'Literature Review':
+          // Skip question node implementation
+          UiUtils.showFloatingText('Skipped node without penalty', 'success');
+          // Mark current node as visited and return to map
+          if (GameState.data.currentNode) {
+            GameState.completeNode(GameState.data.currentNode);
+          }
+          break;
           
-          // Highlight the correct answer if possible
-          this.highlightCorrectAnswer();
-        } else {
-          UiUtils.showFloatingText('No active question', 'warning');
-          // Return the use since it wasn't applicable
-          specialAbility.remaining_uses++;
-        }
-        break;
+        case 'Peer Review':
+          // Reveal correct answer implementation
+          if (typeof NodeInteraction !== 'undefined' && 
+              typeof NodeInteraction.currentQuestion !== 'undefined' &&
+              NodeInteraction.currentQuestion) {
+            // Show correct answer in UI
+            UiUtils.showFloatingText('Revealed correct answer', 'success');
+            
+            // Highlight the correct answer if possible
+            this.highlightCorrectAnswer();
+          } else {
+            UiUtils.showFloatingText('No active question', 'warning');
+            // Return the use since it wasn't applicable
+            specialAbility.remaining_uses++;
+          }
+          break;
+          
+        case 'Measurement Uncertainty':
+          // Allow retry of a failed question
+          UiUtils.showFloatingText('You can retry a failed question', 'success');
+          // Set flag for question component to use
+          if (!GameState.data.questionEffects) {
+            GameState.data.questionEffects = {};
+          }
+          GameState.data.questionEffects.canRetry = true;
+          break;
+          
+        case 'Debug Override':
+          // Instant completion for debugging
+          UiUtils.showFloatingText('Debug mode: Node completed', 'success');
+          if (GameState.data.currentNode) {
+            GameState.completeNode(GameState.data.currentNode);
+          }
+          break;
+          
+        default:
+          console.warn('Unknown special ability:', specialAbility.name);
+      }
+      
+      // Update the button state
+      this.updateSpecialAbility(specialAbility);
+      
+      // Save game state
+      if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
+        ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
+      }
+    });
+  },
+  
+  // Play ability animation
+  playAbilityAnimation: function() {
+    return new Promise((resolve) => {
+      // Only animate for resident character and if sprite system is available
+      if (this.state.currentCharacterId === 'resident' && 
+          this.state.characterAnimId && 
+          typeof SpriteSystem !== 'undefined') {
         
-      case 'Measurement Uncertainty':
-        // Allow retry of a failed question
-        UiUtils.showFloatingText('You can retry a failed question', 'success');
-        // Set flag for question component to use
-        if (!GameState.data.questionEffects) {
-          GameState.data.questionEffects = {};
-        }
-        GameState.data.questionEffects.canRetry = true;
-        break;
+        // Play ability animation
+        SpriteSystem.changeAnimation(
+          this.state.characterAnimId, 
+          'ability',
+          {
+            loop: false,
+            onComplete: function() {
+              // Switch back to idle animation after completion
+              SpriteSystem.changeAnimation(this.state.characterAnimId, 'idle');
+              resolve();
+            }.bind(this)
+          }
+        );
         
-      case 'Debug Override':
-        // Instant completion for debugging
-        UiUtils.showFloatingText('Debug mode: Node completed', 'success');
-        if (GameState.data.currentNode) {
-          GameState.completeNode(GameState.data.currentNode);
-        }
-        break;
-        
-      default:
-        console.warn('Unknown special ability:', specialAbility.name);
-    }
-    
-    // Update the button state
-    this.updateSpecialAbility(specialAbility);
-    
-    // Save game state
-    if (typeof ApiClient !== 'undefined' && ApiClient.saveGame) {
-      ApiClient.saveGame().catch(err => console.error("Failed to save game after using ability:", err));
-    }
+        // Set a safety timeout in case animation doesn't complete
+        setTimeout(resolve, 2000);
+      } else {
+        // No animation available, resolve immediately
+        resolve();
+      }
+    });
   },
   
   // Highlight the correct answer for peer review ability
@@ -354,8 +427,8 @@ const CharacterPanel = {
   applyAnimations: function() {
     this.state.animationActive = true;
     
-    // Apply bobbing animation to character image
-    const characterImg = document.querySelector('.character-panel-img');
+    // Apply bobbing animation to character image if using static image
+    const characterImg = document.querySelector('.pixel-character-img');
     if (characterImg) {
       characterImg.classList.add('pixel-bobbing');
     }
@@ -371,6 +444,7 @@ const CharacterPanel = {
   pauseAnimations: function() {
     this.state.animationActive = false;
     
+    // Pause CSS animations
     document.querySelectorAll('.pixel-bobbing').forEach(el => {
       el.style.animationPlayState = 'paused';
     });
@@ -378,12 +452,18 @@ const CharacterPanel = {
     document.querySelectorAll('.pixel-glow').forEach(el => {
       el.style.animationPlayState = 'paused';
     });
+    
+    // Pause sprite animations
+    if (this.state.characterAnimId && typeof SpriteSystem !== 'undefined') {
+      SpriteSystem.pause(this.state.characterAnimId);
+    }
   },
   
   // Resume animations
   resumeAnimations: function() {
     this.state.animationActive = true;
     
+    // Resume CSS animations
     document.querySelectorAll('.pixel-bobbing').forEach(el => {
       el.style.animationPlayState = 'running';
     });
@@ -391,6 +471,11 @@ const CharacterPanel = {
     document.querySelectorAll('.pixel-glow').forEach(el => {
       el.style.animationPlayState = 'running';
     });
+    
+    // Resume sprite animations
+    if (this.state.characterAnimId && typeof SpriteSystem !== 'undefined') {
+      SpriteSystem.play(this.state.characterAnimId);
+    }
   },
   
   // Initialize inventory system

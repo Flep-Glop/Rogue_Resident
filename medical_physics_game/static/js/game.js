@@ -361,6 +361,13 @@ function initializeGame() {
       }
     })
     .then(() => {
+      // Initialize sprite system
+      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.initialize === 'function') {
+        console.log("Initializing Sprite Animation System...");
+        SpriteSystem.initialize();
+      }
+    })
+    .then(() => {
       // 10. Initialize map renderer after game state is loaded
       if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
         MapRenderer.initialize('floor-map');
@@ -388,6 +395,7 @@ function initializeGame() {
         }
       }, 500);
 
+      
       // 12. Initialize character panel
       if (typeof CharacterPanel !== 'undefined' && typeof CharacterPanel.initialize === 'function') {
         CharacterPanel.initialize();

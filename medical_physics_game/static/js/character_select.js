@@ -139,41 +139,43 @@ function renderCharacters(characters) {
         
         indicators.appendChild(indicator);
         
-        // ADD THIS PART: Initialize sprites after card is added to DOM
+        // WITH THIS:
         setTimeout(() => {
-            if (typeof CharacterAnimation !== 'undefined') {
+            const container = document.getElementById(`character-sprite-${index}`);
+            if (!container) return;
+            
+            // Only animate the resident character for now
+            if (character.id === 'resident' && typeof SpriteSystem !== 'undefined') {
                 // Get scale from config if available
                 const scale = window.CharacterConfig ? 
-                  CharacterConfig.getScaleFor(character.id) : 3;
+                    CharacterConfig.getScaleFor(character.id) : 3;
                 
-                const animId = CharacterAnimation.createAnimation(
+                const animId = SpriteSystem.createAnimation(
                     character.id,
-                    `character-sprite-${index}`,
+                    container,
                     {
-                        initialAnimation: 'idle',
+                        animation: 'idle',
                         autoPlay: true,
                         loop: true,
-                        scale: scale,
-                        centerImage: true
+                        scale: scale
                     }
                 );
                 
                 // Store animation ID for later reference
                 window.characterAnimations[index] = animId;
+                
+                console.log(`Created sprite animation for ${character.id} with ID: ${animId}`);
             } else {
-                // Fallback to static image
-                const container = document.getElementById(`character-sprite-${index}`);
-                if (container) {
-                    const imagePath = CharacterAssets.getCharacterImagePath(character.id);
-                    const scale = window.CharacterConfig ? 
-                      CharacterConfig.getScaleFor(character.id) : 3;
-                      
-                    container.innerHTML = `
-                        <img src="${imagePath}" alt="${character.name}" 
-                             class="pixel-character-img" 
-                             style="transform: scale(${scale});">
-                    `;
-                }
+                // Use static image for non-resident characters
+                const imagePath = CharacterAssets.getCharacterImagePath(character.id);
+                const scale = window.CharacterConfig ? 
+                    CharacterConfig.getScaleFor(character.id) : 3;
+                    
+                container.innerHTML = `
+                    <img src="${imagePath}" alt="${character.name}" 
+                        class="pixel-character-img" 
+                        style="transform: scale(${scale});">
+                `;
             }
         }, 100);
     });
@@ -194,7 +196,7 @@ function navigateCarousel(direction) {
     navigateToCharacter(newIndex);
 }
 
-// Navigate to specific character
+// WITH THIS VERSION:
 function navigateToCharacter(index) {
     // Update current index
     currentCharacterIndex = index;
@@ -226,6 +228,22 @@ function navigateToCharacter(index) {
             indicator.classList.remove('selected');
         }
     });
+    
+    // Special animation for the resident character
+    if (characters[index].id === 'resident' && window.characterAnimations[index]) {
+        const animId = window.characterAnimations[index];
+        
+        // Check which system is handling this animation
+        if (typeof SpriteSystem !== 'undefined' && SpriteSystem.animations[animId]) {
+            // Reset animation to playing state
+            SpriteSystem.stop(animId);
+            SpriteSystem.play(animId);
+        } else if (typeof CharacterAnimation !== 'undefined' && 
+                  typeof CharacterAnimation.resetAnimation === 'function') {
+            // Legacy system
+            CharacterAnimation.resetAnimation(animId);
+        }
+    }
     
     // Play sound
     playNavigationSound();
