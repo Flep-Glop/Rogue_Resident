@@ -168,8 +168,7 @@ def get_characters():
 
 @app.route('/sprite-test')
 def sprite_test():
-    """Test page for sprite system"""
-    return render_template('character_sprite_test.html')
+    return render_template('sprite_test.html')
 
 @app.route('/api/item/<item_id>')
 def get_item(item_id):
