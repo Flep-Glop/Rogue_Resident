@@ -1,8 +1,10 @@
 // fixed_boss_component.js - Specifically for ion chamber boss
-// Add this property to the component
-introComplete: false
 
 const FixedBossComponent = ComponentUtils.createComponent('boss', {
+  
+  introComplete: false,
+
+  
   // Initialize component and set up initial state
   initialize: function() {
     console.log("Initializing ion chamber boss component");
@@ -1566,7 +1568,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     }, 800);
   },
 
-  // Handle component actions
+  // Modify handleAction to handle the advanceIntro action
   handleAction: function(nodeData, action, data) {
     console.log(`Boss component handling action: ${action}`, data);
     
@@ -1588,6 +1590,11 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
           clearInterval(this._examTimer);
           this._examTimer = null;
         }
+        break;
+      
+      case 'advanceIntro':
+        // Handle the advance intro action
+        this.advanceIntro();
         break;
           
       default:
