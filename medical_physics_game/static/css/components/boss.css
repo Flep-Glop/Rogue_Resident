@@ -180,7 +180,6 @@
 }
 
 .eliminated-badge {
-  display: inline-block;
   padding: 2px 5px;
   background-color: rgba(230, 126, 115, 0.7);
   color: white;
