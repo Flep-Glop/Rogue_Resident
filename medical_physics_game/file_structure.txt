@@ -33,17 +33,18 @@
 │   │   ├── components.css
 │   │   ├── item_editor.css
 │   │   ├── main.css
+│   │   ├── npc_sprites.css
 │   │   ├── question-inventory.css
 │   │   ├── shop-styles.css
+│   │   ├── simple_sprites.css
 │   │   ├── tooltip-fix.css
 │   │   ├── utilities.css
 │   │   └── vertical_sprite.css
 │   ├── img
 │   │   ├── characters
-│   │   │   ├── resident
+│   │   │   ├── ion_chamber
 │   │   │   │   ├── ability.png
 │   │   │   │   ├── idle.png
-│   │   │   │   ├── specialAbility.png
 │   │   │   │   ├── special_ability.png
 │   │   │   │   └── walking.png
 │   │   │   ├── bonus.png
@@ -103,9 +104,6 @@
 │   └── js
 │       ├── components
 │       │   ├── boss_component.js
-│       │   ├── boss_effects.js
-│       │   ├── boss_helpers.js
-│       │   ├── boss_professor.js
 │       │   ├── elite_component.js
 │       │   ├── event_component.js
 │       │   ├── gamble_component.js
@@ -125,6 +123,9 @@
 │       │   ├── progression.js
 │       │   ├── save_manager.js
 │       │   └── state_manager.js
+│       ├── sprite-system
+│       │   ├── canvas-sprite-animator.js
+│       │   └── sprite-system.js
 │       ├── ui
 │       │   ├── character_panel.js
 │       │   ├── feedback_system.js
@@ -132,7 +133,6 @@
 │       │   ├── map_renderer.js
 │       │   ├── node_interaction.js
 │       │   └── special_interactions.js
-│       ├── advanced_sprites.js
 │       ├── api-client.js
 │       ├── character_assets.js
 │       ├── character_select.js
@@ -140,19 +140,17 @@
 │       ├── error_handler.js
 │       ├── game.js
 │       ├── item_editor.js
-│       ├── simple_sprites.js
+│       ├── npc_assets.js
 │       ├── tooltip-debugger.js
 │       ├── tooltip-system.js
 │       ├── ui-utils.js
 │       ├── unified-tooltip-system.js
-│       ├── vertical_sprite.js
 │       └── visual-effects.js
 ├── templates
 │   ├── character_select.html
 │   ├── index.html
 │   ├── item_editor.html
-│   ├── landing.html
-│   └── sprite_test.html
+│   └── landing.html
 ├── README.md
 ├── app.py
 ├── data_manager.py
@@ -168,4 +166,4 @@
 ├── update_weights.py
 └── weight_manager.py
 
-16 directories, 152 files
+17 directories, 149 files

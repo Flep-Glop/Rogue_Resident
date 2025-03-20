@@ -1,9 +1,9 @@
-// improved_boss_component.js - Enhanced boss encounter with reliable asset loading
+// fixed_boss_component.js - Specifically for ion chamber boss
 
-const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
+const FixedBossComponent = ComponentUtils.createComponent('boss', {
   // Initialize component and set up initial state
   initialize: function() {
-    console.log("Initializing improved boss component");
+    console.log("Initializing ion chamber boss component");
     
     // Initialize phase-specific UI state
     this.setUiState('currentPhase', 0);
@@ -14,64 +14,12 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     this.setUiState('phaseResults', []);
     this.setUiState('bossAnimation', null);
     this.setUiState('bossState', 'idle');
-    this.setUiState('loadedAssets', false);
     
     // Set up timer for exam pressure
     this._examTimer = null;
     
     // Register for events
     EventSystem.on('itemUsed', this.onItemUsed.bind(this));
-    
-    // Preload boss assets
-    this.preloadBossAssets();
-  },
-  
-  // Preload boss assets to check availability
-  preloadBossAssets: function() {
-    // Create hidden container for preloading
-    const preloadContainer = document.createElement('div');
-    preloadContainer.style.position = 'absolute';
-    preloadContainer.style.opacity = '0';
-    preloadContainer.style.pointerEvents = 'none';
-    preloadContainer.style.width = '1px';
-    preloadContainer.style.height = '1px';
-    preloadContainer.style.overflow = 'hidden';
-    preloadContainer.id = 'boss-preload-container';
-    document.body.appendChild(preloadContainer);
-    
-    // Try to load medical boss
-    const medicalImg = new Image();
-    medicalImg.onload = () => {
-      console.log("✅ Medical boss image loaded successfully");
-      this.setUiState('medicalBossLoaded', true);
-    };
-    medicalImg.onerror = () => {
-      console.warn("❌ Medical boss image failed to load");
-      this.setUiState('medicalBossLoaded', false);
-    };
-    medicalImg.src = '/static/img/characters/resident/idle.png'; // Default medical boss
-    
-    // Try to load ion chamber boss
-    const ionImg = new Image();
-    ionImg.onload = () => {
-      console.log("✅ Ion chamber boss image loaded successfully");
-      this.setUiState('ionChamberBossLoaded', true);
-    };
-    ionImg.onerror = () => {
-      console.warn("❌ Ion chamber boss image failed to load");
-      this.setUiState('ionChamberBossLoaded', false);
-    };
-    ionImg.src = '/static/img/characters/ion_chamber/idle.png';
-    
-    // Set a timeout to check loaded state
-    setTimeout(() => {
-      this.setUiState('loadedAssets', true);
-      
-      // Clean up preload container
-      if (preloadContainer && preloadContainer.parentNode) {
-        preloadContainer.parentNode.removeChild(preloadContainer);
-      }
-    }, 1000);
   },
   
   // Clean up when component is destroyed
@@ -108,6 +56,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
           break;
           
         case 'restore_life':
+        case 'heal':
           // Add time to exam
           const addedTime = 15;
           this.setUiState('timeRemaining', this.getUiState('timeRemaining') + addedTime);
@@ -128,7 +77,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
 
   // Main render function
   render: function(nodeData, container) {
-    console.log("Rendering improved boss component", nodeData);
+    console.log("Rendering ion chamber boss component", nodeData);
     
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
@@ -143,8 +92,8 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     // Get boss data
     const bossData = this.getBossData(nodeData);
     
-    // Determine if this is an ion chamber boss
-    const bossClass = bossData.bossType === 'ionChamber' ? 'ion-chamber-boss' : '';
+    // Use ionChamber boss class for styling
+    const bossClass = 'ion-chamber-boss';
     
     // Create a wrapper to hold both the boss content and inventory sidebar
     container.innerHTML = `
@@ -153,7 +102,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
         <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in">
           <div id="exam-header" class="exam-header">
             <div class="exam-title-container">
-              <h3 class="exam-title">${bossData.title || 'Medical Physics Challenge'}</h3>
+              <h3 class="exam-title">${bossData.title || 'Radiation Metrology Examination'}</h3>
             </div>
             
             <div class="exam-status">
@@ -199,7 +148,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     `;
     
     // Initialize boss animation
-    this.initBossAnimation(bossData.bossType);
+    this.initBossAnimation();
     
     // Render the current exam phase
     this.renderExamPhase(bossData, currentPhase);
@@ -220,140 +169,54 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // Improved boss animation initialization
-  initBossAnimation: function(bossType) {
+  // Initialize boss animation specifically for ion chamber boss
+  initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
     if (!container) return;
     
     // Remove existing animation if any
     const existingAnimId = this.getUiState('bossAnimation');
     if (existingAnimId && typeof SpriteSystem !== 'undefined') {
-      SpriteSystem.removeAnimation(existingAnimId);
+      try {
+        SpriteSystem.removeAnimation(existingAnimId);
+      } catch (error) {
+        console.error("Error removing existing animation:", error);
+      }
     }
     
-    // Determine boss type
-    bossType = bossType || 'medical';
-    let animId = null;
-    let spriteCreated = false;
-    
-    // Handle boss animations or static fallbacks based on availability
+    // Try to directly create a static image
     try {
-      // 1. Try to use SpriteSystem with NPCAssets if available
-      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.createAnimation === 'function') {
-        if (bossType === 'ionChamber' && window.NPCAssets && NPCAssets.npcs.ionChamberBoss) {
-          console.log("Attempting to use Ion Chamber boss with sprite system");
-          animId = SpriteSystem.createAnimation('ionChamberBoss', container, {
-            animation: 'idle',
-            scale: 4,
-            autoPlay: true,
-            loop: true
-          });
-          
-          if (animId) {
-            spriteCreated = true;
-            console.log("✅ Ion Chamber boss animation created successfully");
-          }
-        } else if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
-          console.log("Attempting to use Medical boss with sprite system");
-          animId = SpriteSystem.createAnimation('medicalBoss', container, {
-            animation: 'idle',
-            scale: 4,
-            autoPlay: true,
-            loop: true
-          });
-          
-          if (animId) {
-            spriteCreated = true;
-            console.log("✅ Medical boss animation created successfully");
-          }
-        }
-      }
+      // Try ion chamber image first (we know this path exists in your structure)
+      const ionChamberPath = '/static/img/characters/ion_chamber/idle.png';
       
-      // 2. If sprite creation failed, use static image based on boss type
-      if (!spriteCreated) {
-        // Choose image based on boss type and preload results
-        let imagePath;
-        if (bossType === 'ionChamber') {
-          // Choose based on what was successfully preloaded
-          if (this.getUiState('ionChamberBossLoaded')) {
-            imagePath = '/static/img/characters/ion_chamber/idle.png';
-          } else if (this.getUiState('medicalBossLoaded')) {
-            imagePath = '/static/img/characters/resident/idle.png';
-          } else {
-            // Default placeholder
-            imagePath = '/static/img/placeholder.png';
-          }
-        } else {
-          // Medical boss
-          if (this.getUiState('medicalBossLoaded')) {
-            imagePath = '/static/img/characters/resident/idle.png';
-          } else {
-            imagePath = '/static/img/placeholder.png';
-          }
-        }
-        
-        // Create static image with fallback
-        container.innerHTML = `
-          <img src="${imagePath}" 
-              alt="Boss" 
-              class="boss-static-img boss-idle" 
-              style="transform: scale(4);"
-              onerror="this.onerror=null; this.src='/static/img/placeholder.png';">
-        `;
-        
-        console.log("⚠️ Using static image fallback for boss:", imagePath);
-      }
+      // Create static image with direct path to known file
+      container.innerHTML = `
+        <img src="${ionChamberPath}" 
+            alt="Ion Chamber Boss" 
+            class="boss-static-img boss-idle" 
+            style="transform: scale(4);"
+            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
+      `;
+      
+      console.log("✅ Using static image for Ion Chamber boss:", ionChamberPath);
     } catch (error) {
       console.error("Error during boss animation initialization:", error);
       
-      // Emergency fallback - ensures something is displayed
+      // Emergency fallback with no external dependencies
       container.innerHTML = `
-        <div style="width: 96px; height: 108px; background-color: rgba(0,0,0,0.3); 
+        <div style="width: 96px; height: 108px; background-color: rgba(255,106,0,0.3); 
                     display: flex; justify-content: center; align-items: center; 
-                    color: white; font-size: 20px; border-radius: 4px;">
-          ${bossType === 'ionChamber' ? '⚡' : '👨‍⚕️'}
+                    color: white; font-size: 30px; border-radius: 4px;">
+          ⚡
         </div>
       `;
     }
     
-    // Store animation ID (might be null if using static image)
-    this.setUiState('bossAnimation', animId);
     this.setUiState('bossState', 'idle');
   },
   
-  // Improved boss animation playing with better fallbacks
+  // Play boss animation using CSS classes for static image
   playBossAnimation: function(animationName, returnToIdle = true) {
-    const animId = this.getUiState('bossAnimation');
-    
-    // Handle sprite animations
-    if (animId && typeof SpriteSystem !== 'undefined') {
-      try {
-        // Don't restart same animation
-        if (this.getUiState('bossState') === animationName) return;
-        
-        // Update state
-        this.setUiState('bossState', animationName);
-        
-        // Play animation
-        SpriteSystem.changeAnimation(
-          animId, 
-          animationName,
-          {
-            loop: !returnToIdle,
-            onComplete: returnToIdle ? () => {
-              SpriteSystem.changeAnimation(animId, 'idle');
-              this.setUiState('bossState', 'idle');
-            } : null
-          }
-        );
-        
-        return; // Success - exit function
-      } catch (error) {
-        console.error("Error playing boss animation, falling back to CSS:", error);
-        // Continue to static fallback
-      }
-    }
-    
     // Handle static image "animations" with CSS classes
     const bossElement = document.querySelector('.boss-static-img');
     if (bossElement) {
@@ -372,6 +235,8 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
       
       // Update state
       this.setUiState('bossState', animationName);
+    } else {
+      console.warn("No boss element found for animation");
     }
   },
 
@@ -446,24 +311,26 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     });
   },
 
-  // Helper function for item icons with better fallbacks
+  // Helper function for item icons
   getItemIcon: function(item) {
+    // Default item image that we know exists in your file structure
+    const defaultItemImage = "Yellow Sticky Note.png";
+    
     // Check if the item has a custom icon path
     if (item.iconPath) {
       return `<img src="/static/img/items/${item.iconPath}" alt="${item.name}" 
               style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;"
-              onerror="this.onerror=null; this.src='/static/img/placeholder.png';">`;
+              onerror="this.onerror=null; this.src='/static/img/items/${defaultItemImage}';">`;
     }
     
-    // Default icon based on item name patterns
+    // Map common item types to icons that we know exist in your file structure
     const itemName = (item.name || '').toLowerCase();
-    let iconFile = "Yellow Sticky Note.png";
+    let iconFile = defaultItemImage; // Default fallback
     
-    // Map common item types to default icons
     if (itemName.includes('book') || itemName.includes('manual') || itemName.includes('textbook')) {
       iconFile = "Textbook.png";
     } else if (itemName.includes('potion') || itemName.includes('vial')) {
-      iconFile = "Flask.png";
+      iconFile = "Prism.png";
     } else if (itemName.includes('badge') || itemName.includes('dosimeter')) {
       iconFile = "Nametag.png";
     } else if (itemName.includes('glasses') || itemName.includes('spectacles') || itemName.includes('goggles')) {
@@ -472,7 +339,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     
     return `<img src="/static/img/items/${iconFile}" alt="${item.name}" 
             style="width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated;"
-            onerror="this.onerror=null; this.src='/static/img/placeholder.png';">`;
+            onerror="this.onerror=null; this.src='/static/img/items/${defaultItemImage}';">`;
   },
 
   // Use an item during the boss encounter
@@ -659,9 +526,8 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
   
   // Get boss dialogue based on phase and state
   getBossDialogue: function(bossData, phaseIndex, phaseComplete) {
-    // Check if this is the Ion Chamber boss
-    if (bossData.bossType === 'ionChamber' && window.NPCAssets) {
-      // Use dialogue from NPCAssets
+    // Use dialogue from NPCAssets if available
+    if (window.NPCAssets && NPCAssets.getRandomDialogue) {
       if (phaseComplete) {
         if (phaseIndex >= this.getExamPhases(bossData).length - 1) {
           // Final completion dialogue
@@ -684,18 +550,18 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
       }
     }
     
-    // Simple dialogue system for standard boss - no need for quantum states
+    // Fallback dialogues if NPCAssets is not available
     const dialogues = [
-      "Welcome to your Medical Physics examination. Let's assess your knowledge.",
-      "Good. Now let's test your understanding of radiation principles.",
-      "Excellent progress. This section will test your calculation abilities."
+      "Welcome to your Radiation Metrology examination. I am Professor Ionix.",
+      "Now let's test your understanding of ion chamber principles.",
+      "Excellent progress. This section will test your radiation detection knowledge."
     ];
     
     // Completion dialogues
     const completionDialogues = [
-      "You've completed this section. Let's proceed to the next challenge.",
-      "Section complete. You're making good progress.",
-      "Well done. You've demonstrated solid knowledge for this section."
+      "You've completed this section. Let's increase the potential difference and move to the next challenge.",
+      "Section complete. Your knowledge shows good linearity so far.",
+      "Well done. Your signal-to-noise ratio is impressive."
     ];
     
     // Get appropriate dialogue
@@ -854,8 +720,8 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     
     // Get final verdict text
     const verdictText = examPassed 
-      ? "You have demonstrated sufficient knowledge of medical physics principles." 
-      : "You have not demonstrated sufficient knowledge at this time.";
+      ? "Your response curve shows excellent linearity. You'll make a fine medical physicist." 
+      : "Your response curve needs recalibration. I recommend more study before our next measurement.";
     
     // Create completion screen
     phaseContainer.innerHTML = `
@@ -870,7 +736,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
         </div>
         
         <div class="exam-rewards">
-          <p>Your performance in the medical physics examination has earned you:</p>
+          <p>Your performance in the radiation metrology examination has earned you:</p>
           <div class="rewards-list">
             <div class="reward-item">
               <span class="reward-icon">🧠</span>
@@ -879,7 +745,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
             ${examPassed ? `
               <div class="reward-item">
                 <span class="reward-icon">🏆</span>
-                <span class="reward-text">Medical Physics Certification</span>
+                <span class="reward-text">Ion Chamber Calibration Certificate</span>
               </div>
             ` : ''}
           </div>
@@ -897,7 +763,7 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
     this.applyExamRewards(examPassed);
     
     // Play boss completion animation
-    this.playBossAnimation(examPassed ? 'specialAbility' : 'walking', false);
+    this.playBossAnimation('specialAbility', false);
   },
   
   // Answer a question
@@ -1124,10 +990,15 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
       return bossData.phases;
     }
     
+    // Get IonChamberBoss phases if available
+    if (window.IonChamberBoss && typeof IonChamberBoss.getPhases === 'function') {
+      return IonChamberBoss.getPhases();
+    }
+    
     // Fallback to creating a single phase from the question
     if (bossData.question) {
       return [{
-        title: bossData.title || 'Knowledge Assessment',
+        title: 'Radiation Detection Fundamentals',
         questions: [bossData.question]
       }];
     }
@@ -1147,53 +1018,34 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
   
   // Get boss data from node data with Ion Chamber support
   getBossData: function(nodeData) {
-    if (!nodeData) return { title: 'Medical Physics Examination', phases: [] };
+    if (!nodeData) return { 
+      title: 'Radiation Metrology Examination', 
+      bossType: 'ionChamber', 
+      phases: [] 
+    };
     
     // Store current node data for later reference
     this.setUiState('currentNodeData', nodeData);
     
-    // Check if this is specifically the Ion Chamber boss
-    if (nodeData.bossType === 'ionChamber' || 
-        (nodeData.title && nodeData.title.includes('Ionix'))) {
-      
-      // Get Ion Chamber boss phases from boss_professor.js if available
-      if (window.IonChamberBoss && IonChamberBoss.getPhases) {
-        return {
-          title: nodeData.title || 'Radiation Metrology Examination',
-          bossType: 'ionChamber',
-          phases: IonChamberBoss.getPhases(),
-          // Include any other boss properties
-          dialogue: nodeData.dialogue || {}
-        };
-      }
-      
-      // Fallback if boss_professor.js isn't available
+    // Get Ion Chamber boss phases from boss_professor.js if available
+    if (window.IonChamberBoss && typeof IonChamberBoss.getPhases === 'function') {
       return {
         title: nodeData.title || 'Radiation Metrology Examination',
         bossType: 'ionChamber',
-        phases: [
-          {
-            title: 'Radiation Detection Fundamentals',
-            description: 'Test your knowledge of ion chamber principles.',
-            questions: nodeData.questions || [nodeData.question] || []
-          }
-        ]
+        phases: IonChamberBoss.getPhases(),
+        dialogue: nodeData.dialogue || {}
       };
     }
     
-    // If node has a question, adapt it (original behavior)
-    if (nodeData.question) {
-      return {
-        title: nodeData.title || 'Medical Physics Examination',
-        phases: [{
-          title: 'Knowledge Assessment',
-          questions: [nodeData.question]
-        }]
-      };
-    }
-    
-    // Return provided boss data or empty object
-    return nodeData.boss || { title: 'Medical Physics Examination', phases: [] };
+    // Fallback if boss_professor.js isn't available
+    return {
+      title: nodeData.title || 'Radiation Metrology Examination',
+      bossType: 'ionChamber',
+      phases: nodeData.questions ? 
+        [{ title: 'Radiation Detection Fundamentals', questions: nodeData.questions }] :
+        nodeData.question ? 
+          [{ title: 'Radiation Detection Fundamentals', questions: [nodeData.question] }] : []
+    };
   },
   
   // Show feedback toast or floating text
@@ -1241,5 +1093,5 @@ const ImprovedBossComponent = ComponentUtils.createComponent('boss', {
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
-  NodeComponents.register('boss', ImprovedBossComponent);
+  NodeComponents.register('boss', FixedBossComponent);
 }
