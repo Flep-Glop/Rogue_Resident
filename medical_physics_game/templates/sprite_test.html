@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertical Sprite Animation Test</title>
-    <link rel="stylesheet" href="/static/css/vertical_sprite.css">
+    <title>Fixed Vertical Sprite Animation Test</title>
     <style>
         body {
             background-color: #1e1e2a;
@@ -62,9 +61,10 @@
             color: #a7adb5;
         }
     </style>
+    <!-- Important: No external CSS needed, styles are injected by JS -->
 </head>
 <body>
-    <h1>Vertical Sprite Animation Test</h1>
+    <h1>Fixed Vertical Sprite Animation Test</h1>
     
     <div class="sprite-demo">
         <h2>Idle Animation</h2>
@@ -86,12 +86,12 @@
         </div>
     </div>
     
-    <script src="/static/js/vertical_sprite.js"></script>
+    <script src="/static/js/fixed_sprite.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Create sprite animator
-            const animator = new VerticalSpriteAnimator({
-                imagePath: '/static/img/characters/resident/idle.png', // Update this with the actual path
+            // Create sprite animator using our improved version
+            const animator = new FixedVerticalSpriteAnimator({
+                imagePath: '/static/img/characters/resident/idle.png', // Make sure this path exists
                 frameCount: 8,
                 frameWidth: 97,
                 frameHeight: 108, // 864 ÷ 8 = 108
@@ -99,7 +99,7 @@
                 scale: 2,
                 autoPlay: false,
                 loop: true,
-                debug: true
+                debug: true // Enable debug mode for console output
             });
             
             // Mount to container
