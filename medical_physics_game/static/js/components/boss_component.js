@@ -1,22 +1,19 @@
-// boss_component.js - Refactored boss encounter component
-// Uses helper modules for separation of concerns
+// simplified_boss_component.js - A streamlined boss encounter using sprites
 
-const BossComponent = ComponentUtils.createComponent('boss', {
+const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
   // Initialize component and set up initial state
   initialize: function() {
-    console.log("Initializing quantum boss component");
+    console.log("Initializing simplified boss component");
     
     // Initialize phase-specific UI state
     this.setUiState('currentPhase', 0);
     this.setUiState('phaseComplete', false);
     this.setUiState('selectedOption', null);
-    this.setUiState('bossHealth', 100);
-    this.setUiState('playerConfidence', 100);
-    this.setUiState('timeRemaining', 120);
+    this.setUiState('timeRemaining', 90); // Reduced from 120
+    this.setUiState('playerScore', 0);
     this.setUiState('phaseResults', []);
-    this.setUiState('examQuirks', 0);
-    this.setUiState('realityDistortion', 0);
-    this.setUiState('professorState', 'normal'); // normal, quantum, cosmic
+    this.setUiState('bossAnimation', null); // Store animation ID
+    this.setUiState('bossState', 'idle'); // Current animation state
     
     // Set up timer for exam pressure
     this._examTimer = null;
@@ -33,78 +30,75 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       this._examTimer = null;
     }
     
+    // Stop and remove boss animation if active
+    const animId = this.getUiState('bossAnimation');
+    if (animId && typeof SpriteSystem !== 'undefined') {
+      SpriteSystem.removeAnimation(animId);
+    }
+    
     // Unsubscribe from events
     EventSystem.off('itemUsed', this.onItemUsed);
   },
   
   // Handle item usage during exam
   onItemUsed: function(item) {
-    // Special handling for items used during exam
-    if (item && this.getUiState('currentPhase') >= 0) {
-      let effectText = "You used an item";
-      
-      // Use helper if available
-      if (window.BossHelpers) {
-        effectText = BossHelpers.getItemEffectForExam(item);
+    if (!item || !this.getUiState('currentPhase') >= 0) return;
+    
+    let effectText = "You used an item";
+    
+    // Apply item effects
+    if (item.effect) {
+      switch (item.effect.type) {
+        case 'insight_boost':
+          // Add score in exam
+          this.setUiState('playerScore', this.getUiState('playerScore') + 10);
+          effectText = `The ${item.name} increases your knowledge. +10 Score!`;
+          break;
+          
+        case 'restore_life':
+          // Add time to exam
+          const addedTime = 15;
+          this.setUiState('timeRemaining', this.getUiState('timeRemaining') + addedTime);
+          effectText = `The ${item.name} grants you extra time. +15 seconds!`;
+          break;
+          
+        default:
+          effectText = `The ${item.name} has an unknown effect.`;
+          break;
       }
-      
-      // Apply item effects
-      if (item.effect) {
-        switch (item.effect.type) {
-          case 'insight_boost':
-            // Add confidence in exam
-            this.setUiState('playerConfidence', Math.min(100, this.getUiState('playerConfidence') + 10));
-            break;
-            
-          case 'restore_life':
-            // Add time to exam
-            const addedTime = 15;
-            this.setUiState('timeRemaining', this.getUiState('timeRemaining') + addedTime);
-            break;
-            
-          default:
-            // Default random effect for cosmic absurdity
-            this.increaseRealityDistortion(5);
-            break;
-        }
-      }
-      
-      this.showFeedback(effectText, 'primary');
     }
+    
+    this.showFeedback(effectText, 'primary');
+    
+    // Change boss animation to 'ability' temporarily
+    this.playBossAnimation('ability');
   },
-  
-  // Integrated boss_component.js with inventory functionality
 
   // Main render function
   render: function(nodeData, container) {
-    console.log("Rendering boss component", nodeData);
+    console.log("Rendering simplified boss component", nodeData);
     
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
       container.id = 'boss-container';
-      container.className = 'interaction-container quantum-exam';
+      container.className = 'interaction-container boss-exam';
     }
     
     // Initialize or get the current exam phase
     const currentPhase = this.getUiState('currentPhase');
     const phaseComplete = this.getUiState('phaseComplete');
     
-    // Get boss data using helper
-    const bossData = window.BossHelpers ? 
-      BossHelpers.getBossData(nodeData) : 
-      this.getBossData(nodeData);
+    // Get boss data
+    const bossData = this.getBossData(nodeData);
     
     // Create a wrapper to hold both the boss content and inventory sidebar
     container.innerHTML = `
-      <div class="question-with-inventory-container boss-with-inventory">
+      <div class="boss-with-inventory">
         <!-- Main boss exam panel -->
-        <div class="game-panel quantum-exam-panel anim-fade-in">
+        <div class="game-panel boss-exam-panel anim-fade-in">
           <div id="exam-header" class="exam-header">
             <div class="exam-title-container">
-              <h3 class="exam-title cosmic-glow">${bossData.title || 'ABR Part 1 Examination'}</h3>
-              <div class="reality-distortion-meter" title="Reality Distortion">
-                <div class="reality-fill" style="width: ${this.getUiState('realityDistortion')}%"></div>
-              </div>
+              <h3 class="exam-title">${bossData.title || 'Medical Physics Challenge'}</h3>
             </div>
             
             <div class="exam-status">
@@ -113,22 +107,26 @@ const BossComponent = ComponentUtils.createComponent('boss', {
                 <span class="time-remaining">${this.formatTime(this.getUiState('timeRemaining'))}</span>
               </div>
               
-              <div class="confidence-container">
-                <div class="confidence-bar">
-                  <div class="confidence-fill" style="width: ${this.getUiState('playerConfidence')}%"></div>
-                </div>
-                <span class="confidence-text">${this.getUiState('playerConfidence')}% Confidence</span>
+              <div class="score-container">
+                <span class="score-text">Score: ${this.getUiState('playerScore')}</span>
               </div>
             </div>
           </div>
           
-          <div id="professor-container"></div>
+          <!-- Boss character container -->
+          <div id="boss-character-container" class="boss-character-container">
+            <div id="boss-sprite" class="boss-sprite"></div>
+          </div>
+          
+          <div id="boss-dialogue" class="boss-dialogue">
+            <p>${this.getBossDialogue(bossData, currentPhase, phaseComplete)}</p>
+          </div>
           
           <div id="exam-phase-container" class="exam-phase-container"></div>
           
           <div id="exam-actions" class="exam-actions">
             ${phaseComplete ? `
-              <button id="next-phase-btn" class="game-btn game-btn--primary cosmic-pulse w-full">
+              <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
                 ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
               </button>
             ` : ''}
@@ -145,8 +143,8 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       </div>
     `;
     
-    // Render the professor
-    this.renderProfessor(bossData, currentPhase, phaseComplete);
+    // Initialize boss animation
+    this.initBossAnimation();
     
     // Render the current exam phase
     this.renderExamPhase(bossData, currentPhase);
@@ -165,13 +163,79 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     
     // Start exam timer if not already running
     this.startExamTimer();
+  },
+  
+  // Initialize boss sprite animation
+  initBossAnimation: function() {
+    const container = document.getElementById('boss-sprite');
+    if (!container || typeof SpriteSystem === 'undefined') return;
     
-    // Apply quantum effects based on reality distortion
-    if (window.BossEffects) {
-      BossEffects.applyQuantumEffects(container, this.getUiState('realityDistortion'));
-    } else {
-      this.applyQuantumEffects();
+    // Remove existing animation if any
+    const existingAnimId = this.getUiState('bossAnimation');
+    if (existingAnimId) {
+      SpriteSystem.removeAnimation(existingAnimId);
     }
+    
+    // Create new animation - use NPCAssets if available
+    let animId;
+    
+    if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
+      // Use NPC assets system for animations
+      const npcData = NPCAssets.npcs.medicalBoss;
+      const animData = npcData.animations.idle;
+      
+      animId = SpriteSystem.createAnimation(
+        'medicalBoss', // NPC type
+        container,
+        {
+          animation: 'idle',
+          scale: 4, // Larger scale for boss
+          autoPlay: true,
+          loop: true
+        }
+      );
+    } else {
+      // Fallback to using resident animations if NPCAssets isn't available
+      animId = SpriteSystem.createAnimation(
+        'resident', // Use the resident animations as fallback
+        container,
+        {
+          animation: 'idle',
+          scale: 4,
+          autoPlay: true,
+          loop: true
+        }
+      );
+    }
+    
+    // Store animation ID
+    this.setUiState('bossAnimation', animId);
+    this.setUiState('bossState', 'idle');
+  },
+  
+  // Play a specific boss animation with optional return to idle
+  playBossAnimation: function(animationName, returnToIdle = true) {
+    const animId = this.getUiState('bossAnimation');
+    if (!animId || typeof SpriteSystem === 'undefined') return;
+    
+    // Don't restart same animation
+    if (this.getUiState('bossState') === animationName) return;
+    
+    // Update state
+    this.setUiState('bossState', animationName);
+    
+    // Play animation
+    SpriteSystem.changeAnimation(
+      animId, 
+      animationName,
+      {
+        loop: !returnToIdle,
+        onComplete: returnToIdle ? () => {
+          SpriteSystem.changeAnimation(animId, 'idle');
+          this.setUiState('bossState', 'idle');
+        } : null
+      }
+    );
   },
 
   // Add inventory rendering function
@@ -270,24 +334,17 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     return `<i class="fas fa-${iconClass}" style="color: #5b8dd9; font-size: 24px;"></i>`;
   },
 
-  // Fixed useItem function
+  // Use an item during the boss encounter
   useItem: function(data) {
-    console.log("useItem called with data:", data);
-    
-    if (!data || !data.item) {
-      console.error("Missing item data in useItem");
-      return;
-    }
+    if (!data || !data.item) return;
     
     const item = data.item;
     console.log(`Using item: ${item.id} - ${item.name}`);
     
-    // Apply the item effect directly
-    console.log("Applying item effect directly");
-    const effectApplied = this.applyItemEffectToQuestion(item);
+    // Apply the item effect
+    const effectApplied = this.applyItemEffect(item);
     
     if (!effectApplied) {
-      console.error("Failed to apply item effect");
       if (typeof this.showToast === 'function') {
         this.showToast("Failed to use item", "error");
       }
@@ -302,7 +359,6 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       if (itemIndex !== -1) {
         // Remove the item
         inventory.splice(itemIndex, 1);
-        console.log(`Removed item ${item.id} from inventory, new inventory size: ${inventory.length}`);
         
         // Save the inventory change via API if available
         if (window.ApiClient && typeof ApiClient.saveInventory === 'function') {
@@ -310,18 +366,12 @@ const BossComponent = ComponentUtils.createComponent('boss', {
             .then(() => console.log("Inventory saved successfully"))
             .catch(err => console.error("Failed to save inventory:", err));
         }
-      } else {
-        console.error(`Item ${item.id} not found in inventory`);
       }
-    } else {
-      console.error("GameState or inventory not available");
     }
     
     // Show success message
     if (typeof this.showToast === 'function') {
       this.showToast(`Used ${item.name}!`, "success");
-    } else {
-      alert(`Used ${item.name}!`);
     }
     
     // Force inventory update
@@ -329,172 +379,85 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     
     // Emit event for item used
     if (window.EventSystem && typeof EventSystem.emit === 'function') {
-      EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
+      EventSystem.emit('itemUsed', item);
     }
   },
-  // Add these additional methods to the boss component
-
-  // Boss-specific item effect handler
-  applyItemEffectToQuestion: function(item) {
-    console.log(`Applying item effect:`, item.effect);
+  
+  // Apply item effect
+  applyItemEffect: function(item) {
+    if (!item || !item.effect) return false;
     
-    if (!item || !item.effect) {
-      console.error("No effect defined for item");
-      return false;
-    }
-    
-    // Handle different effect types for boss fights
+    // Handle different effect types
     switch(item.effect.type) {
+      case "insight_boost":
+        // Boost score
+        const currentScore = this.getUiState('playerScore');
+        this.setUiState('playerScore', currentScore + (item.effect.value || 10));
+        
+        // Update score display
+        const scoreText = document.querySelector('.score-text');
+        if (scoreText) {
+          scoreText.textContent = `Score: ${this.getUiState('playerScore')}`;
+        }
+        
+        // Change boss animation
+        this.playBossAnimation('ability');
+        
+        return true;
+        
+      case "restore_life":
+        // Add time
+        const timeBonus = item.effect.value || 15;
+        const currentTime = this.getUiState('timeRemaining');
+        this.setUiState('timeRemaining', currentTime + timeBonus);
+        
+        // Update time display
+        const timeRemainingElement = document.querySelector('.time-remaining');
+        if (timeRemainingElement) {
+          timeRemainingElement.textContent = this.formatTime(this.getUiState('timeRemaining'));
+        }
+        
+        // Change boss animation
+        this.playBossAnimation('ability');
+        
+        // Show feedback
+        if (typeof this.showFloatingText === 'function') {
+          this.showFloatingText(`+${timeBonus}s Time`, "success");
+        }
+        
+        return true;
+        
       case "eliminateOption":
-        console.log("Eliminating incorrect option");
-        // For boss, try to find the current phase question container
-        const phaseContainer = document.querySelector('.phase-question');
-        if (phaseContainer) {
-          const optionsContainer = phaseContainer.querySelector('.options-container, .exam-options');
+        // Find the current question options
+        const optionsContainer = document.querySelector('.phase-question .question-options');
+        if (optionsContainer) {
           return this.eliminateIncorrectOption(item, optionsContainer);
         }
         return false;
         
-      case "heal":
-        console.log("Applying healing effect");
-        // Update player lives directly
-        if (window.GameState && window.GameState.data && window.GameState.data.character) {
-          const character = window.GameState.data.character;
-          character.lives = Math.min(character.lives + (item.effect.value || 1), character.max_lives);
-          console.log(`Healed for ${item.effect.value || 1} life, new total: ${character.lives}`);
-          
-          // Update character panel if available
-          if (window.CharacterPanel && typeof CharacterPanel.updateLives === 'function') {
-            CharacterPanel.updateLives(character.lives);
-          }
-          
-          // For boss fights - increase confidence too
-          const confidenceBoost = 10; // 10% confidence boost
-          const currentConfidence = this.getUiState('playerConfidence') || 0;
-          this.setUiState('playerConfidence', Math.min(100, currentConfidence + confidenceBoost));
-          
-          // Update confidence bar
-          const confidenceFill = document.querySelector('.confidence-fill');
-          if (confidenceFill) {
-            confidenceFill.style.width = `${this.getUiState('playerConfidence')}%`;
-          }
-          
-          const confidenceText = document.querySelector('.confidence-text');
-          if (confidenceText) {
-            confidenceText.textContent = `${this.getUiState('playerConfidence')}% Confidence`;
-          }
-          
-          // Reduce reality distortion as a bonus effect
-          const currentDistortion = this.getUiState('realityDistortion') || 0;
-          if (currentDistortion > 0) {
-            const distortionReduction = Math.min(currentDistortion, 15); // Reduce by 15% max
-            this.setUiState('realityDistortion', currentDistortion - distortionReduction);
-            
-            // Update distortion meter
-            const distortionFill = document.querySelector('.reality-fill');
-            if (distortionFill) {
-              distortionFill.style.width = `${this.getUiState('realityDistortion')}%`;
-            }
-            
-            // Show feedback for distortion reduction
-            if (typeof this.showFloatingText === 'function') {
-              this.showFloatingText(`-${distortionReduction}% Reality Distortion`, "success");
-            }
-          }
-          
-          // Show feedback
-          if (typeof this.showFloatingText === 'function') {
-            this.showFloatingText(`+${item.effect.value || 1} Life`, "success");
-            this.showFloatingText(`+${confidenceBoost}% Confidence`, "success");
-          }
-          
-          return true;
-        }
-        return false;
-        
-      case "insight_gain":
-        console.log("Applying insight gain effect");
-        // Update player insight directly
-        if (window.GameState && window.GameState.data && window.GameState.data.character) {
-          const character = window.GameState.data.character;
-          const insightGain = item.effect.value || 10;
-          character.insight += insightGain;
-          console.log(`Gained ${insightGain} insight, new total: ${character.insight}`);
-          
-          // Update character panel if available
-          if (window.CharacterPanel && typeof CharacterPanel.updateInsight === 'function') {
-            CharacterPanel.updateInsight(character.insight);
-          }
-          
-          // For boss fights - increase confidence too
-          const confidenceBoost = 5; // 5% confidence boost
-          const currentConfidence = this.getUiState('playerConfidence') || 0;
-          this.setUiState('playerConfidence', Math.min(100, currentConfidence + confidenceBoost));
-          
-          // Update confidence bar
-          const confidenceFill = document.querySelector('.confidence-fill');
-          if (confidenceFill) {
-            confidenceFill.style.width = `${this.getUiState('playerConfidence')}%`;
-          }
-          
-          const confidenceText = document.querySelector('.confidence-text');
-          if (confidenceText) {
-            confidenceText.textContent = `${this.getUiState('playerConfidence')}% Confidence`;
-          }
-          
-          // Give a time boost if timer is running
-          if (this.examTimerId) {
-            const timeBonus = 30; // 30 second bonus
-            const currentTime = this.getUiState('timeRemaining') || 0;
-            this.setUiState('timeRemaining', currentTime + timeBonus);
-            
-            // Update time display
-            const timeRemainingElement = document.querySelector('.time-remaining');
-            if (timeRemainingElement) {
-              timeRemainingElement.textContent = this.formatTime(this.getUiState('timeRemaining'));
-            }
-            
-            // Show time bonus feedback
-            if (typeof this.showFloatingText === 'function') {
-              this.showFloatingText(`+${timeBonus}s Time`, "success");
-            }
-          }
-          
-          // Show feedback
-          if (typeof this.showFloatingText === 'function') {
-            this.showFloatingText(`+${insightGain} Insight`, "success");
-            this.showFloatingText(`+${confidenceBoost}% Confidence`, "success");
-          }
-          
-          return true;
-        }
-        return false;
-        
       default:
-        console.log(`Unhandled effect type: ${item.effect.type}`);
-        return false;
+        // Generic effect
+        // Change boss animation
+        this.playBossAnimation('ability');
+        return true;
     }
   },
-
-  // Specialized version for boss component
-  eliminateIncorrectOption: function(item, customOptionsContainer) {
-    console.log("Executing eliminateIncorrectOption in boss context");
-    
+  
+  // Eliminate an incorrect option
+  eliminateIncorrectOption: function(item, optionsContainer) {
     // Try to get the current phase's question
     let correctIndex = null;
     let question = null;
     
-    // First try to get from current phase
+    // Get from current phase
     const currentPhase = this.getUiState('currentPhase');
-    const bossData = window.BossHelpers ? 
-      BossHelpers.getBossData(this.getUiState('currentNodeData')) : 
-      this.getBossData(this.getUiState('currentNodeData'));
+    const bossData = this.getBossData(this.getUiState('currentNodeData'));
     
     if (bossData && bossData.phases && bossData.phases[currentPhase] && 
-        bossData.phases[currentPhase].question && 
-        typeof bossData.phases[currentPhase].question.correct === 'number') {
+        bossData.phases[currentPhase].questions && bossData.phases[currentPhase].questions[0] &&
+        typeof bossData.phases[currentPhase].questions[0].correct === 'number') {
       
-      question = bossData.phases[currentPhase].question;
+      question = bossData.phases[currentPhase].questions[0];
       correctIndex = question.correct;
     }
     // Fallback to nodeData
@@ -507,41 +470,21 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     }
     
     if (correctIndex === null || !question) {
-      console.log("Can't determine correct answer from question data");
-      
       if (typeof this.showToast === 'function') {
         this.showToast("Can't determine correct answer", "warning");
-      } else {
-        console.warn("Can't determine correct answer");
       }
       return false;
     }
     
-    console.log("Correct answer index:", correctIndex);
-    
-    // Get options container - either custom provided or find from DOM
-    const optionsContainer = customOptionsContainer || 
-                            document.querySelector('.phase-question .options-container') || 
-                            document.querySelector('.phase-question .exam-options') ||
-                            document.getElementById('options-container');
-    
-    if (!optionsContainer) {
-      console.error("Options container not found");
-      return false;
-    }
-    
-    const options = optionsContainer.querySelectorAll('.game-option:not(.disabled):not(.eliminated-option), .exam-option:not(.disabled):not(.eliminated-option)');
-    console.log("Found options:", options.length);
+    // Get options
+    const options = optionsContainer.querySelectorAll('.question-option:not(.disabled):not(.eliminated-option)');
     
     // Find incorrect options
     const incorrectOptions = Array.from(options).filter((option) => {
-      // Get index from data attribute or position
       const optionIndex = option.dataset.index ? parseInt(option.dataset.index) : 
                         Array.from(options).indexOf(option);
       return optionIndex !== correctIndex;
     });
-    
-    console.log("Incorrect options:", incorrectOptions.length);
     
     // If we have incorrect options, choose one randomly to eliminate
     if (incorrectOptions.length > 0) {
@@ -551,7 +494,7 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       // Mark as eliminated
       optionToEliminate.classList.add('eliminated-option');
       optionToEliminate.style.opacity = '0.5';
-      optionToEliminate.innerHTML = `<s>${optionToEliminate.textContent}</s> <span class="badge badge-danger float-right">Eliminated</span>`;
+      optionToEliminate.innerHTML = `<s>${optionToEliminate.textContent}</s> <span class="eliminated-badge">Eliminated</span>`;
       optionToEliminate.disabled = true;
       
       // Show feedback
@@ -559,89 +502,43 @@ const BossComponent = ComponentUtils.createComponent('boss', {
         this.showToast("Incorrect option eliminated!", "success");
       } else if (typeof this.showFloatingText === 'function') {
         this.showFloatingText("Incorrect option eliminated!", "success");
-      } else {
-        alert("Incorrect option eliminated!");
       }
       
-      // For boss fights, drop reality distortion slightly
-      const currentDistortion = this.getUiState('realityDistortion') || 0;
-      if (currentDistortion > 0) {
-        const distortionReduction = 5; // 5% reduction
-        this.setUiState('realityDistortion', Math.max(0, currentDistortion - distortionReduction));
-        
-        // Update distortion meter
-        const distortionFill = document.querySelector('.reality-fill');
-        if (distortionFill) {
-          distortionFill.style.width = `${this.getUiState('realityDistortion')}%`;
-        }
-        
-        // Show distortion reduction
-        if (typeof this.showFloatingText === 'function') {
-          this.showFloatingText(`-${distortionReduction}% Reality Distortion`, "success");
-        }
-      }
+      // Change boss animation
+      this.playBossAnimation('ability');
       
-      console.log("Successfully eliminated an option");
       return true;
     } else {
-      console.log("No incorrect options available to eliminate");
-      
-      // Show feedback
       if (typeof this.showToast === 'function') {
         this.showToast("No incorrect options available to eliminate", "warning");
-      } else {
-        console.warn("No incorrect options available to eliminate");
       }
       return false;
     }
   },
-  // Render professor using helper or inline
-  renderProfessor: function(bossData, currentPhase, phaseComplete) {
-    const professorContainer = document.getElementById('professor-container');
-    if (!professorContainer) return;
+  
+  // Get boss dialogue based on phase and state
+  getBossDialogue: function(bossData, phaseIndex, phaseComplete) {
+    // Simple dialogue system - no need for quantum states
+    const dialogues = [
+      "Welcome to your Medical Physics examination. Let's assess your knowledge.",
+      "Good. Now let's test your understanding of radiation principles.",
+      "Excellent progress. This section will test your calculation abilities."
+    ];
     
-    const professorState = this.getUiState('professorState');
-    const distortion = this.getUiState('realityDistortion');
+    // Completion dialogues
+    const completionDialogues = [
+      "You've completed this section. Let's proceed to the next challenge.",
+      "Section complete. You're making good progress.",
+      "Well done. You've demonstrated solid knowledge for this section."
+    ];
     
-    // Get dialogue text
-    let dialogueText = "";
-    
-    if (window.BossHelpers) {
-      // Use helper if available
-      dialogueText = BossHelpers.getProfessorDialogue(
-        currentPhase, 
-        phaseComplete, 
-        professorState, 
-        distortion
-      );
-    } else {
-      // Fallback to basic dialogue
-      dialogueText = phaseComplete ? 
-        "You've completed this section." : 
-        "Please answer the question to the best of your ability.";
-    }
-    
-    // Use helper component if available
-    if (window.BossProfessor) {
-      BossProfessor.render(professorContainer, professorState, dialogueText);
-    } else {
-      // Fallback rendering
-      professorContainer.innerHTML = `
-        <div class="professor-container ${professorState}-state">
-          <div class="professor-portrait">
-            <div class="professor-image"></div>
-            <div class="professor-glow"></div>
-            <div class="quantum-particles"></div>
-          </div>
-          <div class="professor-dialogue">
-            <p id="professor-text">${dialogueText}</p>
-          </div>
-        </div>
-      `;
-    }
+    // Get appropriate dialogue
+    return phaseComplete
+      ? completionDialogues[Math.min(phaseIndex, completionDialogues.length - 1)]
+      : dialogues[Math.min(phaseIndex, dialogues.length - 1)];
   },
   
-  // Render current exam phase
+  // Render the current exam phase
   renderExamPhase: function(bossData, phaseIndex) {
     const phases = this.getExamPhases(bossData);
     
@@ -666,7 +563,7 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     
     // Set up the phase content
     phaseContainer.innerHTML = `
-      <div class="phase-header cosmic-border">
+      <div class="phase-header">
         <h4 class="phase-title">Section ${phaseIndex + 1}: ${currentPhase.title}</h4>
         <p class="phase-description">${currentPhase.description || 'Answer the following questions to prove your knowledge.'}</p>
       </div>
@@ -689,24 +586,19 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     if (!questionContainer) return;
     
     // For simplicity, just render the first question of the phase
-    // In a more complex implementation, you could handle multiple questions
     const question = phase.questions[0];
     
-    // Get the current reality distortion level for visual effects
-    const distortionLevel = this.getUiState('realityDistortion');
-    
-    // Create question with cosmic distortion effects
+    // Create question
     questionContainer.innerHTML = `
-      <div class="question-card ${distortionLevel > 50 ? 'reality-warped' : ''}">
+      <div class="question-card phase-question">
         <div class="question-text">
           <p>${question.text}</p>
         </div>
         
-        <div id="question-options" class="question-options ${distortionLevel > 70 ? 'quantum-options' : ''}">
+        <div id="question-options" class="question-options">
           ${question.options.map((option, index) => `
-            <button data-index="${index}" class="game-option question-option ${distortionLevel > 30 ? 'cosmic-hover' : ''}">
+            <button data-index="${index}" class="question-option">
               ${option}
-              ${distortionLevel > 50 ? `<span class="quantum-probability">${Math.floor(Math.random() * 100)}%</span>` : ''}
             </button>
           `).join('')}
         </div>
@@ -726,11 +618,6 @@ const BossComponent = ComponentUtils.createComponent('boss', {
         };
       });
     }
-    
-    // Add quantum effects to question based on distortion
-    if (distortionLevel > 40 && window.BossEffects) {
-      setTimeout(() => BossEffects.addQuantumQuestionEffects(questionContainer), 500);
-    }
   },
   
   // Render results of the completed phase
@@ -746,15 +633,11 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     
     // Calculate score percentage
     const scorePercent = results.total > 0 ? (results.correct / results.total) * 100 : 0;
-    const scoreText = window.BossHelpers ? 
-      BossHelpers.getScoreText(scorePercent) : 
-      this.getScoreText(scorePercent);
-      
-    const professorState = this.getUiState('professorState');
+    const scoreText = this.getScoreText(scorePercent);
     
     // Create results UI
     container.innerHTML = `
-      <div class="phase-results ${professorState}-results">
+      <div class="phase-results">
         <div class="results-header">
           <h4 class="results-title">Section ${phaseIndex + 1} Results</h4>
           <div class="score-display">
@@ -780,11 +663,6 @@ const BossComponent = ComponentUtils.createComponent('boss', {
         </div>
       </div>
     `;
-    
-    // Add quantum effects if reality is highly distorted
-    if (this.getUiState('realityDistortion') > 60 && window.BossEffects) {
-      setTimeout(() => BossEffects.addQuantumResultEffects(container), 500);
-    }
   },
   
   // Render exam completion screen
@@ -803,24 +681,20 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     
     const overallPercent = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
     const examPassed = overallPercent >= 70;
-    const finalState = this.getUiState('professorState');
-    const distortionLevel = this.getUiState('realityDistortion');
     
     // Get the phase container
     const phaseContainer = document.getElementById('exam-phase-container');
     if (!phaseContainer) return;
     
     // Get final verdict text
-    const verdictText = window.BossHelpers ? 
-      BossHelpers.getFinalVerdict(overallPercent, distortionLevel) :
-      (examPassed ? "You have demonstrated sufficient competency." : "You have not demonstrated sufficient competency.");
+    const verdictText = examPassed 
+      ? "You have demonstrated sufficient knowledge of medical physics principles." 
+      : "You have not demonstrated sufficient knowledge at this time.";
     
     // Create completion screen
     phaseContainer.innerHTML = `
-      <div class="exam-complete ${finalState}-results ${distortionLevel > 80 ? 'reality-collapsed' : ''}">
-        <div class="cosmic-seal"></div>
-        
-        <h4 class="complete-title cosmic-text">Examination ${examPassed ? 'Passed' : 'Failed'}</h4>
+      <div class="exam-complete">
+        <h4 class="complete-title">Examination ${examPassed ? 'Passed' : 'Failed'}</h4>
         
         <div class="final-score-container">
           <div class="final-score-circle ${examPassed ? 'passed' : 'failed'}">
@@ -829,8 +703,8 @@ const BossComponent = ComponentUtils.createComponent('boss', {
           <p class="final-verdict">${verdictText}</p>
         </div>
         
-        <div class="cosmic-rewards">
-          <p>Your knowledge of medical physics has ${examPassed ? 'impressed' : 'intrigued'} the Quantum Professor.</p>
+        <div class="exam-rewards">
+          <p>Your performance in the medical physics examination has earned you:</p>
           <div class="rewards-list">
             <div class="reward-item">
               <span class="reward-icon">🧠</span>
@@ -838,14 +712,8 @@ const BossComponent = ComponentUtils.createComponent('boss', {
             </div>
             ${examPassed ? `
               <div class="reward-item">
-                <span class="reward-icon">🔬</span>
-                <span class="reward-text">ABR Certificate Obtained</span>
-              </div>
-            ` : ''}
-            ${distortionLevel > 70 ? `
-              <div class="reward-item quantum-reward">
-                <span class="reward-icon">⚛️</span>
-                <span class="reward-text">Quantum Uncertainty: Reality now ${distortionLevel > 90 ? 'permanently' : 'temporarily'} exists in multiple states</span>
+                <span class="reward-icon">🏆</span>
+                <span class="reward-text">Medical Physics Certification</span>
               </div>
             ` : ''}
           </div>
@@ -857,16 +725,13 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     const nextButton = document.getElementById('next-phase-btn');
     if (nextButton) {
       nextButton.textContent = 'Complete Examination';
-      nextButton.classList.add('cosmic-glow');
-    }
-    
-    // Add final cosmic effects
-    if (window.BossEffects) {
-      setTimeout(() => BossEffects.addFinalCosmicEffects(phaseContainer, distortionLevel), 500);
     }
     
     // Apply rewards
-    this.applyExamRewards(examPassed, distortionLevel);
+    this.applyExamRewards(examPassed);
+    
+    // Play boss completion animation
+    this.playBossAnimation(examPassed ? 'specialAbility' : 'walking', false);
   },
   
   // Answer a question
@@ -900,14 +765,26 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     // Update correct count
     if (isCorrect) {
       phaseResults[currentPhase].correct += 1;
+      
+      // Update score
+      const currentScore = this.getUiState('playerScore');
+      this.setUiState('playerScore', currentScore + 20);
+      
+      // Play success animation
+      this.playBossAnimation('ability');
+    } else {
+      // Play failure animation
+      this.playBossAnimation('walking');
     }
     
     // Save updated results
     this.setUiState('phaseResults', phaseResults);
     
-    // Update player confidence based on answer
-    const confidenceChange = isCorrect ? 10 : -15;
-    this.setUiState('playerConfidence', Math.max(0, Math.min(100, this.getUiState('playerConfidence') + confidenceChange)));
+    // Update score display
+    const scoreText = document.querySelector('.score-text');
+    if (scoreText) {
+      scoreText.textContent = `Score: ${this.getUiState('playerScore')}`;
+    }
     
     // Mark phase as complete
     this.setUiState('phaseComplete', true);
@@ -933,12 +810,6 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     // Show floating feedback
     this.showFeedback(isCorrect ? 'Correct!' : 'Incorrect!', isCorrect ? 'success' : 'danger');
     
-    // Increase reality distortion
-    this.increaseRealityDistortion(isCorrect ? 5 : 15);
-    
-    // Check if professor state should change
-    this.updateProfessorState();
-    
     // Re-render to show results
     this.render(this.getCurrentNodeData(), document.getElementById('boss-container'));
   },
@@ -958,14 +829,8 @@ const BossComponent = ComponentUtils.createComponent('boss', {
       this.setUiState('currentPhase', currentPhase + 1);
       this.setUiState('phaseComplete', false);
       
-      // Add some reality distortion between phases
-      this.increaseRealityDistortion(10);
-      
       // Reset timer for next phase
-      this.setUiState('timeRemaining', 120);
-      
-      // Update professor state
-      this.updateProfessorState();
+      this.setUiState('timeRemaining', 90);
       
       // Re-render for next phase
       this.render(data.nodeData, document.getElementById('boss-container'));
@@ -1003,8 +868,10 @@ const BossComponent = ComponentUtils.createComponent('boss', {
         if (timeRemaining <= 10) {
           timeDisplay.classList.add('time-critical');
           
-          // Increase reality distortion as time runs out
-          this.increaseRealityDistortion(1);
+          // Change boss animation to walking when time is critical
+          if (this.getUiState('bossState') !== 'walking') {
+            this.playBossAnimation('walking');
+          }
         }
       }
       
@@ -1017,11 +884,9 @@ const BossComponent = ComponentUtils.createComponent('boss', {
         if (!this.getUiState('phaseComplete')) {
           // Auto-select an incorrect answer
           const nodeData = this.getCurrentNodeData();
-          const bossData = window.BossHelpers ? 
-            BossHelpers.getBossData(nodeData) : 
-            this.getBossData(nodeData);
-            
+          const bossData = this.getBossData(nodeData);
           const phase = this.getExamPhases(bossData)[this.getUiState('currentPhase')];
+          
           if (phase && phase.questions && phase.questions.length > 0) {
             const question = phase.questions[0];
             
@@ -1046,9 +911,6 @@ const BossComponent = ComponentUtils.createComponent('boss', {
           
           // Show time's up message
           this.showFeedback("Time's up!", 'danger');
-          
-          // Drastically increase reality distortion
-          this.increaseRealityDistortion(25);
         }
       }
     }, 1000);
@@ -1056,110 +918,16 @@ const BossComponent = ComponentUtils.createComponent('boss', {
   
   // Format time remaining
   formatTime: function(seconds) {
-    // Use helper if available
-    if (window.BossHelpers && BossHelpers.formatTime) {
-      return BossHelpers.formatTime(seconds);
-    }
-    
-    // Fallback formatting
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   },
   
-  // Increase reality distortion level
-  increaseRealityDistortion: function(amount) {
-    const currentDistortion = this.getUiState('realityDistortion');
-    this.setUiState('realityDistortion', Math.min(100, currentDistortion + amount));
-    
-    // Update visuals if element exists
-    const realityMeter = document.querySelector('.reality-fill');
-    if (realityMeter) {
-      realityMeter.style.width = `${this.getUiState('realityDistortion')}%`;
-    }
-    
-    // Apply cosmic effects if threshold reached
-    if (currentDistortion < 50 && currentDistortion + amount >= 50) {
-      if (window.BossEffects) {
-        BossEffects.applyQuantumEffects(document.getElementById('boss-container'), this.getUiState('realityDistortion'));
-      } else {
-        this.applyQuantumEffects();
-      }
-    }
-  },
-  
-  // Update professor state based on reality distortion
-  updateProfessorState: function() {
-    const distortion = this.getUiState('realityDistortion');
-    
-    let newState = 'normal';
-    if (window.BossProfessor) {
-      newState = BossProfessor.updateState(distortion);
-    } else {
-      // Fallback state determination
-      if (distortion >= 70) {
-        newState = 'cosmic';
-      } else if (distortion >= 40) {
-        newState = 'quantum';
-      }
-    }
-    
-    // Set new state
-    this.setUiState('professorState', newState);
-    
-    // Update professor appearance
-    const professorContainer = document.querySelector('.professor-container');
-    if (professorContainer) {
-      professorContainer.className = `professor-container ${newState}-state`;
-    }
-  },
-  
-  // Apply quantum effects - fallback if BossEffects not available
-  applyQuantumEffects: function() {
-    const distortion = this.getUiState('realityDistortion');
-    const container = document.getElementById('boss-container');
-    if (!container) return;
-    
-    // Apply basic effects based on distortion level
-    if (distortion >= 50) {
-      // Add flickering text
-      const textElements = container.querySelectorAll('p, h4');
-      textElements.forEach(element => {
-        if (Math.random() < 0.3) {
-          element.classList.add('quantum-text');
-        }
-      });
-    }
-  },
-  
   // Apply exam rewards
-  applyExamRewards: function(passed, distortion) {
+  applyExamRewards: function(passed) {
     // Grant insight based on performance
     const insightGain = passed ? 50 : 20;
     this.updatePlayerInsight(insightGain);
-    
-    // If reality is highly distorted, apply special effects
-    if (distortion > 90) {
-      // Could add a special relic to inventory
-      if (typeof ItemManager !== 'undefined') {
-        const quantumRelic = {
-          id: "quantum_relic",
-          name: "Quantum Uncertainty Principle",
-          description: "A mysterious artifact from your ABR examination. Reality seems less certain when you hold it.",
-          rarity: "epic",
-          itemType: "relic",
-          effect: {
-            type: "special_ability",
-            value: "Questions occasionally exist in superposition, revealing the correct answer.",
-            duration: "permanent"
-          },
-          iconPath: "quantum.png"
-        };
-        
-        // Add to inventory
-        this.addItemToInventory(quantumRelic);
-      }
-    }
   },
   
   // Get current node data
@@ -1170,16 +938,10 @@ const BossComponent = ComponentUtils.createComponent('boss', {
   
   // Get exam phases from boss data
   getExamPhases: function(bossData) {
-    // Use helper if available
-    if (window.BossHelpers && BossHelpers.getExamPhases) {
-      return BossHelpers.getExamPhases(bossData);
-    }
-    
-    // Fallback implementation
     return bossData && bossData.phases ? bossData.phases : [];
   },
   
-  // Get score text based on percentage - fallback if BossHelpers not available
+  // Get score text based on percentage
   getScoreText: function(percentage) {
     if (percentage >= 90) return "Excellent";
     if (percentage >= 80) return "Very Good";
@@ -1189,14 +951,14 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     return "Needs Improvement";
   },
   
-  // Get boss data - fallback if BossHelpers not available
+  // Get boss data from node data
   getBossData: function(nodeData) {
-    if (!nodeData) return { title: 'ABR Examination', phases: [] };
+    if (!nodeData) return { title: 'Medical Physics Examination', phases: [] };
     
     // If node has a question, adapt it
     if (nodeData.question) {
       return {
-        title: nodeData.title || 'ABR Examination',
+        title: nodeData.title || 'Medical Physics Examination',
         phases: [{
           title: 'Knowledge Assessment',
           questions: [nodeData.question]
@@ -1205,7 +967,18 @@ const BossComponent = ComponentUtils.createComponent('boss', {
     }
     
     // Return provided boss data or empty object
-    return nodeData.boss || { title: 'ABR Examination', phases: [] };
+    return nodeData.boss || { title: 'Medical Physics Examination', phases: [] };
+  },
+  
+  // Show feedback toast or floating text
+  showFeedback: function(message, type) {
+    if (typeof this.showToast === 'function') {
+      this.showToast(message, type);
+    } else if (typeof this.showFloatingText === 'function') {
+      this.showFloatingText(message, type);
+    } else {
+      console.log(`Feedback (${type}): ${message}`);
+    }
   },
   
   // Handle component actions
@@ -1240,5 +1013,5 @@ const BossComponent = ComponentUtils.createComponent('boss', {
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
-  NodeComponents.register('boss', BossComponent);
+  NodeComponents.register('boss', SimplifiedBossComponent);
 }

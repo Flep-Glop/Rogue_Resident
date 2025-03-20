@@ -1,27 +1,27 @@
-/* boss.css - Core styling for the quantum exam boss component */
+/* simplified_boss.css - Streamlined styling for boss encounters */
 
-/* Quantum Exam Panel */
-.quantum-exam-panel {
-  border-color: #d35db3;
+/* Main boss container */
+.boss-exam-panel {
   background-color: rgba(33, 35, 47, 0.95);
+  border-color: #5b8dd9;
   position: relative;
   overflow: hidden;
 }
 
-/* Header Styling */
+/* Header styling */
 .exam-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
-  border-bottom: 2px solid rgba(211, 93, 179, 0.3);
+  border-bottom: 2px solid rgba(91, 141, 217, 0.3);
   padding-bottom: 10px;
 }
 
 .exam-title {
   font-size: 1.2rem;
   margin: 0;
-  color: #d35db3;
+  color: #5b8dd9;
 }
 
 .exam-title-container {
@@ -56,168 +56,63 @@
 
 .time-critical {
   color: #e67e73;
+  animation: pulse 1s infinite;
 }
 
-.confidence-container {
-  width: 150px;
-}
-
-.confidence-bar {
-  height: 8px;
-  background-color: rgba(255, 255, 255, 0.2);
+.score-container {
+  padding: 5px 10px;
+  background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 4px;
 }
 
-.confidence-fill {
-  height: 100%;
-  background-color: #56b886;
-  border-radius: 4px;
-  transition: width 0.5s ease;
+.score-text {
+  font-size: 0.9rem;
+  color: white;
 }
 
-.confidence-text {
-  font-size: 0.7rem;
-  text-align: right;
-}
-
-/* Professor Styling */
-.professor-container {
+/* Boss character container */
+.boss-character-container {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  min-height: 150px;
+  position: relative;
+}
+
+.boss-sprite {
+  width: 128px;
+  height: 128px;
+  position: relative;
+}
+
+/* Boss dialogue */
+.boss-dialogue {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 20px;
-  transition: all 0.5s ease;
-}
-
-.professor-portrait {
-  width: 80px;
-  height: 80px;
-  flex-shrink: 0;
-  position: relative;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-right: 15px;
-}
-
-.professor-image {
-  width: 100%;
-  height: 100%;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23333" width="100" height="100"/><circle fill="%23777" cx="50" cy="35" r="20"/><rect fill="%23777" x="25" y="60" width="50" height="40"/></svg>');
-  background-size: cover;
-  transition: all 0.5s ease;
-}
-
-.professor-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0;
-  transition: all 0.5s ease;
-}
-
-.professor-dialogue {
-  flex-grow: 1;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 5px;
-  padding: 10px;
   position: relative;
 }
 
-.professor-dialogue:before {
+.boss-dialogue:before {
   content: '';
   position: absolute;
-  left: -8px;
-  top: 15px;
+  left: 50%;
+  top: -8px;
   width: 0;
   height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 8px solid rgba(0, 0, 0, 0.3);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
 }
 
-/* Professor States */
-.normal-state .professor-image {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23333" width="100" height="100"/><circle fill="%23777" cx="50" cy="35" r="20"/><rect fill="%23777" x="25" y="60" width="50" height="40"/></svg>');
-}
-
-.quantum-state {
-  background-color: rgba(91, 141, 217, 0.2);
-}
-
-.quantum-state .professor-image {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23335599" width="100" height="100"/><circle fill="%235b8dd9" cx="50" cy="35" r="20"/><rect fill="%235b8dd9" x="25" y="60" width="50" height="40"/><circle fill="%23ffffff" cx="42" cy="30" r="3"/><circle fill="%23ffffff" cx="58" cy="30" r="3"/></svg>');
-}
-
-.quantum-state .professor-glow {
-  box-shadow: 0 0 15px rgba(91, 141, 217, 0.7) inset;
-  opacity: 0.7;
-}
-
-.cosmic-state {
-  background-color: rgba(211, 93, 179, 0.2);
-}
-
-.cosmic-state .professor-image {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23220033" width="100" height="100"/><circle fill="%23d35db3" cx="50" cy="35" r="20"/><rect fill="%23d35db3" x="25" y="60" width="50" height="40"/><circle fill="%23ffffff" cx="42" cy="30" r="4"/><circle fill="%23ffffff" cx="58" cy="30" r="4"/></svg>');
-}
-
-.cosmic-state .professor-glow {
-  box-shadow: 0 0 15px rgba(211, 93, 179, 0.7) inset, 0 0 30px rgba(211, 93, 179, 0.3);
-  opacity: 1;
-}
-
-/* Quantum particles in professor portrait */
-.quantum-particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.quantum-state .quantum-particles,
-.cosmic-state .quantum-particles {
-  opacity: 1;
-}
-
-/* Phase Styling */
-.exam-phase-container {
-  margin-bottom: 20px;
-  min-height: 200px;
-}
-
+/* Phase styling */
 .phase-header {
   margin-bottom: 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 10px;
-}
-
-.cosmic-border {
-  position: relative;
-  border-bottom: 0;
-}
-
-.cosmic-border:after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, 
-    rgba(91, 141, 217, 0),
-    rgba(91, 141, 217, 0.7) 20%, 
-    rgba(211, 93, 179, 0.7) 50%,
-    rgba(91, 141, 217, 0.7) 80%,
-    rgba(91, 141, 217, 0)
-  );
 }
 
 .phase-title {
@@ -225,13 +120,18 @@
   color: #f0c866;
 }
 
-/* Question Styling */
+.phase-description {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Question styling */
 .question-card {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 15px;
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
 }
 
 .question-text {
@@ -275,28 +175,22 @@
   border-color: rgba(230, 126, 115, 0.7);
 }
 
-/* Reality distortion meter */
-.reality-distortion-meter {
-  height: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 5px;
-  width: 100%;
+.eliminated-option {
+  opacity: 0.5;
 }
 
-.reality-fill {
-  height: 100%;
-  background: linear-gradient(90deg, 
-    rgba(91, 141, 217, 0.7) 0%,
-    rgba(91, 141, 217, 0.7) 40%,
-    rgba(211, 93, 179, 0.7) 60%, 
-    rgba(211, 93, 179, 0.7) 100%
-  );
-  transition: width 0.5s ease;
+.eliminated-badge {
+  display: inline-block;
+  padding: 2px 5px;
+  background-color: rgba(230, 126, 115, 0.7);
+  color: white;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  margin-left: 10px;
+  float: right;
 }
 
-/* Results Styling */
+/* Results styling */
 .phase-results {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -339,11 +233,6 @@
   color: white;
 }
 
-.score-text {
-  font-size: 0.8rem;
-  color: #aaa;
-}
-
 .answered-questions {
   display: flex;
   flex-direction: column;
@@ -382,58 +271,11 @@
   font-size: 0.8rem;
 }
 
-/* Quantum probability indicator */
-.quantum-probability {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.7rem;
-  opacity: 0.7;
-  color: #5b8dd9;
-}
-
-/* Results for different professor states */
-.quantum-results .score-circle {
-  border-color: #5b8dd9;
-  box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
-}
-
-.cosmic-results .score-circle {
-  border-color: #d35db3;
-  background: linear-gradient(
-    135deg,
-    rgba(91, 141, 217, 0.2) 0%,
-    rgba(211, 93, 179, 0.2) 100%
-  );
-  box-shadow: 
-    0 0 10px rgba(211, 93, 179, 0.5),
-    0 0 20px rgba(211, 93, 179, 0.3);
-}
-
 /* Exam completion styling */
 .exam-complete {
   text-align: center;
   padding: 20px;
   position: relative;
-}
-
-.cosmic-seal {
-  position: absolute;
-  width: 0;
-  height: 0;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(211, 93, 179, 0.7) 0%,
-    rgba(91, 141, 217, 0.7) 50%,
-    transparent 70%
-  );
-  opacity: 0;
-  z-index: -1;
 }
 
 .complete-title {
@@ -483,7 +325,7 @@
   font-size: 0.9rem;
 }
 
-.cosmic-rewards {
+.exam-rewards {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   padding: 15px;
@@ -510,26 +352,7 @@
   font-size: 1.2rem;
 }
 
-.quantum-reward {
-  background: linear-gradient(
-    90deg,
-    rgba(91, 141, 217, 0.2) 0%,
-    rgba(211, 93, 179, 0.2) 100%
-  );
-  border: 1px solid rgba(211, 93, 179, 0.3);
-}
-
-/* Exam actions */
-.exam-actions {
-  margin-top: 20px;
-}
-
-/* Reality-related styling */
-.reality-warped {
-  animation: reality-warp 10s infinite alternate;
-}
-
-/* Adjustments for the quantum boss exam with inventory */
+/* Adjustments for the boss with inventory */
 .boss-with-inventory {
   display: flex;
   gap: 15px;
@@ -537,8 +360,8 @@
   position: relative;
 }
 
-/* Make the main quantum exam panel take most of the space */
-.quantum-exam-panel {
+/* Make the main boss exam panel take most of the space */
+.boss-exam-panel {
   flex: 1;
   min-width: 0; /* Allow panel to shrink if needed */
 }
@@ -547,52 +370,86 @@
 .boss-inventory-sidebar {
   width: 180px;
   flex-shrink: 0;
-  background-color: rgba(30, 30, 50, 0.7); /* More transparent for quantum theme */
-  border: 2px solid var(--primary);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-sm);
+  background-color: rgba(30, 30, 50, 0.7);
+  border: 2px solid #5b8dd9;
+  border-radius: 4px;
+  padding: 10px;
   max-height: 600px;
   overflow-y: auto;
   align-self: flex-start;
   position: sticky;
-  top: var(--spacing-md);
-  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3); /* Glowing effect for quantum theme */
+  top: 20px;
+  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
 }
 
-/* Add quantum effect to inventory title */
-.boss-inventory-sidebar .inventory-sidebar-title {
-  font-family: 'Press Start 2P', cursive;
-  font-size: var(--font-size-sm);
-  color: var(--primary);
+/* Inventory title */
+.inventory-sidebar-title {
+  font-size: 0.8rem;
+  color: #5b8dd9;
   text-align: center;
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: var(--spacing-xs);
+  margin-bottom: 10px;
+  padding-bottom: 5px;
   border-bottom: 1px dashed rgba(91, 141, 217, 0.4);
-  text-shadow: 0 0 8px var(--primary); /* Glowing effect */
 }
 
-/* Add quantum effects to items */
-.boss-inventory-sidebar .inventory-sidebar-item:hover {
-  transform: translateY(-3px) scale(1.05);
-  filter: brightness(1.2);
-  box-shadow: 0 0 12px var(--primary);
+/* Inventory grid */
+.inventory-sidebar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
-/* Quantum animation for epic items */
-@keyframes quantum-pulse {
-  0% { box-shadow: 0 0 5px var(--secondary) inset; opacity: 0.9; }
-  50% { box-shadow: 0 0 12px var(--secondary) inset; opacity: 1; }
-  100% { box-shadow: 0 0 5px var(--secondary) inset; opacity: 0.9; }
+/* Item styling */
+.inventory-sidebar-item {
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.boss-inventory-sidebar .inventory-sidebar-item.epic .inventory-sidebar-item-inner {
-  animation: quantum-pulse 2s infinite;
+.inventory-sidebar-item-inner {
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  height: 50px;
+  border: 1px solid rgba(91, 141, 217, 0.3);
+  border-radius: 4px;
 }
 
-/* Modal positioning adjustment */
-.node-modal-overlay .boss-with-inventory {
-  max-width: 95%;
-  margin: 0 auto;
+/* Rarity colors */
+.inventory-sidebar-item.common .inventory-sidebar-item-inner {
+  border-color: rgba(170, 170, 170, 0.5);
+}
+
+.inventory-sidebar-item.uncommon .inventory-sidebar-item-inner {
+  border-color: rgba(91, 141, 217, 0.5);
+}
+
+.inventory-sidebar-item.rare .inventory-sidebar-item-inner {
+  border-color: rgba(156, 119, 219, 0.5);
+}
+
+.inventory-sidebar-item.epic .inventory-sidebar-item-inner {
+  border-color: rgba(240, 200, 102, 0.5);
+  box-shadow: 0 0 5px rgba(240, 200, 102, 0.3);
+}
+
+/* Hover effects */
+.inventory-sidebar-item:hover {
+  transform: translateY(-3px);
+}
+
+.inventory-sidebar-item:hover .inventory-sidebar-item-inner {
+  background-color: rgba(91, 141, 217, 0.2);
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 /* Media queries for responsive design */
@@ -604,7 +461,7 @@
   .boss-inventory-sidebar {
     width: 100%;
     max-height: 200px;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: 15px;
   }
   
   .boss-inventory-sidebar .inventory-sidebar-grid {

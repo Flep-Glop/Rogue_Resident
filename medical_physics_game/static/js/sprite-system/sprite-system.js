@@ -735,7 +735,279 @@ window.SpriteDebug = {
     '- SpriteDebug.compareAnimations()',
     'color: #5b8dd9;'
   );
+// Add this function to your SpriteSystem object
 
+/**
+ * Create a new animation (extended to support NPCs)
+ * @param {string} entityId Character or NPC identifier
+ * @param {HTMLElement|string} container Container element or selector
+ * @param {Object} options Animation options
+ * @returns {string} Animation ID
+ */
+SpriteSystem.createAnimation = function(entityId, container, options = {}) {
+  // Check if this is an NPC first
+  if (window.NPCAssets && NPCAssets.getNPC(entityId)) {
+    return this._createNPCAnimation(entityId, container, options);
+  }
+  
+  // Otherwise, assume it's a player character
+  return this._createCharacterAnimation(entityId, container, options);
+};
+
+/**
+ * Create a character animation (internal method)
+ * @private
+ */
+SpriteSystem._createCharacterAnimation = function(characterId, container, options = {}) {
+  // Get character data
+  if (!window.CharacterAssets) {
+    console.error('CharacterAssets not available');
+    return null;
+  }
+  
+  const character = CharacterAssets.getCharacter(characterId);
+  if (!character) {
+    console.error(`Character not found: ${characterId}`);
+    return null;
+  }
+  
+  // Get animation name
+  const animName = options.animation || 'idle';
+  
+  // Get animation data
+  if (!character.animations || !character.animations[animName]) {
+    console.error(`Animation "${animName}" not found for character ${characterId}`);
+    return null;
+  }
+  
+  const animData = character.animations[animName];
+  
+  // Create animator instance
+  const animator = new CanvasSpriteAnimator({
+    imagePath: character.spritePath + animData.file,
+    frameCount: animData.frames || 1,
+    frameWidth: animData.width || 96,
+    frameHeight: animData.height 
+      ? (animData.height / animData.frames)
+      : 96,
+    fps: animData.speed 
+      ? (1000 / animData.speed) 
+      : 10,
+    scale: options.scale || 3,
+    loop: options.loop !== undefined ? options.loop : true,
+    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
+    layout: animData.layout || 'vertical',
+    columns: animData.columns || 1,
+    rows: animData.rows || 1,
+    offsetX: animData.offsetX || 0,
+    offsetY: animData.offsetY || 0,
+    debug: options.debug || false
+  });
+  
+  // Mount to container
+  const mounted = animator.mount(container);
+  if (!mounted) {
+    console.error('Failed to mount animator to container');
+    return null;
+  }
+  
+  // Generate unique ID
+  const id = `character_${characterId}_${this.nextId++}`;
+  
+  // Store animation data
+  this.animations[id] = {
+    id,
+    animator,
+    entityType: 'character',
+    entityId: characterId,
+    currentAnimation: animName,
+    container
+  };
+  
+  // Set up event handlers
+  if (options.onComplete) {
+    animator.addEventListener('complete', options.onComplete);
+  }
+  
+  if (options.onFrameChange) {
+    animator.addEventListener('framechange', options.onFrameChange);
+  }
+  
+  return id;
+};
+
+/**
+ * Create an NPC animation (internal method)
+ * @private
+ */
+SpriteSystem._createNPCAnimation = function(npcId, container, options = {}) {
+  // Get NPC data
+  if (!window.NPCAssets) {
+    console.error('NPCAssets not available');
+    return null;
+  }
+  
+  const npc = NPCAssets.getNPC(npcId);
+  if (!npc) {
+    console.error(`NPC not found: ${npcId}`);
+    return null;
+  }
+  
+  // Get animation name
+  const animName = options.animation || 'idle';
+  
+  // Get animation data
+  if (!npc.animations || !npc.animations[animName]) {
+    console.error(`Animation "${animName}" not found for NPC ${npcId}`);
+    return null;
+  }
+  
+  const animData = npc.animations[animName];
+  
+  // Create animator instance
+  const animator = new CanvasSpriteAnimator({
+    imagePath: npc.spritePath + animData.file,
+    frameCount: animData.frames || 1,
+    frameWidth: animData.width || 96,
+    frameHeight: animData.height 
+      ? (animData.height / animData.frames)
+      : 96,
+    fps: animData.speed 
+      ? (1000 / animData.speed) 
+      : 10,
+    scale: options.scale || 3,
+    loop: options.loop !== undefined ? options.loop : true,
+    autoPlay: options.autoPlay !== undefined ? options.autoPlay : true,
+    layout: animData.layout || 'vertical',
+    columns: animData.columns || 1,
+    rows: animData.rows || 1,
+    offsetX: animData.offsetX || 0,
+    offsetY: animData.offsetY || 0,
+    debug: options.debug || false
+  });
+  
+  // Mount to container
+  const mounted = animator.mount(container);
+  if (!mounted) {
+    console.error('Failed to mount animator to container');
+    return null;
+  }
+  
+  // Generate unique ID
+  const id = `npc_${npcId}_${this.nextId++}`;
+  
+  // Store animation data
+  this.animations[id] = {
+    id,
+    animator,
+    entityType: 'npc',
+    entityId: npcId,
+    currentAnimation: animName,
+    container
+  };
+  
+  // Set up event handlers
+  if (options.onComplete) {
+    animator.addEventListener('complete', options.onComplete);
+  }
+  
+  if (options.onFrameChange) {
+    animator.addEventListener('framechange', options.onFrameChange);
+  }
+  
+  return id;
+};
+
+/**
+ * Change to a different animation - updated to handle NPCs
+ * @param {string} id Animation ID
+ * @param {string} animationName New animation name
+ * @param {Object} options Animation options
+ * @returns {boolean} Success
+ */
+SpriteSystem.changeAnimation = function(id, animationName, options = {}) {
+  const anim = this.animations[id];
+  if (!anim) {
+    console.error(`Animation not found: ${id}`);
+    return false;
+  }
+  
+  // Check entity type and get appropriate data
+  let entityData, animations;
+  
+  if (anim.entityType === 'npc' && window.NPCAssets) {
+    entityData = NPCAssets.getNPC(anim.entityId);
+    if (!entityData) {
+      console.error(`NPC not found: ${anim.entityId}`);
+      return false;
+    }
+    animations = entityData.animations;
+  } else {
+    // Assume character
+    if (!window.CharacterAssets) {
+      console.error('CharacterAssets not available');
+      return false;
+    }
+    entityData = CharacterAssets.getCharacter(anim.entityId);
+    if (!entityData) {
+      console.error(`Character not found: ${anim.entityId}`);
+      return false;
+    }
+    animations = entityData.animations;
+  }
+  
+  // Get animation data
+  if (!animations || !animations[animationName]) {
+    console.error(`Animation "${animationName}" not found for ${anim.entityType} ${anim.entityId}`);
+    return false;
+  }
+  
+  const animData = animations[animationName];
+  
+  // Clean up old animator
+  const wasPlaying = anim.animator.isPlaying;
+  anim.animator.destroy();
+  
+  // Create new animator
+  const animator = new CanvasSpriteAnimator({
+    imagePath: entityData.spritePath + animData.file,
+    frameCount: animData.frames || 1,
+    frameWidth: animData.width || 96,
+    frameHeight: animData.height 
+      ? (animData.height / animData.frames)
+      : 96,
+    fps: animData.speed 
+      ? (1000 / animData.speed) 
+      : 10,
+    scale: options.scale || anim.animator.scale,
+    loop: options.loop !== undefined ? options.loop : anim.animator.loop,
+    autoPlay: options.autoPlay !== undefined ? options.autoPlay : wasPlaying,
+    layout: animData.layout || 'vertical',
+    columns: animData.columns || 1,
+    rows: animData.rows || 1,
+    offsetX: animData.offsetX || 0,
+    offsetY: animData.offsetY || 0,
+    debug: options.debug || anim.animator.debug
+  });
+  
+  // Mount to container
+  animator.mount(anim.container);
+  
+  // Update animation data
+  anim.animator = animator;
+  anim.currentAnimation = animationName;
+  
+  // Set up event handlers
+  if (options.onComplete) {
+    animator.addEventListener('complete', options.onComplete);
+  }
+  
+  if (options.onFrameChange) {
+    animator.addEventListener('framechange', options.onFrameChange);
+  }
+  
+  return true;
+};
   // Initialize on script load
   if (typeof window !== 'undefined') {
     window.CanvasSpriteAnimator = CanvasSpriteAnimator;
