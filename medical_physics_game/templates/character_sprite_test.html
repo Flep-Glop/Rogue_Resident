@@ -1355,63 +1355,117 @@ const AnimationSystem = {
         }
     },
     
-    // Replace your _setupSpritesheet function with this simplified version
+    // Improved multi-frame sprite handling
     _setupSpritesheet: function(animation, animData) {
-        console.log("Using emergency direct image approach");
-        
         try {
             // Clear container
             animation.container.innerHTML = '';
             
-            // Get image path
+            // Get paths and info
             const characterId = animation.characterId;
             const animationName = animation.currentAnimation;
             const imagePath = `/static/img/characters/${characterId}/${animationName}.png`;
+            const frameCount = animData.frames || 1;
             
-            // Create a direct image element instead of background
-            const imgElement = document.createElement('img');
-            imgElement.src = imagePath;
-            imgElement.className = 'character-sprite';
-            imgElement.style.width = 'auto';
-            imgElement.style.height = 'auto';
-            imgElement.style.maxWidth = '100%';
-            imgElement.style.maxHeight = '100%';
-            imgElement.style.display = 'block';
-            imgElement.style.margin = '0 auto';
-            imgElement.style.border = '2px solid red'; // Make it obvious
+            console.log(`Setting up ${frameCount}-frame animation from ${imagePath}`);
             
-            // Apply scale
-            const scale = animation.options.scale || 1;
-            imgElement.style.transform = `scale(${scale})`;
+            // Create container with controlled dimensions
+            const spriteContainer = document.createElement('div');
+            spriteContainer.className = 'sprite-frame-container';
+            spriteContainer.style.position = 'relative';
+            spriteContainer.style.width = '100%';
+            spriteContainer.style.height = '100%';
+            spriteContainer.style.overflow = 'hidden'; // Important!
+            spriteContainer.style.border = '1px solid blue'; // Debug border
             
-            // Add to container
-            animation.container.appendChild(imgElement);
+            // Create the actual sprite element
+            const sprite = document.createElement('div');
+            sprite.className = 'character-sprite';
             
-            // Store reference
-            animation.sprite = imgElement;
-            animation.frames = 1; // Force single frame mode
+            // KEY DIFFERENCE: Handle single vs multi-frame animations differently
+            if (frameCount > 1) {
+                // Multi-frame approach - set up sprite sheet
+                sprite.style.width = `${frameCount * 100}%`; // Important for sprite sheet
+                sprite.style.height = '100%';
+                sprite.style.backgroundImage = `url(${imagePath})`;
+                sprite.style.backgroundRepeat = 'no-repeat';
+                sprite.style.backgroundSize = `${frameCount * 100}% 100%`;
+                sprite.style.position = 'absolute';
+                sprite.style.left = '0';
+                sprite.style.top = '0';
+                
+                // Apply scale with transform-origin for proper scaling
+                const scale = animation.options.scale || 1;
+                sprite.style.transformOrigin = 'top left';
+                sprite.style.transform = `scale(${scale})`;
+                
+                console.log(`Set up multi-frame sprite (${frameCount} frames)`);
+            } else {
+                // Single-frame approach - use our successful emergency method
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.style.display = 'block';
+                img.style.width = 'auto';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.margin = '0 auto';
+                
+                // Apply scale
+                const scale = animation.options.scale || 1;
+                img.style.transform = `scale(${scale})`;
+                
+                sprite.appendChild(img);
+                sprite.style.position = 'relative';
+                sprite.style.width = '100%';
+                sprite.style.height = '100%';
+                sprite.style.display = 'flex';
+                sprite.style.justifyContent = 'center';
+                sprite.style.alignItems = 'center';
+                
+                console.log('Set up single-frame sprite (image)');
+            }
+            
+            // Add sprite to container
+            spriteContainer.appendChild(sprite);
+            animation.container.appendChild(spriteContainer);
+            
+            // Store references
+            animation.sprite = sprite;
+            animation.frames = frameCount;
+            animation.frameSpeed = animData.speed || 200;
+            animation.frameIndex = 0;
+            
+            // For multi-frame animations, set initial position and start animation
+            if (frameCount > 1) {
+                this._updateSpritePosition(animation, 0);
+                this._startAnimationLoop(animation);
+            }
             
             return true;
         } catch (error) {
-            console.error("Emergency image approach failed:", error);
+            console.error("Sprite setup error:", error);
+            
+            // Add visual error message
+            animation.container.innerHTML = `
+                <div style="color:red; padding:10px; text-align:center; border:1px solid red;">
+                    Error: ${error.message}
+                </div>
+            `;
             return false;
         }
     },
-    
-    // CRITICAL FIX: Update sprite position based on frame index
+
+    // Improved frame position update
     _updateSpritePosition: function(animation, frameIndex) {
-        if (!animation.sprite) return;
+        if (!animation.sprite || animation.frames <= 1) return;
         
-        // Calculate X position based on current frame
+        // Calculate position percentage based on frame
         const position = -(frameIndex * (100 / animation.frames));
         
-        // Apply transform to move the spritesheet horizontally
-        animation.sprite.style.backgroundPosition = `${position}% 0`;
+        // Apply position - use backgroundPosition for multi-frame
+        animation.sprite.style.backgroundPosition = `${position}% 0%`;
         
-        // Update frame counter if available
-        if (animation.frameCounter) {
-            animation.frameCounter.textContent = `${frameIndex + 1}/${animation.frames}`;
-        }
+        console.log(`Updated to frame ${frameIndex+1}/${animation.frames}, position: ${position}%`);
     },
     
     // Start animation loop using requestAnimationFrame with controlled timing
