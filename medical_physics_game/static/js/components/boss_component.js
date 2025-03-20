@@ -169,10 +169,15 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.startExamTimer();
   },
   
-  // Initialize boss animation specifically for ion chamber boss
+  // Create a replacement for the initBossAnimation function in boss_component.js
+  // This enhanced version provides better error handling and fallbacks
+
   initBossAnimation: function() {
     const container = document.getElementById('boss-sprite');
-    if (!container) return;
+    if (!container) {
+      console.error("Boss sprite container not found");
+      return;
+    }
     
     // Remove existing animation if any
     const existingAnimId = this.getUiState('bossAnimation');
@@ -184,39 +189,140 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       }
     }
     
-    // Try to directly create a static image
+    // Add a background glow effect to the container first
+    container.classList.add('ion-chamber-glow');
+    
+    // We'll try multiple methods to get the animation working
+    
+    // Method 1: Direct image implementation (most reliable)
     try {
-      // Try ion chamber image first (we know this path exists in your structure)
-      const ionChamberPath = '/static/img/characters/ion_chamber/idle.png';
+      // Create a div for the boss with appropriate styling
+      const ionChamberImg = document.createElement('img');
+      ionChamberImg.src = '/static/img/characters/ion_chamber/idle.png';
+      ionChamberImg.alt = 'Ion Chamber Boss';
+      ionChamberImg.className = 'boss-static-img boss-idle';
+      ionChamberImg.style.transform = 'scale(4)';
+      ionChamberImg.style.imageRendering = 'pixelated';
       
-      // Create static image with direct path to known file
-      container.innerHTML = `
-        <img src="${ionChamberPath}" 
-            alt="Ion Chamber Boss" 
-            class="boss-static-img boss-idle" 
-            style="transform: scale(4);"
-            onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
-      `;
+      // Add error handling for image
+      ionChamberImg.onerror = function() {
+        console.warn("Primary ion chamber image failed to load, trying fallback");
+        this.src = '/static/img/characters/resident.png';
+        this.onerror = null;
+      };
       
-      console.log("✅ Using static image for Ion Chamber boss:", ionChamberPath);
+      // Clear container and add the new image
+      container.innerHTML = '';
+      container.appendChild(ionChamberImg);
+      
+      console.log("✅ Using direct image for Ion Chamber boss");
+      this.setUiState('bossState', 'idle');
+      return;
     } catch (error) {
-      console.error("Error during boss animation initialization:", error);
-      
-      // Emergency fallback with no external dependencies
-      container.innerHTML = `
-        <div style="width: 96px; height: 108px; background-color: rgba(255,106,0,0.3); 
-                    display: flex; justify-content: center; align-items: center; 
-                    color: white; font-size: 30px; border-radius: 4px;">
-          ⚡
-        </div>
-      `;
+      console.error("Method 1 failed:", error);
     }
     
-    this.setUiState('bossState', 'idle');
+    // Method 2: Try using the SpriteSystem if available
+    try {
+      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.createAnimation === 'function') {
+        const animId = SpriteSystem.createAnimation('ionChamberBoss', container, {
+          animation: 'idle',
+          scale: 4,
+          autoPlay: true
+        });
+        
+        if (animId) {
+          this.setUiState('bossAnimation', animId);
+          this.setUiState('bossState', 'idle');
+          console.log("✅ Using SpriteSystem animation for Ion Chamber boss");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Method 2 failed:", error);
+    }
+    
+    // Method 3: Fallback to simplified HTML/CSS approach
+    try {
+      // Create a circular element with a glow effect
+      container.innerHTML = `
+        <div class="ion-chamber-placeholder" style="
+          width: 96px;
+          height: 96px;
+          background-color: #000;
+          border-radius: 50%;
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
+          animation: pulse-glow 3s infinite ease-in-out;
+        ">
+          <div style="
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
+            position: relative;
+          "></div>
+        </div>
+      `;
+      
+      // Add a style for the animation if it doesn't exist
+      if (!document.getElementById('ion-chamber-fallback-style')) {
+        const style = document.createElement('style');
+        style.id = 'ion-chamber-fallback-style';
+        style.textContent = `
+          @keyframes pulse-glow {
+            0% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+            50% { box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.7); transform: scale(1.05); }
+            100% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      console.log("✅ Using fallback HTML/CSS for Ion Chamber boss");
+      this.setUiState('bossState', 'idle');
+    } catch (error) {
+      console.error("All methods failed:", error);
+      
+      // Ultimate fallback - just a colored circle
+      container.innerHTML = `
+        <div style="
+          width: 96px; 
+          height: 96px; 
+          background-color: #ff6a00; 
+          border-radius: 50%;
+          opacity: 0.8;
+        "></div>
+      `;
+    }
   },
-  
-  // Play boss animation using CSS classes for static image
+
+  // Also replace the playBossAnimation function for better compatibility
   playBossAnimation: function(animationName, returnToIdle = true) {
+    // First try using SpriteSystem if an animation ID exists
+    const animId = this.getUiState('bossAnimation');
+    if (animId && typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.changeAnimation === 'function') {
+      try {
+        SpriteSystem.changeAnimation(animId, animationName);
+        
+        // Return to idle if requested
+        if (returnToIdle) {
+          setTimeout(() => {
+            SpriteSystem.changeAnimation(animId, 'idle');
+            this.setUiState('bossState', 'idle');
+          }, 1000);
+        }
+        
+        this.setUiState('bossState', animationName);
+        return;
+      } catch (error) {
+        console.warn("Could not change SpriteSystem animation:", error);
+      }
+    }
+    
     // Handle static image "animations" with CSS classes
     const bossElement = document.querySelector('.boss-static-img');
     if (bossElement) {
@@ -235,8 +341,45 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       
       // Update state
       this.setUiState('bossState', animationName);
-    } else {
-      console.warn("No boss element found for animation");
+      return;
+    }
+    
+    // Fallback for the HTML/CSS placeholder
+    const placeholder = document.querySelector('.ion-chamber-placeholder');
+    if (placeholder) {
+      // Change the animation based on the requested state
+      switch(animationName) {
+        case 'ability':
+          placeholder.style.animationDuration = '0.5s';
+          placeholder.style.boxShadow = '0 0 40px 15px rgba(255, 106, 0, 0.8)';
+          break;
+        case 'walking':
+          placeholder.style.animationDuration = '0.3s';
+          const currentLeft = parseInt(placeholder.style.left || '0');
+          placeholder.style.left = (currentLeft + 5) + 'px';
+          setTimeout(() => {
+            placeholder.style.left = currentLeft + 'px';
+          }, 300);
+          break;
+        case 'specialAbility':
+          placeholder.style.animationDuration = '0.2s';
+          placeholder.style.boxShadow = '0 0 50px 20px rgba(255, 106, 0, 1)';
+          break;
+        default:
+          placeholder.style.animationDuration = '3s';
+          placeholder.style.boxShadow = '0 0 25px 8px rgba(255, 106, 0, 0.6)';
+      }
+      
+      // Reset to idle if needed
+      if (returnToIdle) {
+        setTimeout(() => {
+          placeholder.style.animationDuration = '3s';
+          placeholder.style.boxShadow = '0 0 25px 8px rgba(255, 106, 0, 0.6)';
+          this.setUiState('bossState', 'idle');
+        }, 1000);
+      }
+      
+      this.setUiState('bossState', animationName);
     }
   },
 

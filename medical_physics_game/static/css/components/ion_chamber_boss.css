@@ -216,3 +216,130 @@
     background-color: rgba(50, 28, 69, 0.5);
     border-left: 3px solid #ff6a00;
   }
+
+  /* Enhanced ion_chamber_boss.css - Improved animations with better fallbacks */
+
+/* Basic glow effect for the boss container */
+.ion-chamber-glow {
+  box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
+  animation: glow-pulse 3s infinite ease-in-out;
+  position: relative;
+}
+
+/* Animations for the boss static image */
+.boss-static-img.boss-idle {
+  animation: ion-chamber-idle 3s infinite ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.boss-static-img.boss-ability {
+  animation: ion-chamber-ability 1s ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.boss-static-img.boss-walking {
+  animation: ion-chamber-walking 1s infinite ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+.boss-static-img.boss-specialAbility {
+  animation: ion-chamber-special 1.5s ease-in-out;
+  transform-origin: center center;
+  display: block;
+}
+
+/* Ion Chamber keyframe animations */
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(255, 106, 0, 0.7); }
+  100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+}
+
+@keyframes ion-chamber-idle {
+  0% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+  50% { transform: scale(4.1); filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.5)); }
+  100% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+}
+
+@keyframes ion-chamber-ability {
+  0% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)) brightness(1); }
+  50% { transform: scale(4.4) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.8)) brightness(1.3); }
+  100% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)) brightness(1); }
+}
+
+@keyframes ion-chamber-walking {
+  0% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+  25% { transform: scale(4) translateX(-3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
+  75% { transform: scale(4) translateX(3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
+  100% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+}
+
+@keyframes ion-chamber-special {
+  0% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+  20% { transform: scale(4.5) rotate(-5deg); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.8)); }
+  40% { transform: scale(4.2) rotate(3deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
+  60% { transform: scale(4.4) rotate(-3deg); filter: drop-shadow(0 0 18px rgba(255, 106, 0, 0.7)); }
+  80% { transform: scale(4.3) rotate(2deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
+  100% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+}
+
+/* Placeholder styling for when images fail to load */
+.ion-chamber-placeholder {
+  width: 96px;
+  height: 96px;
+  background-color: #000;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.ion-chamber-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,106,0,0.8) 0%, rgba(0,0,0,0.9) 70%);
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+  50% { box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.7); transform: scale(1.05); }
+  100% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+}
+
+/* Make sure the image renders properly in pixelated form */
+.boss-sprite img {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  position: relative;
+  z-index: 2;
+}
+
+/* Fix image display for browsers that might hide it */
+.boss-static-img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Additional fixes for Safari and Firefox */
+@supports (-webkit-touch-callout: none) {
+  .boss-static-img {
+    transform: scale(4) !important; /* Force scale on Safari */
+  }
+}
+
+@-moz-document url-prefix() {
+  .boss-static-img {
+    image-rendering: -moz-crisp-edges !important;
+  }
+}
