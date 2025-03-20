@@ -21,6 +21,7 @@ class CanvasSpriteAnimator {
      * @param {number} [options.offsetX=0] Horizontal offset for drawing
      * @param {number} [options.offsetY=0] Vertical offset for drawing
      * @param {boolean} [options.debug=false] Enable debug rendering
+     * @param {string} [options.fallbackImagePath=null] Fallback image path if primary fails to load
      */
     constructor(options) {
       // Required options
@@ -40,6 +41,7 @@ class CanvasSpriteAnimator {
       this.offsetX = options.offsetX || 0;
       this.offsetY = options.offsetY || 0;
       this.debug = options.debug || false;
+      this.fallbackImagePath = options.fallbackImagePath || null;
       
       // Animation state
       this.currentFrame = 0;
@@ -47,6 +49,12 @@ class CanvasSpriteAnimator {
       this.animationId = null;
       this.lastFrameTime = 0;
       this.frameDuration = 1000 / this.fps;
+      
+      // Image loading state
+      this.imageLoadError = false;
+      this.imageLoaded = false;
+      this.fallbackLoaded = false;
+      this.loadAttempted = false;
       
       // DOM elements
       this.container = null;
@@ -56,7 +64,8 @@ class CanvasSpriteAnimator {
       // Event callbacks
       this.callbacks = {
         complete: [],
-        framechange: []
+        framechange: [],
+        error: []
       };
       
       // Custom animation sequence
@@ -70,8 +79,46 @@ class CanvasSpriteAnimator {
      * Load the sprite sheet image
      */
     loadSpriteImage() {
+      this.loadAttempted = true;
       this.spriteImage = new Image();
-      this.spriteImage.src = this.imagePath;
+      
+      // Add load event handler
+      this.spriteImage.onload = () => {
+        this.imageLoaded = true;
+        
+        if (this.debug) {
+          console.log(`Sprite image loaded: ${this.spriteImage.width}x${this.spriteImage.height}`);
+        }
+        
+        // If we're already mounted, draw the first frame
+        if (this.ctx) {
+          this.drawFrame(this.currentFrame);
+          
+          // Auto-play if enabled
+          if (this.autoPlay) {
+            this.play();
+          }
+        }
+      };
+      
+      // Add error handler
+      this.spriteImage.onerror = (err) => {
+        console.error(`Failed to load sprite image: ${this.imagePath}`, err);
+        this.imageLoadError = true;
+        
+        // Trigger error callbacks
+        this.triggerEvent('error', { error: err, path: this.imagePath });
+        
+        // Try fallback image if provided
+        if (this.fallbackImagePath) {
+          this.loadFallbackImage();
+        } else {
+          // Draw error placeholder if in debug mode
+          if (this.ctx && this.debug) {
+            this.drawErrorPlaceholder();
+          }
+        }
+      };
       
       // Enable cross-origin if from another domain
       if (this.imagePath.startsWith('http') && 
@@ -79,16 +126,94 @@ class CanvasSpriteAnimator {
         this.spriteImage.crossOrigin = 'Anonymous';
       }
       
-      // Log errors if in debug mode
-      if (this.debug) {
-        this.spriteImage.onload = () => {
-          console.log(`Sprite image loaded: ${this.spriteImage.width}x${this.spriteImage.height}`);
-        };
+      // Set the source to start loading
+      this.spriteImage.src = this.imagePath;
+    }
+    
+    /**
+     * Load fallback image if primary fails
+     */
+    loadFallbackImage() {
+      const fallbackImage = new Image();
+      
+      fallbackImage.onload = () => {
+        this.fallbackLoaded = true;
+        this.spriteImage = fallbackImage;
         
-        this.spriteImage.onerror = (err) => {
-          console.error(`Failed to load sprite image: ${this.imagePath}`, err);
-        };
+        console.log(`Fallback image loaded: ${this.fallbackImagePath}`);
+        
+        // If we're already mounted, draw the first frame
+        if (this.ctx) {
+          this.drawFrame(this.currentFrame);
+          
+          // Auto-play if enabled
+          if (this.autoPlay) {
+            this.play();
+          }
+        }
+      };
+      
+      fallbackImage.onerror = (err) => {
+        console.error(`Failed to load fallback image: ${this.fallbackImagePath}`, err);
+        
+        // Draw error placeholder if in debug mode
+        if (this.ctx && this.debug) {
+          this.drawErrorPlaceholder();
+        }
+      };
+      
+      // Enable cross-origin if from another domain
+      if (this.fallbackImagePath.startsWith('http') && 
+          !this.fallbackImagePath.includes(window.location.hostname)) {
+        fallbackImage.crossOrigin = 'Anonymous';
       }
+      
+      // Set the source to start loading
+      fallbackImage.src = this.fallbackImagePath;
+    }
+    
+    /**
+     * Draw error placeholder when images fail
+     */
+    drawErrorPlaceholder() {
+      if (!this.ctx) return;
+      
+      // Clear canvas
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      // Draw checkerboard pattern
+      const cellSize = 8 * this.scale;
+      for (let y = 0; y < this.frameHeight * this.scale; y += cellSize) {
+        for (let x = 0; x < this.frameWidth * this.scale; x += cellSize) {
+          this.ctx.fillStyle = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0 
+            ? 'rgba(255, 0, 255, 0.5)' 
+            : 'rgba(0, 0, 0, 0.5)';
+          this.ctx.fillRect(
+            x + this.offsetX * this.scale, 
+            y + this.offsetY * this.scale, 
+            cellSize, 
+            cellSize
+          );
+        }
+      }
+      
+      // Draw error message
+      this.ctx.fillStyle = '#FFFFFF';
+      this.ctx.font = `${10 * this.scale}px monospace`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(
+        'Image Error', 
+        (this.frameWidth / 2 + this.offsetX) * this.scale, 
+        (this.frameHeight / 2 + this.offsetY) * this.scale
+      );
+      
+      // Draw frame dimensions
+      this.ctx.font = `${8 * this.scale}px monospace`;
+      this.ctx.fillText(
+        `${this.frameWidth}x${this.frameHeight}`, 
+        (this.frameWidth / 2 + this.offsetX) * this.scale, 
+        (this.frameHeight / 2 + 15 + this.offsetY) * this.scale
+      );
     }
     
     /**
@@ -137,23 +262,26 @@ class CanvasSpriteAnimator {
         this.createDebugOverlay();
       }
       
-      // Wait for image to load if needed
-      if (this.spriteImage.complete) {
+      // Handle image loading states
+      if (this.imageLoadError && !this.fallbackLoaded) {
+        // Draw error placeholder if in debug mode
+        if (this.debug) {
+          this.drawErrorPlaceholder();
+        }
+        return true;
+      }
+      
+      // Check if image is already loaded
+      if ((this.spriteImage && this.spriteImage.complete && !this.imageLoadError) || this.fallbackLoaded) {
         this.drawFrame(0);
         
         // Auto-play if enabled
         if (this.autoPlay) {
           this.play();
         }
-      } else {
-        this.spriteImage.onload = () => {
-          this.drawFrame(0);
-          
-          // Auto-play if enabled
-          if (this.autoPlay) {
-            this.play();
-          }
-        };
+      } else if (!this.loadAttempted) {
+        // If we haven't tried loading yet, load the image
+        this.loadSpriteImage();
       }
       
       return true;
@@ -175,6 +303,7 @@ class CanvasSpriteAnimator {
       debugOverlay.style.fontSize = '10px';
       debugOverlay.style.fontFamily = 'monospace';
       debugOverlay.style.pointerEvents = 'none';
+      debugOverlay.style.zIndex = '100';
       debugOverlay.textContent = `Frame: 1/${this.frameCount}`;
       debugOverlay.id = 'debug-overlay-' + Date.now();
       this.container.appendChild(debugOverlay);
@@ -193,7 +322,16 @@ class CanvasSpriteAnimator {
     updateDebugOverlay() {
       if (!this.debugOverlay) return;
       
-      this.debugOverlay.textContent = `Frame: ${this.currentFrame + 1}/${this.frameCount} | FPS: ${this.fps}`;
+      let status = this.imageLoadError ? 'ERROR' : (this.imageLoaded ? 'LOADED' : 'LOADING');
+      
+      this.debugOverlay.textContent = `Frame: ${this.currentFrame + 1}/${this.frameCount} | FPS: ${this.fps} | ${status}`;
+      
+      // Add image error indicator
+      if (this.imageLoadError && !this.fallbackLoaded) {
+        this.debugOverlay.style.backgroundColor = 'rgba(255,0,0,0.7)';
+      } else if (this.fallbackLoaded) {
+        this.debugOverlay.style.backgroundColor = 'rgba(255,165,0,0.7)';
+      }
     }
     
     /**
@@ -202,7 +340,18 @@ class CanvasSpriteAnimator {
      * @private
      */
     drawFrame(frameIndex) {
-      if (!this.ctx || !this.spriteImage || !this.spriteImage.complete) return;
+      if (!this.ctx) return;
+      
+      // Handle image loading errors
+      if (this.imageLoadError && !this.fallbackLoaded) {
+        if (this.debug) {
+          this.drawErrorPlaceholder();
+        }
+        return;
+      }
+      
+      // Make sure image is loaded and complete
+      if (!this.spriteImage || !this.spriteImage.complete) return;
       
       // Store current frame
       this.currentFrame = frameIndex;
@@ -237,12 +386,23 @@ class CanvasSpriteAnimator {
       const dWidth = this.frameWidth * this.scale;
       const dHeight = this.frameHeight * this.scale;
       
-      // Draw the frame
-      this.ctx.drawImage(
-        this.spriteImage,
-        sx, sy, this.frameWidth, this.frameHeight,
-        dx, dy, dWidth, dHeight
-      );
+      try {
+        // Draw the frame
+        this.ctx.drawImage(
+          this.spriteImage,
+          sx, sy, this.frameWidth, this.frameHeight,
+          dx, dy, dWidth, dHeight
+        );
+      } catch (error) {
+        console.error('Error drawing sprite frame:', error);
+        this.imageLoadError = true;
+        
+        if (this.debug) {
+          this.drawErrorPlaceholder();
+        }
+        
+        return;
+      }
       
       // Draw debug info if enabled
       if (this.debug) {
@@ -287,6 +447,12 @@ class CanvasSpriteAnimator {
      */
     animationLoop(timestamp) {
       if (!this.isPlaying) return;
+      
+      // Handle image loading errors
+      if (this.imageLoadError && !this.fallbackLoaded) {
+        this.pause();
+        return;
+      }
       
       // Calculate time passed since last frame
       const elapsed = timestamp - this.lastFrameTime;
@@ -335,6 +501,12 @@ class CanvasSpriteAnimator {
      * Start or resume animation
      */
     play() {
+      // Don't play if there's an error and no fallback
+      if (this.imageLoadError && !this.fallbackLoaded) {
+        console.warn(`Cannot play animation with broken image: ${this.imagePath}`);
+        return;
+      }
+      
       if (this.isPlaying) return;
       
       this.isPlaying = true;
@@ -471,7 +643,7 @@ class CanvasSpriteAnimator {
     
     /**
      * Add event listener
-     * @param {string} event Event name ('complete' or 'framechange')
+     * @param {string} event Event name ('complete', 'framechange', or 'error')
      * @param {Function} callback Callback function
      */
     addEventListener(event, callback) {
@@ -528,20 +700,58 @@ class CanvasSpriteAnimator {
         this.debugOverlay.parentNode.removeChild(this.debugOverlay);
       }
       
-      // Clear event listeners
-      this.callbacks = {
-        complete: [],
-        framechange: []
-      };
-      
-      // Clear references
+      // Clean up references to DOM elements
       this.container = null;
       this.canvas = null;
       this.ctx = null;
       this.debugOverlay = null;
       
+      // Clear event listeners
+      this.callbacks = {
+        complete: [],
+        framechange: [],
+        error: []
+      };
+      
       if (this.debug) {
         console.log('Animator destroyed and resources cleaned up');
       }
     }
-  }
+    
+    /**
+     * Replace the sprite image
+     * @param {string} imagePath New image path
+     * @param {boolean} [autoRestart=true] Whether to automatically restart the animation
+     */
+    replaceImage(imagePath, autoRestart = true) {
+      const wasPlaying = this.isPlaying;
+      
+      // Pause animation
+      this.pause();
+      
+      // Reset error flags
+      this.imageLoadError = false;
+      this.imageLoaded = false;
+      this.fallbackLoaded = false;
+      
+      // Update image path
+      this.imagePath = imagePath;
+      
+      // Load new image
+      this.loadSpriteImage();
+      
+      // Set up callback to resume animation
+      if (autoRestart && wasPlaying) {
+        const onLoad = () => {
+          this.drawFrame(this.currentFrame);
+          this.play();
+          this.spriteImage.removeEventListener('load', onLoad);
+        };
+        
+        this.spriteImage.addEventListener('load', onLoad);
+      }
+    }
+}
+
+// Make available globally
+window.CanvasSpriteAnimator = CanvasSpriteAnimator;
