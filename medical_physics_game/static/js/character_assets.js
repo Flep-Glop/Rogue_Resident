@@ -32,7 +32,6 @@ window.CharacterAssets = {
           file: "special_ability.png", 
           frames: 9, 
           speed: 80,
-          aspectRatio: 2.5 // Wider sprite
         }
       },
       stats: {

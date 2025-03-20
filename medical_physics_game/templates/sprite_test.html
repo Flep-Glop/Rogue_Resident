@@ -291,35 +291,29 @@
                     imagePath: "/static/img/characters/resident/idle.png",
                     spritePath: "/static/img/characters/resident/",
                     animations: {
-                        idle: {
-                            file: "idle.png", 
-                            frames: 11,
-                            width: 97,    
-                            height: 1188,  // Total height of all frames
-                            speed: 150 
-                        },
-                        walking: {
-                            file: "walking.png", 
-                            frames: 4, 
-                            width: 97,
-                            height: 432,
-                            speed: 250
-                        },
-                        ability: {
-                            file: "ability.png", 
-                            frames: 6, 
-                            width: 97,
-                            height: 648,
-                            speed: 120
-                        },
-                        specialAbility: {
-                            file: "special_ability.png", 
-                            frames: 10, 
-                            width: 242, // Wider sprite
-                            height: 1080,
-                            speed: 80,
-                            offsetX: -72 // Center the wider sprite
-                        }
+                      idle: {
+                        file: "idle.png", 
+                        frames: 8,
+                        width: 97,    // Specify the exact width
+                        height: 864,  // Total height of all frames
+                        speed: 150 
+                      },
+                      walking: {
+                        file: "walking.png", 
+                        frames: 10, 
+                        speed: 250
+                      },
+                      ability: {
+                        file: "ability.png", 
+                        frames: 18, 
+                        speed: 120
+                      },
+                      // New wide sprite special ability animation
+                      specialAbility: {
+                        file: "special_ability.png", 
+                        frames: 9, 
+                        speed: 80,
+                      }
                     }
                 },
                 physicist: {
