@@ -91,11 +91,14 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     // Get boss data
     const bossData = this.getBossData(nodeData);
     
+    // Determine if this is an ion chamber boss
+    const bossClass = bossData.bossType === 'ionChamber' ? 'ion-chamber-boss' : '';
+    
     // Create a wrapper to hold both the boss content and inventory sidebar
     container.innerHTML = `
       <div class="boss-with-inventory">
         <!-- Main boss exam panel -->
-        <div class="game-panel boss-exam-panel anim-fade-in">
+        <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in">
           <div id="exam-header" class="exam-header">
             <div class="exam-title-container">
               <h3 class="exam-title">${bossData.title || 'Medical Physics Challenge'}</h3>
@@ -176,16 +179,16 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
       SpriteSystem.removeAnimation(existingAnimId);
     }
     
-    // Create new animation - use NPCAssets if available
+    // Create new animation based on boss type
     let animId;
+    const bossData = this.getBossData(this.getCurrentNodeData());
+    const bossType = bossData.bossType || 'medical';
     
-    if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
-      // Use NPC assets system for animations
-      const npcData = NPCAssets.npcs.medicalBoss;
-      const animData = npcData.animations.idle;
-      
+    if (bossType === 'ionChamber' && window.NPCAssets && NPCAssets.npcs.ionChamberBoss) {
+      // Use Ion Chamber boss animations
+      console.log("Using Ion Chamber boss animations");
       animId = SpriteSystem.createAnimation(
-        'medicalBoss', // NPC type
+        'ionChamberBoss', // NPC type matches the key in NPCAssets.npcs
         container,
         {
           animation: 'idle',
@@ -194,10 +197,22 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
           loop: true
         }
       );
-    } else {
-      // Fallback to using resident animations if NPCAssets isn't available
+    } else if (window.NPCAssets && NPCAssets.npcs.medicalBoss) {
+      // Use standard Medical boss animations
       animId = SpriteSystem.createAnimation(
-        'resident', // Use the resident animations as fallback
+        'medicalBoss',
+        container,
+        {
+          animation: 'idle',
+          scale: 4,
+          autoPlay: true,
+          loop: true
+        }
+      );
+    } else {
+      // Fallback to using resident animations
+      animId = SpriteSystem.createAnimation(
+        'resident',
         container,
         {
           animation: 'idle',
@@ -518,7 +533,33 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
   
   // Get boss dialogue based on phase and state
   getBossDialogue: function(bossData, phaseIndex, phaseComplete) {
-    // Simple dialogue system - no need for quantum states
+    // Check if this is the Ion Chamber boss
+    if (bossData.bossType === 'ionChamber' && window.NPCAssets) {
+      // Use dialogue from NPCAssets
+      if (phaseComplete) {
+        if (phaseIndex >= this.getExamPhases(bossData).length - 1) {
+          // Final completion dialogue
+          const success = this.getUiState('playerScore') >= 70;
+          const key = success ? 'completion.success' : 'completion.failure';
+          
+          // Try to get dialogue from NPCAssets
+          const dialogue = NPCAssets.getRandomDialogue('ionChamberBoss', 'completion');
+          if (dialogue) return typeof dialogue === 'object' ? 
+            (dialogue[success ? 'success' : 'failure'] || "Examination complete.") : 
+            dialogue;
+        } else {
+          // Phase transition dialogue
+          return NPCAssets.getRandomDialogue('ionChamberBoss', 'phase_transition') || 
+            "Section complete. Prepare for the next challenge.";
+        }
+      } else {
+        // Standard phase dialogue
+        return NPCAssets.getRandomDialogue('ionChamberBoss', 'intro') || 
+          "Welcome to your radiation metrology examination.";
+      }
+    }
+    
+    // Simple dialogue system for standard boss - no need for quantum states
     const dialogues = [
       "Welcome to your Medical Physics examination. Let's assess your knowledge.",
       "Good. Now let's test your understanding of radiation principles.",
@@ -951,11 +992,40 @@ const SimplifiedBossComponent = ComponentUtils.createComponent('boss', {
     return "Needs Improvement";
   },
   
-  // Get boss data from node data
+  // Get boss data from node data with Ion Chamber support
   getBossData: function(nodeData) {
     if (!nodeData) return { title: 'Medical Physics Examination', phases: [] };
     
-    // If node has a question, adapt it
+    // Check if this is specifically the Ion Chamber boss
+    if (nodeData.bossType === 'ionChamber' || 
+        (nodeData.title && nodeData.title.includes('Ionix'))) {
+      
+      // Get Ion Chamber boss phases from boss_professor.js if available
+      if (window.IonChamberBoss && IonChamberBoss.getPhases) {
+        return {
+          title: nodeData.title || 'Radiation Metrology Examination',
+          bossType: 'ionChamber',
+          phases: IonChamberBoss.getPhases(),
+          // Include any other boss properties
+          dialogue: nodeData.dialogue || {}
+        };
+      }
+      
+      // Fallback if boss_professor.js isn't available
+      return {
+        title: nodeData.title || 'Radiation Metrology Examination',
+        bossType: 'ionChamber',
+        phases: [
+          {
+            title: 'Radiation Detection Fundamentals',
+            description: 'Test your knowledge of ion chamber principles.',
+            questions: nodeData.questions || [nodeData.question] || []
+          }
+        ]
+      };
+    }
+    
+    // If node has a question, adapt it (original behavior)
     if (nodeData.question) {
       return {
         title: nodeData.title || 'Medical Physics Examination',

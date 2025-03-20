@@ -7,39 +7,7 @@ window.CharacterAssets = {
     resident: {
       name: "Resident",
       description: "A new medical physics resident.",
-      imagePath: "/static/img/characters/resident/idle.png",
-      spritePath: "/static/img/characters/resident/",
-      animations: {
-        idle: {
-          file: "idle.png", 
-          frames: 8,
-          width: 97,    // Specify the exact width
-          height: 864,  // Total height of all frames
-          speed: 150 
-        },
-        walking: {
-          file: "walking.png", 
-          frames: 10, 
-          width: 97,    // Specify the exact width
-          height: 1080,
-          speed: 150
-        },
-        ability: {
-          file: "ability.png", 
-          frames: 18, 
-          width: 97,    // Specify the exact width
-          height: 1944,
-          speed: 150
-        },
-        // New wide sprite special ability animation
-        specialAbility: {
-          file: "special_ability.png", 
-          frames: 9, 
-          width: 97,    // Specify the exact width
-          height: 972,
-          speed: 150,
-        }
-      },
+      imagePath: "/static/img/characters/resident.png",
       stats: {
         startingInsight: 20,
         startingLives: 3,
@@ -55,30 +23,7 @@ window.CharacterAssets = {
     physicist: {
       name: "Junior Physicist",
       description: "More experienced with treatment planning but fewer lives.",
-      imagePath: "/static/img/characters/physicist/portrait.png",
-      spritePath: "/static/img/characters/physicist/",
-      animations: {
-        idle: {
-          file: "idle.png", 
-          frames: 1
-        },
-        walking: {
-          file: "walking.png", 
-          frames: 4, 
-          speed: 250
-        },
-        ability: {
-          file: "ability.png", 
-          frames: 6, 
-          speed: 120
-        },
-        specialAbility: {
-          file: "special_ability.png", 
-          frames: 10, 
-          speed: 80,
-          aspectRatio: 2.5 // Wider sprite
-        }
-      },
+      imagePath: "/static/img/characters/physicist.png",
       stats: {
         startingInsight: 30,
         startingLives: 2,
@@ -94,30 +39,7 @@ window.CharacterAssets = {
     qa_specialist: {
       name: "QA Specialist",
       description: "Quality Assurance expert with deep knowledge of machine checks.",
-      imagePath: "/static/img/characters/qa_specialist/portrait.png",
-      spritePath: "/static/img/characters/qa_specialist/",
-      animations: {
-        idle: {
-          file: "idle.png", 
-          frames: 1
-        },
-        walking: {
-          file: "walking.png", 
-          frames: 4, 
-          speed: 250
-        },
-        ability: {
-          file: "ability.png", 
-          frames: 6, 
-          speed: 120
-        },
-        specialAbility: {
-          file: "special_ability.png", 
-          frames: 10, 
-          speed: 80,
-          aspectRatio: 2.5 // Wider sprite
-        }
-      },
+      imagePath: "/static/img/characters/qa_specialist.png",
       stats: {
         startingInsight: 25,
         startingLives: 3,
@@ -133,30 +55,7 @@ window.CharacterAssets = {
     debug_mode: {
       name: "Debug Physicist",
       description: "A special character with godlike powers for testing purposes.",
-      imagePath: "/static/img/characters/debug_mode/portrait.png",
-      spritePath: "/static/img/characters/debug_mode/",
-      animations: {
-        idle: {
-          file: "idle.png", 
-          frames: 1
-        },
-        walking: {
-          file: "walking.png", 
-          frames: 4, 
-          speed: 250
-        },
-        ability: {
-          file: "ability.png", 
-          frames: 6, 
-          speed: 120
-        },
-        specialAbility: {
-          file: "special_ability.png", 
-          frames: 10, 
-          speed: 80,
-          aspectRatio: 2.5 // Wider sprite
-        }
-      },
+      imagePath: "/static/img/characters/debug_mode.png",
       stats: {
         startingInsight: 999,
         startingLives: 99,
