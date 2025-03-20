@@ -424,6 +424,30 @@
             display: flex;
         }
         
+        /* Disabled character styling */
+        .character-card.disabled {
+        opacity: 0.5;
+        filter: grayscale(100%);
+        pointer-events: none;
+        border-color: #555 !important;
+        box-shadow: none !important;
+        }
+
+        .character-card.disabled .character-avatar {
+        opacity: 0.6;
+        }
+
+        .carousel-indicator.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        }
+
+        .carousel-arrow.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background-color: #555;
+        }
+
         /* Back button styling */
         .back-btn {
             margin-top: 20px;
@@ -510,32 +534,69 @@
         document.addEventListener('DOMContentLoaded', function() {
             fetchCharacters();
             
-            // Set up carousel navigation
+            // Set up carousel navigation with disabled behavior
             document.getElementById('prev-character').addEventListener('click', function() {
-                navigateCarousel(-1);
+                // Visual feedback that navigation is disabled
+                this.classList.add('flash-disabled');
+                setTimeout(() => this.classList.remove('flash-disabled'), 300);
+                
+                // Optionally show a message to user
+                if (typeof UiUtils !== 'undefined' && UiUtils.showFloatingText) {
+                    UiUtils.showFloatingText('Only Character 1 is available', 'warning');
+                }
             });
             
             document.getElementById('next-character').addEventListener('click', function() {
-                navigateCarousel(1);
+                // Visual feedback that navigation is disabled
+                this.classList.add('flash-disabled');
+                setTimeout(() => this.classList.remove('flash-disabled'), 300);
+                
+                // Optionally show a message to user
+                if (typeof UiUtils !== 'undefined' && UiUtils.showFloatingText) {
+                    UiUtils.showFloatingText('Only Character 1 is available', 'warning');
+                }
             });
             
-            // Set up start button
+            // Set up start button - only works with character 1
             document.getElementById('start-game-btn').addEventListener('click', function() {
                 if (selectedCharacter) {
                     startNewGame(selectedCharacter);
                 }
             });
             
-            // Set up keyboard navigation
+            // Set up keyboard navigation - only character 1 is available
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowLeft') {
-                    navigateCarousel(-1);
-                } else if (e.key === 'ArrowRight') {
-                    navigateCarousel(1);
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    // Provide visual feedback that navigation is disabled
+                    const arrow = e.key === 'ArrowLeft' ? 
+                        document.getElementById('prev-character') : 
+                        document.getElementById('next-character');
+                        
+                    arrow.classList.add('flash-disabled');
+                    setTimeout(() => arrow.classList.remove('flash-disabled'), 300);
+                    
+                    // Optionally show a message
+                    if (typeof UiUtils !== 'undefined' && UiUtils.showFloatingText) {
+                        UiUtils.showFloatingText('Only Character 1 is available', 'warning');
+                    }
                 } else if (e.key === 'Enter' && selectedCharacter) {
                     startNewGame(selectedCharacter);
                 }
             });
+            
+            // Add a CSS class for flash-disabled animation
+            const styleElement = document.createElement('style');
+            styleElement.textContent = `
+                @keyframes flash-disabled {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.6; }
+                }
+                
+                .flash-disabled {
+                    animation: flash-disabled 0.3s ease;
+                }
+            `;
+            document.head.appendChild(styleElement);
         });
         
         function fetchCharacters() {
@@ -552,7 +613,7 @@
                 });
         }
         
-        // Updated renderCharacters function to use pixel images
+        // Updated renderCharacters function
         function renderCharacters(characters) {
             const carousel = document.getElementById('character-carousel');
             const indicators = document.getElementById('carousel-indicators');
@@ -565,7 +626,8 @@
             // Create cards for each character
             characters.forEach((character, index) => {
                 const card = document.createElement('div');
-                card.className = `character-card ${index === 0 ? 'active' : ''}`;
+                // Add disabled class to all except the first character
+                card.className = `character-card ${index === 0 ? 'active' : ''} ${index !== 0 ? 'disabled' : ''}`;
                 card.dataset.characterId = character.id;
                 card.dataset.index = index;
                 
@@ -583,7 +645,7 @@
                 
                 card.innerHTML = `
                     <div class="character-header">
-                        <h3>${character.name}</h3>
+                        <h3>${character.name}${index !== 0 ? ' (Locked)' : ''}</h3>
                     </div>
                     <div class="character-avatar">
                         <img src="${imagePath}" alt="${character.name}" class="pixel-character-img">
@@ -629,84 +691,80 @@
                 
                 // Add indicator
                 const indicator = document.createElement('div');
-                indicator.className = `carousel-indicator ${index === 0 ? 'active' : ''}`;
+                indicator.className = `carousel-indicator ${index === 0 ? 'active' : ''} ${index !== 0 ? 'disabled' : ''}`;
                 indicator.dataset.index = index;
                 
-                // Handle indicator click
+                // Handle indicator click - only for non-disabled indicators
                 indicator.addEventListener('click', function() {
-                    navigateToCharacter(index);
+                    // Only allow clicking on character 1
+                    if (parseInt(this.dataset.index) === 0) {
+                        navigateToCharacter(0);
+                    }
                 });
                 
                 indicators.appendChild(indicator);
             });
             
             // Show counter
-            counter.textContent = `Character 1 of ${characters.length}`;
+            counter.textContent = `Character 1 of ${characters.length} (only Character 1 available)`;
             
-            // Set up initial state
+            // Set up initial state - only character 1
             setActiveCharacter(0);
             
-            // Enable the start button immediately - it will use the active character
+            // Enable the start button for character 1
             document.getElementById('start-game-btn').disabled = false;
             
             // Set the selected character to the initial one
             selectedCharacter = characters[0].id;
+            
+            // Disable arrow buttons initially
+            document.getElementById('prev-character').classList.add('disabled');
+            document.getElementById('next-character').classList.add('disabled');
         }
-        
-        // Navigate the carousel
+
+        // Modified navigateCarousel function
         function navigateCarousel(direction) {
-            // Add a small debounce to prevent rapid clicking
-            if (window.isNavigating) return;
+            // Prevent navigation - only character 1 is available
+            // We could just return, but let's add a visual indicator
+            const arrow = direction < 0 ? document.getElementById('prev-character') : document.getElementById('next-character');
             
-            window.isNavigating = true;
-            setTimeout(() => { window.isNavigating = false; }, 500); // Match transition duration
+            // Visual feedback that this is not allowed
+            arrow.classList.add('flash-disabled');
+            setTimeout(() => arrow.classList.remove('flash-disabled'), 300);
             
-            const newIndex = (currentCharacterIndex + direction + characters.length) % characters.length;
-            navigateToCharacter(newIndex);
+            // You can add a floating message to inform the user
+            if (typeof UiUtils !== 'undefined' && UiUtils.showFloatingText) {
+                UiUtils.showFloatingText('Only Character 1 is available', 'warning');
+            } else {
+                console.log('Only Character 1 is available');
+            }
         }
-        
-        // Navigate to character implementation
+
+        // Modified navigateToCharacter function
         function navigateToCharacter(index) {
-            // Update current index
-            currentCharacterIndex = index;
+            // Only allow selecting character 1
+            if (index !== 0) {
+                console.log('Only Character 1 is available');
+                return;
+            }
             
-            // Set the selected character to the current active one
-            selectedCharacter = characters[index].id;
+            // Update current index to 0 (Character 1)
+            currentCharacterIndex = 0;
             
-            // Calculate previous and next indices with wrapping
-            const prevIndex = (index - 1 + characters.length) % characters.length;
-            const nextIndex = (index + 1) % characters.length;
+            // Set the selected character to character 1
+            selectedCharacter = characters[0].id;
             
-            // Get all cards
-            const cards = document.querySelectorAll('.character-card');
-            
-            // Reset all cards first
-            cards.forEach(card => {
-                card.classList.remove('active', 'left-flank', 'right-flank');
-            });
-            
-            // Set appropriate classes for each card
-            cards.forEach(card => {
-                const cardIndex = parseInt(card.dataset.index);
-                
-                if (cardIndex === index) {
-                    card.classList.add('active');
-                } else if (cardIndex === prevIndex) {
-                    card.classList.add('left-flank');
-                } else if (cardIndex === nextIndex) {
-                    card.classList.add('right-flank');
-                }
-            });
+            // Set character 1 as active
+            setActiveCharacter(0);
             
             // Update counter
             const counter = document.getElementById('character-counter');
-            counter.textContent = `Character ${index + 1} of ${characters.length}`;
+            counter.textContent = `Character 1 of ${characters.length} (only Character 1 available)`;
             
-            // Update indicators
+            // Update indicators - only character 1 can be selected
             document.querySelectorAll('.carousel-indicator').forEach(indicator => {
-                indicator.classList.remove('active', 'selected');
-                if (parseInt(indicator.dataset.index) === index) {
-                    indicator.classList.add('active');
+                indicator.classList.remove('selected');
+                if (parseInt(indicator.dataset.index) === 0) {
                     indicator.classList.add('selected');
                 }
             });
