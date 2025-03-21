@@ -1,6 +1,8 @@
-// item_manager.js - Fixed with proper initialization and error handling
+// item_manager.js - Unified item and relic management system
 
 const ItemManager = {
+  // ===== STATE & CONFIGURATION =====
+  
   // Storage for definitions
   itemDefinitions: {},
   relicDefinitions: {},
@@ -10,6 +12,8 @@ const ItemManager = {
   
   // Track initialization state
   initialized: false,
+  
+  // ===== INITIALIZATION & SETUP =====
   
   // Initialize the system
   initialize: function() {
@@ -63,6 +67,8 @@ const ItemManager = {
     console.log("Game initialized, verifying item manager state");
     this.initializeActiveRelics();
   },
+  
+  // ===== DATA LOADING & CACHING =====
   
   // Preload common items and relics
   preloadItemDefinitions: function() {
@@ -144,49 +150,79 @@ const ItemManager = {
     this.loadRelicsFromApi();
   },
 
-  // Load items from API
+  // Load items from API - UPDATED to use editor/items endpoint
   loadItemsFromApi: function() {
-    if (!window.ApiClient || typeof ApiClient.getAllItems !== 'function') {
-      console.log("API client not available for item loading");
-      return;
+    try {
+      // Use standard fetch instead of relying on ApiClient
+      fetch('/api/editor/items')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data.success || !Array.isArray(data.items)) {
+            throw new Error("Invalid response format or missing items");
+          }
+          
+          // Filter for non-relic items only
+          const items = data.items.filter(item => item.itemType !== 'relic');
+          
+          if (items.length > 0) {
+            items.forEach(item => {
+              this.itemDefinitions[item.id] = item;
+            });
+            console.log(`Loaded ${items.length} items from API`);
+          } else {
+            console.log("No items found in API response");
+          }
+        })
+        .catch(error => {
+          console.warn("Failed to load items from API, using defaults", error);
+        });
+    } catch (error) {
+      console.warn("Error in loadItemsFromApi:", error);
     }
-    
-    ApiClient.getAllItems()
-      .then(response => {
-        if (Array.isArray(response) && response.length > 0) {
-          response.forEach(item => {
-            this.itemDefinitions[item.id] = item;
-          });
-          console.log(`Loaded ${response.length} items from API`);
-        }
-      })
-      .catch(error => {
-        console.warn("Failed to load items from API, using defaults", error);
-      });
   },
 
-  // Load relics from API
+  // Load relics from API - UPDATED to use editor/items endpoint
   loadRelicsFromApi: function() {
-    if (!window.ApiClient || typeof ApiClient.getAllRelics !== 'function') {
-      console.log("API client not available for relic loading");
-      return;
+    try {
+      // Use standard fetch instead of relying on ApiClient
+      fetch('/api/editor/items')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data.success || !Array.isArray(data.items)) {
+            throw new Error("Invalid response format or missing items");
+          }
+          
+          // Filter for relic items only
+          const relics = data.items.filter(item => item.itemType === 'relic');
+          
+          if (relics.length > 0) {
+            relics.forEach(relic => {
+              this.relicDefinitions[relic.id] = relic;
+            });
+            console.log(`Loaded ${relics.length} relics from API`);
+          } else {
+            console.log("No relics found in API response");
+          }
+        })
+        .catch(error => {
+          console.warn("Failed to load relics from API, using defaults", error);
+        });
+    } catch (error) {
+      console.warn("Error in loadRelicsFromApi:", error);
     }
-    
-    ApiClient.getAllRelics()
-      .then(response => {
-        if (Array.isArray(response) && response.length > 0) {
-          response.forEach(relic => {
-            this.relicDefinitions[relic.id] = relic;
-          });
-          console.log(`Loaded ${response.length} relics from API`);
-        }
-      })
-      .catch(error => {
-        console.warn("Failed to load relics from API, using defaults", error);
-      });
   },
   
-  // Load item definitions
+  // Load individual item definition
   loadItemDefinition: function(itemId) {
     // If already loaded, return it
     if (this.itemDefinitions[itemId]) {
@@ -222,6 +258,8 @@ const ItemManager = {
       effect: { type: "unknown", value: "Unknown effect" }
     });
   },
+  
+  // ===== EVENT HANDLERS =====
   
   // Handle adding an item to inventory
   onItemAdded: function(item) {
@@ -266,6 +304,8 @@ const ItemManager = {
     // Apply passive effect
     this.applyRelicEffect(relic);
   },
+  
+  // ===== EFFECT HANDLING =====
   
   // Apply a relic's effect with careful error handling
   applyRelicEffect: function(relic) {
@@ -359,80 +399,6 @@ const ItemManager = {
       }
     } catch (error) {
       console.error(`Error applying relic effect ${effect.type}:`, error);
-    }
-  },
-  
-  // Use a consumable item with improved error handling
-  useItem: function(itemId) {
-    console.log(`Attempting to use item: ${itemId}`);
-    
-    // Ensure we're initialized
-    if (!this.initialized) {
-      this.initialize();
-    }
-    
-    try {
-      // Get inventory from GameState
-      if (!window.GameState || !GameState.data) {
-        console.error("GameState not available for item usage");
-        return false;
-      }
-      
-      const inventory = GameState.data.inventory || [];
-      
-      // Find the item in inventory
-      const itemIndex = inventory.findIndex(item => item.id === itemId);
-      
-      if (itemIndex === -1) {
-        console.error(`Item with ID ${itemId} not found in inventory`);
-        return false;
-      }
-      
-      const item = inventory[itemIndex];
-      
-      // Don't allow using relics directly
-      if (item.itemType === 'relic') {
-        console.warn("Cannot use relics directly");
-        return false;
-      }
-      
-      // Apply effect
-      if (item.effect) {
-        const effectApplied = this.applyItemEffect(item.effect);
-        if (!effectApplied) {
-          console.error("Failed to apply item effect");
-          return false;
-        }
-      } else {
-        console.error("Item has no effect to apply");
-        return false;
-      }
-      
-      // Remove from inventory
-      inventory.splice(itemIndex, 1);
-      console.log(`Removed item at index ${itemIndex} from inventory`);
-      
-      // Save inventory changes
-      if (window.ApiClient) {
-        if (typeof ApiClient.saveInventory === 'function') {
-          ApiClient.saveInventory({ inventory })
-            .catch(err => console.error("Failed to save inventory after using item:", err));
-        } else if (typeof ApiClient.saveGame === 'function') {
-          ApiClient.saveGame()
-            .catch(err => console.error("Failed to save game after using item:", err));
-        }
-      }
-      
-      // Emit item used event
-      if (window.EventSystem) {
-        EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
-      }
-      
-      console.log(`Successfully used item: ${itemId}`);
-      return true;
-    } catch (error) {
-      console.error(`Error using item ${itemId}:`, error);
-      return false;
     }
   },
   
@@ -542,6 +508,82 @@ const ItemManager = {
     }
   },
   
+  // ===== ITEM MANAGEMENT =====
+  
+  // Use a consumable item with improved error handling
+  useItem: function(itemId) {
+    console.log(`Attempting to use item: ${itemId}`);
+    
+    // Ensure we're initialized
+    if (!this.initialized) {
+      this.initialize();
+    }
+    
+    try {
+      // Get inventory from GameState
+      if (!window.GameState || !GameState.data) {
+        console.error("GameState not available for item usage");
+        return false;
+      }
+      
+      const inventory = GameState.data.inventory || [];
+      
+      // Find the item in inventory
+      const itemIndex = inventory.findIndex(item => item.id === itemId);
+      
+      if (itemIndex === -1) {
+        console.error(`Item with ID ${itemId} not found in inventory`);
+        return false;
+      }
+      
+      const item = inventory[itemIndex];
+      
+      // Don't allow using relics directly
+      if (item.itemType === 'relic') {
+        console.warn("Cannot use relics directly");
+        return false;
+      }
+      
+      // Apply effect
+      if (item.effect) {
+        const effectApplied = this.applyItemEffect(item.effect);
+        if (!effectApplied) {
+          console.error("Failed to apply item effect");
+          return false;
+        }
+      } else {
+        console.error("Item has no effect to apply");
+        return false;
+      }
+      
+      // Remove from inventory
+      inventory.splice(itemIndex, 1);
+      console.log(`Removed item at index ${itemIndex} from inventory`);
+      
+      // Save inventory changes
+      if (window.ApiClient) {
+        if (typeof ApiClient.saveInventory === 'function') {
+          ApiClient.saveInventory({ inventory })
+            .catch(err => console.error("Failed to save inventory after using item:", err));
+        } else if (typeof ApiClient.saveGame === 'function') {
+          ApiClient.saveGame()
+            .catch(err => console.error("Failed to save game after using item:", err));
+        }
+      }
+      
+      // Emit item used event
+      if (window.EventSystem) {
+        EventSystem.emit(GAME_EVENTS.ITEM_USED, item);
+      }
+      
+      console.log(`Successfully used item: ${itemId}`);
+      return true;
+    } catch (error) {
+      console.error(`Error using item ${itemId}:`, error);
+      return false;
+    }
+  },
+  
   // Add a new item to the game (compatible with InventorySystem.addItem)
   addItem: function(item) {
     console.log("ItemManager adding item:", item);
@@ -610,6 +652,8 @@ const ItemManager = {
       return false;
     }
   },
+  
+  // ===== UTILITY FUNCTIONS =====
   
   // Check if an effect is active from relics
   hasActiveEffect: function(effectType) {
