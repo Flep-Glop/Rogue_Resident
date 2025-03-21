@@ -2,7 +2,7 @@
 
 /* Map container */
 .map-container {
-  background-color: var(--background-alt);
+  background-color: transparent !important;
   border: 3px solid var(--primary);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
