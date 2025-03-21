@@ -33,9 +33,9 @@ window.NPCAssets = {
           },
           specialAbility: {
             file: "special_ability.png", 
-            frames: 9, 
+            frames: 11, 
             width: 97,
-            height: 972,
+            height: 1188,
             speed: 150
           }
         }
@@ -146,10 +146,10 @@ NPCAssets.npcs.ionChamberBoss = {
       },
       specialAbility: {
         file: "special_ability.png", 
-        frames: 9, 
+        frames: 11, 
         width: 97,
-        height: 972,
-        speed: 100
+        height: 1188,
+        speed: 150
       }
     },
     dialogue: {
