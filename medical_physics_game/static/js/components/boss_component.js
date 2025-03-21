@@ -79,9 +79,8 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.playBossAnimation('ability');
   },
 
-  // Update the render function to make Ionix larger and positioned to the side
   render: function(nodeData, container) {
-    console.log("Rendering ion chamber boss component", nodeData);
+    console.log("Rendering ion chamber boss component with enhanced layout");
   
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
@@ -89,46 +88,25 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       container.className = 'interaction-container boss-exam';
     }
     
-    // Check if we should show the intro sequence
-    if (!this.introComplete && !this.getUiState('introComplete')) {
-      this.renderIntroSequence(nodeData, container);
-      return;
-    }
-    
-    // Initialize or get the current exam phase
-    const currentPhase = this.getUiState('currentPhase');
-    const phaseComplete = this.getUiState('phaseComplete');
-    
-    // Get boss data
-    const bossData = this.getBossData(nodeData);
+    // Add body class for expanded layout
+    document.body.classList.add('boss-battle-active');
     
     // Use ionChamber boss class for styling
     const bossClass = 'ion-chamber-boss';
     
-    // Create a wrapper to hold both the boss content and inventory sidebar
-    // New layout with boss on the side and larger
+    // Create a wrapper with the new layout
     container.innerHTML = `
       <div class="boss-with-inventory">
         <!-- Main boss exam panel with revised layout -->
         <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in">
           <div id="exam-header" class="exam-header">
             <div class="exam-title-container">
-              <h3 class="exam-title">${bossData.title || 'Radiation Metrology Examination'}</h3>
-            </div>
-            
-            <div class="exam-status">
-              <div class="time-container">
-                <span class="time-icon">⏱️</span>
-                <span class="time-remaining">${this.formatTime(this.getUiState('timeRemaining'))}</span>
-              </div>
-              
-              <div class="score-container">
-                <span class="score-text">Score: ${this.getUiState('playerScore')}</span>
-              </div>
+              <h3 class="exam-title">Ionix</h3>
+              <p class="exam-subtitle">The Sentient Ion Chamber</p>
             </div>
           </div>
           
-          <!-- New flexbox layout for boss and content -->
+          <!-- Improved flexbox layout for boss and content -->
           <div class="boss-battle-layout">
             <!-- Boss character container - now larger and on the side -->
             <div id="boss-character-container" class="boss-character-container boss-side-layout">
@@ -138,254 +116,30 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
             <!-- Content section -->
             <div class="boss-content-section">
               <div id="boss-dialogue" class="boss-dialogue">
-                <p>${this.getBossDialogue(bossData, currentPhase, phaseComplete)}</p>
+                <p>I am Ionix, a sentient ion chamber. Your knowledge of radiation physics will be tested.</p>
               </div>
               
-              <div id="exam-phase-container" class="exam-phase-container"></div>
+              <div id="exam-phase-container" class="exam-phase-container">
+                <!-- Sample content to demonstrate layout -->
+                <div class="phase-header">
+                  <h4 class="phase-title">Section: Radiation Metrology</h4>
+                  <p class="phase-description">Answer questions about ion chamber calibration and dosimetry.</p>
+                </div>
+              </div>
               
               <div id="exam-actions" class="exam-actions">
-                ${phaseComplete ? `
-                  <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
-                    ${currentPhase >= this.getExamPhases(bossData).length - 1 ? 'Complete Examination' : 'Continue to Next Section'}
-                  </button>
-                ` : ''}
+                <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
+                  Continue
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-        
-        <!-- Inventory sidebar -->
-        <div id="question-inventory-sidebar" class="question-inventory-sidebar boss-inventory-sidebar">
-          <h4 class="inventory-sidebar-title">Inventory</h4>
-          <div id="question-inventory-items" class="inventory-sidebar-items">
-            <p class="text-center">Loading items...</p>
           </div>
         </div>
       </div>
     `;
     
-    // Add specific styles for the new layout
-    const layoutStyles = document.createElement('style');
-    layoutStyles.id = 'boss-layout-styles';
-    layoutStyles.textContent = `
-      .boss-battle-layout {
-        display: flex;
-        gap: 15px;
-        align-items: flex-start;
-      }
-      
-      .boss-side-layout {
-        min-width: 180px;
-        height: 360px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .boss-sprite-enlarged {
-        width: 180px !important;
-        height: 320px !important;
-      }
-      
-      .boss-content-section {
-        flex: 1;
-        min-width: 0;
-      }
-      
-      @media (max-width: 768px) {
-        .boss-battle-layout {
-          flex-direction: column;
-        }
-        
-        .boss-side-layout {
-          width: 100%;
-          height: 200px !important;
-        }
-      }
-    `;
-    document.head.appendChild(layoutStyles);
-    
-    // Add special wide container class
-    document.body.classList.add('boss-battle-active');
-    
     // Initialize boss animation with larger size
     this.initBossAnimation();
-    
-    // Render the current exam phase
-    this.renderExamPhase(bossData, currentPhase);
-    
-    // Bind next phase button if phase is complete
-    if (phaseComplete) {
-      this.bindAction('next-phase-btn', 'click', 'nextPhase', { 
-        nodeData,
-        currentPhase,
-        isLastPhase: currentPhase >= this.getExamPhases(bossData).length - 1
-      });
-    }
-    
-    // Load inventory items
-    this.renderInventoryItems();
-    
-    // Start exam timer if not already running
-    this.startExamTimer();
-  },
-  
-  initBossAnimation: function() {
-    const container = document.getElementById('boss-sprite');
-    if (!container) {
-      console.error("Boss sprite container not found");
-      return;
-    }
-    
-    // Clear container
-    container.innerHTML = '';
-    
-    // Set container dimensions and styling - MUCH LARGER NOW
-    container.style.width = '220px';  // Increased from 180px
-    container.style.height = '400px'; // Increased from 320px
-    container.style.margin = '0 auto';
-    container.style.position = 'relative';
-    // Enhanced glow effect
-    container.style.boxShadow = '0 0 35px 15px rgba(255, 106, 0, 0.6)';
-    
-    // Create canvas element
-    const canvas = document.createElement('canvas');
-    canvas.id = 'ion-chamber-canvas';
-    canvas.width = 180;  // Larger size
-    canvas.height = 320; // Larger size
-    canvas.style.display = 'block';
-    canvas.style.imageRendering = 'pixelated';
-    
-    // Add canvas to container
-    container.appendChild(canvas);
-    
-    // Add a pulsing glow overlay div
-    const glowOverlay = document.createElement('div');
-    glowOverlay.className = 'ionix-glow-overlay';
-    glowOverlay.style.position = 'absolute';
-    glowOverlay.style.top = '-30px';
-    glowOverlay.style.left = '-30px';
-    glowOverlay.style.right = '-30px';
-    glowOverlay.style.bottom = '-30px';
-    glowOverlay.style.borderRadius = '50%';
-    glowOverlay.style.pointerEvents = 'none';
-    glowOverlay.style.zIndex = '-1';
-    container.appendChild(glowOverlay);
-    
-    // Load the sprite sheet
-    const spriteSheet = new Image();
-    spriteSheet.src = '/static/img/characters/ion_chamber/idle.png';
-    
-    // Animation variables
-    const frameCount = 8;
-    const frameWidth = 97;
-    const frameHeight = 108; // 864 / 8
-    let currentFrame = 0;
-    let animationId = null;
-    
-    // Draw the current frame
-    const drawFrame = () => {
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        console.error("Canvas context not available");
-        return;
-      }
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Only draw if the image is loaded
-      if (spriteSheet.complete && spriteSheet.naturalHeight !== 0) {
-        // Calculate source rectangle (from the sprite sheet)
-        const sourceY = currentFrame * frameHeight;
-        
-        // Draw the current frame - scaled up to fill larger canvas
-        ctx.drawImage(
-          spriteSheet,       // Image
-          0, sourceY,        // Source position (x, y)
-          frameWidth, frameHeight, // Source dimensions (width, height)
-          0, 0,              // Destination position (x, y)
-          canvas.width, canvas.height // Destination dimensions (width, height)
-        );
-      }
-    };
-    
-    // Animation loop
-    const animate = () => {
-      // Advance to next frame
-      currentFrame = (currentFrame + 1) % frameCount;
-      
-      // Draw the current frame
-      drawFrame();
-      
-      // Schedule next frame
-      animationId = setTimeout(animate, 150); // 150ms per frame
-    };
-    
-    // Start animation when the image is loaded
-    spriteSheet.onload = () => {
-      console.log("✅ Sprite sheet loaded successfully");
-      
-      // Draw initial frame
-      drawFrame();
-      
-      // Start animation
-      animate();
-      
-      // Store animation ID for cleanup
-      this.setUiState('bossAnimation', 'canvas-animation');
-      this.setUiState('bossState', 'idle');
-    };
-    
-    // Handle image loading error
-    spriteSheet.onerror = () => {
-      console.error("Failed to load sprite sheet");
-      
-      // Create fallback placeholder
-      container.innerHTML = `
-        <div class="ion-chamber-placeholder"></div>
-      `;
-    };
-    
-    // Update the title to "Ionix" instead of "Department Supervisor"
-    const titleElement = document.querySelector('.exam-title');
-    if (titleElement) {
-      titleElement.textContent = 'Ionix';
-    }
-    
-    // Make the boss name more prominent in the header
-    const examHeader = document.querySelector('.exam-header');
-    if (examHeader) {
-      // Create a subtitle element if it doesn't exist
-      if (!document.querySelector('.exam-subtitle')) {
-        const subtitle = document.createElement('p');
-        subtitle.className = 'exam-subtitle';
-        subtitle.textContent = 'The Sentient Ion Chamber';
-        subtitle.style.color = '#ff9d4c';
-        subtitle.style.margin = '0';
-        subtitle.style.fontSize = '0.9rem';
-        subtitle.style.opacity = '0.8';
-        
-        // Insert after title
-        titleElement.parentNode.insertBefore(subtitle, titleElement.nextSibling);
-      }
-    }
-  },
-  
-  // Add a method to clean up the animation when component is destroyed
-  destroyBossAnimation: function() {
-    // Stop canvas animation if running
-    if (this.getUiState('bossAnimation') === 'canvas-animation') {
-      if (this._animationId) {
-        clearTimeout(this._animationId);
-        this._animationId = null;
-      }
-    }
-    
-    // Clear animation state
-    this.setUiState('bossAnimation', null);
-    this.setUiState('bossState', null);
   },
 
   // Enhanced version of playBossAnimation with better debug output

@@ -529,3 +529,103 @@
     max-height: none !important;
   }
 }
+/* Enhanced Ion Chamber Boss Layout - Focus on proper sizing and positioning */
+
+/* Make the boss battle container much wider */
+.boss-exam-panel {
+  max-width: 1200px !important; 
+  width: 95% !important;
+  margin: 0 auto;
+}
+
+/* Create a proper layout with more space */
+.boss-battle-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  width: 100%;
+  padding: 15px 0;
+}
+
+/* Make the boss container much larger and properly positioned */
+.boss-side-layout {
+  min-width: 300px;
+  width: 30%;
+  height: 600px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  position: relative;
+  background: rgba(30, 15, 40, 0.4);
+  border-radius: 10px;
+}
+
+/* Make Ionix MUCH bigger */
+.boss-sprite-enlarged {
+  width: 280px !important;  /* Increased from 180px */
+  height: 500px !important; /* Increased from 320px */
+  position: relative;
+  transform: scale(1.2);
+  margin-top: -40px;
+}
+
+/* Make sure the canvas renders crisp pixels */
+.boss-sprite canvas {
+  image-rendering: pixelated !important;
+  image-rendering: -moz-crisp-edges !important;
+  image-rendering: crisp-edges !important;
+}
+
+/* Content section takes up remaining space */
+.boss-content-section {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  background: rgba(30, 15, 40, 0.3);
+  border-radius: 10px;
+}
+
+/* Make the entire page layout support the wider boss battle */
+.boss-battle-active .game-board-container,
+.boss-battle-active .container {
+  max-width: 1400px !important;
+  width: 98% !important;
+}
+
+/* Adjust column sizes to support wider content */
+.boss-battle-active .col-md-3 {
+  flex: 0 0 20%;
+  max-width: 20%;
+}
+
+.boss-battle-active .col-md-9 {
+  flex: 0 0 80%;
+  max-width: 80%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .boss-side-layout {
+    width: 280px;
+    height: 500px !important;
+  }
+  
+  .boss-sprite-enlarged {
+    width: 250px !important;
+    height: 450px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .boss-battle-layout {
+    flex-direction: column;
+  }
+  
+  .boss-side-layout {
+    width: 100%;
+    height: 400px !important;
+    margin-bottom: 20px;
+  }
+}
