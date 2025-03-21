@@ -322,13 +322,12 @@ const config = {
     // Set canvas background to match the dark blue
     canvas.style.backgroundColor = '#0f1631';
   }
-  // Add to visual-effects.js
-  createCRTStartupEffect: function() {
+  // Add to visual-effects.js - properly adding method to existing object
+  VisualEffects.createCRTStartupEffect = function() {
     // Create CRT startup overlay
     const overlay = document.createElement('div');
     overlay.className = 'crt-startup';
     document.body.appendChild(overlay);
-    
     // Create the style if it doesn't exist
     if (!document.getElementById('crt-startup-style')) {
       const style = document.createElement('style');

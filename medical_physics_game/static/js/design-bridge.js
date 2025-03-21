@@ -302,12 +302,35 @@ const DesignBridge = {
         gameBoard.classList.add('game-board-unified');
       }
       
-      // Apply to modals
-      document.addEventListener('DOMNodeInserted', function(event) {
-        if (event.target.id === 'node-modal-content' || 
-            event.target.classList && event.target.classList.contains('node-modal-content')) {
-          event.target.classList.add('unified-background');
-        }
+      // With this modern approach:
+      // Create a MutationObserver to watch for new modal content
+      const modalObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(node => {
+              // Check if the added node is an element
+              if (node.nodeType === 1) { // Node.ELEMENT_NODE === 1
+                // Check if it's our target modal content
+                if (node.id === 'node-modal-content' || 
+                    (node.classList && node.classList.contains('node-modal-content'))) {
+                  node.classList.add('unified-background');
+                }
+                
+                // Also check children for modal content
+                const modalContents = node.querySelectorAll('#node-modal-content, .node-modal-content');
+                modalContents.forEach(modal => {
+                  modal.classList.add('unified-background');
+                });
+              }
+            });
+          }
+        });
+      });
+
+      // Start observing the DOM for changes
+      modalObserver.observe(document.body, {
+        childList: true,
+        subtree: true
       });
       
       console.log("Applied unified styling to game components");
