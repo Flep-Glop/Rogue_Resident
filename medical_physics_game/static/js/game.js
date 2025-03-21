@@ -474,8 +474,8 @@ function initializeGame() {
       if (typeof VisualEffects !== 'undefined' && typeof VisualEffects.createCRTStartupEffect === 'function') {
         VisualEffects.createCRTStartupEffect();
       }
+    }
     })
-
     .catch(error => {
       console.error('Error initializing game:', error);
       if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
