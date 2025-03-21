@@ -3,12 +3,11 @@
 /* Import base styles first */
 @import url('/static/css/base/reset.css');
 @import url('/static/css/base/variables.css');
-@import url('/static/css/utilities.css'); /* Add this line */
+@import url('/static/css/utilities.css');
 @import url('/static/css/base/layout.css');
 
-
 /* Import component styles */
-@import url('/static/css/components.css'); /* Add this line */
+@import url('/static/css/components.css');
 @import url('/static/css/components/character.css');
 @import url('/static/css/components/inventory.css');
 @import url('/static/css/components/map.css');
@@ -17,11 +16,84 @@
 /* Import animations */
 @import url('/static/css/animations.css');
 
-/* Add these import lines */
+/* Special component styles */
 @import url('/static/css/components/boss.css');
 @import url('/static/css/components/boss_effects.css');
+@import url('/static/css/shop-styles.css');
+@import url('/static/css/question-inventory.css');
+@import url('/static/css/tooltip-fix.css');
 
 /* Import theme styles last to override component styles */
 @import url('/static/css/themes/retro-theme.css');
 
 /* Any additional global styles can go here */
+.unified-background {
+  background-color: transparent !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 10px rgba(93, 156, 255, 0.3) !important;
+}
+
+/* Standardize panel headers */
+.panel-title, .map-title, h3 {
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
+  color: var(--primary);
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Fix for segmented appearance */
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.col-md-3, .col-md-9 {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+
+/* Make all modals use the unified background style */
+.node-modal-content {
+  background-color: var(--dark) !important;
+  border: 2px solid var(--primary) !important;
+  box-shadow: 0 0 15px rgba(93, 156, 255, 0.4) !important;
+}
+
+/* Add scanlines and CRT effect to index.html */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 100% 4px;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center, 
+    rgba(10, 15, 30, 0) 0%,
+    rgba(10, 15, 30, 0.4) 100%
+  );
+  pointer-events: none;
+  z-index: 9997;
+  opacity: 0.5;
+}

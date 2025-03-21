@@ -286,7 +286,22 @@ const DesignBridge = {
         this.colors.nodePatientCase
       ];
     },
-    
+    // Add this to your existing design-bridge.js
+    applyUnifiedStyling: function() {
+      // Select key containers
+      const containers = document.querySelectorAll('.character-stats, .map-container, .inventory-container');
+      
+      // Apply unified styling class
+      containers.forEach(container => {
+        container.classList.add('unified-background');
+      });
+      
+      // Update modal content
+      const modalContent = document.querySelector('.node-modal-content');
+      if (modalContent) {
+        modalContent.classList.add('unified-background');
+      }
+    },
     // Get color by node type
     getNodeTypeColor: function(type) {
       const typeKey = `node${type.charAt(0).toUpperCase() + type.slice(1)}`;

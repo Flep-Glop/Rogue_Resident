@@ -289,11 +289,46 @@ function initializeGame() {
       }
     }
   }
+  // Add these lines for CRT effects
+  if (!document.querySelector('.scanlines')) {
+    const scanlines = document.createElement('div');
+    scanlines.className = 'scanlines';
+    document.body.appendChild(scanlines);
+  }
+  
+  if (!document.querySelector('.crt-effect')) {
+    const crtEffect = document.createElement('div');
+    crtEffect.className = 'crt-effect';
+    document.body.appendChild(crtEffect);
+  }
+  
   // Initialize in the correct order for dependencies
   Promise.resolve()
     .then(() => {
       console.log("Starting game initialization");
       
+      // Add this block for DesignBridge
+      if (typeof DesignBridge !== 'undefined' && typeof DesignBridge.initialize === 'function') {
+        return DesignBridge.initialize();
+      }
+    })
+    .then(() => {
+      // Add this block for unified styling
+      if (typeof DesignBridge !== 'undefined' && typeof DesignBridge.applyUnifiedStyling === 'function') {
+        DesignBridge.applyUnifiedStyling();
+      } else {
+        // Fallback: Apply unified styling class manually
+        document.querySelectorAll('.character-stats, .map-container, .inventory-container').forEach(container => {
+          container.classList.add('unified-background');
+        });
+        
+        const modalContent = document.getElementById('node-modal-content');
+        if (modalContent) {
+          modalContent.classList.add('unified-background');
+        }
+      }
+    })
+    .then(() => {
       // 1. Initialize error handler first for robust error handling
       if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.initialize === 'function') {
         return ErrorHandler.initialize();
@@ -436,6 +471,24 @@ function initializeGame() {
       // Emit game initialized event
       if (typeof EventSystem !== 'undefined') {
         EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
+      }
+    })
+    // Then at the very end of your promise chain, just before the .catch() handler, add:
+    .then(() => {
+      // Remove loading indicator
+      removeLoadingIndicator();
+      
+      // Set up event listeners for UI
+      setupEventListeners();
+      
+      // Emit game initialized event
+      if (typeof EventSystem !== 'undefined') {
+        EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
+      }
+      
+      // Add this line for the CRT startup effect
+      if (typeof VisualEffects !== 'undefined' && typeof VisualEffects.createCRTStartupEffect === 'function') {
+        VisualEffects.createCRTStartupEffect();
       }
     })
     .catch(error => {

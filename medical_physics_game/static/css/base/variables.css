@@ -1,191 +1,130 @@
-/* variables.css - Central location for all CSS variables */
-/* Comprehensive version with standardized systems */
+/* variables.css - Updated color scheme and variables */
 
 :root {
-  /* ===== COLOR SYSTEM ===== */
+  /* Core colors */
+  --background: #0f1631;       /* Deeper blue background */
+  --background-alt: #1a1c38;   /* Slightly lighter background */
+  --dark: #141824;             /* Dark element background */
+  --dark-alt: #23273a;         /* Slightly lighter element background */
   
-  /* Core Brand Colors */
-  --primary: #5b8dd9;      /* Blue */
-  --primary-dark: #4a70b0; /* Dark blue for shadows */
-  --secondary: #56b886;    /* Green */
-  --secondary-dark: #45966d; /* Dark green for shadows */
-  --danger: #e67e73;       /* Red */
-  --danger-dark: #b66059;  /* Dark red for shadows */
-  --warning: #f0c866;      /* Yellow */
-  --warning-dark: #c9a955; /* Dark yellow for shadows */
+  /* Primary colors */
+  --primary: #5d9cff;          /* Brighter blue */
+  --primary-dark: #4a7cc7;     /* Darker blue */
+  --secondary: #45e17c;        /* Brighter green */
+  --secondary-dark: #36b362;   /* Darker green */
   
-  /* Background Colors */
-  --background: #292b36;   /* Dark background with slight blue tint */
-  --background-alt: #21232d; /* Slightly darker for contrast */
-  --dark: #3d4c60;         /* Dark blue-gray */
-  --dark-alt: #2c3848;     /* Darker shade for contrast */
+  /* Accent colors */
+  --accent-yellow: #ffcc55;    /* Bright yellow/gold */
+  --accent-purple: #9c77db;    /* Purple */
+  --danger: #e67e73;           /* Red for warnings/errors */
+  --danger-dark: #c5655c;      /* Darker red */
+  --warning: #ffcc55;          /* Yellow for warnings */
+  --warning-dark: #d9aa48;     /* Darker yellow */
   
-  /* Text Colors */
-  --text: #d4dae0;         /* Soft white-gray for text */
-  --text-dark: #a7adb5;    /* Darker text for less emphasis */
-  --text-light: #ecf0f1;   /* Lighter text for emphasis */
+  /* Text colors */
+  --text: #ffffff;             /* Main text color */
+  --text-light: #f0f2ff;       /* Lighter text */
+  --text-dark: #373a54;        /* Darker text */
+  --text-dimmed: #8b8fa9;      /* Dimmed text */
   
-  /* Node Type Colors - Using BEM-like naming */
-  --node-start: var(--secondary);
-  --node-boss: var(--danger);
-  --node-question: var(--primary);
-  --node-elite: #d35db3;    /* Pink */
-  --node-elite-dark: #a24b8e; /* Dark pink for shadows */
-  --node-treasure: var(--warning);
-  --node-rest: #9c77db;     /* Purple */
-  --node-rest-dark: #7c5cb0; /* Dark purple for shadows */
-  --node-shop: #5bbcd9;     /* Cyan */
-  --node-shop-dark: #4a99b3; /* Dark cyan for shadows */
-  --node-event: #e99c50;    /* Orange */
-  --node-event-dark: #b87d40; /* Dark orange for shadows */
-  --node-gamble: #b8d458;   /* Lime */
-  --node-gamble-dark: #94ab47; /* Dark lime for shadows */
-  --node-patient-case: #4acf8b; /* Bright green */
-  --node-patient-case-dark: #3aaf7a; /* Dark bright green for shadows */
+  /* Node type colors */
+  --node-start: #5d9cff;      /* Primary blue */
+  --node-boss: #e67e73;       /* Danger red */
+  --node-question: #5d9cff;   /* Primary blue */
+  --node-elite: #9c77db;      /* Purple */
+  --node-treasure: #ffcc55;   /* Gold */
+  --node-rest: #45e17c;       /* Secondary green */
+  --node-shop: #5d9cff;       /* Primary blue */
+  --node-event: #9c77db;      /* Purple */
+  --node-gamble: #ffcc55;     /* Gold */
+  --node-patient-case: #9c77db; /* Purple */
   
-  /* Rarity Colors */
-  --rarity-common: #aaaaaa;
-  --rarity-uncommon: var(--primary);
-  --rarity-rare: var(--node-rest);
-  --rarity-epic: var(--warning);
-  
-  /* ===== SIZING SYSTEM ===== */
-  
-  /* Pixel Size (for retro effects) */
-  --pixel-size: 3px;
-  
-  /* Border Radius */
-  --border-radius-xs: 2px;
-  --border-radius-sm: 3px;
-  --border-radius-md: 5px;
-  --border-radius-lg: 8px;
-  --border-radius-xl: 12px;
-  --border-radius-circle: 50%;
+  /* Rarity colors */
+  --rarity-common: #8b8fa9;    /* Gray */
+  --rarity-uncommon: #5d9cff;  /* Blue */
+  --rarity-rare: #9c77db;      /* Purple */
+  --rarity-epic: #ffcc55;      /* Gold */
   
   /* Spacing */
-  --spacing-xs: 5px;
-  --spacing-sm: 10px; 
-  --spacing-md: 15px;
-  --spacing-lg: 20px;
-  --spacing-xl: 30px;
-  --spacing-xxl: 50px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
   
-  /* Font Sizes */
-  --font-size-xs: 0.6rem;
-  --font-size-sm: 0.7rem;
-  --font-size-md: 0.8rem;
-  --font-size-lg: 0.9rem;
-  --font-size-xl: 1rem;
-  --font-size-xxl: 1.2rem;
-  --font-size-title: 1.5rem;
+  /* Font sizes */
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
   
-  /* Layout Dimensions */
-  --container-width: 1200px;
-  --map-width: 800px;
-  --modal-width: 800px;
-  --sidebar-width: 320px;
+  /* Border radius */
+  --border-radius-xs: 2px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 10px;
+  --border-radius-xl: 16px;
   
-  /* ===== SHADOW SYSTEM ===== */
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-medium: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
   
-  /* Regular Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.15);
+  /* Animation durations */
+  --animation-short: 1s;
+  --animation-medium: 2s;
+  --animation-long: 4s;
+  
+  /* Box shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.5);
   
-  /* Inner Shadows */
-  --shadow-inner-sm: inset 0 0 4px rgba(0, 0, 0, 0.2);
-  --shadow-inner-md: inset 0 0 8px rgba(0, 0, 0, 0.3);
-  --shadow-inner-lg: inset 0 0 16px rgba(0, 0, 0, 0.4);
+  /* Inner shadows */
+  --shadow-inner-sm: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-inner-md: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-inner-lg: inset 0 8px 16px rgba(0, 0, 0, 0.4);
   
-  /* Pixel Shadows (for retro buttons) */
-  --shadow-pixel-primary: 
-    0 var(--pixel-size) 0 0 var(--primary-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
+  /* Glow effects */
+  --glow-primary: 0 0 10px rgba(93, 156, 255, 0.5);
+  --glow-primary-strong: 0 0 20px rgba(93, 156, 255, 0.8);
+  --glow-secondary: 0 0 10px rgba(69, 225, 124, 0.5);
+  --glow-secondary-strong: 0 0 20px rgba(69, 225, 124, 0.8);
+  --glow-danger: 0 0 10px rgba(230, 126, 115, 0.5);
+  --glow-danger-strong: 0 0 20px rgba(230, 126, 115, 0.8);
+  --glow-warning: 0 0 10px rgba(255, 204, 85, 0.5);
+  --glow-warning-strong: 0 0 20px rgba(255, 204, 85, 0.8);
+  --glow-common: 0 0 5px rgba(139, 143, 169, 0.3);
+  --glow-uncommon: 0 0 5px rgba(93, 156, 255, 0.3);
+  --glow-rare: 0 0 5px rgba(156, 119, 219, 0.3);
+  --glow-epic: 0 0 5px rgba(255, 204, 85, 0.3);
   
-  --shadow-pixel-secondary: 
-    0 var(--pixel-size) 0 0 var(--secondary-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
-    
-  --shadow-pixel-danger: 
-    0 var(--pixel-size) 0 0 var(--danger-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
-    
-  --shadow-pixel-warning: 
-    0 var(--pixel-size) 0 0 var(--warning-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0, 0, 0, 0.5);
+  /* Inner glow effects */
+  --glow-inner-primary: inset 0 0 5px rgba(93, 156, 255, 0.3);
+  --glow-inner-secondary: inset 0 0 5px rgba(69, 225, 124, 0.3);
   
-  /* ===== GLOW EFFECTS ===== */
+  /* Pixel art settings */
+  --pixel-size: 4px;          /* Size of pixelated elements */
   
-  /* Basic Glows */
-  --glow-primary: 0 0 8px var(--primary);
-  --glow-secondary: 0 0 8px var(--secondary);
-  --glow-danger: 0 0 8px var(--danger);
-  --glow-warning: 0 0 8px var(--warning);
-  
-  /* Intensity Variations */
-  --glow-primary-strong: 0 0 15px var(--primary);
-  --glow-secondary-strong: 0 0 15px var(--secondary);
-  --glow-danger-strong: 0 0 15px var(--danger);
-  --glow-warning-strong: 0 0 15px var(--warning);
-  
-  /* Inner Glows */
-  --glow-inner-primary: inset 0 0 8px var(--primary);
-  --glow-inner-secondary: inset 0 0 8px var(--secondary);
-  --glow-inner-danger: inset 0 0 8px var(--danger);
-  --glow-inner-warning: inset 0 0 8px var(--warning);
-  
-  /* Rarity Glows */
-  --glow-common: 0 0 5px rgba(255, 255, 255, 0.3);
-  --glow-uncommon: var(--glow-primary);
-  --glow-rare: 0 0 12px var(--node-rest);
-  --glow-epic: var(--glow-warning-strong);
-  
-  /* ===== BORDER SYSTEM ===== */
-  
-  /* Standard Borders */
-  --border-thin: 1px solid rgba(255, 255, 255, 0.1);
-  --border-regular: 2px solid rgba(255, 255, 255, 0.1);
-  --border-thick: 4px solid rgba(255, 255, 255, 0.1);
-  
-  /* Colored Borders */
-  --border-primary: 2px solid var(--primary);
-  --border-secondary: 2px solid var(--secondary);
-  --border-danger: 2px solid var(--danger);
-  --border-warning: 2px solid var(--warning);
-  
-  /* Rarity Borders */
-  --border-left-common: 4px solid var(--rarity-common);
-  --border-left-uncommon: 4px solid var(--rarity-uncommon);
-  --border-left-rare: 4px solid var(--rarity-rare);
-  --border-left-epic: 4px solid var(--rarity-epic);
-  
-  /* ===== ANIMATION DURATIONS ===== */
-  
-  --transition-fast: 0.2s;
-  --transition-medium: 0.5s;
-  --transition-slow: 1s;
-  
-  --animation-short: 2s;
-  --animation-medium: 5s;
-  --animation-long: 10s;
-  
-  /* ===== Z-INDEX LAYERS ===== */
-  
-  --z-background: 0;
-  --z-game: 10;
-  --z-ui: 100;
-  --z-tooltip: 200;
-  --z-modal: 1000;
-  --z-overlay: 2000;
-  --z-notification: 3000;
-  
-  /* ===== BREAKPOINTS ===== */
-  
-  --breakpoint-xs: 480px;
+  /* Breakpoints */
   --breakpoint-sm: 576px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
+  
+  /* Map specific */
+  --map-width: 800px;
+  
+  /* Z-index layers */
+  --z-background: 0;
+  --z-decoration: 10;
+  --z-game-element: 20;
+  --z-ui: 50;
+  --z-tooltip: 100;
+  --z-notification: 500;
+  --z-modal: 1000;
 }
