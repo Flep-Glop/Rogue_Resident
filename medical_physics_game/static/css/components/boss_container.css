@@ -1,0 +1,260 @@
+/* boss_container.css - Properly scoped styling for boss encounters */
+
+/* ----- BODY CLASS FOR BOSS MODE ONLY ----- */
+/* This class should only be added when boss node is active */
+body.boss-mode-active {
+    /* Override specific to boss mode */
+    --boss-container-width: 95vw;
+    --boss-content-width: 90vw;
+    --boss-primary-color: #ff6a00;
+    --boss-secondary-color: #ff9d4c;
+    --boss-dark-bg: rgba(30, 23, 45, 0.95);
+  }
+  
+  /* ----- CONTAINER OVERRIDES (PROPERLY SCOPED) ----- */
+  /* Override container width ONLY when boss-mode-active */
+  body.boss-mode-active .container,
+  body.boss-mode-active .game-board-container {
+    max-width: var(--boss-container-width) !important;
+    width: var(--boss-container-width) !important;
+    transition: max-width 0.3s ease-in-out;
+  }
+  
+  /* Override modal width ONLY for boss-exam class */
+  body.boss-mode-active #node-modal-overlay {
+    width: var(--boss-container-width) !important;
+    max-width: var(--boss-container-width) !important;
+  }
+  
+  /* Only target node content when it has boss-exam class */
+  .interaction-container.boss-exam {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  /* ----- BOSS COMPONENT SPECIFIC STYLES ----- */
+  /* All boss-specific styles scoped with .boss-container class */
+  .boss-container {
+    position: relative;
+    width: 100%;
+    background-color: var(--boss-dark-bg, rgba(30, 23, 45, 0.95));
+    border: 2px solid var(--boss-primary-color, #ff6a00);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .boss-container .boss-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 2px solid rgba(255, 106, 0, 0.5);
+    margin-bottom: 30px;
+  }
+  
+  .boss-container .boss-title {
+    font-size: 2.5rem;
+    color: var(--boss-primary-color, #ff6a00);
+    margin: 0;
+    text-shadow: 0 0 10px rgba(255, 106, 0, 0.3);
+    font-family: 'Press Start 2P', cursive;
+  }
+  
+  .boss-container .boss-subtitle {
+    font-size: 1.2rem;
+    color: var(--boss-secondary-color, #ff9d4c);
+    margin: 8px 0 0 0;
+    font-family: 'Press Start 2P', cursive;
+  }
+  
+  /* 2-column layout for boss container */
+  .boss-container .boss-layout {
+    display: flex;
+    gap: 40px;
+    padding: 20px 30px 30px;
+  }
+  
+  /* Left side for boss character */
+  .boss-container .boss-character-column {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5) 30%, rgba(50, 15, 0, 0.2) 100%);
+    border-radius: 50%;
+    aspect-ratio: 3/4;
+    padding: 20px;
+    position: relative;
+    overflow: visible;
+  }
+  
+  /* Right side for content */
+  .boss-container .boss-content-column {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  /* Boss sprite with proper pixel rendering */
+  .boss-container .boss-sprite {
+    position: relative;
+    transform-origin: center center;
+  }
+  
+  .boss-container .boss-sprite img,
+  .boss-container .boss-sprite canvas {
+    image-rendering: pixelated !important;
+    image-rendering: -moz-crisp-edges !important;
+    image-rendering: crisp-edges !important;
+    -webkit-font-smoothing: none;
+    max-width: none;
+    max-height: none;
+    transform: scale(4);
+    transform-origin: center center;
+  }
+  
+  /* Boss dialogue box */
+  .boss-container .boss-dialogue {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-left: 3px solid var(--boss-primary-color, #ff6a00);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 20px;
+    position: relative;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  
+  .boss-container .boss-dialogue p {
+    margin: 0;
+    color: #fff;
+  }
+  
+  /* Questions section */
+  .boss-container .question-section {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-left: 3px solid var(--boss-primary-color, #ff6a00);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .boss-container .question-text {
+    color: #fff;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  
+  /* Only style options in the boss container */
+  .boss-container .option-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    background-color: rgba(30, 30, 50, 0.7);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    border-radius: 5px;
+    color: #fff;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .boss-container .option-btn:hover {
+    background-color: rgba(255, 106, 0, 0.2);
+    transform: translateX(5px);
+    border-color: rgba(255, 106, 0, 0.5);
+  }
+  
+  /* Boss-specific action buttons */
+  .boss-container .boss-btn {
+    background: linear-gradient(to bottom, #ff8f30, #e55b00);
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+    font-family: 'Press Start 2P', cursive;
+    box-shadow: 0 4px 0 #c24d00;
+    text-align: center;
+  }
+  
+  .boss-container .boss-btn:hover {
+    background: linear-gradient(to bottom, #ffaa30, #ff6a00);
+    transform: translateY(-2px);
+  }
+  
+  .boss-container .boss-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #c24d00;
+  }
+  
+  /* ----- ANIMATIONS (SCOPED TO BOSS CONTAINER) ----- */
+  @keyframes boss-idle-anim {
+    0% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+    50% { transform: scale(4.1); filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.5)); }
+    100% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
+  }
+  
+  @keyframes boss-ability-anim {
+    0% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)); }
+    50% { transform: scale(4.4) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.8)); }
+    100% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)); }
+  }
+  
+  .boss-container .boss-idle {
+    animation: boss-idle-anim 3s infinite ease-in-out;
+  }
+  
+  .boss-container .boss-ability {
+    animation: boss-ability-anim 1s ease-in-out;
+  }
+  
+  /* ----- RESPONSIVE DESIGN (PROPERLY SCOPED) ----- */
+  @media (max-width: 1200px) {
+    .boss-container .boss-layout {
+      flex-direction: column;
+    }
+    
+    .boss-container .boss-character-column,
+    .boss-container .boss-content-column {
+      width: 100%;
+    }
+    
+    .boss-container .boss-character-column {
+      height: 400px;
+      margin-bottom: 20px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .boss-container .boss-header {
+      padding: 15px;
+    }
+    
+    .boss-container .boss-title {
+      font-size: 1.8rem;
+    }
+    
+    .boss-container .boss-subtitle {
+      font-size: 1rem;
+    }
+    
+    .boss-container .boss-layout {
+      padding: 15px;
+      gap: 20px;
+    }
+    
+    .boss-container .boss-dialogue,
+    .boss-container .question-section {
+      padding: 15px;
+    }
+  }
