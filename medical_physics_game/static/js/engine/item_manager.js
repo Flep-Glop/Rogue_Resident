@@ -29,7 +29,16 @@ const ItemManager = {
     if (window.EventSystem) {
       EventSystem.on(GAME_EVENTS.ITEM_ADDED, this.onItemAdded.bind(this));
       EventSystem.on(GAME_EVENTS.ITEM_USED, this.onItemUsed.bind(this));
-      EventSystem.on(GAME_EVENTS.RELIC_ADDED, this.onRelicAdded.bind(this));
+      
+      // Fix: Check if event type exists before registering
+      if (GAME_EVENTS.RELIC_ADDED) {
+        EventSystem.on(GAME_EVENTS.RELIC_ADDED, this.onRelicAdded.bind(this));
+      } else {
+        // If RELIC_ADDED doesn't exist, use ITEM_ADDED as a fallback for relics
+        console.log("RELIC_ADDED event not defined, using ITEM_ADDED for relics");
+        // We'll check for relic type in the onItemAdded handler
+      }
+      
       EventSystem.on(GAME_EVENTS.GAME_INITIALIZED, this.onGameInitialized.bind(this));
     }
     
@@ -268,11 +277,16 @@ const ItemManager = {
     // Store definition
     this.itemDefinitions[item.id] = item;
     
-    // If it's a relic, register it as active
+    // If it's a relic, register it as active and handle relic-specific logic
     if (item.itemType === 'relic') {
       this.activeRelics[item.id] = item;
       // Apply its effect
       this.applyRelicEffect(item);
+      
+      // Manually trigger the relic handler if RELIC_ADDED isn't available
+      if (!GAME_EVENTS.RELIC_ADDED && typeof this.onRelicAdded === 'function') {
+        this.onRelicAdded(item);
+      }
     }
     
     // Notify UI that an item was added successfully

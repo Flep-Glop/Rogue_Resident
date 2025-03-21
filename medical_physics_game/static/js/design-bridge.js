@@ -288,19 +288,29 @@ const DesignBridge = {
     },
     // Add this to your existing design-bridge.js
     applyUnifiedStyling: function() {
-      // Select key containers
-      const containers = document.querySelectorAll('.character-stats, .map-container, .inventory-container');
+      // Apply to all key containers
+      const containers = document.querySelectorAll('.character-stats, .map-container, .inventory-container, .node-modal-content');
       
       // Apply unified styling class
       containers.forEach(container => {
         container.classList.add('unified-background');
       });
       
-      // Update modal content
-      const modalContent = document.querySelector('.node-modal-content');
-      if (modalContent) {
-        modalContent.classList.add('unified-background');
+      // Apply to the game board container too
+      const gameBoard = document.getElementById('game-board-container');
+      if (gameBoard) {
+        gameBoard.classList.add('game-board-unified');
       }
+      
+      // Apply to modals
+      document.addEventListener('DOMNodeInserted', function(event) {
+        if (event.target.id === 'node-modal-content' || 
+            event.target.classList && event.target.classList.contains('node-modal-content')) {
+          event.target.classList.add('unified-background');
+        }
+      });
+      
+      console.log("Applied unified styling to game components");
     },
     // Get color by node type
     getNodeTypeColor: function(type) {

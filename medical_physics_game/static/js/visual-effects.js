@@ -322,7 +322,96 @@ const config = {
     // Set canvas background to match the dark blue
     canvas.style.backgroundColor = '#0f1631';
   }
-  
+  // Add to visual-effects.js
+  createCRTStartupEffect: function() {
+    // Create CRT startup overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'crt-startup';
+    document.body.appendChild(overlay);
+    
+    // Create the style if it doesn't exist
+    if (!document.getElementById('crt-startup-style')) {
+      const style = document.createElement('style');
+      style.id = 'crt-startup-style';
+      style.textContent = `
+        .crt-startup {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: #000;
+          z-index: 9999;
+          opacity: 1;
+          pointer-events: none;
+          transition: opacity 2s ease-in-out;
+        }
+        
+        .crt-startup::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 5px;
+          height: 5px;
+          background: #fff;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 150px 50px #fff;
+          animation: crt-on 1.5s ease-in-out forwards;
+        }
+        
+        @keyframes crt-on {
+          0% { 
+            opacity: 0; 
+            box-shadow: 0 0 0 0 #fff;
+          }
+          20% { 
+            opacity: 1; 
+            box-shadow: 0 0 20px 5px #fff;
+          }
+          40% { 
+            opacity: 1; 
+            box-shadow: 0 0 40px 10px #fff;
+          }
+          60% { 
+            opacity: 1; 
+            box-shadow: 0 0 80px 15px rgba(91, 141, 217, 0.7);
+          }
+          80% { 
+            opacity: 1; 
+            box-shadow: 0 0 100px 20px rgba(91, 141, 217, 0.5);
+          }
+          100% { 
+            opacity: 0.8; 
+            box-shadow: 0 0 150px 30px rgba(91, 141, 217, 0.3);
+          }
+        }
+        
+        .crt-startup.fade-out {
+          opacity: 0;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Animate in phases
+    setTimeout(() => {
+      // Add scanlines during startup
+      const scanlines = document.createElement('div');
+      scanlines.className = 'crt-startup-scanlines';
+      overlay.appendChild(scanlines);
+      
+      // Add flicker effect
+      overlay.classList.add('crt-flicker');
+      
+      // Fade out after startup is complete
+      setTimeout(() => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => overlay.remove(), 2000);
+      }, 1500);
+    }, 300);
+  }
   // Create CRT and scanline effects
   function createCRTEffects(container) {
     if (!container) return;

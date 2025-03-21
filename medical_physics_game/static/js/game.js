@@ -396,13 +396,6 @@ function initializeGame() {
       }
     })
     .then(() => {
-      // Initialize sprite system
-      if (typeof SpriteSystem !== 'undefined' && typeof SpriteSystem.initialize === 'function') {
-        console.log("Initializing Sprite Animation System...");
-        SpriteSystem.initialize();
-      }
-    })
-    .then(() => {
       // 10. Initialize map renderer after game state is loaded
       if (typeof MapRenderer !== 'undefined' && typeof MapRenderer.initialize === 'function') {
         MapRenderer.initialize('floor-map');
@@ -412,13 +405,17 @@ function initializeGame() {
           PixelBackgroundGenerator.initialize('floor-map');
           
           // Add event handler to refresh pixels when map is redrawn
-          if (typeof EventSystem !== 'undefined') {
-            EventSystem.on(GAME_EVENTS.MAP_UPDATED, function() {
-              // Short delay to ensure the map is fully rendered
-              setTimeout(function() {
-                PixelBackgroundGenerator.refresh();
-              }, 100);
-            });
+          if (typeof EventSystem !== 'undefined' && typeof GAME_EVENTS !== 'undefined') {
+            // Check that the event type exists to avoid errors
+            if (GAME_EVENTS.MAP_UPDATED) {
+              EventSystem.on(GAME_EVENTS.MAP_UPDATED, function() {
+                // Short delay to ensure the map is fully rendered
+                setTimeout(function() {
+                  if (typeof PixelBackgroundGenerator.refresh === 'function') {
+                    PixelBackgroundGenerator.refresh();
+                  }
+                }, 100);
+              });
           }
         }
 
@@ -472,25 +469,13 @@ function initializeGame() {
       if (typeof EventSystem !== 'undefined') {
         EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
       }
-    })
-    // Then at the very end of your promise chain, just before the .catch() handler, add:
-    .then(() => {
-      // Remove loading indicator
-      removeLoadingIndicator();
-      
-      // Set up event listeners for UI
-      setupEventListeners();
-      
-      // Emit game initialized event
-      if (typeof EventSystem !== 'undefined') {
-        EventSystem.emit(GAME_EVENTS.GAME_INITIALIZED, GameState.getState());
-      }
-      
+
       // Add this line for the CRT startup effect
       if (typeof VisualEffects !== 'undefined' && typeof VisualEffects.createCRTStartupEffect === 'function') {
         VisualEffects.createCRTStartupEffect();
       }
     })
+
     .catch(error => {
       console.error('Error initializing game:', error);
       if (typeof ErrorHandler !== 'undefined' && typeof ErrorHandler.handleError === 'function') {
