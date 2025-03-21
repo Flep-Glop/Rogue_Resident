@@ -1,31 +1,97 @@
-/* boss_effects.css - Minimal implementation */
+/* boss_effects.css - Shared effects for boss encounters */
+
+/* Ion Chamber Glow Effect */
 .ion-chamber-glow {
-    box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
-    animation: glow-pulse 3s infinite;
-  }
-  
-  @keyframes glow-pulse {
-    0% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
-    50% { box-shadow: 0 0 25px rgba(255, 106, 0, 0.7); }
-    100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
-  }
-  
-  .boss-effect-correct {
-    animation: correct-answer 0.5s ease-in-out;
-  }
-  
-  .boss-effect-incorrect {
-    animation: incorrect-answer 0.5s ease-in-out;
-  }
-  
-  @keyframes correct-answer {
-    0% { background-color: rgba(0, 0, 0, 0.2); }
-    50% { background-color: rgba(86, 184, 134, 0.3); }
-    100% { background-color: rgba(0, 0, 0, 0.2); }
-  }
-  
-  @keyframes incorrect-answer {
-    0% { background-color: rgba(0, 0, 0, 0.2); }
-    50% { background-color: rgba(230, 126, 115, 0.3); }
-    100% { background-color: rgba(0, 0, 0, 0.2); }
-  }
+  box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
+  animation: boss-glow-pulse 3s infinite;
+}
+
+@keyframes boss-glow-pulse {
+  0% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(255, 106, 0, 0.7); }
+  100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
+}
+
+/* Answer feedback effects */
+.boss-effect-correct {
+  animation: boss-correct-answer 0.5s ease-in-out;
+}
+
+.boss-effect-incorrect {
+  animation: boss-incorrect-answer 0.5s ease-in-out;
+}
+
+@keyframes boss-correct-answer {
+  0% { background-color: rgba(0, 0, 0, 0.2); }
+  50% { background-color: rgba(86, 184, 134, 0.3); }
+  100% { background-color: rgba(0, 0, 0, 0.2); }
+}
+
+@keyframes boss-incorrect-answer {
+  0% { background-color: rgba(0, 0, 0, 0.2); }
+  50% { background-color: rgba(230, 126, 115, 0.3); }
+  100% { background-color: rgba(0, 0, 0, 0.2); }
+}
+
+/* Fade in animation */
+.boss-fade-in {
+  animation: boss-fade-in 0.8s ease-in-out;
+}
+
+@keyframes boss-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Placeholder fallback for missing sprites */
+.boss-placeholder {
+  width: 96px;
+  height: 96px;
+  background-color: #000;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px 8px rgba(91, 141, 217, 0.6);
+  animation: boss-pulse-glow 3s infinite ease-in-out;
+}
+
+.boss-placeholder::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(91, 141, 217, 0.8) 0%, rgba(0, 0, 0, 0.9) 70%);
+}
+
+@keyframes boss-pulse-glow {
+  0% { box-shadow: 0 0 20px 5px rgba(91, 141, 217, 0.5); transform: scale(1); }
+  50% { box-shadow: 0 0 30px 10px rgba(91, 141, 217, 0.7); transform: scale(1.05); }
+  100% { box-shadow: 0 0 20px 5px rgba(91, 141, 217, 0.5); transform: scale(1); }
+}
+
+/* Ion chamber specific placeholder */
+.ion-chamber-placeholder {
+  box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
+  animation: boss-ion-pulse-glow 3s infinite ease-in-out;
+}
+
+.ion-chamber-placeholder::after {
+  background: radial-gradient(circle, rgba(255, 106, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 70%);
+}
+
+@keyframes boss-ion-pulse-glow {
+  0% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+  50% { box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.7); transform: scale(1.05); }
+  100% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
+}
+
+/* Pixelated image rendering for sprites */
+.boss-sprite img, 
+.boss-static-img {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
