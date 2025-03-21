@@ -629,3 +629,118 @@
     margin-bottom: 20px;
   }
 }
+
+/* Ultra-Wide Boss Layout - Almost double the width */
+
+/* DRAMATICALLY increase main container width */
+.boss-exam-panel {
+  max-width: 1800px !important; /* Increased from 1200px */
+  width: 98% !important;
+  margin: 0 auto;
+}
+
+/* Make the boss battle container even wider */
+.boss-with-inventory {
+  max-width: 1800px !important; /* Increased from 1400px */
+  width: 98% !important;
+  margin: 0 auto;
+}
+
+/* Make the entire battle area take up more screen space */
+.boss-battle-active .game-board-container,
+.boss-battle-active .container {
+  max-width: 1800px !important; /* Increased from 1400px */
+  width: 98% !important;
+}
+
+/* Create much more horizontal space in the layout */
+.boss-battle-layout {
+  display: flex;
+  gap: 50px; /* Increased from 30px */
+  align-items: flex-start;
+  margin-bottom: 20px;
+  width: 100%;
+  padding: 30px; /* Increased padding */
+}
+
+/* Make the boss container MUCH wider */
+.boss-side-layout {
+  min-width: 450px !important; /* Increased from 300px */
+  width: 40% !important; /* Increased from 30% */
+  height: 650px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  position: relative;
+  background: rgba(30, 15, 40, 0.4);
+  border-radius: 10px;
+}
+
+/* Make Ionix even BIGGER */
+.boss-sprite-enlarged {
+  width: 350px !important;  /* Increased from 280px */
+  height: 600px !important; /* Increased from 500px */
+  position: relative;
+  transform: scale(1.2);
+  margin-top: -40px;
+}
+
+/* More spacious content section */
+.boss-content-section {
+  flex: 1;
+  min-width: 0;
+  padding: 30px; /* Increased from 20px */
+  background: rgba(30, 15, 40, 0.3);
+  border-radius: 10px;
+}
+
+/* Make dialogue more spacious */
+.boss-dialogue {
+  padding: 25px !important;
+  margin-bottom: 30px !important;
+  font-size: 1.2em !important;
+}
+
+/* Larger header area */
+.exam-header {
+  padding: 20px 30px !important;
+  margin-bottom: 30px !important;
+}
+
+/* Larger title text */
+.exam-title {
+  font-size: 2.5rem !important;
+  margin-bottom: 10px !important;
+}
+
+.exam-subtitle {
+  font-size: 1.3rem !important;
+}
+
+/* Ensure the action buttons are larger */
+.game-btn--primary {
+  padding: 15px 20px !important;
+  font-size: 1.2rem !important;
+}
+
+/* Ensure Ionix is properly visible with dark oval background */
+.boss-character-container {
+  background: radial-gradient(ellipse, rgba(0,0,0,0.6) 40%, rgba(30,15,40,0.2) 100%);
+  overflow: visible !important;
+  border-radius: 50%;
+}
+
+/* More spacious phase header */
+.phase-header {
+  margin-bottom: 30px !important;
+}
+
+.phase-title {
+  font-size: 1.8rem !important;
+  margin-bottom: 15px !important;
+}
+
+.phase-description {
+  font-size: 1.2rem !important;
+}
