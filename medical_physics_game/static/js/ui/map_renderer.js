@@ -578,7 +578,24 @@ const MapRenderer = {
     
     ctx.restore();
   },
-  
+  // Update node drawing to match character cards
+  drawNodeCard: function(ctx, x, y, width, height, fillColor, shadowColor) {
+    // Draw shadow
+    ctx.fillStyle = shadowColor;
+    ctx.fillRect(x - width/2, y - height/2 + 4, width, height);
+    
+    // Draw main card
+    ctx.fillStyle = fillColor;
+    ctx.fillRect(x - width/2, y - height/2, width, height);
+    
+    // Add highlight
+    ctx.beginPath();
+    ctx.moveTo(x - width/2, y - height/2);
+    ctx.lineTo(x + width/2, y - height/2);
+    ctx.strokeStyle = this.adjustColorBrightness(fillColor, 30);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  },
   getNodesInRow: function(rowIndex) {
     if (!GameState || !GameState.getAllNodes) return [];
     
