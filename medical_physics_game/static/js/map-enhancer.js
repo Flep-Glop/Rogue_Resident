@@ -1,4 +1,4 @@
-// map-enhancer.js - Enhances the MapRenderer with retro styling
+// map-enhancer-fixed.js - Safe version that doesn't override core functions
 (function() {
     // Wait for MapRenderer to be available
     const checkInterval = setInterval(function() {
@@ -8,199 +8,195 @@
       }
       
       clearInterval(checkInterval);
-      console.log("MapRenderer found, applying enhancements...");
-      enhanceMapRenderer();
+      console.log("MapRenderer found, applying safe enhancements...");
+      safeEnhanceMapRenderer();
     }, 500);
     
-    function enhanceMapRenderer() {
+    function safeEnhanceMapRenderer() {
       try {
-        // Store original render function to extend it
-        const originalRenderMap = MapRenderer.renderMap;
+        // Don't override key functions that might break things
+        // Instead, just enhance the appearance
         
-        // Enhanced node colors
+        // Enhanced node colors - we'll apply these differently
         const enhancedNodeColors = {
-          start: '#45e17c', // bright green
-          question: '#5d9cff', // bright blue
-          elite: '#9c77db', // purple
-          boss: '#ff6a00', // orange
-          treasure: '#ffcc55', // gold
-          rest: '#45e17c', // green
-          event: '#e67e73', // red
-          shop: '#e5de6a', // yellow
-          patient_case: '#5d9cff', // blue
-          random: '#9c77db' // purple
+          'start': '#45e17c', // bright green
+          'question': '#5d9cff', // bright blue
+          'elite': '#9c77db', // purple
+          'boss': '#ff6a00', // orange
+          'treasure': '#ffcc55', // gold
+          'rest': '#45e17c', // green
+          'event': '#e67e73', // red
+          'shop': '#e5de6a', // yellow
+          'patient_case': '#5d9cff', // blue
+          'S': '#45e17c', // start
+          'Q': '#5d9cff', // question
+          'E': '#9c77db', // elite
+          'B': '#ff6a00', // boss
+          'T': '#ffcc55', // treasure
+          'R': '#45e17c', // rest
+          'V': '#e67e73', // event
+          'P': '#5d9cff', // patient case
+          '?': '#9c77db' // random
         };
         
         // Enhanced path styles
         const enhancedPathStyles = {
           lineWidth: 3,
           strokeStyle: 'rgba(255, 255, 255, 0.4)',
-          lineDash: [],
           shadowColor: 'rgba(93, 156, 255, 0.8)',
-          shadowBlur: 8,
-          shadowOffsetX: 0,
-          shadowOffsetY: 0
+          shadowBlur: 8
         };
         
-        // Apply enhanced styles to MapRenderer
-        if (MapRenderer.config) {
-          // If using config object
-          if (!MapRenderer.config.nodeColors) MapRenderer.config.nodeColors = {};
-          if (!MapRenderer.config.pathStyles) MapRenderer.config.pathStyles = {};
-          
-          Object.assign(MapRenderer.config.nodeColors, enhancedNodeColors);
-          Object.assign(MapRenderer.config.pathStyles, enhancedPathStyles);
-        } else {
-          // Direct assignment fallback
-          MapRenderer.nodeColors = enhancedNodeColors;
-          MapRenderer.pathStyles = enhancedPathStyles;
+        // Safely apply path styles if configuration exists
+        if (MapRenderer.config && MapRenderer.config.pathStyles) {
+          // Only modify specific properties, don't replace the whole object
+          MapRenderer.config.pathStyles.lineWidth = enhancedPathStyles.lineWidth;
+          MapRenderer.config.pathStyles.strokeStyle = enhancedPathStyles.strokeStyle;
+          MapRenderer.config.pathStyles.shadowColor = enhancedPathStyles.shadowColor;
+          MapRenderer.config.pathStyles.shadowBlur = enhancedPathStyles.shadowBlur;
         }
         
-        // Add node glow function
-        MapRenderer.drawNodeGlow = function(ctx, x, y, radius, color) {
-          ctx.save();
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 15;
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.6;
-          ctx.beginPath();
-          ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        };
-        
-        // Override renderMap to add enhanced effects
-        MapRenderer.renderMap = function() {
-          // Call original first
-          const result = originalRenderMap.apply(this, arguments);
-          
-          // Add background grid pattern to canvas
-          const canvas = document.getElementById('floor-map');
-          if (canvas && canvas.getContext) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              // Draw grid pattern on the canvas
-              ctx.save();
-              ctx.globalAlpha = 0.1;
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-              ctx.lineWidth = 0.5;
-              
-              // Draw grid lines
-              const gridSize = 20;
-              for (let x = 0; x < canvas.width; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-              }
-              
-              for (let y = 0; y < canvas.height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-              }
-              
-              ctx.restore();
-              
-              // Add subtle scanlines
-              ctx.save();
-              ctx.globalAlpha = 0.05;
-              for (let y = 0; y < canvas.height; y += 4) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-              }
-              ctx.restore();
-              
-              // Create gradient vignette effect for CRT feel
-              const gradient = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, canvas.width / 10,
-                canvas.width / 2, canvas.height / 2, canvas.width / 1.5
-              );
-              gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-              gradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
-              
-              ctx.save();
-              ctx.globalCompositeOperation = 'multiply';
-              ctx.fillStyle = gradient;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              ctx.restore();
-            }
-          }
-          
-          console.log('✨ Enhanced map rendered with retro effects');
-          return result;
-        };
-        
-        // Enhanced node drawing function
-        const originalDrawNode = MapRenderer.drawNode;
-        if (typeof originalDrawNode === 'function') {
-          MapRenderer.drawNode = function(ctx, node, position, selected) {
-            // Draw glow effect first
-            const color = this.getNodeColor(node);
-            const radius = this.getNodeRadius(node);
+        // Add an after-render effect rather than overriding the render function
+        const originalRenderMap = MapRenderer.renderMap;
+        if (originalRenderMap) {
+          MapRenderer.renderMap = function() {
+            // Call original first
+            const result = originalRenderMap.apply(this, arguments);
             
-            // Add glow for selected nodes
-            if (selected) {
-              this.drawNodeGlow(ctx, position.x, position.y, radius * 1.2, color);
+            // Add background grid pattern to canvas
+            const canvas = document.getElementById('floor-map');
+            if (canvas && canvas.getContext) {
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                // Draw grid pattern on the canvas
+                ctx.save();
+                ctx.globalAlpha = 0.1;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 0.5;
+                
+                // Draw grid lines
+                const gridSize = 20;
+                for (let x = 0; x < canvas.width; x += gridSize) {
+                  ctx.beginPath();
+                  ctx.moveTo(x, 0);
+                  ctx.lineTo(x, canvas.height);
+                  ctx.stroke();
+                }
+                
+                for (let y = 0; y < canvas.height; y += gridSize) {
+                  ctx.beginPath();
+                  ctx.moveTo(0, y);
+                  ctx.lineTo(canvas.width, y);
+                  ctx.stroke();
+                }
+                
+                ctx.restore();
+                
+                // Add subtle scanlines
+                ctx.save();
+                ctx.globalAlpha = 0.05;
+                for (let y = 0; y < canvas.height; y += 4) {
+                  ctx.beginPath();
+                  ctx.moveTo(0, y);
+                  ctx.lineTo(canvas.width, y);
+                  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                  ctx.lineWidth = 1;
+                  ctx.stroke();
+                }
+                ctx.restore();
+              }
             }
             
-            // Call original draw function
-            originalDrawNode.apply(this, arguments);
-            
-            // Add inner highlight
-            ctx.save();
-            ctx.globalAlpha = 0.7;
-            ctx.beginPath();
-            ctx.arc(position.x, position.y - radius/3, radius/4, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.fill();
-            ctx.restore();
+            return result;
           };
+        }
+        
+        // Apply custom styling to canvas
+        const mapCanvas = document.getElementById('floor-map');
+        if (mapCanvas) {
+          mapCanvas.style.backgroundColor = "rgba(15, 22, 49, 0.5)";
+          mapCanvas.style.boxShadow = "inset 0 0 20px rgba(0, 0, 0, 0.4)";
+          mapCanvas.style.imageRendering = "pixelated";
+          mapCanvas.style.border = "1px solid rgba(93, 156, 255, 0.2)";
+          mapCanvas.style.borderRadius = "4px";
+        }
+        
+        // Safely style map container
+        const mapContainer = document.querySelector('.map-container');
+        if (mapContainer) {
+          mapContainer.style.backgroundColor = "rgba(15, 22, 49, 0.95)";
+          mapContainer.style.border = "2px solid #5d9cff";
+          mapContainer.style.boxShadow = "0 0 15px rgba(93, 156, 255, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.4)";
+          mapContainer.style.borderRadius = "8px";
+          mapContainer.style.padding = "15px";
+        }
+        
+        // Style map title
+        const mapTitle = document.querySelector('.map-container h3');
+        if (mapTitle) {
+          mapTitle.style.fontFamily = "'Press Start 2P', cursive";
+          mapTitle.style.color = "#5d9cff";
+          mapTitle.style.textShadow = "0 0 8px rgba(93, 156, 255, 0.6)";
+          mapTitle.style.textTransform = "uppercase";
+          mapTitle.style.letterSpacing = "2px";
+          mapTitle.style.textAlign = "center";
+          mapTitle.style.position = "relative";
+          mapTitle.style.zIndex = "2";
         }
         
         // Force a re-render with the new styles
         setTimeout(() => {
           if (typeof MapRenderer.renderMap === 'function') {
+            console.log("Re-rendering map with enhanced styles...");
             MapRenderer.renderMap();
           }
         }, 500);
         
-        console.log('✅ Successfully enhanced map renderer');
+        console.log('✅ Successfully applied safe map enhancements');
       } catch (error) {
-        console.error('❌ Error enhancing map renderer:', error);
+        console.error('❌ Error applying map enhancements:', error);
       }
     }
     
-    // Also add grid backgrounds and scanlines
+    // Also add grid backgrounds and other basic styling
     function enhanceElements() {
-      // Add grid background class to main containers
+      // Add grid background class
       document.querySelectorAll('.map-container, .character-stats, .inventory-container').forEach(container => {
-        container.classList.add('grid-bg');
+        if (container) {
+          container.classList.add('grid-bg');
+        }
       });
       
-      // Add scanlines if not already present
-      if (!document.querySelector('.scanlines')) {
-        const scanlines = document.createElement('div');
-        scanlines.className = 'scanlines';
-        document.body.appendChild(scanlines);
+      // Apply styles directly to character panel
+      const characterStats = document.querySelector('.character-stats');
+      if (characterStats) {
+        characterStats.style.backgroundColor = "rgba(15, 22, 49, 0.95)";
+        characterStats.style.border = "2px solid #5d9cff";
+        characterStats.style.boxShadow = "0 0 15px rgba(93, 156, 255, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.4)";
+        characterStats.style.borderRadius = "8px";
+        characterStats.style.padding = "15px";
       }
       
-      // Add retro font if not already loaded
-      const fontAvailable = Array.from(document.fonts.values()).some(font => 
-        font.family.includes('Press Start 2P')
-      );
+      // Apply styles to inventory container
+      const inventoryContainer = document.getElementById('inventory-container');
+      if (inventoryContainer) {
+        inventoryContainer.style.backgroundColor = "rgba(15, 22, 49, 0.95)";
+        inventoryContainer.style.border = "2px solid #5d9cff";
+        inventoryContainer.style.boxShadow = "0 0 15px rgba(93, 156, 255, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.4)";
+        inventoryContainer.style.borderRadius = "8px";
+        inventoryContainer.style.padding = "15px";
+      }
       
-      if (!fontAvailable) {
+      // Add Press Start 2P font if not already loaded
+      if (!document.getElementById('press-start-font')) {
         const fontLink = document.createElement('link');
+        fontLink.id = 'press-start-font';
         fontLink.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';
         fontLink.rel = 'stylesheet';
         document.head.appendChild(fontLink);
       }
+      
+      console.log('✅ Enhanced basic UI elements');
     }
     
     // Wait for DOM to be fully loaded
@@ -210,5 +206,5 @@
       enhanceElements();
     }
     
-    console.log('🎮 Map enhancer script loaded');
+    console.log('🎮 Safe map enhancer script loaded');
   })();
