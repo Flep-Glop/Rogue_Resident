@@ -65,6 +65,7 @@
 
 /* Map wrapper to position canvas properly */
 .map-wrapper {
+  background-color: transparent !important;
   position: relative;
   width: var(--map-width);
   margin: 0 auto;

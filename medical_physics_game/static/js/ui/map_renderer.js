@@ -288,9 +288,6 @@ const MapRenderer = {
   
   // Draw retro-styled pixelated background
   drawRetroBackground: function(ctx, pattern, width, height) {
-    // Fill with main background color
-    ctx.fillStyle = pattern.mainColor;
-    ctx.fillRect(0, 0, width, height);
     
     // Draw grid lines with pixel precision
     ctx.strokeStyle = pattern.gridColor;
