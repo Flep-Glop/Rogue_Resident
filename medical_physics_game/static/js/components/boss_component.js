@@ -142,6 +142,99 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.initBossAnimation();
   },
 
+  // Replace the initBossAnimation function in boss_component.js with this enhanced version
+
+  initBossAnimation: function() {
+    const container = document.getElementById('boss-sprite');
+    if (!container) {
+      console.error("Boss sprite container not found");
+      return;
+    }
+    
+    // Clear container
+    container.innerHTML = '';
+    
+    // Set container dimensions and styling - MUCH LARGER NOW
+    container.style.width = '280px';   // Increased significantly
+    container.style.height = '500px';  // Increased significantly
+    container.style.margin = '0 auto';
+    container.style.position = 'relative';
+    
+    // Create canvas element with larger dimensions
+    const canvas = document.createElement('canvas');
+    canvas.id = 'ion-chamber-canvas';
+    canvas.width = 280;  // Larger canvas width
+    canvas.height = 500; // Larger canvas height
+    canvas.style.display = 'block';
+    canvas.style.imageRendering = 'pixelated';
+    canvas.style.imageRendering = 'crisp-edges';
+    
+    // Add canvas to container
+    container.appendChild(canvas);
+    
+    // Load the sprite sheet
+    const spriteSheet = new Image();
+    spriteSheet.src = '/static/img/characters/ion_chamber/idle.png';
+    
+    // Animation variables
+    const frameCount = 8;
+    const frameWidth = 97;
+    const frameHeight = 108; // 864 / 8
+    let currentFrame = 0;
+    
+    // Draw the current frame
+    const drawFrame = () => {
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        console.error("Canvas context not available");
+        return;
+      }
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Only draw if the image is loaded
+      if (spriteSheet.complete && spriteSheet.naturalHeight !== 0) {
+        // Calculate source rectangle (from the sprite sheet)
+        const sourceY = currentFrame * frameHeight;
+        
+        // Turn off image smoothing for crisp pixels
+        ctx.imageSmoothingEnabled = false;
+        
+        // Draw the current frame - scaled up to fill larger canvas
+        ctx.drawImage(
+          spriteSheet,       // Image
+          0, sourceY,        // Source position (x, y)
+          frameWidth, frameHeight, // Source dimensions (width, height)
+          0, 0,              // Destination position (x, y)
+          canvas.width, canvas.height // Destination dimensions (width, height)
+        );
+      }
+    };
+    
+    // Handle image loading
+    spriteSheet.onload = () => {
+      console.log("✅ Sprite sheet loaded successfully");
+      
+      // Draw initial frame
+      drawFrame();
+      
+      // We're focusing on layout so we'll just show a static frame
+      // and not animate for now
+    };
+    
+    // Handle image loading error
+    spriteSheet.onerror = () => {
+      console.error("Failed to load sprite sheet");
+      
+      // Create fallback placeholder
+      container.innerHTML = `
+        <div class="ion-chamber-placeholder" style="width: 100%; height: 100%; background-color: #000; border-radius: 50%;"></div>
+      `;
+    };
+  },
+
   // Enhanced version of playBossAnimation with better debug output
   playBossAnimation: function(animationName, returnToIdle = true) {
     console.log(`Debug: Playing boss animation: ${animationName}`);
