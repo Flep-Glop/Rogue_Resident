@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ionix - The Sentient Ion Chamber</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* Core styles for the page */
         body {
@@ -74,17 +75,18 @@
 
         /* Character display area */
         .ionix-display {
-            width: 500px;
-            height: 500px;
+            width: 300px;
+            height: 300px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
             z-index: 5;
+            margin-bottom: 20px;
         }
 
         /* The sprite container */
-        .ionix-sprite {
+        #ionix-sprite-container {
             width: 100%;
             height: 100%;
             display: flex;
@@ -93,41 +95,15 @@
             position: relative;
         }
 
-        /* Sprite image styling */
-        .ionix-sprite img {
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-            transform: scale(6);
-            transform-origin: center center;
-            position: relative;
-            z-index: 5;
-        }
-
-        /* Animation styling */
-        .ionix-idle {
-            animation: ionix-idle 3s infinite ease-in-out;
-        }
-
-        .ionix-ability {
-            animation: ionix-ability 1.5s ease-in-out;
-        }
-
-        .ionix-walking {
-            animation: ionix-walking 1.5s infinite ease-in-out;
-        }
-
-        .ionix-special {
-            animation: ionix-special 2s ease-in-out;
-        }
-
         /* Control panel */
         .control-panel {
             display: flex;
             gap: 15px;
-            margin-top: 40px;
+            margin-top: 20px;
             position: relative;
             z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .anim-btn {
@@ -160,7 +136,7 @@
             box-shadow: 0 0 15px rgba(255, 106, 0, 0.6), inset 0 0 5px rgba(0, 0, 0, 0.5);
         }
 
-        /* Glow effects */
+        /* Glow effects around Ionix */
         .ionix-glow {
             position: absolute;
             width: 100%;
@@ -171,6 +147,7 @@
             opacity: 0.8;
             z-index: 2;
             animation: glow-pulse 4s infinite alternate ease-in-out;
+            pointer-events: none;
         }
 
         /* Floating particles in background */
@@ -182,6 +159,7 @@
             height: 100%;
             z-index: 1;
             overflow: hidden;
+            pointer-events: none;
         }
 
         .particle {
@@ -215,39 +193,29 @@
             display: none;
         }
 
+        /* Back to Main button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ff9d4c;
+            border: 2px solid #ff6a00;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-family: 'Press Start 2P', monospace, sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 106, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
         /* Animations */
-        @keyframes ionix-idle {
-            0% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-            50% { transform: scale(6.2); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.8)); }
-            100% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-        }
-
-        @keyframes ionix-ability {
-            0% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)) brightness(1); }
-            10% { transform: scale(6.5) rotate(-5deg); filter: drop-shadow(0 0 30px rgba(255, 106, 0, 0.9)) brightness(1.3); }
-            30% { transform: scale(6.2) rotate(3deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
-            50% { transform: scale(6.6) rotate(-3deg); filter: drop-shadow(0 0 35px rgba(255, 106, 0, 0.8)) brightness(1.4); }
-            70% { transform: scale(6.3) rotate(2deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
-            100% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)) brightness(1); }
-        }
-
-        @keyframes ionix-walking {
-            0% { transform: scale(6) translateX(-10px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-            25% { transform: scale(6.1) translateX(-5px); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.6)); }
-            50% { transform: scale(6) translateX(0px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-            75% { transform: scale(6.1) translateX(5px); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.6)); }
-            100% { transform: scale(6) translateX(10px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-        }
-
-        @keyframes ionix-special {
-            0% { transform: scale(6) rotate(0deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-            20% { transform: scale(7) rotate(-10deg); filter: drop-shadow(0 0 40px rgba(255, 106, 0, 1)) brightness(1.5); }
-            40% { transform: scale(6.5) rotate(8deg); filter: drop-shadow(0 0 30px rgba(255, 106, 0, 0.8)) brightness(1.3); }
-            60% { transform: scale(6.8) rotate(-5deg); filter: drop-shadow(0 0 35px rgba(255, 106, 0, 0.9)) brightness(1.4); }
-            80% { transform: scale(6.4) rotate(3deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
-            100% { transform: scale(6) rotate(0deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
-        }
-
         @keyframes pulse-subtle {
             0% { opacity: 0.5; }
             100% { opacity: 0.8; }
@@ -270,27 +238,7 @@
         }
 
         /* Media queries for responsiveness */
-        @media (max-width: 1200px) {
-            .ionix-display {
-                width: 400px;
-                height: 400px;
-            }
-            
-            .ionix-title {
-                font-size: 2rem;
-            }
-            
-            .ionix-subtitle {
-                font-size: 1rem;
-            }
-        }
-
         @media (max-width: 768px) {
-            .ionix-display {
-                width: 300px;
-                height: 300px;
-            }
-            
             .ionix-title {
                 font-size: 1.5rem;
             }
@@ -308,29 +256,31 @@
                 padding: 10px 15px;
                 font-size: 0.8rem;
             }
+            
+            .ionix-dialog {
+                font-size: 0.9rem;
+                padding: 15px;
+            }
         }
-
-        /* Font import */
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
     </style>
 </head>
 <body>
+    <a href="/" class="back-btn">← Back to Main</a>
+    
     <div class="ionix-container">
         <h1 class="ionix-title">IONIX</h1>
         <h2 class="ionix-subtitle">The Sentient Ion Chamber</h2>
         
         <div class="ionix-display">
             <div class="ionix-glow"></div>
-            <div class="ionix-sprite">
-                <img id="ionix-img" src="/static/img/characters/ion_chamber/idle.png" alt="Ionix" class="ionix-idle">
-            </div>
+            <div id="ionix-sprite-container"></div>
         </div>
         
         <div class="control-panel">
             <button class="anim-btn active" id="idle-btn">Idle</button>
             <button class="anim-btn" id="ability-btn">Ability</button>
             <button class="anim-btn" id="walking-btn">Walking</button>
-            <button class="anim-btn" id="special-btn">Special</button>
+            <button class="anim-btn" id="special-btn">Special Ability</button>
             <button class="anim-btn" id="dialog-btn">Toggle Dialog</button>
         </div>
         
@@ -341,11 +291,16 @@
         <div class="particles" id="particles-container"></div>
     </div>
 
+    <!-- Import sprite animation systems -->
+    <script src="/static/js/sprite-system/canvas-sprite-animator.js"></script>
+    <script src="/static/js/sprite-system/sprite-system.js"></script>
+    <script src="/static/js/npc_assets.js"></script>
+
     <script>
         // Animation controller
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
-            const ionixImg = document.getElementById('ionix-img');
+            const spriteContainer = document.getElementById('ionix-sprite-container');
             const idleBtn = document.getElementById('idle-btn');
             const abilityBtn = document.getElementById('ability-btn');
             const walkingBtn = document.getElementById('walking-btn');
@@ -353,15 +308,12 @@
             const dialogBtn = document.getElementById('dialog-btn');
             const dialogBox = document.getElementById('ionix-dialog');
             
-            // Base path for images
-            const basePath = '/static/img/characters/ion_chamber/';
-            
-            // Current animation state
+            // Animation state
+            let currentAnimationId = null;
             let currentAnimation = 'idle';
-            let animationTimeout = null;
             
-            // Dialog quotes
-            const dialogQuotes = [
+            // Dialog quotes (from npc_assets.js if available, or fallback)
+            let dialogQuotes = [
                 "Welcome to your Radiation Metrology examination. I am Professor Ionix, a sentient ion chamber.",
                 "As a sentient ion chamber, I have the unique ability to measure your knowledge directly.",
                 "Let's see if your understanding of medical physics is... ionizing enough.",
@@ -376,102 +328,236 @@
                 "Excellent! Your performance shows proportional region precision. You'll make a fine medical physicist."
             ];
             
-            // Animation handlers
-            function setAnimation(animName, autoReset = false) {
-                // Clear any previous timeout
-                if (animationTimeout) {
-                    clearTimeout(animationTimeout);
-                    animationTimeout = null;
+            // If NPCAssets is loaded and has dialogue for ionChamberBoss, use it
+            if (window.NPCAssets && NPCAssets.npcs && NPCAssets.npcs.ionChamberBoss && NPCAssets.npcs.ionChamberBoss.dialogue) {
+                const bossDialogue = NPCAssets.npcs.ionChamberBoss.dialogue;
+                dialogQuotes = [
+                    ...bossDialogue.intro,
+                    ...bossDialogue.correct,
+                    ...bossDialogue.incorrect,
+                    ...bossDialogue.phase_transition,
+                    bossDialogue.completion.success,
+                    bossDialogue.completion.failure
+                ];
+            }
+            
+            // Initialize sprite animation
+            function initializeAnimation() {
+                // Make sure required scripts are loaded
+                if (!window.SpriteSystem || !window.CanvasSpriteAnimator || !window.NPCAssets) {
+                    console.error("Required animation scripts not loaded!");
+                    displayFallbackImage();
+                    return;
                 }
                 
-                // Remove all animation classes
-                ionixImg.classList.remove('ionix-idle', 'ionix-ability', 'ionix-walking', 'ionix-special');
+                // Create animation
+                createIonixAnimation('idle');
                 
-                // Set new image and animation
-                ionixImg.src = `${basePath}${animName}.png`;
-                ionixImg.classList.add(`ionix-${animName}`);
+                // Set up button handlers
+                setupButtonHandlers();
+            }
+            
+            // Create Ionix animation
+            function createIonixAnimation(animationName) {
+                // Clear any existing animation
+                if (currentAnimationId) {
+                    SpriteSystem.removeAnimation(currentAnimationId);
+                    currentAnimationId = null;
+                }
                 
-                // Update active button
-                document.querySelectorAll('.anim-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById(`${animName}-btn`).classList.add('active');
+                // Create new animation
+                const options = {
+                    animation: animationName,
+                    scale: 5,
+                    autoPlay: true,
+                    loop: animationName === 'idle' || animationName === 'walking'
+                };
                 
-                // Store current animation
-                currentAnimation = animName;
+                // If not using idle/walking, add completion handler to revert to idle
+                if (animationName !== 'idle' && animationName !== 'walking') {
+                    options.onComplete = function() {
+                        // Auto-reset to idle after animation completes
+                        setTimeout(() => {
+                            setActiveAnimation('idle');
+                        }, 100);
+                    };
+                }
                 
-                // Auto reset to idle after animation completes if needed
-                if (autoReset && animName !== 'idle') {
-                    const duration = animName === 'ability' ? 1500 : 
-                                    animName === 'special' ? 2000 : 0;
+                // Create the animation
+                currentAnimationId = SpriteSystem.createAnimation(
+                    'ionChamberBoss',
+                    spriteContainer,
+                    options
+                );
+                
+                // If animation creation failed, try direct animator
+                if (!currentAnimationId) {
+                    createDirectAnimation(animationName);
+                }
+                
+                // Update current animation
+                currentAnimation = animationName;
+                
+                // Update button states
+                updateButtonStates();
+            }
+            
+            // Create animation directly using CanvasSpriteAnimator
+            function createDirectAnimation(animationName) {
+                if (!window.CanvasSpriteAnimator || !window.NPCAssets) {
+                    displayFallbackImage();
+                    return;
+                }
+                
+                try {
+                    // Clear container
+                    spriteContainer.innerHTML = '';
                     
-                    if (duration > 0) {
-                        animationTimeout = setTimeout(() => {
-                            setAnimation('idle');
-                        }, duration);
+                    // Get animation data from NPCAssets
+                    const npc = NPCAssets.npcs.ionChamberBoss;
+                    if (!npc || !npc.animations || !npc.animations[animationName]) {
+                        throw new Error(`Animation "${animationName}" not found for Ionix`);
                     }
+                    
+                    const animData = npc.animations[animationName];
+                    const spritePath = npc.spritePath + animData.file;
+                    
+                    // Create animator directly
+                    const animator = new CanvasSpriteAnimator({
+                        imagePath: spritePath,
+                        frameCount: animData.frames || 1,
+                        frameWidth: animData.width || 97,
+                        frameHeight: animData.height / animData.frames || 97,
+                        fps: 1000 / (animData.speed || 150),
+                        scale: 5,
+                        loop: animationName === 'idle' || animationName === 'walking',
+                        autoPlay: true,
+                        layout: 'vertical'
+                    });
+                    
+                    // Mount animator
+                    animator.mount(spriteContainer);
+                    
+                    // Store for cleanup
+                    window.currentAnimator = animator;
+                    
+                    // If not idle/walking, add completion handler
+                    if (animationName !== 'idle' && animationName !== 'walking') {
+                        animator.addEventListener('complete', function() {
+                            // Auto-reset to idle after animation completes
+                            setTimeout(() => {
+                                setActiveAnimation('idle');
+                            }, 100);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error creating direct animation:", error);
+                    displayFallbackImage();
                 }
             }
             
-            // Button event listeners
-            idleBtn.addEventListener('click', () => setAnimation('idle'));
+            // Display fallback image if animation fails
+            function displayFallbackImage() {
+                spriteContainer.innerHTML = `
+                    <div style="position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center;">
+                        <div class="ionix-glow"></div>
+                        <img src="/static/img/characters/ion_chamber/idle.png" 
+                             alt="Ionix" 
+                             style="width: 100px; height: 100px; object-fit: contain; image-rendering: pixelated; transform: scale(3);">
+                    </div>
+                `;
+            }
             
-            abilityBtn.addEventListener('click', () => {
-                setAnimation('ability', true);
-                showRandomDialog();
-            });
-            
-            walkingBtn.addEventListener('click', () => setAnimation('walking'));
-            
-            specialBtn.addEventListener('click', () => {
-                setAnimation('special', true);
-                showRandomDialog();
-            });
-            
-            // Dialog toggler
-            dialogBtn.addEventListener('click', () => {
-                if (dialogBox.style.display === 'block') {
-                    dialogBox.style.display = 'none';
-                } else {
-                    dialogBox.style.display = 'block';
+            // Set active animation with button update
+            function setActiveAnimation(animationName) {
+                createIonixAnimation(animationName);
+                
+                // If this is ability or special, show random dialog
+                if (animationName === 'ability' || animationName === 'specialAbility') {
                     showRandomDialog();
                 }
-            });
+            }
+            
+            // Update button active states
+            function updateButtonStates() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.anim-btn').forEach(btn => btn.classList.remove('active'));
+                
+                // Set active class on current animation button
+                let buttonId;
+                switch (currentAnimation) {
+                    case 'idle': buttonId = 'idle-btn'; break;
+                    case 'ability': buttonId = 'ability-btn'; break;
+                    case 'walking': buttonId = 'walking-btn'; break;
+                    case 'specialAbility': buttonId = 'special-btn'; break;
+                    default: buttonId = 'idle-btn';
+                }
+                
+                const activeButton = document.getElementById(buttonId);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+            
+            // Setup button handlers
+            function setupButtonHandlers() {
+                idleBtn.addEventListener('click', () => setActiveAnimation('idle'));
+                abilityBtn.addEventListener('click', () => setActiveAnimation('ability'));
+                walkingBtn.addEventListener('click', () => setActiveAnimation('walking'));
+                specialBtn.addEventListener('click', () => setActiveAnimation('specialAbility'));
+                
+                // Dialog toggler
+                dialogBtn.addEventListener('click', () => {
+                    if (dialogBox.style.display === 'block') {
+                        dialogBox.style.display = 'none';
+                    } else {
+                        dialogBox.style.display = 'block';
+                        showRandomDialog();
+                    }
+                });
+            }
             
             // Show random dialog
             function showRandomDialog() {
-                const randomIndex = Math.floor(Math.random() * dialogQuotes.length);
-                dialogBox.textContent = dialogQuotes[randomIndex];
-                dialogBox.style.display = 'block';
+                if (dialogQuotes.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * dialogQuotes.length);
+                    dialogBox.textContent = dialogQuotes[randomIndex];
+                    dialogBox.style.display = 'block';
+                }
             }
             
             // Create floating particles
-            const particlesContainer = document.getElementById('particles-container');
-            const particleCount = 30;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles-container');
+                const particleCount = 30;
                 
-                // Random position, size and animation delay
-                const size = Math.random() * 6 + 4;
-                const left = Math.random() * 100;
-                const delay = Math.random() * 15;
-                const xDrift = (Math.random() * 200 - 100) + 'px';
-                const rotation = Math.random() * 360 + 'deg';
-                
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = left + '%';
-                particle.style.bottom = '-5%';
-                particle.style.opacity = Math.random() * 0.5 + 0.2;
-                particle.style.animationDelay = delay + 's';
-                particle.style.setProperty('--x-drift', xDrift);
-                particle.style.setProperty('--rotation', rotation);
-                
-                particlesContainer.appendChild(particle);
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random position, size and animation delay
+                    const size = Math.random() * 6 + 4;
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 15;
+                    const xDrift = (Math.random() * 200 - 100) + 'px';
+                    const rotation = Math.random() * 360 + 'deg';
+                    
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.left = left + '%';
+                    particle.style.bottom = '-5%';
+                    particle.style.opacity = Math.random() * 0.5 + 0.2;
+                    particle.style.animationDelay = delay + 's';
+                    particle.style.setProperty('--x-drift', xDrift);
+                    particle.style.setProperty('--rotation', rotation);
+                    
+                    particlesContainer.appendChild(particle);
+                }
             }
             
-            // Initialize with idle animation
-            setAnimation('idle');
+            // Initialize everything
+            initializeAnimation();
+            createParticles();
         });
     </script>
 </body>
