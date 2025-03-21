@@ -26,8 +26,10 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     EventSystem.on('itemUsed', this.onItemUsed.bind(this));
   },
   
-  // Clean up when component is destroyed
+  // Improve the destroy method to properly clean up all dynamic styles
   destroy: function() {
+    console.log("Cleaning up boss component...");
+    
     // Clear timer if active
     if (this._examTimer) {
       clearInterval(this._examTimer);
@@ -40,8 +42,53 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       SpriteSystem.removeAnimation(animId);
     }
     
+    // Clean up any dynamic styles added by the component
+    this.cleanupDynamicStyles();
+    
     // Unsubscribe from events
     EventSystem.off('itemUsed', this.onItemUsed);
+  },
+
+  // New method to clean up any dynamic styles
+  cleanupDynamicStyles: function() {
+    // Remove any dynamically added style elements
+    const dynamicStyles = [
+      'ion-chamber-animations',
+      'boss-layout-styles'
+    ];
+    
+    dynamicStyles.forEach(id => {
+      const styleEl = document.getElementById(id);
+      if (styleEl) {
+        console.log(`Removing dynamic style: ${id}`);
+        styleEl.parentNode.removeChild(styleEl);
+      }
+    });
+    
+    // Remove any inline styles from nodes
+    if (typeof NodeInteraction !== 'undefined' && NodeInteraction.resetStyles) {
+      NodeInteraction.resetStyles();
+    }
+    
+    // Add this code to your NodeInteraction object if it doesn't exist
+    if (typeof NodeInteraction !== 'undefined' && !NodeInteraction.resetStyles) {
+      NodeInteraction.resetStyles = function() {
+        // Reset game button styles
+        document.querySelectorAll('.game-btn').forEach(btn => {
+          // Only reset if it's not inside a boss component
+          if (!btn.closest('.ion-chamber-boss')) {
+            btn.style = ''; // Clear inline styles
+          }
+        });
+        
+        // Reset other potentially affected elements
+        document.querySelectorAll('.question-option').forEach(option => {
+          if (!option.closest('.ion-chamber-boss')) {
+            option.style = '';
+          }
+        });
+      };
+    }
   },
   
   // Handle item usage during exam
@@ -164,17 +211,17 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       </div>
     `;
     
-    // Add specific styles for the new layout
+    // Replace with this code that properly scopes the styles:
     const layoutStyles = document.createElement('style');
     layoutStyles.id = 'boss-layout-styles';
     layoutStyles.textContent = `
-      .boss-battle-layout {
+      .ion-chamber-boss .boss-battle-layout {
         display: flex;
         gap: 15px;
         align-items: flex-start;
       }
       
-      .boss-side-layout {
+      .ion-chamber-boss .boss-side-layout {
         min-width: 180px;
         height: 360px !important;
         display: flex;
@@ -182,22 +229,22 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
         justify-content: center;
       }
       
-      .boss-sprite-enlarged {
+      .ion-chamber-boss .boss-sprite-enlarged {
         width: 180px !important;
         height: 320px !important;
       }
       
-      .boss-content-section {
+      .ion-chamber-boss .boss-content-section {
         flex: 1;
         min-width: 0;
       }
       
       @media (max-width: 768px) {
-        .boss-battle-layout {
+        .ion-chamber-boss .boss-battle-layout {
           flex-direction: column;
         }
         
-        .boss-side-layout {
+        .ion-chamber-boss .boss-side-layout {
           width: 100%;
           height: 200px !important;
         }
@@ -386,7 +433,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     this.setUiState('bossState', null);
   },
 
-  // Enhanced version of playBossAnimation with better debug output
+  // Modify this function in boss_component.js
   playBossAnimation: function(animationName, returnToIdle = true) {
     console.log(`Debug: Playing boss animation: ${animationName}`);
     
@@ -425,41 +472,7 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
           break;
       }
       
-      // Add keyframes if they don't exist
-      if (!document.getElementById('ion-chamber-animations')) {
-        const style = document.createElement('style');
-        style.id = 'ion-chamber-animations';
-        style.textContent = `
-          @keyframes ion-chamber-idle {
-            0% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-            50% { transform: scale(4.1); filter: drop-shadow(0 0 12px rgba(255, 106, 0, 0.5)); }
-            100% { transform: scale(4); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-          }
-          
-          @keyframes ion-chamber-ability {
-            0% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)) brightness(1); }
-            50% { transform: scale(4.4) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.8)) brightness(1.3); }
-            100% { transform: scale(4); filter: drop-shadow(0 0 5px rgba(255, 106, 0, 0.3)) brightness(1); }
-          }
-          
-          @keyframes ion-chamber-walking {
-            0% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-            25% { transform: scale(4) translateX(-3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
-            75% { transform: scale(4) translateX(3px); filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.4)); }
-            100% { transform: scale(4) translateX(0); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-          }
-          
-          @keyframes ion-chamber-special {
-            0% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-            20% { transform: scale(4.5) rotate(-5deg); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.8)); }
-            40% { transform: scale(4.2) rotate(3deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
-            60% { transform: scale(4.4) rotate(-3deg); filter: drop-shadow(0 0 18px rgba(255, 106, 0, 0.7)); }
-            80% { transform: scale(4.3) rotate(2deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.6)); }
-            100% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
-          }
-        `;
-        document.head.appendChild(style);
-      }
+      // IMPORTANT: Don't add keyframes dynamically anymore - they're defined in the CSS file
       
       // Set timeout to return to idle if needed
       if (returnToIdle && animationName !== 'idle') {
