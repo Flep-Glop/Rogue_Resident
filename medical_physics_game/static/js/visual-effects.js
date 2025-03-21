@@ -322,12 +322,16 @@ const config = {
     // Set canvas background to match the dark blue
     canvas.style.backgroundColor = '#0f1631';
   }
-  // Add to visual-effects.js - properly adding method to existing object
-  VisualEffects.createCRTStartupEffect = function() {
+  // Create the VisualEffects object if it doesn't exist yet
+  window.VisualEffects = window.VisualEffects || {};
+
+  // Now add the method to the object
+  window.VisualEffects.createCRTStartupEffect = function() {
     // Create CRT startup overlay
     const overlay = document.createElement('div');
     overlay.className = 'crt-startup';
     document.body.appendChild(overlay);
+    
     // Create the style if it doesn't exist
     if (!document.getElementById('crt-startup-style')) {
       const style = document.createElement('style');
@@ -369,18 +373,6 @@ const config = {
             opacity: 1; 
             box-shadow: 0 0 20px 5px #fff;
           }
-          40% { 
-            opacity: 1; 
-            box-shadow: 0 0 40px 10px #fff;
-          }
-          60% { 
-            opacity: 1; 
-            box-shadow: 0 0 80px 15px rgba(91, 141, 217, 0.7);
-          }
-          80% { 
-            opacity: 1; 
-            box-shadow: 0 0 100px 20px rgba(91, 141, 217, 0.5);
-          }
           100% { 
             opacity: 0.8; 
             box-shadow: 0 0 150px 30px rgba(91, 141, 217, 0.3);
@@ -396,21 +388,14 @@ const config = {
     
     // Animate in phases
     setTimeout(() => {
-      // Add scanlines during startup
-      const scanlines = document.createElement('div');
-      scanlines.className = 'crt-startup-scanlines';
-      overlay.appendChild(scanlines);
-      
-      // Add flicker effect
-      overlay.classList.add('crt-flicker');
-      
       // Fade out after startup is complete
-      setTimeout(() => {
-        overlay.classList.add('fade-out');
-        setTimeout(() => overlay.remove(), 2000);
-      }, 1500);
-    }, 300);
-  }
+      overlay.classList.add('fade-out');
+      setTimeout(() => overlay.remove(), 2000);
+    }, 1500);
+  };
+
+  console.log("CRT startup effect registered");
+  
   // Create CRT and scanline effects
   function createCRTEffects(container) {
     if (!container) return;
