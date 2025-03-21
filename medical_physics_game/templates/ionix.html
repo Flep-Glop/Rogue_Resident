@@ -93,7 +93,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            transform: translateX(-20px) translateY(-30px); /* Manual offset to center character */
+            transform: translateX(-200px) translateY(-150px); /* Raised higher vertically */
             z-index: 10; /* Ensure sprite is above glow */
         }
 
@@ -398,7 +398,7 @@
             </div>
             <div class="editor-row">
                 <span class="editor-label">Position Y:</span>
-                <input type="number" id="editor-pos-y" min="-100" max="100" value="-30" step="5">
+                <input type="number" id="editor-pos-y" min="-100" max="100" value="-70" step="5">
             </div>
             <button id="editor-apply">Apply Changes</button>
             <button id="editor-save">Save All Changes</button>
@@ -569,7 +569,7 @@
                         ? speed * 1.5  // Slow down special animations by 50%
                         : speed;
                     
-                    // Create animator directly
+                    // Create animator directly - all animations will loop now
                     const animator = new CanvasSpriteAnimator({
                         imagePath: spritePath,
                         frameCount: frames,
@@ -577,7 +577,7 @@
                         frameHeight: height / frames,
                         fps: 1000 / frameSpeed,
                         scale: scale,
-                        loop: animationName === 'idle' || animationName === 'walking',
+                        loop: true, // Always loop every animation
                         autoPlay: true,
                         layout: 'vertical',
                         debug: document.getElementById('animation-info').style.display === 'block'
@@ -592,26 +592,12 @@
                     // Update editor values
                     updateEditorValues(animationName, frames, width, height, speed, scale);
                     
-                    // For special animations, give plenty of time before switching back to idle
-                    const completionDelay = animationName === 'ability' ? 500 : 
-                                           animationName === 'specialAbility' ? 800 : 100;
-                    
-                    // If not idle/walking, add completion handler
-                    if (animationName !== 'idle' && animationName !== 'walking') {
-                        animator.addEventListener('complete', function() {
-                            // Auto-reset to idle after animation completes
-                            setTimeout(() => {
-                                setActiveAnimation('idle');
-                            }, completionDelay);
-                        });
-                        
-                        // Also add framechange handler to update info panel if visible
-                        animator.addEventListener('framechange', function(event) {
-                            if (document.getElementById('animation-info').style.display === 'block') {
-                                updateAnimationInfo();
-                            }
-                        });
-                    }
+                    // Add framechange handler to update info panel if visible
+                    animator.addEventListener('framechange', function(event) {
+                        if (document.getElementById('animation-info').style.display === 'block') {
+                            updateAnimationInfo();
+                        }
+                    });
                 } catch (error) {
                     console.error("Error creating direct animation:", error);
                     displayFallbackImage();
@@ -795,7 +781,7 @@
                 // Get position values
                 const customData = window.customAnimations && window.customAnimations[animationName];
                 document.getElementById('editor-pos-x').value = customData?.posX ?? -20;
-                document.getElementById('editor-pos-y').value = customData?.posY ?? -30;
+                document.getElementById('editor-pos-y').value = customData?.posY ?? -70;
             }
             
             // Update animation info for debugging
