@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ionix - The Sentient Ion Chamber</title>
+    <style>
+        /* Core styles for the page */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #21232d;
+            color: #d4dae0;
+            font-family: 'Press Start 2P', monospace, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
+        }
+
+        /* Radial glow background effect */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255, 106, 0, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            animation: pulse-subtle 4s infinite alternate ease-in-out;
+        }
+
+        /* Main container holding Ionix */
+        .ionix-container {
+            width: 90vw;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 106, 0, 0.6);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Title styling */
+        .ionix-title {
+            color: #ff6a00;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(255, 106, 0, 0.7);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Subtitle styling */
+        .ionix-subtitle {
+            color: #ff9d4c;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px rgba(255, 106, 0, 0.5);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Character display area */
+        .ionix-display {
+            width: 500px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* The sprite container */
+        .ionix-sprite {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Sprite image styling */
+        .ionix-sprite img {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            transform: scale(6);
+            transform-origin: center center;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Animation styling */
+        .ionix-idle {
+            animation: ionix-idle 3s infinite ease-in-out;
+        }
+
+        .ionix-ability {
+            animation: ionix-ability 1.5s ease-in-out;
+        }
+
+        .ionix-walking {
+            animation: ionix-walking 1.5s infinite ease-in-out;
+        }
+
+        .ionix-special {
+            animation: ionix-special 2s ease-in-out;
+        }
+
+        /* Control panel */
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .anim-btn {
+            background: linear-gradient(to bottom, #ff8f30, #e55b00);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', monospace, sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .anim-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(to bottom, #ffaa30, #ff6a00);
+        }
+
+        .anim-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .anim-btn.active {
+            background: linear-gradient(to bottom, #e55b00, #cc5000);
+            box-shadow: 0 0 15px rgba(255, 106, 0, 0.6), inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Glow effects */
+        .ionix-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 106, 0, 0.5) 0%, rgba(255, 106, 0, 0.2) 40%, rgba(255, 106, 0, 0) 70%);
+            filter: blur(30px);
+            opacity: 0.8;
+            z-index: 2;
+            animation: glow-pulse 4s infinite alternate ease-in-out;
+        }
+
+        /* Floating particles in background */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 106, 0, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+            filter: blur(2px);
+            animation: float-up 15s infinite linear;
+        }
+
+        /* Dialog box */
+        .ionix-dialog {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #ff6a00;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes ionix-idle {
+            0% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+            50% { transform: scale(6.2); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.8)); }
+            100% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+        }
+
+        @keyframes ionix-ability {
+            0% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)) brightness(1); }
+            10% { transform: scale(6.5) rotate(-5deg); filter: drop-shadow(0 0 30px rgba(255, 106, 0, 0.9)) brightness(1.3); }
+            30% { transform: scale(6.2) rotate(3deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
+            50% { transform: scale(6.6) rotate(-3deg); filter: drop-shadow(0 0 35px rgba(255, 106, 0, 0.8)) brightness(1.4); }
+            70% { transform: scale(6.3) rotate(2deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
+            100% { transform: scale(6); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)) brightness(1); }
+        }
+
+        @keyframes ionix-walking {
+            0% { transform: scale(6) translateX(-10px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+            25% { transform: scale(6.1) translateX(-5px); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.6)); }
+            50% { transform: scale(6) translateX(0px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+            75% { transform: scale(6.1) translateX(5px); filter: drop-shadow(0 0 20px rgba(255, 106, 0, 0.6)); }
+            100% { transform: scale(6) translateX(10px); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+        }
+
+        @keyframes ionix-special {
+            0% { transform: scale(6) rotate(0deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+            20% { transform: scale(7) rotate(-10deg); filter: drop-shadow(0 0 40px rgba(255, 106, 0, 1)) brightness(1.5); }
+            40% { transform: scale(6.5) rotate(8deg); filter: drop-shadow(0 0 30px rgba(255, 106, 0, 0.8)) brightness(1.3); }
+            60% { transform: scale(6.8) rotate(-5deg); filter: drop-shadow(0 0 35px rgba(255, 106, 0, 0.9)) brightness(1.4); }
+            80% { transform: scale(6.4) rotate(3deg); filter: drop-shadow(0 0 25px rgba(255, 106, 0, 0.7)) brightness(1.2); }
+            100% { transform: scale(6) rotate(0deg); filter: drop-shadow(0 0 15px rgba(255, 106, 0, 0.5)); }
+        }
+
+        @keyframes pulse-subtle {
+            0% { opacity: 0.5; }
+            100% { opacity: 0.8; }
+        }
+
+        @keyframes glow-pulse {
+            0% { opacity: 0.6; transform: scale(0.9); }
+            100% { opacity: 0.9; transform: scale(1.1); }
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100%) translateX(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100%) translateX(var(--x-drift)) rotate(var(--rotation));
+                opacity: 0;
+            }
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 1200px) {
+            .ionix-display {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .ionix-title {
+                font-size: 2rem;
+            }
+            
+            .ionix-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ionix-display {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .ionix-title {
+                font-size: 1.5rem;
+            }
+            
+            .ionix-subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .control-panel {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .anim-btn {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Font import */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    </style>
+</head>
+<body>
+    <div class="ionix-container">
+        <h1 class="ionix-title">IONIX</h1>
+        <h2 class="ionix-subtitle">The Sentient Ion Chamber</h2>
+        
+        <div class="ionix-display">
+            <div class="ionix-glow"></div>
+            <div class="ionix-sprite">
+                <img id="ionix-img" src="/static/img/characters/ion_chamber/idle.png" alt="Ionix" class="ionix-idle">
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <button class="anim-btn active" id="idle-btn">Idle</button>
+            <button class="anim-btn" id="ability-btn">Ability</button>
+            <button class="anim-btn" id="walking-btn">Walking</button>
+            <button class="anim-btn" id="special-btn">Special</button>
+            <button class="anim-btn" id="dialog-btn">Toggle Dialog</button>
+        </div>
+        
+        <div class="ionix-dialog" id="ionix-dialog">
+            "Welcome to your Radiation Metrology examination. I am Professor Ionix, a sentient ion chamber. Let's see if your understanding of medical physics is... ionizing enough."
+        </div>
+        
+        <div class="particles" id="particles-container"></div>
+    </div>
+
+    <script>
+        // Animation controller
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const ionixImg = document.getElementById('ionix-img');
+            const idleBtn = document.getElementById('idle-btn');
+            const abilityBtn = document.getElementById('ability-btn');
+            const walkingBtn = document.getElementById('walking-btn');
+            const specialBtn = document.getElementById('special-btn');
+            const dialogBtn = document.getElementById('dialog-btn');
+            const dialogBox = document.getElementById('ionix-dialog');
+            
+            // Base path for images
+            const basePath = '/static/img/characters/ion_chamber/';
+            
+            // Current animation state
+            let currentAnimation = 'idle';
+            let animationTimeout = null;
+            
+            // Dialog quotes
+            const dialogQuotes = [
+                "Welcome to your Radiation Metrology examination. I am Professor Ionix, a sentient ion chamber.",
+                "As a sentient ion chamber, I have the unique ability to measure your knowledge directly.",
+                "Let's see if your understanding of medical physics is... ionizing enough.",
+                "Your answer is highly charged with accuracy!",
+                "Correct! Your knowledge shows no signs of recombination.",
+                "Yes! You've collected the right electrons from your memory.",
+                "Hmm, there seems to be saturation in your reasoning.",
+                "Incorrect. Your answer lacks proper calibration.",
+                "Let's increase the potential and move to the next section.",
+                "Now we'll probe your knowledge with higher energy questions.",
+                "Your confidence shows good linearity so far. Let's test its limits.",
+                "Excellent! Your performance shows proportional region precision. You'll make a fine medical physicist."
+            ];
+            
+            // Animation handlers
+            function setAnimation(animName, autoReset = false) {
+                // Clear any previous timeout
+                if (animationTimeout) {
+                    clearTimeout(animationTimeout);
+                    animationTimeout = null;
+                }
+                
+                // Remove all animation classes
+                ionixImg.classList.remove('ionix-idle', 'ionix-ability', 'ionix-walking', 'ionix-special');
+                
+                // Set new image and animation
+                ionixImg.src = `${basePath}${animName}.png`;
+                ionixImg.classList.add(`ionix-${animName}`);
+                
+                // Update active button
+                document.querySelectorAll('.anim-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`${animName}-btn`).classList.add('active');
+                
+                // Store current animation
+                currentAnimation = animName;
+                
+                // Auto reset to idle after animation completes if needed
+                if (autoReset && animName !== 'idle') {
+                    const duration = animName === 'ability' ? 1500 : 
+                                    animName === 'special' ? 2000 : 0;
+                    
+                    if (duration > 0) {
+                        animationTimeout = setTimeout(() => {
+                            setAnimation('idle');
+                        }, duration);
+                    }
+                }
+            }
+            
+            // Button event listeners
+            idleBtn.addEventListener('click', () => setAnimation('idle'));
+            
+            abilityBtn.addEventListener('click', () => {
+                setAnimation('ability', true);
+                showRandomDialog();
+            });
+            
+            walkingBtn.addEventListener('click', () => setAnimation('walking'));
+            
+            specialBtn.addEventListener('click', () => {
+                setAnimation('special', true);
+                showRandomDialog();
+            });
+            
+            // Dialog toggler
+            dialogBtn.addEventListener('click', () => {
+                if (dialogBox.style.display === 'block') {
+                    dialogBox.style.display = 'none';
+                } else {
+                    dialogBox.style.display = 'block';
+                    showRandomDialog();
+                }
+            });
+            
+            // Show random dialog
+            function showRandomDialog() {
+                const randomIndex = Math.floor(Math.random() * dialogQuotes.length);
+                dialogBox.textContent = dialogQuotes[randomIndex];
+                dialogBox.style.display = 'block';
+            }
+            
+            // Create floating particles
+            const particlesContainer = document.getElementById('particles-container');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position, size and animation delay
+                const size = Math.random() * 6 + 4;
+                const left = Math.random() * 100;
+                const delay = Math.random() * 15;
+                const xDrift = (Math.random() * 200 - 100) + 'px';
+                const rotation = Math.random() * 360 + 'deg';
+                
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = left + '%';
+                particle.style.bottom = '-5%';
+                particle.style.opacity = Math.random() * 0.5 + 0.2;
+                particle.style.animationDelay = delay + 's';
+                particle.style.setProperty('--x-drift', xDrift);
+                particle.style.setProperty('--rotation', rotation);
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            // Initialize with idle animation
+            setAnimation('idle');
+        });
+    </script>
+</body>
+</html>
