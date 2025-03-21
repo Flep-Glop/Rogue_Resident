@@ -170,6 +170,10 @@ def get_characters():
 def sprite_test():
     return render_template('sprite_test.html')
 
+@app.route('/ionix.html')
+def ionix():
+    return render_template('ionix.html')
+
 @app.route('/api/item/<item_id>')
 def get_item(item_id):
     """Get item data by ID"""
