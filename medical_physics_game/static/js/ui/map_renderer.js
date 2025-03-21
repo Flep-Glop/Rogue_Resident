@@ -228,13 +228,14 @@ const MapRenderer = {
     });
     
     // Calculate logical canvas dimensions (internal coordinates)
-    const logicalWidth = 800; // Keep consistent internal size
+    this.logicalWidth = 800; // Keep consistent internal size
     
     // Calculate height based on rows (100px per row plus padding)
     const rowSpacing = 80; // Space between rows
     const paddingTop = 100; // Space at top
     const paddingBottom = 100; // Space at bottom
-    const logicalHeight = paddingTop + (maxRow * rowSpacing) + paddingBottom;
+    // Ensure minimum height of 600px for proper spacing
+    this.logicalHeight = Math.max(600, paddingTop + (maxRow * rowSpacing) + paddingBottom);
     
     // Get the container dimensions for display size
     const container = canvas.closest('.map-wrapper');
@@ -243,19 +244,23 @@ const MapRenderer = {
     
     // Important! Set BOTH the canvas dimensions AND the CSS style
     // 1. Set the internal canvas size (where drawing happens)
-    canvas.width = logicalWidth;
-    canvas.height = logicalHeight;
+    canvas.width = this.logicalWidth;
+    canvas.height = this.logicalHeight;
     
-    // 2. Set the display size with CSS
+    // 2. Set the display size with CSS - maintain aspect ratio
+    // Calculate proper height based on aspect ratio
+    const aspectRatio = this.logicalHeight / this.logicalWidth;
+    const properHeight = displayWidth * aspectRatio;
+    
     canvas.style.width = displayWidth + 'px';
-    canvas.style.height = displayHeight + 'px';
+    canvas.style.height = properHeight + 'px';
     
     // Calculate the scale factors between internal and display size
-    this.scaleX = displayWidth / logicalWidth;
-    this.scaleY = displayHeight / logicalHeight;
+    this.scaleX = displayWidth / this.logicalWidth;
+    this.scaleY = properHeight / this.logicalHeight;
     
     // Clear the canvas
-    ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+    ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
     
     // Get floor number for theming
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
@@ -263,9 +268,9 @@ const MapRenderer = {
     const pattern = this.backgroundPatterns[patternIndex];
     
     // Draw background, particles, connections, and nodes...
-    this.drawRetroBackground(ctx, pattern, logicalWidth, logicalHeight);
+    this.drawRetroBackground(ctx, pattern, this.logicalWidth, this.logicalHeight);
     this.drawParticles(ctx);
-    this.drawConnections(ctx, logicalWidth, logicalHeight);
+    this.drawConnections(ctx, this.logicalWidth, this.logicalHeight);
     
     // Draw all nodes
     allNodes.forEach(node => {
