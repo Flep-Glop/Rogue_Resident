@@ -10,6 +10,118 @@
     <link rel="stylesheet" href="/static/css/simple_sprites.css">
     <link href="/static/css/components/ion_chamber_boss.css" rel="stylesheet">
     <a href="/item-editor" class="editor-link">Item Editor</a>
+    
+    <!-- Add our custom enhanced UI styles -->
+    <style>
+        /* Enhanced Map Container */
+        .map-container {
+            min-height: 600px;
+            max-height: 700px;
+            height: auto;
+            transition: all 0.3s ease;
+        }
+        
+        /* Make map responsive but maintain aspect ratio */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 40px); /* Account for title */
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        #floor-map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Character panel enhancements */
+        .character-avatar-container {
+            min-height: 80px;
+        }
+        
+        /* Improved layout for game UI */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -5px;
+        }
+        
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 0 5px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 5px;
+        }
+        
+        .col-md-9 {
+            flex: 0 0 75%;
+            max-width: 75%;
+            padding: 0 5px;
+        }
+        
+        /* Floor info panel */
+        .floor-info {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .node-legend {
+            margin-top: var(--spacing-md);
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-node {
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-size: 10px;
+        }
+        
+        /* Stats panel */
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--spacing-xs) 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 992px) {
+            .col-md-3, .col-md-6, .col-md-9 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .map-container {
+                max-height: 500px;
+                min-height: 400px;
+                order: 1;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="pixel-container">
@@ -27,20 +139,37 @@
             <!-- Main game board container -->
             <div id="game-board-container">
                 <div class="row">
-                    <!-- Character panel -->
+                    <!-- Left Column - Character & Inventory -->
                     <div class="col-md-3">
                         <!-- Character stats panel -->
                         <div class="character-stats unified-background">
-                            <!-- Character info directly at the top without the separate avatar box -->
+                            <h3>Character</h3>
+                            
+                            <!-- Character info container needed by CharacterPanel.js -->
                             <div id="character-info">
                                 <div class="character-details">
-                                    <p><strong>Loading character...</strong></p>
-                                    <!-- Character avatar will be inserted here by JavaScript -->
+                                    <p class="character-name"><strong>Loading...</strong></p>
+                                    <div class="character-avatar-container">
+                                        <div class="character-avatar">
+                                            <div id="character-avatar-sprite" class="character-sprite-container"></div>
+                                        </div>
+                                    </div>
+                                    <div class="insight-bar-container">
+                                        <div class="insight-bar-label">Insight</div>
+                                        <div class="insight-bar">
+                                            <div class="insight-bar-fill" style="width: 70%"></div>
+                                            <span class="insight-value">70</span>
+                                        </div>
+                                    </div>
+                                    <p class="character-level"><strong>Level:</strong> 1</p>
                                 </div>
                             </div>
-                            <div>
-                                <div id="lives-container"></div>
-                            </div>
+                            
+                            <!-- Lives container needed by CharacterPanel.js -->
+                            <div id="lives-container" class="lives-container"></div>
+                            
+                            <!-- Special ability container that will be populated by CharacterPanel.js -->
+                            <div id="special-ability" class="special-ability-container mt-3"></div>
                         </div>
                         
                         <!-- Inventory panel -->
@@ -55,17 +184,81 @@
                         </div>
                     </div>
                     
-                    <!-- Game map and interaction area -->
-                    <div class="col-md-9">
-                        <!-- Map container -->
+                    <!-- Center Column - Map (ENHANCED) -->
+                    <div class="col-md-6">
+                        <!-- Map container with increased size -->
                         <div class="map-container unified-background">
                             <h3>Floor Map</h3>
-                            <canvas id="floor-map" width="800" height="600"></canvas>
+                            <div class="map-wrapper">
+                                <canvas id="floor-map" width="800" height="600"></canvas>
+                            </div>
                             <button id="next-floor-btn" style="display: none;" class="retro-btn start mt-3">Go to Next Floor</button>
                         </div>
-                        
-                        <!-- Node containers will be dynamically generated by NodeRegistry -->
                     </div>
+                    
+                    <!-- Right Column - Game Info -->
+                    <div class="col-md-3">
+                        <!-- Quest info panel -->
+                        <div class="game-panel game-panel--primary unified-background">
+                            <h3>Current Quest</h3>
+                            <div class="quest-description">
+                                Reach the Linear Accelerator on Floor 3 to complete your first rotation.
+                            </div>
+                            
+                            <div class="progress-bar mt-md">
+                                <div class="progress-fill" style="width: 33%;"></div>
+                            </div>
+                            <div class="text-center text-sm mt-sm">1/3 Floors</div>
+                        </div>
+                        
+                        <!-- Floor info panel -->
+                        <div class="game-panel game-panel--warning unified-background floor-info">
+                            <h3>Floor Info</h3>
+                            <div class="floor-description">
+                                Hospital Basement - Watch out for radiation leaks and confused residents!
+                            </div>
+                            
+                            <div class="node-legend">
+                                <div class="legend-item">
+                                    <div class="legend-node map-node--start">S</div>
+                                    <span>Start</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-node map-node--rest">R</div>
+                                    <span>Rest</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-node map-node--treasure">T</div>
+                                    <span>Treasure</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-node map-node--question">?</div>
+                                    <span>Question/Event</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats panel -->
+                        <div class="game-panel game-panel--primary unified-background">
+                            <h3>Stats</h3>
+                            <div class="stats-container">
+                                <div class="stat-item">
+                                    <span class="stat-label">Questions Correct:</span>
+                                    <span class="stat-value">7/10</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Items Found:</span>
+                                    <span class="stat-value">3</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Current Streak:</span>
+                                    <span class="stat-value">4</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Node containers will be dynamically generated by NodeRegistry -->
                 </div>
             </div>
             
@@ -81,21 +274,13 @@
         </div>
     </div>
     
-    <!-- Load these first -->
+    <!-- Keep all your existing scripts exactly as they are -->
     <script src="/static/js/error_handler.js"></script>
     <script src="/static/js/design-bridge.js"></script>
     <script src="/static/js/engine/event_system.js"></script>
-
-    <!-- Then load state & game systems -->
     <script src="/static/js/engine/state_manager.js"></script>
-    
-    <!-- Load visual effects -->
     <script src="/static/js/visual-effects.js"></script>
-    
-    <!-- Character assets manager -->
     <script src="/static/js/character_assets.js"></script>
-    
-    <!-- Load engine scripts -->
     <script src="/static/js/engine/progression.js"></script>
     <script src="/static/js/engine/node_registry.js"></script>
     <script src="/static/js/engine/node_components.js"></script>
@@ -104,11 +289,7 @@
     <script src="/static/js/engine/item_manager.js"></script>
     <script src="/static/js/engine/debug_tools.js"></script>
     <script src="/static/js/engine/component-utils.js"></script>
-
-    <!-- Load API client -->
     <script src="/static/js/api-client.js"></script>
-    
-    <!-- Load UI components -->
     <script src="/static/js/ui-utils.js"></script>
     <script src="/static/js/ui/map_renderer.js"></script>
     <script src="/static/js/ui/node_interaction.js"></script>
@@ -118,8 +299,6 @@
     <script src="/static/js/ui/special_interactions.js"></script>
     <script src="/static/js/tooltip-system.js"></script>
     <script src="/static/js/tooltip-debugger.js"></script>
-    
-    <!-- Load node components -->
     <script src="/static/js/components/question_component.js"></script>
     <script src="/static/js/components/treasure_component.js"></script>
     <script src="/static/js/components/event_component.js"></script>
@@ -128,16 +307,59 @@
     <script src="/static/js/components/rest_component.js"></script>
     <script src="/static/js/components/gamble_component.js"></script>
     <script src="/static/js/components/patient_case_component.js"></script>
-    
-    <!-- Add these before including boss_component.js -->
     <script src="/static/js/components/boss_component.js"></script>
-    
-    <!-- Sprite animation system -->
     <script src="/static/js/sprite-system/canvas-sprite-animator.js"></script>
     <script src="/static/js/sprite-system/sprite-system.js"></script>
-    
-    <!-- Load game initialization last -->
     <script src="/static/js/game.js"></script>
+    
+    <!-- Add the map enhancement script -->
+    <script>
+        // Map Enhancement Script - Helps resize the map canvas in the larger container
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to enhance the map renderer
+            function enhanceMapRenderer() {
+                if (window.MapRenderer && typeof MapRenderer.renderMap === 'function') {
+                    // Store original renderMap function
+                    const originalRenderMap = MapRenderer.renderMap;
+                    
+                    // Create enhanced version with proper sizing
+                    MapRenderer.renderMap = function() {
+                        // Call original function
+                        const result = originalRenderMap.apply(this, arguments);
+                        
+                        // Get canvas and adjust size to fit container
+                        const canvas = document.getElementById('floor-map');
+                        if (canvas) {
+                            const container = canvas.closest('.map-wrapper');
+                            if (container) {
+                                // Get container dimensions
+                                const containerWidth = container.clientWidth;
+                                const containerHeight = container.clientHeight;
+                                
+                                // Update canvas size in CSS (preserves pixelated rendering)
+                                canvas.style.width = containerWidth + 'px';
+                                canvas.style.height = containerHeight + 'px';
+                            }
+                        }
+                        
+                        return result;
+                    };
+                    
+                    // Add window resize handler to update canvas
+                    window.addEventListener('resize', function() {
+                        if (MapRenderer && typeof MapRenderer.renderMap === 'function') {
+                            MapRenderer.renderMap();
+                        }
+                    });
+                    
+                    console.log("Map renderer enhanced with responsive sizing");
+                }
+            }
+            
+            // Call the enhancement function
+            enhanceMapRenderer();
+        });
+    </script>
     
     <!-- Toast container for notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
