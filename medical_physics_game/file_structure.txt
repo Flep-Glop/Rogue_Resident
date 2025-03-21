@@ -23,6 +23,7 @@
 │   │   │   ├── boss_effects.css
 │   │   │   ├── character.css
 │   │   │   ├── inventory.css
+│   │   │   ├── ion_chamber_boss.css
 │   │   │   ├── map.css
 │   │   │   └── nodes.css
 │   │   ├── themes
@@ -31,6 +32,8 @@
 │   │   ├── character_image_styles.css
 │   │   ├── character_sprites.css
 │   │   ├── components.css
+│   │   ├── enhanced-map-styles.css
+│   │   ├── intro-sequence.css
 │   │   ├── item_editor.css
 │   │   ├── main.css
 │   │   ├── npc_sprites.css
@@ -149,6 +152,7 @@
 ├── templates
 │   ├── character_select.html
 │   ├── index.html
+│   ├── ionix.html
 │   ├── item_editor.html
 │   └── landing.html
 ├── README.md
@@ -166,4 +170,4 @@
 ├── update_weights.py
 └── weight_manager.py
 
-17 directories, 149 files
+17 directories, 153 files
