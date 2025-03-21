@@ -202,6 +202,7 @@ const MapRenderer = {
     }
   },
   
+  // This is the key modification to fix the stretched map issue
   renderMap: function() {
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
@@ -226,55 +227,53 @@ const MapRenderer = {
       }
     });
     
-    // Calculate canvas dimensions
-    const canvasWidth = 800; // Fixed width for consistency
+    // Calculate logical canvas dimensions (internal coordinates)
+    const logicalWidth = 800; // Keep consistent internal size
     
     // Calculate height based on rows (100px per row plus padding)
     const rowSpacing = 80; // Space between rows
     const paddingTop = 100; // Space at top
     const paddingBottom = 100; // Space at bottom
-    const canvasHeight = paddingTop + (maxRow * rowSpacing) + paddingBottom;
+    const logicalHeight = paddingTop + (maxRow * rowSpacing) + paddingBottom;
     
-    // Set canvas dimensions
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    canvas.style.width = canvasWidth + 'px';
-    canvas.style.height = canvasHeight + 'px';
+    // Get the container dimensions for display size
+    const container = canvas.closest('.map-wrapper');
+    const displayWidth = container ? container.clientWidth : logicalWidth;
+    const displayHeight = container ? container.clientHeight : logicalHeight;
     
-    // Create a map wrapper if it doesn't exist
-    let mapWrapper = canvas.parentElement;
-    if (!mapWrapper.classList.contains('map-wrapper')) {
-      // Canvas is not in a wrapper yet
-      mapWrapper = document.createElement('div');
-      mapWrapper.className = 'map-wrapper';
-      canvas.parentNode.insertBefore(mapWrapper, canvas);
-      mapWrapper.appendChild(canvas);
-    }
+    // Important! Set BOTH the canvas dimensions AND the CSS style
+    // 1. Set the internal canvas size (where drawing happens)
+    canvas.width = logicalWidth;
+    canvas.height = logicalHeight;
     
-    // Update wrapper height
-    mapWrapper.style.height = canvasHeight + 'px';
+    // 2. Set the display size with CSS
+    canvas.style.width = displayWidth + 'px';
+    canvas.style.height = displayHeight + 'px';
+    
+    // Calculate the scale factors between internal and display size
+    this.scaleX = displayWidth / logicalWidth;
+    this.scaleY = displayHeight / logicalHeight;
+    
+    // Clear the canvas
+    ctx.clearRect(0, 0, logicalWidth, logicalHeight);
     
     // Get floor number for theming
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
     const patternIndex = Math.min(currentFloor - 1, this.backgroundPatterns.length - 1);
     const pattern = this.backgroundPatterns[patternIndex];
     
-    // Draw retro-style background
-    this.drawRetroBackground(ctx, pattern, canvasWidth, canvasHeight);
-    
-    // Draw ambient floating particles (IMMEDIATELY AFTER BACKGROUND)
+    // Draw background, particles, connections, and nodes...
+    this.drawRetroBackground(ctx, pattern, logicalWidth, logicalHeight);
     this.drawParticles(ctx);
+    this.drawConnections(ctx, logicalWidth, logicalHeight);
     
-    // Draw connections next (on top of particles)
-    this.drawConnections(ctx, canvasWidth, canvasHeight);
-    
-    // Draw all nodes with enhanced styling (on top of connections & particles)
+    // Draw all nodes
     allNodes.forEach(node => {
-      this.drawNode(ctx, node, canvasWidth, canvasHeight);
+      this.drawNode(ctx, node, logicalWidth, logicalHeight);
     });
     
     // Add subtle CRT scanline effect
-    this.drawScanlines(ctx, canvasWidth, canvasHeight);
+    this.drawScanlines(ctx, logicalWidth, logicalHeight);
     
     // Update map title with floor number
     const mapTitle = document.querySelector('.panel-title, .map-title, h3');
@@ -283,7 +282,7 @@ const MapRenderer = {
     }
     
     // Check if we need scroll indicators
-    this.updateScrollIndicators(canvasHeight);
+    this.updateScrollIndicators(logicalHeight);
   },
   
     drawRetroBackground: function(ctx, pattern, width, height) {
@@ -859,18 +858,24 @@ const MapRenderer = {
     // Function intentionally left empty to disable scroll indicators
   },
   
-  // Update the handleMapClick function
+  // Also update the click handler to properly translate coordinates
   handleMapClick: function(event) {
     const canvas = event.target;
     const rect = canvas.getBoundingClientRect();
     
-    // Get click coordinates relative to canvas
-    const clickX = event.clientX - rect.left;
-    const clickY = event.clientY - rect.top;
+    // Get click coordinates relative to canvas display size
+    const displayX = event.clientX - rect.left;
+    const displayY = event.clientY - rect.top;
+    
+    // Convert to internal canvas coordinates using scale factors
+    const clickX = displayX / this.scaleX;
+    const clickY = displayY / this.scaleY;
+    
+    console.log(`Click at display(${displayX},${displayY}) -> canvas(${clickX},${clickY})`);
     
     // Check if click is on any node
     const allNodes = GameState.getAllNodes();
-    const width = canvas.width;
+    const width = canvas.width; // Using internal width
     
     for (const node of allNodes) {
       // Skip start node (can't be clicked)
