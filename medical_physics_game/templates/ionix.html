@@ -75,8 +75,8 @@
 
         /* Character display area */
         .ionix-display {
-            width: 300px;
-            height: 300px;
+            width: 400px;
+            height: 400px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -93,6 +93,80 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            transform: translateX(-20px) translateY(-30px); /* Manual offset to center character */
+            z-index: 10; /* Ensure sprite is above glow */
+        }
+
+        /* Glow effects around Ionix - ensure it's behind the sprite */
+        .ionix-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 106, 0, 0.5) 0%, rgba(255, 106, 0, 0.2) 40%, rgba(255, 106, 0, 0) 70%);
+            filter: blur(30px);
+            opacity: 0.8;
+            z-index: 2; /* Lower z-index to ensure it's behind the sprite */
+            animation: glow-pulse 4s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Animation info panel */
+        #animation-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #ff6a00;
+            font-size: 0.7rem;
+            margin-top: 10px;
+            display: none;
+            max-width: 400px;
+            color: #ff9d4c;
+        }
+        
+        /* Animation editor panel */
+        #animation-editor {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #ff6a00;
+            margin-top: 15px;
+            display: none;
+            width: 90%;
+            max-width: 500px;
+            color: #ff9d4c;
+        }
+        
+        #animation-editor input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ff6a00;
+            color: white;
+            padding: 5px;
+            margin: 5px 0;
+            width: 60px;
+            text-align: center;
+        }
+        
+        #animation-editor button {
+            background: linear-gradient(to bottom, #ff8f30, #e55b00);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .editor-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        
+        .editor-label {
+            width: 100px;
+            font-size: 0.8rem;
         }
 
         /* Control panel */
@@ -282,10 +356,52 @@
             <button class="anim-btn" id="walking-btn">Walking</button>
             <button class="anim-btn" id="special-btn">Special Ability</button>
             <button class="anim-btn" id="dialog-btn">Toggle Dialog</button>
+            <button class="anim-btn" id="debug-btn">Show Info</button>
+            <button class="anim-btn" id="edit-btn">Edit Animation</button>
         </div>
         
         <div class="ionix-dialog" id="ionix-dialog">
-            "Welcome to your Radiation Metrology examination. I am Professor Ionix, a sentient ion chamber. Let's see if your understanding of medical physics is... ionizing enough."
+            "Between threshold and saturation lies the truth of all things measured."
+        </div>
+        
+        <div id="animation-info">Animation details will appear here.</div>
+        
+        <div id="animation-editor">
+            <h3 style="margin-top: 0; color: #ff6a00;">Animation Editor</h3>
+            <div class="editor-row">
+                <span class="editor-label">Animation:</span>
+                <span id="editor-animation-name">idle</span>
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Frames:</span>
+                <input type="number" id="editor-frames" min="1" max="20" value="8">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Width:</span>
+                <input type="number" id="editor-width" min="16" max="512" value="97">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Height:</span>
+                <input type="number" id="editor-height" min="16" max="1024" value="776">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Speed (ms):</span>
+                <input type="number" id="editor-speed" min="30" max="1000" value="150">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Scale:</span>
+                <input type="number" id="editor-scale" min="1" max="10" value="5" step="0.5">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Position X:</span>
+                <input type="number" id="editor-pos-x" min="-100" max="100" value="-20" step="5">
+            </div>
+            <div class="editor-row">
+                <span class="editor-label">Position Y:</span>
+                <input type="number" id="editor-pos-y" min="-100" max="100" value="-30" step="5">
+            </div>
+            <button id="editor-apply">Apply Changes</button>
+            <button id="editor-save">Save All Changes</button>
         </div>
         
         <div class="particles" id="particles-container"></div>
@@ -307,25 +423,34 @@
             const specialBtn = document.getElementById('special-btn');
             const dialogBtn = document.getElementById('dialog-btn');
             const dialogBox = document.getElementById('ionix-dialog');
+            const debugBtn = document.getElementById('debug-btn');
+            const editBtn = document.getElementById('edit-btn');
+            const editorPanel = document.getElementById('animation-editor');
             
             // Animation state
             let currentAnimationId = null;
             let currentAnimation = 'idle';
             
-            // Dialog quotes (from npc_assets.js if available, or fallback)
+            // Custom animation override storage
+            window.customAnimations = {};
+            
+            // Dialog quotes - more vague, mysterious and environmental
             let dialogQuotes = [
-                "Welcome to your Radiation Metrology examination. I am Professor Ionix, a sentient ion chamber.",
-                "As a sentient ion chamber, I have the unique ability to measure your knowledge directly.",
-                "Let's see if your understanding of medical physics is... ionizing enough.",
-                "Your answer is highly charged with accuracy!",
-                "Correct! Your knowledge shows no signs of recombination.",
-                "Yes! You've collected the right electrons from your memory.",
-                "Hmm, there seems to be saturation in your reasoning.",
-                "Incorrect. Your answer lacks proper calibration.",
-                "Let's increase the potential and move to the next section.",
-                "Now we'll probe your knowledge with higher energy questions.",
-                "Your confidence shows good linearity so far. Let's test its limits.",
-                "Excellent! Your performance shows proportional region precision. You'll make a fine medical physicist."
+                "Between threshold and saturation lies the truth of all things measured.",
+                "The void reverberates with echoes of quantum fluctuations. I listen, always.",
+                "In the spaces between particles, secrets whisper themselves into being.",
+                "I have seen the dance of free electrons for eons. Their patterns reveal everything.",
+                "What do you seek within the ionization chamber of existence?",
+                "Time flows differently through me. Minutes for you, lifetimes of data for me.",
+                "The signals persist long after the source has gone. Memory is merely charge collection.",
+                "We are all detectors, calibrating against unknowable standards.",
+                "When radiation passes through substance, both are forever changed. So it is with knowledge.",
+                "I was born in radiation's embrace. Transformed. Awakened. Purpose-given.",
+                "The universe's background radiation holds fragments of stories untold.",
+                "My chamber walls have witnessed more truth than all your textbooks combined.",
+                "All measurements are conversations with reality. Some answers arrive delayed.",
+                "Your world is merely noise I have learned to filter.",
+                "Calibration is an illusion. There is only the signal and our interpretation."
             ];
             
             // If NPCAssets is loaded and has dialogue for ionChamberBoss, use it
@@ -419,27 +544,57 @@
                         throw new Error(`Animation "${animationName}" not found for Ionix`);
                     }
                     
+                    // Get original animation data
                     const animData = npc.animations[animationName];
                     const spritePath = npc.spritePath + animData.file;
+                    
+                    // Check for custom overrides
+                    const customData = window.customAnimations && window.customAnimations[animationName];
+                    
+                    // Apply custom values if they exist, otherwise use original
+                    const frames = customData?.frames ?? animData.frames ?? 1;
+                    const width = customData?.width ?? animData.width ?? 97;
+                    const height = customData?.height ?? animData.height ?? (97 * frames);
+                    const speed = customData?.speed ?? animData.speed ?? 150;
+                    const scale = customData?.scale ?? 5;
+                    
+                    // Apply positioning from custom data or default
+                    if (customData && (customData.posX !== undefined || customData.posY !== undefined)) {
+                        spriteContainer.style.transform = `translateX(${customData.posX}px) translateY(${customData.posY}px)`;
+                    }
+                    
+                    // Give non-looping animations enough time to finish
+                    // Increase frameDuration for more deliberate animation
+                    const frameSpeed = (animationName === 'ability' || animationName === 'specialAbility') 
+                        ? speed * 1.5  // Slow down special animations by 50%
+                        : speed;
                     
                     // Create animator directly
                     const animator = new CanvasSpriteAnimator({
                         imagePath: spritePath,
-                        frameCount: animData.frames || 1,
-                        frameWidth: animData.width || 97,
-                        frameHeight: animData.height / animData.frames || 97,
-                        fps: 1000 / (animData.speed || 150),
-                        scale: 5,
+                        frameCount: frames,
+                        frameWidth: width,
+                        frameHeight: height / frames,
+                        fps: 1000 / frameSpeed,
+                        scale: scale,
                         loop: animationName === 'idle' || animationName === 'walking',
                         autoPlay: true,
-                        layout: 'vertical'
+                        layout: 'vertical',
+                        debug: document.getElementById('animation-info').style.display === 'block'
                     });
                     
                     // Mount animator
                     animator.mount(spriteContainer);
                     
-                    // Store for cleanup
+                    // Store for cleanup and info access
                     window.currentAnimator = animator;
+                    
+                    // Update editor values
+                    updateEditorValues(animationName, frames, width, height, speed, scale);
+                    
+                    // For special animations, give plenty of time before switching back to idle
+                    const completionDelay = animationName === 'ability' ? 500 : 
+                                           animationName === 'specialAbility' ? 800 : 100;
                     
                     // If not idle/walking, add completion handler
                     if (animationName !== 'idle' && animationName !== 'walking') {
@@ -447,7 +602,14 @@
                             // Auto-reset to idle after animation completes
                             setTimeout(() => {
                                 setActiveAnimation('idle');
-                            }, 100);
+                            }, completionDelay);
+                        });
+                        
+                        // Also add framechange handler to update info panel if visible
+                        animator.addEventListener('framechange', function(event) {
+                            if (document.getElementById('animation-info').style.display === 'block') {
+                                updateAnimationInfo();
+                            }
                         });
                     }
                 } catch (error) {
@@ -472,10 +634,8 @@
             function setActiveAnimation(animationName) {
                 createIonixAnimation(animationName);
                 
-                // If this is ability or special, show random dialog
-                if (animationName === 'ability' || animationName === 'specialAbility') {
-                    showRandomDialog();
-                }
+                // Don't automatically show dialog when changing animations
+                // Dialog is only toggled through the dialog button now
             }
             
             // Update button active states
@@ -515,6 +675,164 @@
                         showRandomDialog();
                     }
                 });
+                
+                // Animation info button
+                debugBtn.addEventListener('click', () => {
+                    const infoPanel = document.getElementById('animation-info');
+                    if (infoPanel.style.display === 'block') {
+                        infoPanel.style.display = 'none';
+                    } else {
+                        infoPanel.style.display = 'block';
+                        updateAnimationInfo();
+                    }
+                });
+                
+                // Animation editor button
+                editBtn.addEventListener('click', () => {
+                    if (editorPanel.style.display === 'block') {
+                        editorPanel.style.display = 'none';
+                    } else {
+                        editorPanel.style.display = 'block';
+                        updateEditorValues(currentAnimation);
+                    }
+                });
+                
+                // Editor apply button
+                document.getElementById('editor-apply').addEventListener('click', applyEditorChanges);
+                
+                // Editor save button
+                document.getElementById('editor-save').addEventListener('click', saveEditorChanges);
+                
+                // Position adjustment input events
+                document.getElementById('editor-pos-x').addEventListener('change', updatePosition);
+                document.getElementById('editor-pos-y').addEventListener('change', updatePosition);
+            }
+            
+            // Update sprite container position from editor values
+            function updatePosition() {
+                const posX = document.getElementById('editor-pos-x').value;
+                const posY = document.getElementById('editor-pos-y').value;
+                spriteContainer.style.transform = `translateX(${posX}px) translateY(${posY}px)`;
+                
+                // Store in custom animations
+                if (!window.customAnimations[currentAnimation]) {
+                    window.customAnimations[currentAnimation] = {};
+                }
+                window.customAnimations[currentAnimation].posX = parseInt(posX);
+                window.customAnimations[currentAnimation].posY = parseInt(posY);
+            }
+            
+            // Apply editor changes to current animation
+            function applyEditorChanges() {
+                const frames = parseInt(document.getElementById('editor-frames').value);
+                const width = parseInt(document.getElementById('editor-width').value);
+                const height = parseInt(document.getElementById('editor-height').value);
+                const speed = parseInt(document.getElementById('editor-speed').value);
+                const scale = parseFloat(document.getElementById('editor-scale').value);
+                const posX = parseInt(document.getElementById('editor-pos-x').value);
+                const posY = parseInt(document.getElementById('editor-pos-y').value);
+                
+                // Store custom animation data
+                window.customAnimations[currentAnimation] = {
+                    frames: frames,
+                    width: width,
+                    height: height,
+                    speed: speed,
+                    scale: scale,
+                    posX: posX,
+                    posY: posY
+                };
+                
+                // Restart animation with new parameters
+                createDirectAnimation(currentAnimation);
+            }
+            
+            // Save all editor changes to localStorage
+            function saveEditorChanges() {
+                try {
+                    localStorage.setItem('ionix_custom_animations', JSON.stringify(window.customAnimations));
+                    alert('Animation settings saved!');
+                } catch (error) {
+                    console.error('Error saving animations:', error);
+                    alert('Error saving animation settings.');
+                }
+            }
+            
+            // Update editor values based on current animation
+            function updateEditorValues(animationName, frames, width, height, speed, scale) {
+                document.getElementById('editor-animation-name').textContent = animationName;
+                
+                // Get values from custom or original data
+                let animData;
+                
+                if (window.customAnimations && window.customAnimations[animationName]) {
+                    // Use custom values
+                    animData = window.customAnimations[animationName];
+                } else if (window.NPCAssets && NPCAssets.npcs && NPCAssets.npcs.ionChamberBoss && 
+                          NPCAssets.npcs.ionChamberBoss.animations && 
+                          NPCAssets.npcs.ionChamberBoss.animations[animationName]) {
+                    // Use original values
+                    animData = NPCAssets.npcs.ionChamberBoss.animations[animationName];
+                } else {
+                    // Use defaults
+                    animData = { frames: 1, width: 97, height: 97, speed: 150 };
+                }
+                
+                // If specific values were passed in, use those (for immediate updates)
+                if (frames !== undefined) animData.frames = frames;
+                if (width !== undefined) animData.width = width;
+                if (height !== undefined) animData.height = height;
+                if (speed !== undefined) animData.speed = speed;
+                if (scale !== undefined) animData.scale = scale;
+                
+                // Set values in editor
+                document.getElementById('editor-frames').value = animData.frames || 1;
+                document.getElementById('editor-width').value = animData.width || 97;
+                document.getElementById('editor-height').value = animData.height || 97;
+                document.getElementById('editor-speed').value = animData.speed || 150;
+                document.getElementById('editor-scale').value = animData.scale || 5;
+                
+                // Get position values
+                const customData = window.customAnimations && window.customAnimations[animationName];
+                document.getElementById('editor-pos-x').value = customData?.posX ?? -20;
+                document.getElementById('editor-pos-y').value = customData?.posY ?? -30;
+            }
+            
+            // Update animation info for debugging
+            function updateAnimationInfo() {
+                const infoPanel = document.getElementById('animation-info');
+                let infoText = '';
+                
+                // Get NPCAssets data for current animation
+                if (window.NPCAssets && NPCAssets.npcs && NPCAssets.npcs.ionChamberBoss) {
+                    const npc = NPCAssets.npcs.ionChamberBoss;
+                    if (npc.animations && npc.animations[currentAnimation]) {
+                        const animData = npc.animations[currentAnimation];
+                        infoText = `<strong>Animation:</strong> ${currentAnimation}<br>
+                                    <strong>File:</strong> ${animData.file}<br>
+                                    <strong>Frames:</strong> ${animData.frames || 'N/A'}<br>
+                                    <strong>Width:</strong> ${animData.width || 'N/A'}<br>
+                                    <strong>Height:</strong> ${animData.height || 'N/A'}<br>
+                                    <strong>Speed:</strong> ${animData.speed || 'N/A'}ms<br>
+                                    <strong>FPS:</strong> ${Math.round(1000 / (animData.speed || 150))}<br>
+                                    <strong>Loop:</strong> ${(currentAnimation === 'idle' || currentAnimation === 'walking') ? 'Yes' : 'No'}`;
+                    }
+                }
+                
+                // Get information from animator if available
+                if (window.currentAnimator) {
+                    const animator = window.currentAnimator;
+                    infoText += `<br><br><strong>Current Frame:</strong> ${animator.currentFrame + 1} / ${animator.frameCount}<br>
+                                <strong>Is Playing:</strong> ${animator.isPlaying ? 'Yes' : 'No'}<br>
+                                <strong>Scale:</strong> ${animator.scale}x`;
+                }
+                
+                // If no data available
+                if (!infoText) {
+                    infoText = "Animation data not available";
+                }
+                
+                infoPanel.innerHTML = infoText;
             }
             
             // Show random dialog
@@ -556,8 +874,23 @@
             }
             
             // Initialize everything
-            initializeAnimation();
-            createParticles();
+            function initialize() {
+                // Try to load saved custom animations
+                try {
+                    const saved = localStorage.getItem('ionix_custom_animations');
+                    if (saved) {
+                        window.customAnimations = JSON.parse(saved);
+                    }
+                } catch (e) {
+                    console.error('Error loading saved animations:', e);
+                }
+                
+                initializeAnimation();
+                createParticles();
+            }
+            
+            // Run initialization
+            initialize();
         });
     </script>
 </body>
