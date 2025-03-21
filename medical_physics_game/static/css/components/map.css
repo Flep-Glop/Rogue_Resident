@@ -70,12 +70,6 @@
   margin: 0 auto;
 }
 
-/* Canvas styling */
-#floor-map {
-  display: block;
-  image-rendering: pixelated;
-}
-
 /* Map control buttons */
 .floor-button {
   width: 100%;
@@ -98,11 +92,13 @@
     0 0 15px var(--secondary);
 }
 
-/* Ensure map container is positioned for background overlay */
 #floor-map {
+  display: block;
+  image-rendering: pixelated;
   position: relative;
-  overflow: hidden;  /* Keep pixels contained */
-  z-index: 1;        /* Base z-index */
+  overflow: hidden;
+  z-index: 1;
+  background-color: transparent !important; /* Add this line */
 }
 
 /* Ensure nodes are above pixel background */
