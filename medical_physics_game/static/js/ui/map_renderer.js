@@ -286,49 +286,14 @@ const MapRenderer = {
     this.updateScrollIndicators(canvasHeight);
   },
   
-  // Draw retro-styled pixelated background
-  drawRetroBackground: function(ctx, pattern, width, height) {
-    
-    // Draw grid lines with pixel precision
-    ctx.strokeStyle = pattern.gridColor;
-    ctx.lineWidth = 1;
-    
-    // Draw horizontal grid lines
-    for (let y = 0; y < height; y += 20) {
-      ctx.beginPath();
-      ctx.moveTo(0, y + 0.5); // Add 0.5 for pixel-perfect lines
-      ctx.lineTo(width, y + 0.5);
-      ctx.stroke();
-    }
-    
-    // Draw vertical grid lines
-    for (let x = 0; x < width; x += 20) {
-      ctx.beginPath();
-      ctx.moveTo(x + 0.5, 0); // Add 0.5 for pixel-perfect lines
-      ctx.lineTo(x + 0.5, height);
-      ctx.stroke();
-    }
-    
-    // Add small grid dots with pixelation
-    for (let x = 0; x < width; x += 10) {
-      for (let y = 0; y < height; y += 10) {
-        if ((x % 20 === 0) && (y % 20 === 0)) {
-          ctx.fillStyle = pattern.dotColor;
-          ctx.fillRect(x - 1, y - 1, 2, 2);
-        }
-      }
-    }
-    
-    // Add subtle vignette effect (darker around edges)
-    const gradient = ctx.createRadialGradient(
-      width/2, height/2, 100,
-      width/2, height/2, Math.max(width, height)
-    );
-    gradient.addColorStop(0, 'rgba(0,0,0,0)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0.4)');
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    drawRetroBackground: function(ctx, pattern, width, height) {
+      // Clear the canvas to make it fully transparent
+      ctx.clearRect(0, 0, width, height);
+      
+      // No background fill
+      // No grid lines
+      // No dots
+      // No vignette
   },
   
   // Update the drawConnections function
