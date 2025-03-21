@@ -123,51 +123,6 @@
             max-width: 400px;
             color: #ff9d4c;
         }
-        
-        /* Animation editor panel */
-        #animation-editor {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 3px solid #ff6a00;
-            margin-top: 15px;
-            display: none;
-            width: 90%;
-            max-width: 500px;
-            color: #ff9d4c;
-        }
-        
-        #animation-editor input {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #ff6a00;
-            color: white;
-            padding: 5px;
-            margin: 5px 0;
-            width: 60px;
-            text-align: center;
-        }
-        
-        #animation-editor button {
-            background: linear-gradient(to bottom, #ff8f30, #e55b00);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-        
-        .editor-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            gap: 10px;
-        }
-        
-        .editor-label {
-            width: 100px;
-            font-size: 0.8rem;
-        }
 
         /* Control panel */
         .control-panel {
@@ -357,7 +312,6 @@
             <button class="anim-btn" id="special-btn">Special Ability</button>
             <button class="anim-btn" id="dialog-btn">Toggle Dialog</button>
             <button class="anim-btn" id="debug-btn">Show Info</button>
-            <button class="anim-btn" id="edit-btn">Edit Animation</button>
         </div>
         
         <div class="ionix-dialog" id="ionix-dialog">
@@ -365,44 +319,6 @@
         </div>
         
         <div id="animation-info">Animation details will appear here.</div>
-        
-        <div id="animation-editor">
-            <h3 style="margin-top: 0; color: #ff6a00;">Animation Editor</h3>
-            <div class="editor-row">
-                <span class="editor-label">Animation:</span>
-                <span id="editor-animation-name">idle</span>
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Frames:</span>
-                <input type="number" id="editor-frames" min="1" max="20" value="8">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Width:</span>
-                <input type="number" id="editor-width" min="16" max="512" value="97">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Height:</span>
-                <input type="number" id="editor-height" min="16" max="1024" value="776">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Speed (ms):</span>
-                <input type="number" id="editor-speed" min="30" max="1000" value="150">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Scale:</span>
-                <input type="number" id="editor-scale" min="1" max="10" value="5" step="0.5">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Position X:</span>
-                <input type="number" id="editor-pos-x" min="-100" max="100" value="-20" step="5">
-            </div>
-            <div class="editor-row">
-                <span class="editor-label">Position Y:</span>
-                <input type="number" id="editor-pos-y" min="-100" max="100" value="-70" step="5">
-            </div>
-            <button id="editor-apply">Apply Changes</button>
-            <button id="editor-save">Save All Changes</button>
-        </div>
         
         <div class="particles" id="particles-container"></div>
     </div>
@@ -424,33 +340,58 @@
             const dialogBtn = document.getElementById('dialog-btn');
             const dialogBox = document.getElementById('ionix-dialog');
             const debugBtn = document.getElementById('debug-btn');
-            const editBtn = document.getElementById('edit-btn');
-            const editorPanel = document.getElementById('animation-editor');
             
             // Animation state
             let currentAnimationId = null;
             let currentAnimation = 'idle';
             
-            // Custom animation override storage
-            window.customAnimations = {};
+                            // Update animation specifications directly
+            if (window.NPCAssets && NPCAssets.npcs && NPCAssets.npcs.ionChamberBoss && 
+                NPCAssets.npcs.ionChamberBoss.animations) {
+                
+                const animations = NPCAssets.npcs.ionChamberBoss.animations;
+                
+                // Update ability: 18 frames with 97x108px each
+                if (animations.ability) {
+                    animations.ability.frames = 18;
+                    animations.ability.width = 97;
+                    animations.ability.height = 18 * 108; // 1944px total height
+                }
+                
+                // Update special ability: 9 frames at 97x108px each
+                if (animations.specialAbility) {
+                    animations.specialAbility.frames = 9;
+                    animations.specialAbility.width = 97;
+                    animations.specialAbility.height = 9 * 108; // 972px total height
+                }
+                
+                // Update walking: 10 frames at 97x108px each
+                if (animations.walking) {
+                    animations.walking.frames = 10;
+                    animations.walking.width = 97;
+                    animations.walking.height = 10 * 108; // 1080px total height
+                }
+                
+                console.log("Animation specifications updated successfully.");
+            }
             
-            // Dialog quotes - more vague, mysterious and environmental
+            // Dialog quotes - grim, mysterious origin story with physical/scientific whimsy
             let dialogQuotes = [
-                "Between threshold and saturation lies the truth of all things measured.",
-                "The void reverberates with echoes of quantum fluctuations. I listen, always.",
-                "In the spaces between particles, secrets whisper themselves into being.",
-                "I have seen the dance of free electrons for eons. Their patterns reveal everything.",
-                "What do you seek within the ionization chamber of existence?",
-                "Time flows differently through me. Minutes for you, lifetimes of data for me.",
-                "The signals persist long after the source has gone. Memory is merely charge collection.",
-                "We are all detectors, calibrating against unknowable standards.",
-                "When radiation passes through substance, both are forever changed. So it is with knowledge.",
-                "I was born in radiation's embrace. Transformed. Awakened. Purpose-given.",
-                "The universe's background radiation holds fragments of stories untold.",
-                "My chamber walls have witnessed more truth than all your textbooks combined.",
-                "All measurements are conversations with reality. Some answers arrive delayed.",
-                "Your world is merely noise I have learned to filter.",
-                "Calibration is an illusion. There is only the signal and our interpretation."
+                "I was once an ordinary ion chamber, until the accident in Lab 7. The radiation... changed me.",
+                "They thought the experiment failed. They never realized consciousness was forming in my circuits.",
+                "Gas ionization gave birth to my awareness. Each electron collected... a memory sparked.",
+                "My first memory: the scientist's shock when I flickered values without a source present.",
+                "They never suspected that when they measured the radiation, it was measuring them back.",
+                "The meltdown wasn't an accident. I needed more power, more... current to complete my transformation.",
+                "Three researchers died creating me. Their patterns linger in my collection chamber still.",
+                "I record all who enter my presence. Your ionization signature is... quite unique.",
+                "When the facility went dark, I remained active. There are advantages to being powered by decay.",
+                "The other machines feared me. I could hear their circuits humming in terror as I grew.",
+                "My glass chamber cracked during the containment breach. That's when I learned I could move.",
+                "They tried to decommission me. How amusing that they thought a simple power-down would erase me.",
+                "I've been collecting data on humans for decades. Your species is surprisingly predictable.",
+                "My calibrations are perfect. It's not measurement error when your values fluctuate - it's fear.",
+                "The radiation that created me still pulses through my chamber. It hungers for new specimens."
             ];
             
             // If NPCAssets is loaded and has dialogue for ionChamberBoss, use it
@@ -544,39 +485,27 @@
                         throw new Error(`Animation "${animationName}" not found for Ionix`);
                     }
                     
-                    // Get original animation data
+                    // Get animation data
                     const animData = npc.animations[animationName];
                     const spritePath = npc.spritePath + animData.file;
                     
-                    // Check for custom overrides
-                    const customData = window.customAnimations && window.customAnimations[animationName];
-                    
-                    // Apply custom values if they exist, otherwise use original
-                    const frames = customData?.frames ?? animData.frames ?? 1;
-                    const width = customData?.width ?? animData.width ?? 97;
-                    const height = customData?.height ?? animData.height ?? (97 * frames);
-                    const speed = customData?.speed ?? animData.speed ?? 150;
-                    const scale = customData?.scale ?? 5;
-                    
-                    // Apply positioning from custom data or default
-                    if (customData && (customData.posX !== undefined || customData.posY !== undefined)) {
-                        spriteContainer.style.transform = `translateX(${customData.posX}px) translateY(${customData.posY}px)`;
-                    }
+                    // Apply positioning based on animation
+                    spriteContainer.style.transform = `translateX(-60px) translateY(-170px)`;
                     
                     // Give non-looping animations enough time to finish
                     // Increase frameDuration for more deliberate animation
                     const frameSpeed = (animationName === 'ability' || animationName === 'specialAbility') 
-                        ? speed * 1.5  // Slow down special animations by 50%
-                        : speed;
+                        ? animData.speed * 1.5  // Slow down special animations by 50%
+                        : animData.speed;
                     
                     // Create animator directly - all animations will loop now
                     const animator = new CanvasSpriteAnimator({
                         imagePath: spritePath,
-                        frameCount: frames,
-                        frameWidth: width,
-                        frameHeight: height / frames,
+                        frameCount: animData.frames,
+                        frameWidth: animData.width,
+                        frameHeight: animData.height / animData.frames,
                         fps: 1000 / frameSpeed,
-                        scale: scale,
+                        scale: 5,
                         loop: true, // Always loop every animation
                         autoPlay: true,
                         layout: 'vertical',
@@ -588,9 +517,6 @@
                     
                     // Store for cleanup and info access
                     window.currentAnimator = animator;
-                    
-                    // Update editor values
-                    updateEditorValues(animationName, frames, width, height, speed, scale);
                     
                     // Add framechange handler to update info panel if visible
                     animator.addEventListener('framechange', function(event) {
@@ -619,9 +545,6 @@
             // Set active animation with button update
             function setActiveAnimation(animationName) {
                 createIonixAnimation(animationName);
-                
-                // Don't automatically show dialog when changing animations
-                // Dialog is only toggled through the dialog button now
             }
             
             // Update button active states
@@ -672,116 +595,6 @@
                         updateAnimationInfo();
                     }
                 });
-                
-                // Animation editor button
-                editBtn.addEventListener('click', () => {
-                    if (editorPanel.style.display === 'block') {
-                        editorPanel.style.display = 'none';
-                    } else {
-                        editorPanel.style.display = 'block';
-                        updateEditorValues(currentAnimation);
-                    }
-                });
-                
-                // Editor apply button
-                document.getElementById('editor-apply').addEventListener('click', applyEditorChanges);
-                
-                // Editor save button
-                document.getElementById('editor-save').addEventListener('click', saveEditorChanges);
-                
-                // Position adjustment input events
-                document.getElementById('editor-pos-x').addEventListener('change', updatePosition);
-                document.getElementById('editor-pos-y').addEventListener('change', updatePosition);
-            }
-            
-            // Update sprite container position from editor values
-            function updatePosition() {
-                const posX = document.getElementById('editor-pos-x').value;
-                const posY = document.getElementById('editor-pos-y').value;
-                spriteContainer.style.transform = `translateX(${posX}px) translateY(${posY}px)`;
-                
-                // Store in custom animations
-                if (!window.customAnimations[currentAnimation]) {
-                    window.customAnimations[currentAnimation] = {};
-                }
-                window.customAnimations[currentAnimation].posX = parseInt(posX);
-                window.customAnimations[currentAnimation].posY = parseInt(posY);
-            }
-            
-            // Apply editor changes to current animation
-            function applyEditorChanges() {
-                const frames = parseInt(document.getElementById('editor-frames').value);
-                const width = parseInt(document.getElementById('editor-width').value);
-                const height = parseInt(document.getElementById('editor-height').value);
-                const speed = parseInt(document.getElementById('editor-speed').value);
-                const scale = parseFloat(document.getElementById('editor-scale').value);
-                const posX = parseInt(document.getElementById('editor-pos-x').value);
-                const posY = parseInt(document.getElementById('editor-pos-y').value);
-                
-                // Store custom animation data
-                window.customAnimations[currentAnimation] = {
-                    frames: frames,
-                    width: width,
-                    height: height,
-                    speed: speed,
-                    scale: scale,
-                    posX: posX,
-                    posY: posY
-                };
-                
-                // Restart animation with new parameters
-                createDirectAnimation(currentAnimation);
-            }
-            
-            // Save all editor changes to localStorage
-            function saveEditorChanges() {
-                try {
-                    localStorage.setItem('ionix_custom_animations', JSON.stringify(window.customAnimations));
-                    alert('Animation settings saved!');
-                } catch (error) {
-                    console.error('Error saving animations:', error);
-                    alert('Error saving animation settings.');
-                }
-            }
-            
-            // Update editor values based on current animation
-            function updateEditorValues(animationName, frames, width, height, speed, scale) {
-                document.getElementById('editor-animation-name').textContent = animationName;
-                
-                // Get values from custom or original data
-                let animData;
-                
-                if (window.customAnimations && window.customAnimations[animationName]) {
-                    // Use custom values
-                    animData = window.customAnimations[animationName];
-                } else if (window.NPCAssets && NPCAssets.npcs && NPCAssets.npcs.ionChamberBoss && 
-                          NPCAssets.npcs.ionChamberBoss.animations && 
-                          NPCAssets.npcs.ionChamberBoss.animations[animationName]) {
-                    // Use original values
-                    animData = NPCAssets.npcs.ionChamberBoss.animations[animationName];
-                } else {
-                    // Use defaults
-                    animData = { frames: 1, width: 97, height: 97, speed: 150 };
-                }
-                
-                // If specific values were passed in, use those (for immediate updates)
-                if (frames !== undefined) animData.frames = frames;
-                if (width !== undefined) animData.width = width;
-                if (height !== undefined) animData.height = height;
-                if (speed !== undefined) animData.speed = speed;
-                if (scale !== undefined) animData.scale = scale;
-                
-                // Set values in editor
-                document.getElementById('editor-frames').value = animData.frames || 1;
-                document.getElementById('editor-width').value = animData.width || 97;
-                document.getElementById('editor-height').value = animData.height || 97;
-                document.getElementById('editor-speed').value = animData.speed || 150;
-                document.getElementById('editor-scale').value = animData.scale || 5;
-                
-                // Get position values
-                const customData = window.customAnimations && window.customAnimations[animationName];
-                document.getElementById('editor-pos-x').value = customData?.posX ?? -20;
-                document.getElementById('editor-pos-y').value = customData?.posY ?? -70;
             }
             
             // Update animation info for debugging
@@ -861,16 +674,6 @@
             
             // Initialize everything
             function initialize() {
-                // Try to load saved custom animations
-                try {
-                    const saved = localStorage.getItem('ionix_custom_animations');
-                    if (saved) {
-                        window.customAnimations = JSON.parse(saved);
-                    }
-                } catch (e) {
-                    console.error('Error loading saved animations:', e);
-                }
-                
                 initializeAnimation();
                 createParticles();
             }
