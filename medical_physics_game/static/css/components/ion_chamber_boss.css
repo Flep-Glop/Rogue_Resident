@@ -845,3 +845,179 @@ body.debug-layout .boss-with-inventory {
   width: auto !important;
   flex: 1 !important;
 }
+
+/* Clean and crisp boss layout optimized for larger container */
+
+/* Clean slate for boss panel */
+.boss-exam-panel {
+  background-color: rgba(30, 23, 45, 0.95);
+  border: 2px solid #ff6a00;
+  border-radius: 8px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Clean header with proper spacing */
+.exam-header {
+  border-bottom: 2px solid rgba(255, 106, 0, 0.5);
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.exam-title {
+  font-size: 3rem;
+  color: #ff6a00;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 106, 0, 0.3);
+  font-family: 'Press Start 2P', monospace;
+}
+
+.exam-subtitle {
+  font-size: 1.4rem;
+  color: #ff9d4c;
+  margin: 10px 0 0 0;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Optimized two-column layout */
+.boss-battle-layout {
+  display: flex;
+  gap: 40px;
+  height: 100%;
+  flex: 1;
+}
+
+/* Left column for Ionix - optimized for crisp pixel art */
+.boss-side-layout {
+  width: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5) 30%, rgba(50, 15, 0, 0.2) 100%);
+  border-radius: 50%;
+  aspect-ratio: 3/4;
+  padding: 20px;
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure crisp pixel rendering */
+.boss-sprite {
+  position: relative;
+  transform: scale(1);
+  transform-origin: center center;
+}
+
+.boss-sprite img, 
+.boss-sprite canvas {
+  image-rendering: pixelated !important;
+  image-rendering: -moz-crisp-edges !important;
+  image-rendering: crisp-edges !important;
+  -webkit-font-smoothing: none;
+  max-width: none;
+  max-height: none;
+}
+
+/* Subtle glow effect behind Ionix */
+.boss-side-layout::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 80px rgba(255, 106, 0, 0.4);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Right column for content */
+.boss-content-section {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  overflow: auto;
+}
+
+/* Clean dialogue box */
+.boss-dialogue {
+  background-color: rgba(0, 0, 0, 0.6);
+  border-left: 3px solid #ff6a00;
+  border-radius: 8px;
+  padding: 25px;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  font-style: italic;
+  font-family: monospace;
+}
+
+.boss-dialogue p {
+  margin: 0;
+  color: #fff;
+}
+
+/* Section header */
+.phase-header {
+  margin-bottom: 25px;
+}
+
+.phase-title {
+  font-size: 2rem;
+  color: #ff9d4c;
+  margin: 0 0 15px 0;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.phase-description {
+  font-size: 1.2rem;
+  color: #fff;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Button styling */
+.game-btn--primary {
+  background: linear-gradient(to bottom, #ff8f30, #e55b00);
+  color: white;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  font-family: 'Press Start 2P', monospace;
+  box-shadow: 0 4px 0 #c24d00;
+  text-align: center;
+  width: 100%;
+}
+
+.game-btn--primary:hover {
+  background: linear-gradient(to bottom, #ffaa30, #ff6a00);
+  transform: translateY(-2px);
+}
+
+.game-btn--primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #c24d00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .boss-battle-layout {
+    flex-direction: column;
+  }
+  
+  .boss-side-layout, 
+  .boss-content-section {
+    width: 100%;
+  }
+  
+  .boss-side-layout {
+    max-height: 400px;
+  }
+}

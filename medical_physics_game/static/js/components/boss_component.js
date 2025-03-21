@@ -1,15 +1,15 @@
-// Ultra-wide boss component implementation
+// Clean and optimized boss component
 
-const FixedBossComponent = ComponentUtils.createComponent('boss', {
+const CleanBossComponent = ComponentUtils.createComponent('boss', {
   
   // Initialize component 
   initialize: function() {
-    console.log("Initializing ion chamber boss component with ultra-wide layout");
+    console.log("Initializing clean boss component");
   },
   
-  // Render function with dramatically wider layout
+  // Render function with improved layout
   render: function(nodeData, container) {
-    console.log("Rendering ion chamber boss component with ultra-wide layout");
+    console.log("Rendering boss component with clean layout");
 
     // Ensure we have a boss container
     if (!document.getElementById('boss-container')) {
@@ -23,41 +23,42 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     // Use ionChamber boss class for styling
     const bossClass = 'ion-chamber-boss';
     
-    // Create a wrapper with the ultra-wide layout
+    // Create a cleaner, more spacious layout
     container.innerHTML = `
       <div class="boss-with-inventory">
-        <!-- Main boss exam panel with ultra-wide layout -->
-        <div class="game-panel boss-exam-panel ${bossClass} anim-fade-in">
+        <!-- Main boss exam panel with clean layout -->
+        <div class="game-panel boss-exam-panel ${bossClass}">
+          <!-- Clean header section -->
           <div id="exam-header" class="exam-header">
-            <div class="exam-title-container">
-              <h3 class="exam-title">Ionix</h3>
-              <p class="exam-subtitle">The Sentient Ion Chamber</p>
-            </div>
+            <h3 class="exam-title">Ionix</h3>
+            <p class="exam-subtitle">The Sentient Ion Chamber</p>
           </div>
           
-          <!-- Ultra-wide flexbox layout for boss and content -->
+          <!-- Optimized two-column layout -->
           <div class="boss-battle-layout">
-            <!-- Boss character container - now much larger and wider -->
+            <!-- Left column for Ionix - focused on crisp rendering -->
             <div id="boss-character-container" class="boss-character-container boss-side-layout">
               <div id="boss-sprite" class="boss-sprite boss-sprite-enlarged"></div>
             </div>
             
-            <!-- Content section - more spacious -->
+            <!-- Right column for content -->
             <div class="boss-content-section">
+              <!-- Clean dialogue box -->
               <div id="boss-dialogue" class="boss-dialogue">
                 <p>I am Ionix, a sentient ion chamber. Your knowledge of radiation physics will be tested.</p>
               </div>
               
+              <!-- Section content -->
               <div id="exam-phase-container" class="exam-phase-container">
-                <!-- Sample content to demonstrate layout -->
                 <div class="phase-header">
                   <h4 class="phase-title">Section: Radiation Metrology</h4>
                   <p class="phase-description">Answer questions about ion chamber calibration and dosimetry.</p>
                 </div>
               </div>
               
+              <!-- Clean button styling -->
               <div id="exam-actions" class="exam-actions">
-                <button id="next-phase-btn" class="game-btn game-btn--primary w-full">
+                <button id="next-phase-btn" class="game-btn game-btn--primary">
                   Continue
                 </button>
               </div>
@@ -67,133 +68,186 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
       </div>
     `;
     
-    // Make sure our ultra-wide styles are applied
-    this.addUltraWideStyles();
+    // Add clean layout styles
+    this.addCleanLayoutStyles();
     
-    // Initialize boss animation with much larger size
-    this.initBossAnimation();
+    // Initialize boss sprite with focus on crisp rendering
+    this.initCrispBossSprite();
   },
   
-  // Add ultra-wide CSS styles
-  addUltraWideStyles: function() {
+  // Add clean layout styles
+  addCleanLayoutStyles: function() {
     // Check if styles are already added
-    if (document.getElementById('ultra-wide-boss-styles')) {
+    if (document.getElementById('clean-boss-styles')) {
       return;
     }
     
     // Create style element
     const styleEl = document.createElement('style');
-    styleEl.id = 'ultra-wide-boss-styles';
+    styleEl.id = 'clean-boss-styles';
     styleEl.textContent = `
-      /* Ultra-Wide Boss Layout - Almost double the width */
+      /* Clean and crisp boss layout optimized for larger container */
 
-      /* DRAMATICALLY increase main container width */
+      /* Clean slate for boss panel */
       .boss-exam-panel {
-        max-width: 1800px !important; /* Increased from 1200px */
-        width: 98% !important;
-        margin: 0 auto;
+        background-color: rgba(30, 23, 45, 0.95);
+        border: 2px solid #ff6a00;
+        border-radius: 8px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
       }
       
-      /* Make the boss battle container even wider */
-      .boss-with-inventory {
-        max-width: 1800px !important; /* Increased from 1400px */
-        width: 98% !important;
-        margin: 0 auto;
+      /* Clean header with proper spacing */
+      .exam-header {
+        border-bottom: 2px solid rgba(255, 106, 0, 0.5);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
       }
       
-      /* Make the entire battle area take up more screen space */
-      .boss-battle-active .game-board-container,
-      .boss-battle-active .container {
-        max-width: 1800px !important; /* Increased from 1400px */
-        width: 98% !important;
+      .exam-title {
+        font-size: 3rem;
+        color: #ff6a00;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(255, 106, 0, 0.3);
       }
       
-      /* Create much more horizontal space in the layout */
+      .exam-subtitle {
+        font-size: 1.4rem;
+        color: #ff9d4c;
+        margin: 10px 0 0 0;
+      }
+      
+      /* Optimized two-column layout */
       .boss-battle-layout {
         display: flex;
-        gap: 50px; /* Increased from 30px */
-        align-items: flex-start;
-        margin-bottom: 20px;
-        width: 100%;
-        padding: 30px; /* Increased padding */
+        gap: 40px;
+        height: 100%;
+        flex: 1;
       }
       
-      /* Make the boss container MUCH wider */
+      /* Left column for Ionix - optimized for crisp pixel art */
       .boss-side-layout {
-        min-width: 450px !important; /* Increased from 300px */
-        width: 40% !important; /* Increased from 30% */
-        height: 650px !important;
+        width: 45%;
         display: flex;
-        align-items: center;
         justify-content: center;
-        margin-top: 20px;
+        align-items: center;
+        background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5) 30%, rgba(50, 15, 0, 0.2) 100%);
+        border-radius: 50%;
+        aspect-ratio: 3/4;
+        padding: 20px;
         position: relative;
-        background: rgba(30, 15, 40, 0.4);
-        border-radius: 10px;
+        overflow: visible;
       }
       
-      /* Make Ionix even BIGGER */
-      .boss-sprite-enlarged {
-        width: 350px !important;  /* Increased from 280px */
-        height: 600px !important; /* Increased from 500px */
+      /* Ensure crisp pixel rendering */
+      .boss-sprite {
         position: relative;
-        transform: scale(1.2);
-        margin-top: -40px;
+        transform: scale(1);
+        transform-origin: center center;
       }
       
-      /* Make sure the canvas renders crisp pixels */
+      .boss-sprite img, 
       .boss-sprite canvas {
         image-rendering: pixelated !important;
         image-rendering: -moz-crisp-edges !important;
         image-rendering: crisp-edges !important;
+        -webkit-font-smoothing: none;
+        max-width: none;
+        max-height: none;
       }
       
-      /* More spacious content section */
-      .boss-content-section {
-        flex: 1;
-        min-width: 0;
-        padding: 30px; /* Increased from 20px */
-        background: rgba(30, 15, 40, 0.3);
-        border-radius: 10px;
-      }
-      
-      /* Make dialogue more spacious */
-      .boss-dialogue {
-        padding: 25px !important;
-        margin-bottom: 30px !important;
-        font-size: 1.2em !important;
-      }
-      
-      /* Larger header area */
-      .exam-header {
-        padding: 20px 30px !important;
-        margin-bottom: 30px !important;
-      }
-      
-      /* Larger title text */
-      .exam-title {
-        font-size: 2.5rem !important;
-        margin-bottom: 10px !important;
-      }
-      
-      .exam-subtitle {
-        font-size: 1.3rem !important;
-      }
-      
-      /* Ensure Ionix is properly visible with dark oval background */
-      .boss-character-container {
-        background: radial-gradient(ellipse, rgba(0,0,0,0.6) 40%, rgba(30,15,40,0.2) 100%);
-        overflow: visible !important;
+      /* Subtle glow effect behind Ionix */
+      .boss-side-layout::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         border-radius: 50%;
+        box-shadow: inset 0 0 80px rgba(255, 106, 0, 0.4);
+        pointer-events: none;
+        z-index: 0;
+      }
+      
+      /* Right column for content */
+      .boss-content-section {
+        width: 55%;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        overflow: auto;
+      }
+      
+      /* Clean dialogue box */
+      .boss-dialogue {
+        background-color: rgba(0, 0, 0, 0.6);
+        border-left: 3px solid #ff6a00;
+        border-radius: 8px;
+        padding: 25px;
+        font-size: 1.2rem;
+        line-height: 1.5;
+        font-style: italic;
+      }
+      
+      .boss-dialogue p {
+        margin: 0;
+        color: #fff;
+      }
+      
+      /* Section header */
+      .phase-header {
+        margin-bottom: 25px;
+      }
+      
+      .phase-title {
+        font-size: 2rem;
+        color: #ff9d4c;
+        margin: 0 0 15px 0;
+      }
+      
+      .phase-description {
+        font-size: 1.2rem;
+        color: #fff;
+        line-height: 1.5;
+        margin: 0;
+      }
+      
+      /* Button styling */
+      .game-btn--primary {
+        background: linear-gradient(to bottom, #ff8f30, #e55b00);
+        color: white;
+        border: none;
+        padding: 15px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 0 #c24d00;
+        text-align: center;
+        width: 100%;
+      }
+      
+      .game-btn--primary:hover {
+        background: linear-gradient(to bottom, #ffaa30, #ff6a00);
+        transform: translateY(-2px);
+      }
+      
+      .game-btn--primary:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #c24d00;
       }
     `;
     
     document.head.appendChild(styleEl);
-    console.log("Added ultra-wide boss styles");
+    console.log("Added clean boss styles");
   },
   
-  // Initialize boss animation with much larger size
-  initBossAnimation: function() {
+  // Initialize boss sprite with focus on crisp rendering
+  initCrispBossSprite: function() {
     const container = document.getElementById('boss-sprite');
     if (!container) {
       console.error("Boss sprite container not found");
@@ -203,18 +257,18 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     // Clear container
     container.innerHTML = '';
     
-    // Set container dimensions and styling - ULTRA LARGE NOW
-    container.style.width = '350px';   // Dramatically increased
-    container.style.height = '600px';  // Dramatically increased
-    container.style.margin = '0 auto';
+    // Set container dimensions for optimal sizing
+    container.style.width = '300px';
+    container.style.height = '500px';
     container.style.position = 'relative';
     
-    // Create canvas element with larger dimensions
+    // Create canvas element with optimal size for pixel art
     const canvas = document.createElement('canvas');
     canvas.id = 'ion-chamber-canvas';
-    canvas.width = 350;  // Larger canvas width
-    canvas.height = 600; // Larger canvas height
+    canvas.width = 300;
+    canvas.height = 500;
     canvas.style.display = 'block';
+    // Ensure crisp pixel rendering
     canvas.style.imageRendering = 'pixelated';
     canvas.style.imageRendering = 'crisp-edges';
     
@@ -226,12 +280,11 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     spriteSheet.src = '/static/img/characters/ion_chamber/idle.png';
     
     // Animation variables
-    const frameCount = 8;
     const frameWidth = 97;
     const frameHeight = 108; // 864 / 8
-    let currentFrame = 0;
+    let currentFrame = 4; // Use middle frame for static display
     
-    // Draw the current frame
+    // Draw the current frame with focus on crisp rendering
     const drawFrame = () => {
       const ctx = canvas.getContext('2d');
       
@@ -248,10 +301,10 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
         // Calculate source rectangle (from the sprite sheet)
         const sourceY = currentFrame * frameHeight;
         
-        // Turn off image smoothing for crisp pixels
+        // Critical for crisp pixel art - disable image smoothing
         ctx.imageSmoothingEnabled = false;
         
-        // Draw the current frame - scaled up to fill larger canvas
+        // Draw the current frame - scaled up to fill canvas
         ctx.drawImage(
           spriteSheet,       // Image
           0, sourceY,        // Source position (x, y)
@@ -266,11 +319,8 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
     spriteSheet.onload = () => {
       console.log("✅ Sprite sheet loaded successfully");
       
-      // Draw initial frame
+      // Draw crisp frame
       drawFrame();
-      
-      // We're focusing on layout so we'll just show a static frame
-      // and not animate for now
     };
     
     // Handle image loading error
@@ -294,5 +344,5 @@ const FixedBossComponent = ComponentUtils.createComponent('boss', {
 
 // Register the component
 if (typeof NodeComponents !== 'undefined') {
-  NodeComponents.register('boss', FixedBossComponent);
+  NodeComponents.register('boss', CleanBossComponent);
 }
