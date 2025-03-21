@@ -360,9 +360,9 @@
                 
                 // Update special ability: 9 frames at 97x108px each
                 if (animations.specialAbility) {
-                    animations.specialAbility.frames = 9;
+                    animations.specialAbility.frames = 11;
                     animations.specialAbility.width = 97;
-                    animations.specialAbility.height = 9 * 108; // 972px total height
+                    animations.specialAbility.height = 11 * 108; // 972px total height
                 }
                 
                 // Update walking: 10 frames at 97x108px each
@@ -490,7 +490,7 @@
                     const spritePath = npc.spritePath + animData.file;
                     
                     // Apply positioning based on animation
-                    spriteContainer.style.transform = `translateX(-60px) translateY(-170px)`;
+                    spriteContainer.style.transform = `translateX(-60px) translateY(-150px)`;
                     
                     // Give non-looping animations enough time to finish
                     // Increase frameDuration for more deliberate animation
