@@ -277,10 +277,11 @@
                     <!-- Center Column - Map (ENHANCED) -->
                     <div class="col-md-6">
                         <!-- Map container with increased size -->
+                        <!-- In index.html, modify the map container -->
                         <div class="map-container unified-background">
                             <h3>Floor Map</h3>
-                            <div class="map-wrapper">
-                                <canvas id="floor-map" width="800" height="600"></canvas>
+                            <div class="map-wrapper" style="overflow-y: auto; max-height: 600px;">
+                                <canvas id="floor-map" width="1200" height="1000"></canvas>
                             </div>
                             <button id="next-floor-btn" style="display: none;" class="retro-btn start mt-3">Go to Next Floor</button>
                         </div>

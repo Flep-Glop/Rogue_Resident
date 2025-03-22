@@ -325,15 +325,17 @@ const MapRenderer = {
       }
     });
     
-    // Calculate logical canvas dimensions (internal coordinates)
-    this.logicalWidth = 800; // Keep consistent internal size
+    // Increase the logical dimensions for a larger map
+    this.logicalWidth = 1200; // Increased from 800
     
-    // Calculate height based on rows (100px per row plus padding)
-    const rowSpacing = 80; // Space between rows
-    const paddingTop = 100; // Space at top
-    const paddingBottom = 100; // Space at bottom
-    // Ensure minimum height of 600px for proper spacing
-    this.logicalHeight = Math.max(600, paddingTop + (maxRow * rowSpacing) + paddingBottom);
+    // Calculate height based on rows (more spacing for larger map)
+    const rowSpacing = 100; // Increased from 80
+    const paddingTop = 120; // Increased from 100
+    const paddingBottom = 120; // Increased from 100
+    
+    // Ensure a much taller map for scrolling
+    const minHeight = 1000; // Increased from 600
+    this.logicalHeight = Math.max(minHeight, paddingTop + (maxRow * rowSpacing) + paddingBottom);
     
     // Get the container dimensions for display size
     const container = canvas.closest('.map-wrapper');
@@ -602,11 +604,11 @@ const MapRenderer = {
     return node.position.row > this.fogOfWar.lastVisibleRow;
   },
   
-  // Complete updated drawNode function with fog of war
+  // Update the drawNode function to ensure nodes are properly drawn
   drawNode: function(ctx, node, width, height) {
     // Use fixed spacing for reliable positioning
-    const rowSpacing = 80; // Pixels between rows
-    const colSpacing = 120; // Pixels between columns
+    const rowSpacing = 100; // Increase from 80 to 100 for more vertical space
+    const colSpacing = 150; // Increase from 120 to 150 for more horizontal space
     
     // Get the number of columns in this row
     const nodesInRow = this.getNodesInRow(node.position.row);
@@ -621,7 +623,10 @@ const MapRenderer = {
     
     // Calculate centered position
     const x = startX + (colIndex * colSpacing);
-    const y = 100 + (node.position.row * rowSpacing);
+    const y = 120 + (node.position.row * rowSpacing); // Move down by increasing from 100 to 120
+    
+    // Debug output to console
+    console.log(`Drawing node ${node.id} at position (${x}, ${y}), row: ${node.position.row}, col: ${node.position.col}`);
     
     // Check if node is in fog of war
     const inFog = this.isNodeInFog(node);
@@ -1101,10 +1106,11 @@ const MapRenderer = {
   handleMapClick: function(event) {
     const canvas = event.target;
     const rect = canvas.getBoundingClientRect();
+    const mapWrapper = canvas.closest('.map-wrapper');
     
     // Get click coordinates relative to canvas display size
     const displayX = event.clientX - rect.left;
-    const displayY = event.clientY - rect.top;
+    const displayY = event.clientY - rect.top + (mapWrapper ? mapWrapper.scrollTop : 0); // Account for scroll position
     
     // Convert to internal canvas coordinates using scale factors
     const clickX = displayX / this.scaleX;

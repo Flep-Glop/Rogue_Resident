@@ -308,3 +308,30 @@
     font-size: 12px;
   }
 }
+
+/* Add to components/map.css */
+.map-wrapper {
+  overflow-y: auto;
+  max-height: 600px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background-alt);
+}
+
+.map-wrapper::-webkit-scrollbar {
+  width: 12px;
+}
+
+.map-wrapper::-webkit-scrollbar-track {
+  background: var(--background-alt);
+  border-radius: 5px;
+}
+
+.map-wrapper::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 5px;
+  border: 2px solid var(--background-alt);
+}
+
+.map-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
