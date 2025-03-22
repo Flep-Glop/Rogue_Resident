@@ -1,15 +1,48 @@
-/* Brute force tooltip fix */
+/* tooltip-fix.css - Emergency fix for tooltip display issues */
+
+/*
+* TOOLTIP VISIBILITY FIX
+* Ensures tooltips display correctly across various containers
+*/
 .tooltip-trigger:hover .unified-tooltip,
-[class*="shop-item"]:hover .unified-tooltip,
-[class*="inventory-item"]:hover .unified-tooltip,
+.shop-item:hover .unified-tooltip,
+.inventory-item:hover .unified-tooltip,
 .simplified-shop-item:hover .unified-tooltip {
   visibility: visible !important;
   display: block !important;
   opacity: 1 !important;
-  z-index: 999999 !important;
+  z-index: var(--z-tooltip) !important;
 }
 
 .unified-tooltip {
   position: fixed !important;
-  z-index: 999999 !important;
+  z-index: var(--z-tooltip) !important;
+  background-color: var(--background-alt);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-sm);
+  max-width: 250px;
+  pointer-events: none;
+}
+
+/* Tooltip positioning adjustments */
+.unified-tooltip::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--background-alt);
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Responsive adjustments */
+@media (max-width: var(--breakpoint-sm)) {
+  .unified-tooltip {
+    max-width: 200px;
+    font-size: var(--font-size-xs);
+  }
 }

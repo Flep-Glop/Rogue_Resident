@@ -1,5 +1,9 @@
-/* vertical_sprite.css - Simple vertical sprite animation */
+/* vertical_sprite.css - Simple vertical sprite animation system */
 
+/*
+* SPRITE CONTAINER
+* Base container for vertical sprite animations
+*/
 .sprite-container {
   position: relative;
   overflow: hidden;
@@ -7,6 +11,10 @@
   /* Size will be set in JavaScript based on sprite dimensions */
 }
 
+/*
+* VERTICAL SPRITE
+* The animated sprite image that moves vertically
+*/
 .vertical-sprite {
   position: absolute;
   top: 0;
@@ -16,9 +24,48 @@
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  transform-origin: center center;
+  transition: transform var(--transition-fast);
 }
 
-/* Optional debugging border */
+/*
+* SPRITE ANIMATION STATES
+* Applied classes to control animation states
+*/
+.sprite--active {
+  animation-play-state: running;
+}
+
+.sprite--paused {
+  animation-play-state: paused;
+}
+
+/*
+* DEBUG STYLING
+* Visual indicators when in debug mode
+*/
 .debug-mode .sprite-container {
-  border: 1px dashed #5b8dd9;
+  border: 2px dashed var(--primary);
+}
+
+.debug-mode .sprite-container::before {
+  content: attr(data-sprite-name);
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: var(--font-size-xs);
+  color: var(--primary);
+  background-color: var(--dark);
+  padding: 2px 4px;
+  border-radius: var(--border-radius-sm);
+  z-index: var(--z-ui);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .vertical-sprite {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

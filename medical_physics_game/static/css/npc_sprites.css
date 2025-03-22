@@ -1,158 +1,196 @@
 /* npc_sprites.css - Styling for NPC sprites and animations */
 
-/* NPC sprite container */
+/*
+* NPC SPRITE CONTAINER
+* Main container for NPC sprite images
+*/
 .npc-sprite-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  /* NPC avatar for sprites */
-  .npc-avatar {
-    width: 120px;
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-  }
-  
-  /* When in ability mode, allow container to expand */
-  .npc-avatar.ability-mode {
-    overflow: visible !important;
-    z-index: 10; /* Ensure ability animation displays above other elements */
-  }
-  
-  /* Animation elements */
-  .npc-sprite {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    -webkit-font-smoothing: none;
-    transform-origin: center center !important;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1); /* Default scale */
-  }
-  
-  /* When scaling is applied via JS, transform will combine scaling with centering */
-  .npc-sprite[style*="scale"] {
-    transform: translate(-50%, -50%) scale(var(--npc-scale, 1));
-  }
-  
-  /* Single image NPCs */
-  .npc-animation-gif {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    -webkit-font-smoothing: none;
-    transform-origin: center center !important;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  
-  .npc-animation-gif[style*="scale"] {
-    transform: translate(-50%, -50%) scale(var(--npc-scale, 1));
-  }
-  
-  /* Boss-specific styling */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/*
+* NPC AVATAR
+* Visual representation of NPCs
+*/
+.npc-avatar {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Allow container to expand during ability animations */
+.npc-avatar--ability-mode {
+  overflow: visible !important;
+  z-index: var(--z-game-element); /* Ensure ability animation displays above other elements */
+}
+
+/*
+* SPRITE ELEMENTS
+* Core sprite image styling
+*/
+.npc-sprite {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -webkit-font-smoothing: none;
+  transform-origin: center center !important;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1); /* Default scale */
+}
+
+/* When scaling is applied via JS, transform will combine scaling with centering */
+.npc-sprite[style*="scale"] {
+  transform: translate(-50%, -50%) scale(var(--npc-scale, 1));
+}
+
+/*
+* SINGLE IMAGE NPCS
+* Styling for static GIF-based animations
+*/
+.npc-animation-gif {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -webkit-font-smoothing: none;
+  transform-origin: center center !important;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.npc-animation-gif[style*="scale"] {
+  transform: translate(-50%, -50%) scale(var(--npc-scale, 1));
+}
+
+/*
+* BOSS-SPECIFIC STYLING
+* Container adaptations for boss characters
+*/
+.boss-sprite-container {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.boss-sprite {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/*
+* BOSS ANIMATIONS
+* Movement patterns for boss entities
+*/
+@keyframes boss-idle {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes boss-attack {
+  0% { transform: translateY(0) scale(1); }
+  10% { transform: translateY(-5px) scale(1.05); }
+  30% { transform: translateY(3px) scale(1.1); }
+  40% { transform: translateY(-2px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/*
+* SHOPKEEPER STYLING
+* Specific container for shop NPC
+*/
+.shopkeeper-sprite-container {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/*
+* NPC DIALOGUE BUBBLE
+* Speech bubble for NPC conversations
+*/
+.npc-dialogue {
+  position: relative;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  text-align: left;
+}
+
+.npc-dialogue::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid rgba(0, 0, 0, 0.6);
+}
+
+/*
+* ANIMATION STATES
+* Class-based animation triggers
+*/
+.npc-idle {
+  animation: boss-idle var(--animation-medium) ease-in-out infinite;
+}
+
+.npc-attack {
+  animation: boss-attack var(--transition-fast) ease-in-out;
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Scaling for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
+  .npc-avatar, 
   .boss-sprite-container {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-  }
-  
-  .boss-sprite {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  /* Boss animations */
-  @keyframes boss-idle {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-    100% { transform: translateY(0); }
-  }
-  
-  @keyframes boss-attack {
-    0% { transform: translateY(0) scale(1); }
-    10% { transform: translateY(-5px) scale(1.05); }
-    30% { transform: translateY(3px) scale(1.1); }
-    40% { transform: translateY(-2px) scale(1.05); }
-    100% { transform: translateY(0) scale(1); }
-  }
-  
-  /* Shopkeeper-specific styling */
-  .shopkeeper-sprite-container {
     width: 100px;
     height: 100px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
   
-  /* NPC dialogue bubble */
-  .npc-dialogue {
-    position: relative;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 15px;
-    color: white;
-    font-size: 0.9em;
-    line-height: 1.5;
-    text-align: left;
+  .shopkeeper-sprite-container {
+    width: 80px;
+    height: 80px;
   }
-  
-  .npc-dialogue:before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid rgba(0, 0, 0, 0.6);
-  }
-  
-  /* Class-based animation triggers */
-  .npc-idle {
-    animation: boss-idle 3s ease-in-out infinite;
-  }
-  
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .npc-idle,
   .npc-attack {
-    animation: boss-attack 0.5s ease-in-out;
+    animation: none !important;
   }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .npc-avatar, 
-    .boss-sprite-container {
-      width: 100px;
-      height: 100px;
-    }
-    
-    .shopkeeper-sprite-container {
-      width: 80px;
-      height: 80px;
-    }
-  }
+}
