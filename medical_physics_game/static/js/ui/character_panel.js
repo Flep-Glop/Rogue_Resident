@@ -9,7 +9,7 @@ const CharacterPanel = {
     characterAnimId: null  // Track animation ID
   },
 
-  // Initialize the character panel
+  // In character_panel.js, find the initialize function
   initialize: function() {
     console.log("Initializing character panel...");
     
@@ -18,10 +18,8 @@ const CharacterPanel = {
     EventSystem.on(GAME_EVENTS.LIVES_CHANGED, this.updateLives.bind(this));
     EventSystem.on(GAME_EVENTS.INSIGHT_CHANGED, this.updateInsight.bind(this));
     
-    // Initial character display if available in GameState
-    if (GameState && GameState.data && GameState.data.character) {
-      this.updateCharacterDisplay(GameState.data.character);
-    }
+    // MODIFY THIS SECTION - Add retry mechanism for initial character display
+    this.attemptInitialCharacterDisplay();
     
     // Handle page visibility changes
     document.addEventListener('visibilitychange', () => {
@@ -34,7 +32,30 @@ const CharacterPanel = {
     
     return this;
   },
-  
+
+  // ADD THIS NEW FUNCTION after initialize
+  attemptInitialCharacterDisplay: function() {
+    // Try immediately if data exists
+    if (GameState && GameState.data && GameState.data.character) {
+        this.updateCharacterDisplay(GameState.data.character);
+        return;
+    }
+    
+    // Otherwise set a retry timer (tries 3 times over 3 seconds)
+    let attempts = 0;
+    const maxAttempts = 3;
+    const checkInterval = setInterval(() => {
+        attempts++;
+        if (GameState && GameState.data && GameState.data.character) {
+            this.updateCharacterDisplay(GameState.data.character);
+            clearInterval(checkInterval);
+            console.log("Character display initialized on attempt " + attempts);
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.warn("Failed to initialize character display after " + maxAttempts + " attempts");
+        }
+    }, 1000);
+  },
   // Update character display with new character data
   updateCharacterDisplay: function(character) {
     if (!character) {
