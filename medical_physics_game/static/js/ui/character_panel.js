@@ -139,7 +139,7 @@ const CharacterPanel = {
     spriteContainer.innerHTML = `
       <img src="${imagePath}" alt="${characterId}" 
           class="pixel-character-img pixel-bobbing" 
-          style="transform: scale(0.5);"
+          style="transform: scale(2.5);"
           onerror="this.onerror=null; this.src='/static/img/characters/resident.png';">
     `;
     
