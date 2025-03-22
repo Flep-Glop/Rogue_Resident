@@ -357,8 +357,7 @@ const MapRenderer = {
     // FIXED: Set display size to enable scrolling
     // Set width to 100% or container width to fill available space
     canvas.style.width = "100%";
-    // Don't set height - allow container to handle scrolling
-    
+    canvas.style.height = this.logicalHeight + "px";    
     // Calculate the scale factors for mouse interactions
     this.scaleX = this.logicalWidth / displayWidth;
     this.scaleY = this.logicalHeight / displayHeight;
@@ -1156,7 +1155,7 @@ const MapRenderer = {
       if (node.visited) continue;
       
       // Skip nodes in fog of war
-      if (this.config.fogOfWarEnabled && this.isNodeInFog(node)) continue;
+      //if (this.config.fogOfWarEnabled && this.isNodeInFog(node)) continue;
       
       // Get nodes in this row for column calculation
       const nodesInRow = this.getNodesInRow(node.position.row);
