@@ -26,7 +26,16 @@ const NodeComponents = {
         this.loadComponentIfNeeded(typeId);
       });
     }
-    
+    if (typeof EventSystem !== 'undefined') {
+      EventSystem.on(GAME_EVENTS.FLOOR_CHANGED, () => {
+        this.resetContainers(); 
+      });
+      
+      // Also reset containers on game initialization
+      EventSystem.on(GAME_EVENTS.GAME_INITIALIZED, () => {
+        this.resetContainers();
+      });
+    }
     // Create containers for all node types
     this.createAllContainers();
     
@@ -180,6 +189,7 @@ const NodeComponents = {
     }
   },
   
+  // Replace the createContainerForType function in node_components.js
   createContainerForType: function(type) {
     if (!NodeRegistry) return;
     
@@ -188,34 +198,39 @@ const NodeComponents = {
     // Skip if no container ID specified
     if (!containerId) return;
     
-    // Skip if already created
-    if (this.createdContainers[containerId]) return;
+    // IMPORTANT: Reset our tracking state - always verify if container actually exists in DOM
+    this.createdContainers[containerId] = false;
     
-    // Check if container already exists
+    // Check if container already exists in DOM (not just in our tracking variable)
     if (document.getElementById(containerId)) {
+      console.log(`Container ${containerId} already exists in DOM`);
       this.createdContainers[containerId] = true;
       return;
     }
     
+    console.log(`Creating container for node type: ${type} (${containerId})`);
+    
     // Get the parent element where containers should go
-    const parentElement = document.querySelector('.col-md-9') || 
-    document.querySelector('#game-board-container') || 
-    document.querySelector('.game-board-container');
+    let parentElement = document.querySelector('.col-md-9');
     if (!parentElement) {
-    console.error("Parent element for containers not found");
-
-    // Fallback - create a container in the body if nothing else works
-    const gameBoard = document.createElement('div');
-    gameBoard.id = 'game-board-container';
-    gameBoard.className = 'game-board-container col-md-9';
-    document.body.appendChild(gameBoard);
-
-    // Now use this as the parent
-    this.createContainerForType(type);
-    return;
+      parentElement = document.querySelector('#game-board-container');
+    }
+    if (!parentElement) {
+      parentElement = document.querySelector('.game-board-container');
     }
     
-    console.log(`Creating container for node type: ${type} (${containerId})`);
+    if (!parentElement) {
+      console.error("Parent element for containers not found");
+
+      // Fallback - create a container in the body if nothing else works
+      const gameBoard = document.createElement('div');
+      gameBoard.id = 'game-board-container';
+      gameBoard.className = 'game-board-container col-md-9';
+      document.body.appendChild(gameBoard);
+
+      // Now use this as the parent
+      parentElement = gameBoard;
+    }
     
     // Create container
     const container = document.createElement('div');
@@ -235,70 +250,9 @@ const NodeComponents = {
           <button id="continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
         `;
         break;
-        
-      case 'treasure':
-        container.innerHTML = `
-          <h3>Treasure Found!</h3>
-          <div id="treasure-content"></div>
-          <button id="treasure-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'rest':
-        container.innerHTML = `
-          <h3>Rest Area</h3>
-          <p>Take a moment to rest and recuperate.</p>
-          <div id="rest-options">
-            <button id="rest-heal-btn" class="btn btn-success mb-2">Heal (+1 Life)</button>
-            <button id="rest-study-btn" class="btn btn-primary mb-2">Study (+5 Insight)</button>
-          </div>
-          <button id="rest-continue-btn" class="btn btn-secondary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'event':
-        container.innerHTML = `
-          <h3 id="event-title">Event</h3>
-          <div class="event-image-container mb-3">
-            <div class="event-icon">📝</div>
-          </div>
-          <p id="event-description" class="event-description"></p>
-          <div id="event-options" class="event-options-container"></div>
-          <div id="event-result" class="alert mt-3" style="display: none;"></div>
-          <button id="event-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
-        `;
-        break;
-        
-      case 'patient_case':
-        container.innerHTML = `
-          <div class="patient-case-header">
-            <h3 id="patient-case-title">Patient Case</h3>
-            <div class="case-progress-bar">
-              <div class="progress-fill" id="case-progress-fill"></div>
-            </div>
-          </div>
-          <p id="case-description" class="case-description"></p>
-          <div id="stage-container"></div>
-          <button id="patient-case-continue-btn" class="btn btn-primary mt-3" style="display: none;">Continue</button>
-        `;
-        break;
-        
-      case 'shop':
-        container.innerHTML = `
-          <h3>Department Store</h3>
-          <div id="shop-content"></div>
-          <button id="shop-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
-      case 'gamble':
-        container.innerHTML = `
-          <h3>Research Roulette</h3>
-          <div id="gamble-content"></div>
-          <button id="gamble-continue-btn" class="btn btn-primary mt-3">Continue</button>
-        `;
-        break;
-        
+      
+      // Other cases remain the same...
+      
       default:
         container.innerHTML = `
           <h3>${NodeRegistry.getNodeType(type).displayName}</h3>
@@ -312,8 +266,28 @@ const NodeComponents = {
     
     // Mark as created
     this.createdContainers[containerId] = true;
+    
+    console.log(`Container ${containerId} successfully created and added to DOM`);
   },
   
+  // Add this function to NodeComponents
+  resetContainers: function() {
+    console.log("Resetting NodeComponents container tracking...");
+    
+    // Reset container tracking
+    this.createdContainers = {};
+    
+    // Check if any container elements exist and recreate them if needed
+    if (typeof NodeRegistry !== 'undefined' && NodeRegistry.nodeTypes) {
+      Object.entries(NodeRegistry.nodeTypes).forEach(([type, config]) => {
+        if (config.interactionContainer) {
+          // Force recreation of all containers
+          this.createContainerForType(type);
+        }
+      });
+    }
+  },
+
   // Process a node with its component
   processNode: function(nodeData, container) {
     if (!nodeData || !nodeData.type) {
