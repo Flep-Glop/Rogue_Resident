@@ -482,3 +482,15 @@
     width: 160px;
   }
 }
+
+/* Add to components/inventory.css */
+.empty-inventory-message {
+  color: var(--text-dimmed);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--spacing-md);
+  font-style: italic;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-sm) 0;
+}

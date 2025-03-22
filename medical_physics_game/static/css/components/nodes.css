@@ -750,3 +750,35 @@
     padding-left: 0;
   }
 }
+
+/* Modify in components/nodes.css */
+.map-node--current {
+  transform: scale(1.25);
+  box-shadow: 
+    var(--shadow-lg), 
+    0 0 20px rgba(93, 156, 255, 0.8),
+    0 0 10px rgba(255, 255, 255, 0.4) inset;
+  animation: pulse-primary var(--animation-medium) infinite;
+}
+
+/* Add to components/nodes.css */
+.node-connection {
+  stroke: rgba(93, 156, 255, 0.4);
+  stroke-width: 2px;
+}
+
+.node-connection-available {
+  stroke: var(--primary);
+  stroke-width: 3px;
+  stroke-dasharray: 1 3;
+  animation: connection-pulse 2s infinite linear;
+}
+
+@keyframes connection-pulse {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 20;
+  }
+}

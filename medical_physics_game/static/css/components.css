@@ -506,3 +506,40 @@
     padding: var(--spacing-xs);
   }
 }
+
+/* Add to components.css */
+.character-stats {
+  background-color: rgba(26, 28, 56, 0.8); /* Slightly more opaque */
+  border-left: 4px solid var(--primary);
+}
+
+.inventory-container {
+  background-color: rgba(26, 28, 56, 0.7);
+  border-left: 4px solid var(--secondary);
+}
+
+.map-container {
+  background-color: rgba(26, 28, 56, 0.65); /* Slightly more transparent */
+  border: none;
+  box-shadow: 0 0 15px rgba(93, 156, 255, 0.2);
+}
+
+.floor-info-panel {
+  background-color: rgba(26, 28, 56, 0.75);
+  border-right: 4px solid var(--primary);
+}
+
+/* Add to components.css */
+.quest-text {
+  font-family: var(--font-secondary); /* Use monospace instead of pixel font */
+  line-height: var(--line-height-normal);
+  letter-spacing: normal;
+  font-size: var(--font-size-sm);
+}
+
+.quest-title {
+  font-family: var(--font-primary); /* Keep pixel font for titles */
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: var(--letter-spacing-pixel);
+}

@@ -398,3 +398,30 @@
     font-size: calc(var(--font-size-xs) - 1px);
   }
 }
+
+/* Modify in components.css or add to your character.css file */
+.progress-bar {
+  height: 10px; /* Slightly taller */
+  background-color: var(--dark);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow-inner-sm);
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width var(--transition-medium) ease-out;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px 2px 0 0;
+}
