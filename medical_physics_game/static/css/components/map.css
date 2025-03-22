@@ -311,9 +311,9 @@
 
 .map-wrapper {
   overflow-y: auto;
-  overflow-x: auto; /* Enable horizontal scrolling if needed */
   max-height: 600px;
   width: 100%;
+  position: relative;
 }
 
 .map-wrapper::-webkit-scrollbar {

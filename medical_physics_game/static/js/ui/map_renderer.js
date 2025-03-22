@@ -1,4 +1,4 @@
-// map_renderer.js - Enhanced version with retro styling and fog of war
+// map_renderer.js - Enhanced version with retro styling and scrollable map
 // This is a complete replacement for the existing file
 
 // MapRenderer singleton - handles rendering the game map with retro styling
@@ -13,7 +13,8 @@ const MapRenderer = {
     dropShadowDepth: 4, // Depth of the pixel drop shadows
     fogOfWarEnabled: true, // Enable fog of war effect
     fogOfWarDistance: 20,  // Number of rows ahead that are visible
-    nodeRevealAnimations: true // Enable node reveal animations
+    nodeRevealAnimations: true, // Enable node reveal animations
+    debugMode: false    // Set to true to show debug info
   },
   
   // Get node color from registry
@@ -195,7 +196,7 @@ const MapRenderer = {
       if (particle.y > canvas.height) particle.y = 0;
     });
     
-    // MODIFIED: Always do a full redraw to maintain correct z-ordering
+    // Always do a full redraw to maintain correct z-ordering
     this.renderMap();
   },
 
@@ -300,13 +301,8 @@ const MapRenderer = {
     }
   },
   
-  // This is the key modification to fix the stretched map issue and add fog of war
+  // FIXED renderMap function for proper scrolling and positioning
   renderMap: function() {
-    // Add at beginning of renderMap()
-    if (GameState.getAllNodes().length > 0) {
-      console.log("Sample node structure:", GameState.getAllNodes()[0]);
-    }
-    
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
       console.error(`Canvas element not found: ${this.canvasId}`);
@@ -317,6 +313,13 @@ const MapRenderer = {
     if (!ctx) {
       console.error("Could not get canvas context");
       return;
+    }
+
+    // Debug logging if enabled
+    if (this.config.debugMode) {
+      if (GameState.getAllNodes().length > 0) {
+        console.log("Sample node structure:", GameState.getAllNodes()[0]);
+      }
     }
     
     // Get all nodes to determine map dimensions
@@ -334,9 +337,9 @@ const MapRenderer = {
     this.logicalWidth = 1200; // Increased from 800
     
     // Calculate height based on rows (more spacing for larger map)
-    const rowSpacing = 100; // Increased from 80
-    const paddingTop = 120; // Increased from 100
-    const paddingBottom = 120; // Increased from 100
+    const rowSpacing = 120; // Increased from 100
+    const paddingTop = 150; // Increased from 120
+    const paddingBottom = 150; // Increased from 120
     
     // Ensure a much taller map for scrolling
     const minHeight = 1000; // Increased from 600
@@ -347,21 +350,18 @@ const MapRenderer = {
     const displayWidth = container ? container.clientWidth : this.logicalWidth;
     const displayHeight = container ? container.clientHeight : this.logicalHeight;
     
-    // Important! Set BOTH the canvas dimensions AND the CSS style
-    // For logical drawing dimensions (can be large)
+    // Set internal canvas dimensions for drawing
     canvas.width = this.logicalWidth;
     canvas.height = this.logicalHeight;
-
-    // For display - don't scale down, just set width to container width
-    canvas.style.width = "100%";  
-    // Don't set height - let container's overflow handle scrolling
     
-    canvas.style.width = displayWidth + 'px';
-    canvas.style.height = properHeight + 'px';
+    // FIXED: Set display size to enable scrolling
+    // Set width to 100% or container width to fill available space
+    canvas.style.width = "100%";
+    // Don't set height - allow container to handle scrolling
     
-    // Calculate the scale factors between internal and display size
-    this.scaleX = displayWidth / this.logicalWidth;
-    this.scaleY = properHeight / this.logicalHeight;
+    // Calculate the scale factors for mouse interactions
+    this.scaleX = this.logicalWidth / displayWidth;
+    this.scaleY = this.logicalHeight / displayHeight;
     
     // Clear the canvas
     ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
@@ -390,36 +390,62 @@ const MapRenderer = {
     this.drawScanlines(ctx, this.logicalWidth, this.logicalHeight);
     
     // Update map title with floor number
-    const mapTitle = document.querySelector('.panel-title, .map-title, h3');
-    if (mapTitle && mapTitle.textContent.includes('Floor Map')) {
+    const mapTitle = document.querySelector('.map-container h3');
+    if (mapTitle) {
       mapTitle.textContent = `Floor ${currentFloor} Map`;
     }
     
     // Check if we need scroll indicators
     this.updateScrollIndicators(this.logicalHeight);
+    
+    // Debug mode - draw a grid to help debug positioning
+    if (this.config.debugMode) {
+      this.drawDebugGrid(ctx);
+    }
+  },
+  
+  // Improved node positioning calculations for getNodesInRow
+  getNodesInRow: function(rowIndex) {
+    if (!GameState || !GameState.getAllNodes) return [];
+    
+    const nodes = GameState.getAllNodes().filter(node => 
+      node.position && node.position.row === rowIndex
+    );
+    
+    // Debug logging for node positioning
+    if (this.config.debugMode) {
+      console.log(`Row ${rowIndex} has ${nodes.length} nodes:`, 
+                 nodes.map(n => ({ id: n.id, col: n.position.col })));
+    }
+    
+    return nodes.sort((a, b) => {
+      // First try to sort by column position
+      if (a.position.col !== b.position.col) {
+        return a.position.col - b.position.col;
+      }
+      // If columns are the same (should be rare), sort by ID to ensure consistent order
+      return a.id.localeCompare(b.id);
+    });
   },
   
   // Draw fog of war effect
   drawFogOfWar: function(ctx, width, height) {
-    if (!GameState.data) return;
-    
-    // Only draw fog of war if it's visible in settings
-    if (!this.fogOfWar.visible) return;
+    if (!GameState.data || !this.fogOfWar.visible) return;
     
     // Get the last visible row from fog of war state
     const lastVisibleRow = this.fogOfWar.lastVisibleRow;
     
     // Calculate the y-position where fog starts
-    const rowSpacing = 80;
-    const paddingTop = 100;
+    const rowSpacing = 120; // Match the value used in renderMap
+    const paddingTop = 150;  // Match the value used in renderMap
     const fogStartY = paddingTop + (lastVisibleRow * rowSpacing) - 20; // Start slightly above last visible row
     
     // Create a gradient for the fog effect
     const gradient = ctx.createLinearGradient(0, fogStartY, 0, fogStartY + 400);
     gradient.addColorStop(0, "rgba(15, 22, 49, 0)");
-    gradient.addColorStop(0.2, "rgba(15, 22, 49, 0.4)"); // Less opacity (0.7 → 0.4)
-    gradient.addColorStop(0.6, "rgba(15, 22, 49, 0.6)"); // Less opacity (0.85 → 0.6)
-    gradient.addColorStop(1, "rgba(15, 22, 49, 0.8)"); // Less opacity (0.95 → 0.8)
+    gradient.addColorStop(0.2, "rgba(15, 22, 49, 0.4)"); // Less opacity
+    gradient.addColorStop(0.6, "rgba(15, 22, 49, 0.6)"); // Less opacity
+    gradient.addColorStop(1, "rgba(15, 22, 49, 0.8)");   // Less opacity
     
     // Apply gradient to fog area
     ctx.fillStyle = gradient;
@@ -434,183 +460,56 @@ const MapRenderer = {
     // Clear the canvas to make it fully transparent
     ctx.clearRect(0, 0, width, height);
     
-    // No background fill
-    // No grid lines
-    // No dots
-    // No vignette
-  },
-  
-  // Update the drawConnections function
-  drawConnections: function(ctx, width, height) {
-    const allNodes = GameState.getAllNodes();
+    // Add a subtle grid pattern
+    ctx.strokeStyle = pattern.gridColor;
+    ctx.lineWidth = 0.5;
     
-    // Draw connections in multiple passes for layering effects
-    
-    // Pass 1: Draw all connection shadows
-    allNodes.forEach(node => {
-      if (!node.paths || node.paths.length === 0) return;
-      
-      // Get nodes in this row for column calculation
-      const nodesInRow = this.getNodesInRow(node.position.row);
-      const columnsInRow = nodesInRow.length;
-      
-      // Calculate the starting x position to center nodes in this row
-      const rowWidth = columnsInRow * 120;
-      const startX = (width - rowWidth) / 2 + 60;
-      
-      // Get column index of this node within its row
-      const colIndex = nodesInRow.indexOf(node);
-      
-      // Calculate source position with centered coordinates
-      const sourceRow = node.position.row;
-      const startNodeX = startX + (colIndex * 120);
-      const startNodeY = 100 + (sourceRow * 80);
-      
-      // Draw paths to each connected node
-      node.paths.forEach(targetId => {
-        const targetNode = GameState.getNodeById(targetId);
-        if (!targetNode) return;
-        
-        // Get target nodes in their row for column position
-        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
-        const targetColumnsInRow = targetNodesInRow.length;
-        
-        // Calculate target row starting position
-        const targetRowWidth = targetColumnsInRow * 120;
-        const targetStartX = (width - targetRowWidth) / 2 + 60;
-        
-        // Get target's column index
-        const targetColIndex = targetNodesInRow.indexOf(targetNode);
-        
-        // Calculate target position with centered coordinates
-        const targetRow = targetNode.position.row;
-        const endNodeX = targetStartX + (targetColIndex * 120);
-        const endNodeY = 100 + (targetRow * 80);
-        
-        // Shadow color - always dark
-        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.lineWidth = 5;
-        
-        // Draw the shadow with pixelated style
-        this.drawPixelLine(ctx, startNodeX, startNodeY + 4, endNodeX, endNodeY + 4);
-      });
-    });
-    
-    // Pass 2: Draw main connections
-    allNodes.forEach(node => {
-      if (!node.paths || node.paths.length === 0) return;
-      
-      // Get nodes in this row for column calculation 
-      const nodesInRow = this.getNodesInRow(node.position.row);
-      const columnsInRow = nodesInRow.length;
-      
-      // Calculate the starting x position to center nodes in this row
-      const rowWidth = columnsInRow * 120;
-      const startX = (width - rowWidth) / 2 + 60;
-      
-      // Get column index of this node within its row
-      const colIndex = nodesInRow.indexOf(node);
-      
-      // Calculate source position with centered coordinates
-      const sourceRow = node.position.row;
-      const startNodeX = startX + (colIndex * 120);
-      const startNodeY = 100 + (sourceRow * 80);
-      
-      // Draw paths to each connected node
-      node.paths.forEach(targetId => {
-        const targetNode = GameState.getNodeById(targetId);
-        if (!targetNode) return;
-        
-        // Get target nodes in their row
-        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
-        const targetColumnsInRow = targetNodesInRow.length;
-        
-        // Calculate target row starting position
-        const targetRowWidth = targetColumnsInRow * 120;
-        const targetStartX = (width - targetRowWidth) / 2 + 60;
-        
-        // Get target's column index
-        const targetColIndex = targetNodesInRow.indexOf(targetNode);
-        
-        // Calculate target position with centered coordinates
-        const targetRow = targetNode.position.row;
-        const endNodeX = targetStartX + (targetColIndex * 120);
-        const endNodeY = 100 + (targetRow * 80);
-        
-        // Check if this connection is in fog of war
-        const inFog = this.isNodeInFog(targetNode);
-        const sourceInFog = this.isNodeInFog(node);
-        
-        if (node.visited || node.id === 'start') {
-          if (targetNode.state === NODE_STATE.AVAILABLE) {
-            // VALID PASSABLE PATH - BRIGHT GREEN
-            const baseColor = '#56b886'; // Use secondary color
-            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
-            ctx.lineWidth = 3;
-          } else if (targetNode.state === NODE_STATE.COMPLETED) {
-            // ALREADY TAKEN PATH - Now using bright BLUE instead of gray
-            const baseColor = '#5b8dd9'; // Primary color instead of gray
-            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
-            ctx.lineWidth = 3; // Increased from 2 to be more visible
-          } else if (targetNode.state === NODE_STATE.CURRENT) {
-            // PATH TO CURRENT NODE - BRIGHT BLUE
-            const baseColor = '#5b8dd9'; // Use primary color
-            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
-            ctx.lineWidth = 3;
-          } else {
-            // INACCESSIBLE PATH - VERY FAINT
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 0;
-          }
-        } else {
-          // All other paths - extremely faint
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
-          ctx.lineWidth = 0;
-        }
-        
-        // Also, if BOTH nodes are completed, make the path even more prominent
-        if (node.visited && targetNode.visited) {
-          const baseColor = '#9c77db'; // Purple for completed connections
-          ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
-          ctx.lineWidth = 3;
-        }
-        
-        // Only draw if at least one node is not in fog
-        if (!sourceInFog || !inFog) {
-          // If both ends are in fog, don't draw
-          // If only one end is in fog, make it faded
-          if (sourceInFog || inFog) {
-            ctx.globalAlpha = 0.4; // Fade out paths partially in fog
-          }
-          
-          // Draw the connection with pixelated style
-          this.drawPixelLine(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
-          
-          // Reset alpha
-          ctx.globalAlpha = 1.0;
-          
-          // For available paths, add direction indicators
-          if (node.visited && targetNode.state === NODE_STATE.AVAILABLE && !inFog) {
-            this.drawPathArrow(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
-          }
-        }
-      });
-    });
-  },
-  
-  isNodeInFog: function(node) {
-    const result = node.position.row > this.fogOfWar.lastVisibleRow;
-    if (result) {
-      console.log(`Node ${node.id} is hidden by fog of war`);
+    // Draw vertical grid lines
+    for (let x = 0; x < width; x += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
     }
-    return result;
+    
+    // Draw horizontal grid lines
+    for (let y = 0; y < height; y += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
   },
   
-  // Update the drawNode function to ensure nodes are properly drawn
+  // Draw a debug grid to help visualize positioning
+  drawDebugGrid: function(ctx) {
+    const { width, height } = ctx.canvas;
+    
+    // Draw row markers
+    ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
+    ctx.font = "12px monospace";
+    
+    const rowSpacing = 120; // Match the spacing in renderMap
+    const paddingTop = 150;  // Match the padding in renderMap
+    
+    // Draw row markers
+    for (let row = 0; row <= 10; row++) {
+      const y = paddingTop + (row * rowSpacing);
+      ctx.fillRect(10, y, 5, 5);
+      ctx.fillText(`Row ${row}`, 20, y + 5);
+    }
+  },
+  
+  // Update the drawNode function with improved positioning
   drawNode: function(ctx, node, width, height) {
+    if (!node || !node.position) {
+      console.warn(`Cannot draw node, missing position data:`, node);
+      return;
+    }
+    
     // Use fixed spacing for reliable positioning
-    const rowSpacing = 100; // Increase from 80 to 100 for more vertical space
-    const colSpacing = 150; // Increase from 120 to 150 for more horizontal space
+    const rowSpacing = 120; // Match the value used in renderMap
+    const colSpacing = 150; // Horizontal spacing between nodes
     
     // Get the number of columns in this row
     const nodesInRow = this.getNodesInRow(node.position.row);
@@ -623,12 +522,23 @@ const MapRenderer = {
     // Get column index of this node within its row
     const colIndex = nodesInRow.indexOf(node);
     
-    // Calculate centered position
-    const x = startX + (colIndex * colSpacing);
-    const y = 120 + (node.position.row * rowSpacing); // Move down by increasing from 100 to 120
+    // If node not found in row (shouldn't happen), use a fallback
+    let x, y;
+    if (colIndex === -1) {
+      console.warn(`Node ${node.id} not found in row ${node.position.row} nodes list`);
+      // Fallback to positioning by node's column value
+      x = width / 2 + ((node.position.col - 1) * 100); // Fallback spacing
+      y = 150 + (node.position.row * rowSpacing);
+    } else {
+      // Calculate centered position normally
+      x = startX + (colIndex * colSpacing);
+      y = 150 + (node.position.row * rowSpacing); 
+    }
     
-    // Debug output to console
-    console.log(`Drawing node ${node.id} at position (${x}, ${y}), row: ${node.position.row}, col: ${node.position.col}`);
+    // Debug logs to help identify positioning issues
+    if (this.config.debugMode) {
+      console.log(`Drawing node ${node.id} at position (${x}, ${y}), row: ${node.position.row}, col: ${node.position.col}`);
+    }
     
     // Check if node is in fog of war
     const inFog = this.isNodeInFog(node);
@@ -748,6 +658,23 @@ const MapRenderer = {
     ctx.restore();
   },
   
+  // Check if a node is obscured by fog of war
+  isNodeInFog: function(node) {
+    if (!this.config.fogOfWarEnabled || !node || !node.position) {
+      return false;
+    }
+    
+    // Nodes beyond the visible area are in fog
+    const result = node.position.row > this.fogOfWar.lastVisibleRow;
+    
+    // Debug logging for fog calculations
+    if (this.config.debugMode && result) {
+      console.log(`Node ${node.id} is hidden by fog of war (row ${node.position.row} > ${this.fogOfWar.lastVisibleRow})`);
+    }
+    
+    return result;
+  },
+  
   // Draw a node silhouette for nodes in fog of war
   drawNodeSilhouette: function(ctx, node, x, y) {
     ctx.save();
@@ -783,33 +710,6 @@ const MapRenderer = {
     ctx.restore();
   },
   
-  // Update node drawing to match character cards
-  drawNodeCard: function(ctx, x, y, width, height, fillColor, shadowColor) {
-    // Draw shadow
-    ctx.fillStyle = shadowColor;
-    ctx.fillRect(x - width/2, y - height/2 + 4, width, height);
-    
-    // Draw main card
-    ctx.fillStyle = fillColor;
-    ctx.fillRect(x - width/2, y - height/2, width, height);
-    
-    // Add highlight
-    ctx.beginPath();
-    ctx.moveTo(x - width/2, y - height/2);
-    ctx.lineTo(x + width/2, y - height/2);
-    ctx.strokeStyle = this.adjustColorBrightness(fillColor, 30);
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  },
-  
-  getNodesInRow: function(rowIndex) {
-    const nodes = GameState.getAllNodes().filter(node => 
-      node.position && node.position.row === rowIndex
-    );
-    console.log(`Row ${rowIndex} has ${nodes.length} nodes:`, nodes);
-    return nodes.sort((a, b) => a.position.col - b.position.col);
-  },
-
   // Draw a hexagon shape for start node
   drawStartNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
     const sides = 6; // Hexagon has 6 sides
@@ -986,6 +886,164 @@ const MapRenderer = {
     }
   },
   
+  // Draw connections between nodes with improved visibility
+  drawConnections: function(ctx, width, height) {
+    const allNodes = GameState.getAllNodes();
+    
+    // Draw connections in multiple passes for layering effects
+    
+    // Pass 1: Draw all connection shadows
+    allNodes.forEach(node => {
+      if (!node.paths || node.paths.length === 0) return;
+      
+      // Get nodes in this row for column calculation
+      const nodesInRow = this.getNodesInRow(node.position.row);
+      const columnsInRow = nodesInRow.length;
+      
+      // Calculate the starting x position to center nodes in this row
+      const rowWidth = columnsInRow * 150; // Match colSpacing from drawNode
+      const startX = (width - rowWidth) / 2 + 75; // Half of colSpacing
+      
+      // Get column index of this node within its row
+      const colIndex = nodesInRow.indexOf(node);
+      
+      // Calculate source position with centered coordinates
+      const sourceRow = node.position.row;
+      const startNodeX = startX + (colIndex * 150);
+      const startNodeY = 150 + (sourceRow * 120);
+      
+      // Draw paths to each connected node
+      node.paths.forEach(targetId => {
+        const targetNode = GameState.getNodeById(targetId);
+        if (!targetNode) return;
+        
+        // Get target nodes in their row for column position
+        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
+        const targetColumnsInRow = targetNodesInRow.length;
+        
+        // Calculate target row starting position
+        const targetRowWidth = targetColumnsInRow * 150;
+        const targetStartX = (width - targetRowWidth) / 2 + 75;
+        
+        // Get target's column index
+        const targetColIndex = targetNodesInRow.indexOf(targetNode);
+        
+        // Calculate target position with centered coordinates
+        const targetRow = targetNode.position.row;
+        const endNodeX = targetStartX + (targetColIndex * 150);
+        const endNodeY = 150 + (targetRow * 120);
+        
+        // Shadow color - always dark
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = 5;
+        
+        // Draw the shadow with pixelated style
+        this.drawPixelLine(ctx, startNodeX, startNodeY + 4, endNodeX, endNodeY + 4);
+      });
+    });
+    
+    // Pass 2: Draw main connections
+    allNodes.forEach(node => {
+      if (!node.paths || node.paths.length === 0) return;
+      
+      // Get nodes in this row for column calculation 
+      const nodesInRow = this.getNodesInRow(node.position.row);
+      const columnsInRow = nodesInRow.length;
+      
+      // Calculate the starting x position to center nodes in this row
+      const rowWidth = columnsInRow * 150;
+      const startX = (width - rowWidth) / 2 + 75;
+      
+      // Get column index of this node within its row
+      const colIndex = nodesInRow.indexOf(node);
+      
+      // Calculate source position with centered coordinates
+      const sourceRow = node.position.row;
+      const startNodeX = startX + (colIndex * 150);
+      const startNodeY = 150 + (sourceRow * 120);
+      
+      // Draw paths to each connected node
+      node.paths.forEach(targetId => {
+        const targetNode = GameState.getNodeById(targetId);
+        if (!targetNode) return;
+        
+        // Get target nodes in their row
+        const targetNodesInRow = this.getNodesInRow(targetNode.position.row);
+        const targetColumnsInRow = targetNodesInRow.length;
+        
+        // Calculate target row starting position
+        const targetRowWidth = targetColumnsInRow * 150;
+        const targetStartX = (width - targetRowWidth) / 2 + 75;
+        
+        // Get target's column index
+        const targetColIndex = targetNodesInRow.indexOf(targetNode);
+        
+        // Calculate target position with centered coordinates
+        const targetRow = targetNode.position.row;
+        const endNodeX = targetStartX + (targetColIndex * 150);
+        const endNodeY = 150 + (targetRow * 120);
+        
+        // Check if this connection is in fog of war
+        const inFog = this.isNodeInFog(targetNode);
+        const sourceInFog = this.isNodeInFog(node);
+        
+        if (node.visited || node.id === 'start') {
+          if (targetNode.state === NODE_STATE.AVAILABLE) {
+            // VALID PASSABLE PATH - BRIGHT GREEN
+            const baseColor = '#56b886'; // Use secondary color
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
+            ctx.lineWidth = 3;
+          } else if (targetNode.state === NODE_STATE.COMPLETED) {
+            // ALREADY TAKEN PATH - Using bright BLUE
+            const baseColor = '#5b8dd9'; // Primary color
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
+            ctx.lineWidth = 3;
+          } else if (targetNode.state === NODE_STATE.CURRENT) {
+            // PATH TO CURRENT NODE - BRIGHT BLUE
+            const baseColor = '#5b8dd9'; // Use primary color
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
+            ctx.lineWidth = 3;
+          } else {
+            // INACCESSIBLE PATH - VERY FAINT
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 0;
+          }
+        } else {
+          // All other paths - extremely faint
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+          ctx.lineWidth = 0;
+        }
+        
+        // Also, if BOTH nodes are completed, make the path even more prominent
+        if (node.visited && targetNode.visited) {
+          const baseColor = '#9c77db'; // Purple for completed connections
+          ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
+          ctx.lineWidth = 3;
+        }
+        
+        // Only draw if at least one node is not in fog
+        if (!sourceInFog || !inFog) {
+          // If both ends are in fog, don't draw
+          // If only one end is in fog, make it faded
+          if (sourceInFog || inFog) {
+            ctx.globalAlpha = 0.4; // Fade out paths partially in fog
+          }
+          
+          // Draw the connection with pixelated style
+          this.drawPixelLine(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
+          
+          // Reset alpha
+          ctx.globalAlpha = 1.0;
+          
+          // For available paths, add direction indicators
+          if (node.visited && targetNode.state === NODE_STATE.AVAILABLE && !inFog) {
+            this.drawPathArrow(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
+          }
+        }
+      });
+    });
+  },
+  
   // Draw pixel-style directional arrow on paths
   drawPathArrow: function(ctx, x1, y1, x2, y2) {
     // Calculate arrow position (3/4 of the way from start to end)
@@ -1061,50 +1119,13 @@ const MapRenderer = {
     }
   },
   
-  // Update the drawFloorIndicator function in map_renderer.js to use a smaller font
-  drawFloorIndicator: function(ctx, floorNumber) {
-    ctx.save();
-    
-    // Keep centered position
-    const badgeX = ctx.canvas.width / 2;
-    const badgeY = 30;
-    
-    // Adjust size to better fit text
-    const badgeWidth = 120;
-    const badgeHeight = 36;
-    
-    // Draw badge background shadow
-    ctx.fillStyle = '#292b36'; // Dark shadow
-    ctx.fillRect(badgeX - badgeWidth/2 + 4, badgeY - 10 + 4, badgeWidth, badgeHeight);
-    
-    // Draw badge main body
-    ctx.fillStyle = '#3d4c60'; // Dark blue background
-    ctx.fillRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
-    
-    // Badge border
-    ctx.strokeStyle = '#5b8dd9'; // Primary color
-    ctx.lineWidth = 2;
-    ctx.strokeRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
-    
-    // Badge text - REDUCED FONT SIZE
-    ctx.font = '14px "Press Start 2P", monospace'; // Smaller font (from 18px to 14px)
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`FLOOR ${floorNumber}`, badgeX, badgeY + 8); // Adjust vertical position
-    
-    // Add a subtle glow effect
-    ctx.shadowColor = '#5b8dd9';
-    ctx.shadowBlur = 8;
-    ctx.strokeRect(badgeX - badgeWidth/2, badgeY - 10, badgeWidth, badgeHeight);
-    
-    ctx.restore();
-  },
-  
+  // Simplified scroll indicators to remove errors
   updateScrollIndicators: function(canvasHeight) {
-    // Function intentionally left empty to disable scroll indicators
+    // Intentionally empty to disable scroll indicators
+    // They aren't necessary with the scrollable container
   },
   
-  // Also update the click handler to properly translate coordinates
+  // Updated click handler to properly translate coordinates
   handleMapClick: function(event) {
     const canvas = event.target;
     const rect = canvas.getBoundingClientRect();
@@ -1114,11 +1135,14 @@ const MapRenderer = {
     const displayX = event.clientX - rect.left;
     const displayY = event.clientY - rect.top + (mapWrapper ? mapWrapper.scrollTop : 0); // Account for scroll position
     
-    // Convert to internal canvas coordinates using scale factors
-    const clickX = displayX / this.scaleX;
-    const clickY = displayY / this.scaleY;
+    // Convert to internal canvas coordinates
+    // FIXED: Proper scaling for click coordinates
+    const clickX = displayX * this.scaleX;
+    const clickY = displayY * this.scaleY;
     
-    console.log(`Click at display(${displayX},${displayY}) -> canvas(${clickX},${clickY})`);
+    if (this.config.debugMode) {
+      console.log(`Click at display(${displayX},${displayY}) -> canvas(${clickX},${clickY})`);
+    }
     
     // Check if click is on any node
     const allNodes = GameState.getAllNodes();
@@ -1139,16 +1163,16 @@ const MapRenderer = {
       const columnsInRow = nodesInRow.length;
       
       // Calculate the starting x position to center nodes in this row
-      const rowWidth = columnsInRow * 120;
-      const startX = (width - rowWidth) / 2 + 60;
+      const rowWidth = columnsInRow * 150; // Match colSpacing from drawNode
+      const startX = (width - rowWidth) / 2 + 75;
       
       // Get column index of this node within its row
       const colIndex = nodesInRow.indexOf(node);
       
       // Calculate node center with centered coordinates
       const nodeRow = node.position.row;
-      const nodeX = startX + (colIndex * 120);
-      const nodeY = 100 + (nodeRow * 80);
+      const nodeX = startX + (colIndex * 150);
+      const nodeY = 150 + (nodeRow * 120);
       
       // Check distance from click to node center
       const dx = clickX - nodeX;
@@ -1158,7 +1182,9 @@ const MapRenderer = {
       
       // Check if click is within node radius
       if (distance <= nodeRadius) {
-        console.log("Clicked on node:", node.id, "- state:", node.state);
+        if (this.config.debugMode) {
+          console.log("Clicked on node:", node.id, "- state:", node.state);
+        }
         
         // If node can be visited, process it
         if (ProgressionManager.canVisitNode(node.id)) {
@@ -1238,6 +1264,14 @@ const MapRenderer = {
       ((1 << 24) + (r << 16) + (g << 8) + b)
         .toString(16)
         .slice(1);
+  },
+  
+  // Enable debug mode to see more detailed info - can be toggled in console
+  toggleDebugMode: function() {
+    this.config.debugMode = !this.config.debugMode;
+    console.log(`Debug mode ${this.config.debugMode ? 'enabled' : 'disabled'}`);
+    this.renderMap();
+    return this.config.debugMode;
   }
 };
 
