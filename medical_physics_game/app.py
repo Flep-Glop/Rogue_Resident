@@ -173,7 +173,12 @@ def sprite_test():
 @app.route('/ionix.html')
 def ionix():
     return render_template('ionix.html')
-
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    response = send_from_directory('static', filename)
+    if filename.endswith('.js'):
+        response.headers['Content-Type'] = 'application/javascript'
+    return response
 @app.route('/api/item/<item_id>')
 def get_item(item_id):
     """Get item data by ID"""

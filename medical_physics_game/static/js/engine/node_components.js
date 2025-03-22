@@ -180,7 +180,6 @@ const NodeComponents = {
     }
   },
   
-  // Create a container for a specific node type
   createContainerForType: function(type) {
     if (!NodeRegistry) return;
     
@@ -199,10 +198,21 @@ const NodeComponents = {
     }
     
     // Get the parent element where containers should go
-    const parentElement = document.querySelector('.col-md-9');
+    const parentElement = document.querySelector('.col-md-9') || 
+    document.querySelector('#game-board-container') || 
+    document.querySelector('.game-board-container');
     if (!parentElement) {
-      console.error("Parent element for containers not found");
-      return;
+    console.error("Parent element for containers not found");
+
+    // Fallback - create a container in the body if nothing else works
+    const gameBoard = document.createElement('div');
+    gameBoard.id = 'game-board-container';
+    gameBoard.className = 'game-board-container col-md-9';
+    document.body.appendChild(gameBoard);
+
+    // Now use this as the parent
+    this.createContainerForType(type);
+    return;
     }
     
     console.log(`Creating container for node type: ${type} (${containerId})`);
