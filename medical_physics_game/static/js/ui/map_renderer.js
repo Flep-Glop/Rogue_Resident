@@ -76,6 +76,9 @@ const MapRenderer = {
     // Set up as GameState observer
     GameState.addObserver(this);
     
+    // CRITICAL FIX: Initialize fog of war properly on first load
+    this.fogOfWar.lastVisibleRow = 20; // Show many rows initially
+
     // Set up click handler
     const canvas = document.getElementById(canvasId);
     if (canvas) {
@@ -238,7 +241,6 @@ const MapRenderer = {
     this.newlyRevealedNodes = [];
   },
   
-  // Update fog of war calculation based on current progress
   updateFogOfWarCalculation: function() {
     if (!this.config.fogOfWarEnabled || !GameState.data) return;
     
@@ -247,22 +249,24 @@ const MapRenderer = {
     
     // Include the current node
     if (GameState.data.currentNode) {
-      const currentNode = GameState.getNodeById(GameState.data.currentNode);
-      if (currentNode && currentNode.position && currentNode.position.row > maxVisitedRow) {
-        maxVisitedRow = currentNode.position.row;
-      }
+        const currentNode = GameState.getNodeById(GameState.data.currentNode);
+        if (currentNode && currentNode.position && currentNode.position.row > maxVisitedRow) {
+            maxVisitedRow = currentNode.position.row;
+        }
     }
     
     // Check all nodes for visited status
     const allNodes = GameState.getAllNodes();
     allNodes.forEach(node => {
-      if (node.visited && node.position && node.position.row > maxVisitedRow) {
-        maxVisitedRow = node.position.row;
-      }
+        if (node.visited && node.position && node.position.row > maxVisitedRow) {
+            maxVisitedRow = node.position.row;
+        }
     });
     
+    // CRITICAL FIX: Ensure minimum visibility even on first load
+    maxVisitedRow = Math.max(maxVisitedRow, 1); // Always show at least row 1
+    
     // Update last visible row for fog calculation
-    // Allow visibility a certain number of rows ahead
     this.fogOfWar.lastVisibleRow = maxVisitedRow + this.config.fogOfWarDistance;
   },
   
@@ -308,7 +312,7 @@ const MapRenderer = {
       console.error(`Canvas element not found: ${this.canvasId}`);
       return;
     }
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       console.error("Could not get canvas context");
@@ -321,10 +325,10 @@ const MapRenderer = {
         console.log("Sample node structure:", GameState.getAllNodes()[0]);
       }
     }
-    
+
     // Get all nodes to determine map dimensions
     const allNodes = GameState.getAllNodes();
-    
+
     // Find the max row used by any node (to determine height)
     let maxRow = 0;
     allNodes.forEach(node => {
@@ -332,54 +336,60 @@ const MapRenderer = {
         maxRow = node.position.row;
       }
     });
-    
+
     // Increase the logical dimensions for a larger map
     this.logicalWidth = 1200; // Increased from 800
-    
+
     // Calculate height based on rows (more spacing for larger map)
     const rowSpacing = 120; // Increased from 100
     const paddingTop = 150; // Increased from 120
     const paddingBottom = 150; // Increased from 120
-    
+
     // Ensure a much taller map for scrolling
     const minHeight = 1000; // Increased from 600
     this.logicalHeight = Math.max(minHeight, paddingTop + (maxRow * rowSpacing) + paddingBottom);
-    
+
     // Get the container dimensions for display size
     const container = canvas.closest('.map-wrapper');
     const displayWidth = container ? container.clientWidth : this.logicalWidth;
     const displayHeight = container ? container.clientHeight : this.logicalHeight;
-    
-    // Set internal canvas dimensions for drawing
+
+    // CRITICAL FIX: Explicitly set both dimensions and ensure scrolling works
     canvas.width = this.logicalWidth;
     canvas.height = this.logicalHeight;
-    
-    // FIXED: Set display size to enable scrolling
-    // Set width to 100% or container width to fill available space
+
+    // Force the canvas to take its full logical height in the DOM
     canvas.style.width = "100%";
-    canvas.style.height = this.logicalHeight + "px";    
-    // Calculate the scale factors for mouse interactions
+    canvas.style.height = this.logicalHeight + "px";
+
+    // For appropriate scaling of mouse interactions
     this.scaleX = this.logicalWidth / displayWidth;
     this.scaleY = this.logicalHeight / displayHeight;
-    
+
+    // Also make sure parent container has correct overflow settings
+    if (container) {
+        container.style.overflow = "auto";
+        container.style.maxHeight = "600px"; // Match CSS value
+    }
+
     // Clear the canvas
     ctx.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
-    
+
     // Get floor number for theming
     const currentFloor = GameState.data ? GameState.data.currentFloor || 1 : 1;
     const patternIndex = Math.min(currentFloor - 1, this.backgroundPatterns.length - 1);
     const pattern = this.backgroundPatterns[patternIndex];
-    
+
     // Draw background, particles, connections, and nodes...
     this.drawRetroBackground(ctx, pattern, this.logicalWidth, this.logicalHeight);
     this.drawParticles(ctx);
     this.drawConnections(ctx, this.logicalWidth, this.logicalHeight);
-    
+
     // Draw all nodes
     allNodes.forEach(node => {
       this.drawNode(ctx, node, this.logicalWidth, this.logicalHeight);
     });
-    
+
     // Draw fog of war effect
     if (this.config.fogOfWarEnabled) {
       this.drawFogOfWar(ctx, this.logicalWidth, this.logicalHeight);
