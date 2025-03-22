@@ -41,6 +41,7 @@
 
 /* 7. Import theme styles last to override component styles */
 @import url('/static/css/themes/retro-theme.css');
+@import url('/static/css/map-fixes.css');
 
 /* 
 * GLOBAL CRT EFFECT
