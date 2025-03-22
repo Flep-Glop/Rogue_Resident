@@ -1,4 +1,4 @@
-// map_renderer.js - Enhanced version with retro styling
+// map_renderer.js - Enhanced version with retro styling and fog of war
 // This is a complete replacement for the existing file
 
 // MapRenderer singleton - handles rendering the game map with retro styling
@@ -10,7 +10,10 @@ const MapRenderer = {
     minWidth: 800,     // Minimum canvas width
     minHeight: 600,    // Minimum canvas height
     gridSize: 50,      // Size of grid cells
-    dropShadowDepth: 4 // Depth of the pixel drop shadows
+    dropShadowDepth: 4, // Depth of the pixel drop shadows
+    fogOfWarEnabled: true, // Enable fog of war effect
+    fogOfWarDistance: 4,  // Number of rows ahead that are visible
+    nodeRevealAnimations: true // Enable node reveal animations
   },
   
   // Get node color from registry
@@ -49,6 +52,17 @@ const MapRenderer = {
       accentColor: '#4e4668'
     }
   ],
+  
+  // Store newly revealed nodes for animations
+  newlyRevealedNodes: [],
+  
+  // Fog of war state
+  fogOfWar: {
+    visible: true,
+    fadingNodes: new Set(), // Store nodes that are fading in
+    lastVisibleRow: 0,      // Last visible row (for fog calculation)
+    revealSpeed: 300        // Milliseconds for node reveal animation
+  },
   
   // Particle system for ambient effects
   particles: [],
@@ -155,6 +169,7 @@ const MapRenderer = {
       this._animationFrame = null;
     }
   },
+  
   updateParticles: function() {
     // Only proceed if canvas is visible
     const canvas = document.getElementById(this.canvasId);
@@ -189,20 +204,103 @@ const MapRenderer = {
     // Respond to relevant state changes
     switch (event) {
       case 'stateInitialized':
+        // Initial setup
+        this.renderMap();
+        break;
+      
       case 'nodeCompleted':
+        // When a node is completed, update fog of war calculation
+        this.updateFogOfWarCalculation();
+        this.renderMap();
+        break;
+        
       case 'currentNodeChanged':
+        // When current node changes, update fog and do reveal animations
+        this.updateFogOfWarCalculation();
+        this.prepareNodeRevealAnimations();
+        this.renderMap();
+        break;
+        
       case 'floorChanged':
-        // When floor changes, update particle system
-        if (event === 'floorChanged') {
-          this.initParticles();
-        }
-        // Render the map
+        // When floor changes, update particle system and reset fog
+        this.initParticles();
+        this.resetFogOfWar();
         this.renderMap();
         break;
     }
   },
   
-  // This is the key modification to fix the stretched map issue
+  // Reset fog of war when changing floors
+  resetFogOfWar: function() {
+    this.fogOfWar.lastVisibleRow = 0;
+    this.fogOfWar.fadingNodes = new Set();
+    this.newlyRevealedNodes = [];
+  },
+  
+  // Update fog of war calculation based on current progress
+  updateFogOfWarCalculation: function() {
+    if (!this.config.fogOfWarEnabled || !GameState.data) return;
+    
+    // Find the max row of any visited node
+    let maxVisitedRow = 0;
+    
+    // Include the current node
+    if (GameState.data.currentNode) {
+      const currentNode = GameState.getNodeById(GameState.data.currentNode);
+      if (currentNode && currentNode.position && currentNode.position.row > maxVisitedRow) {
+        maxVisitedRow = currentNode.position.row;
+      }
+    }
+    
+    // Check all nodes for visited status
+    const allNodes = GameState.getAllNodes();
+    allNodes.forEach(node => {
+      if (node.visited && node.position && node.position.row > maxVisitedRow) {
+        maxVisitedRow = node.position.row;
+      }
+    });
+    
+    // Update last visible row for fog calculation
+    // Allow visibility a certain number of rows ahead
+    this.fogOfWar.lastVisibleRow = maxVisitedRow + this.config.fogOfWarDistance;
+  },
+  
+  // Prepare nodes for reveal animations
+  prepareNodeRevealAnimations: function() {
+    if (!this.config.nodeRevealAnimations) return;
+    
+    // Only proceed if we have GameState data
+    if (!GameState.data || !GameState.data.currentNode) return;
+    
+    const currentNode = GameState.getNodeById(GameState.data.currentNode);
+    if (!currentNode) return;
+    
+    // Reset the newly revealed nodes array
+    this.newlyRevealedNodes = [];
+    
+    // Get all nodes connected to the current node
+    if (currentNode.paths && currentNode.paths.length > 0) {
+      currentNode.paths.forEach(targetId => {
+        const targetNode = GameState.getNodeById(targetId);
+        if (targetNode && !targetNode.visited && targetNode.state === NODE_STATE.AVAILABLE) {
+          // This is a newly available node - add to reveal list
+          this.newlyRevealedNodes.push(targetId);
+          
+          // Add to fading nodes set
+          this.fogOfWar.fadingNodes.add(targetId);
+          
+          // Remove from fading set after animation completes
+          setTimeout(() => {
+            this.fogOfWar.fadingNodes.delete(targetId);
+            // Trigger a redraw after animation
+            this.renderMap();
+          }, this.fogOfWar.revealSpeed);
+        }
+      });
+    }
+  },
+  
+  // This is the key modification to fix the stretched map issue and add fog of war
   renderMap: function() {
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
@@ -277,6 +375,11 @@ const MapRenderer = {
       this.drawNode(ctx, node, this.logicalWidth, this.logicalHeight);
     });
     
+    // Draw fog of war effect
+    if (this.config.fogOfWarEnabled) {
+      this.drawFogOfWar(ctx, this.logicalWidth, this.logicalHeight);
+    }
+    
     // Add subtle CRT scanline effect
     this.drawScanlines(ctx, this.logicalWidth, this.logicalHeight);
     
@@ -290,14 +393,45 @@ const MapRenderer = {
     this.updateScrollIndicators(this.logicalHeight);
   },
   
-    drawRetroBackground: function(ctx, pattern, width, height) {
-      // Clear the canvas to make it fully transparent
-      ctx.clearRect(0, 0, width, height);
-      
-      // No background fill
-      // No grid lines
-      // No dots
-      // No vignette
+  // Draw fog of war effect
+  drawFogOfWar: function(ctx, width, height) {
+    if (!GameState.data) return;
+    
+    // Only draw fog of war if it's visible in settings
+    if (!this.fogOfWar.visible) return;
+    
+    // Get the last visible row from fog of war state
+    const lastVisibleRow = this.fogOfWar.lastVisibleRow;
+    
+    // Calculate the y-position where fog starts
+    const rowSpacing = 80;
+    const paddingTop = 100;
+    const fogStartY = paddingTop + (lastVisibleRow * rowSpacing) - 20; // Start slightly above last visible row
+    
+    // Create a gradient for the fog effect
+    const gradient = ctx.createLinearGradient(0, fogStartY, 0, fogStartY + 400);
+    gradient.addColorStop(0, "rgba(15, 22, 49, 0)");
+    gradient.addColorStop(0.2, "rgba(15, 22, 49, 0.7)");
+    gradient.addColorStop(0.6, "rgba(15, 22, 49, 0.85)");
+    gradient.addColorStop(1, "rgba(15, 22, 49, 0.95)");
+    
+    // Apply gradient to fog area
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, fogStartY, width, height - fogStartY);
+    
+    // Add a subtle haze over entire map for atmosphere
+    ctx.fillStyle = "rgba(15, 22, 49, 0.15)";
+    ctx.fillRect(0, 0, width, height);
+  },
+  
+  drawRetroBackground: function(ctx, pattern, width, height) {
+    // Clear the canvas to make it fully transparent
+    ctx.clearRect(0, 0, width, height);
+    
+    // No background fill
+    // No grid lines
+    // No dots
+    // No vignette
   },
   
   // Update the drawConnections function
@@ -397,18 +531,25 @@ const MapRenderer = {
         const endNodeX = targetStartX + (targetColIndex * 120);
         const endNodeY = 100 + (targetRow * 80);
         
+        // Check if this connection is in fog of war
+        const inFog = this.isNodeInFog(targetNode);
+        const sourceInFog = this.isNodeInFog(node);
+        
         if (node.visited || node.id === 'start') {
           if (targetNode.state === NODE_STATE.AVAILABLE) {
             // VALID PASSABLE PATH - BRIGHT GREEN
-            ctx.strokeStyle = '#56b886'; // Use secondary color
+            const baseColor = '#56b886'; // Use secondary color
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
             ctx.lineWidth = 3;
           } else if (targetNode.state === NODE_STATE.COMPLETED) {
             // ALREADY TAKEN PATH - Now using bright BLUE instead of gray
-            ctx.strokeStyle = '#5b8dd9'; // Primary color instead of gray
+            const baseColor = '#5b8dd9'; // Primary color instead of gray
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
             ctx.lineWidth = 3; // Increased from 2 to be more visible
           } else if (targetNode.state === NODE_STATE.CURRENT) {
             // PATH TO CURRENT NODE - BRIGHT BLUE
-            ctx.strokeStyle = '#5b8dd9'; // Use primary color
+            const baseColor = '#5b8dd9'; // Use primary color
+            ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
             ctx.lineWidth = 3;
           } else {
             // INACCESSIBLE PATH - VERY FAINT
@@ -423,22 +564,45 @@ const MapRenderer = {
         
         // Also, if BOTH nodes are completed, make the path even more prominent
         if (node.visited && targetNode.visited) {
-          ctx.strokeStyle = '#9c77db'; // Purple for completed connections
+          const baseColor = '#9c77db'; // Purple for completed connections
+          ctx.strokeStyle = inFog ? this.adjustColorBrightness(baseColor, -60) : baseColor;
           ctx.lineWidth = 3;
         }
         
-        // Draw the connection with pixelated style
-        this.drawPixelLine(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
-        
-        // For available paths, add direction indicators
-        if (node.visited && targetNode.state === NODE_STATE.AVAILABLE) {
-          this.drawPathArrow(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
+        // Only draw if at least one node is not in fog
+        if (!sourceInFog || !inFog) {
+          // If both ends are in fog, don't draw
+          // If only one end is in fog, make it faded
+          if (sourceInFog || inFog) {
+            ctx.globalAlpha = 0.4; // Fade out paths partially in fog
+          }
+          
+          // Draw the connection with pixelated style
+          this.drawPixelLine(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
+          
+          // Reset alpha
+          ctx.globalAlpha = 1.0;
+          
+          // For available paths, add direction indicators
+          if (node.visited && targetNode.state === NODE_STATE.AVAILABLE && !inFog) {
+            this.drawPathArrow(ctx, startNodeX, startNodeY, endNodeX, endNodeY);
+          }
         }
       });
     });
   },
   
-  // Complete updated drawNode function
+  // Check if a node is obscured by fog of war
+  isNodeInFog: function(node) {
+    if (!this.config.fogOfWarEnabled || !node || !node.position) {
+      return false;
+    }
+    
+    // Nodes beyond the visible area are in fog
+    return node.position.row > this.fogOfWar.lastVisibleRow;
+  },
+  
+  // Complete updated drawNode function with fog of war
   drawNode: function(ctx, node, width, height) {
     // Use fixed spacing for reliable positioning
     const rowSpacing = 80; // Pixels between rows
@@ -458,6 +622,15 @@ const MapRenderer = {
     // Calculate centered position
     const x = startX + (colIndex * colSpacing);
     const y = 100 + (node.position.row * rowSpacing);
+    
+    // Check if node is in fog of war
+    const inFog = this.isNodeInFog(node);
+    
+    // If in fog and not visited, draw as silhouette only
+    if (inFog && !node.visited && node.state !== NODE_STATE.CURRENT) {
+      this.drawNodeSilhouette(ctx, node, x, y);
+      return;
+    }
     
     // Set larger radius for boss and start nodes
     let nodeRadius = 25; // Default node radius
@@ -498,6 +671,29 @@ const MapRenderer = {
       textColor = '#cccccc';
     }
     
+    // Check if this is a newly revealed node for animation
+    const isNewlyRevealed = this.newlyRevealedNodes.includes(node.id);
+    const isFading = this.fogOfWar.fadingNodes.has(node.id);
+    
+    // Apply reveal animation if needed
+    if (isNewlyRevealed && isFading) {
+      // Scale and opacity animation
+      const progress = Math.min(1, this.fogOfWar.fadingNodes.size / 3); // 0-1 value
+      
+      // Apply scale to context
+      ctx.globalAlpha = 0.5 + (0.5 * progress);
+      ctx.translate(x, y);
+      ctx.scale(0.8 + (0.2 * progress), 0.8 + (0.2 * progress));
+      ctx.translate(-x, -y);
+      
+      // Brighten the colors for reveal effect
+      fillColor = this.adjustColorBrightness(fillColor, 30 * progress);
+      
+      // Add glow effect for revealing
+      ctx.shadowColor = fillColor;
+      ctx.shadowBlur = 15 * (1 - progress);
+    }
+    
     // Draw special shapes for start and boss nodes
     if (node.type === 'start') {
       // Draw a star shape for start
@@ -523,7 +719,7 @@ const MapRenderer = {
     ctx.font = '8px "Press Start 2P", monospace';
     
     // Add glow effect for available/current nodes
-    if (node.state === NODE_STATE.AVAILABLE || node.state === NODE_STATE.CURRENT) {
+    if ((node.state === NODE_STATE.AVAILABLE || node.state === NODE_STATE.CURRENT) && !inFog) {
       ctx.beginPath();
       ctx.arc(x, y, nodeRadius + 5, 0, Math.PI * 2);
       const glow = ctx.createRadialGradient(x, y, nodeRadius - 5, x, y, nodeRadius + 10);
@@ -544,6 +740,42 @@ const MapRenderer = {
     
     ctx.restore();
   },
+  
+  // Draw a node silhouette for nodes in fog of war
+  drawNodeSilhouette: function(ctx, node, x, y) {
+    ctx.save();
+    
+    // Determine radius based on node type
+    let nodeRadius = 25; // Default node radius
+    if (node.type === 'boss') {
+      nodeRadius = 40;
+    } else if (node.type === 'start') {
+      nodeRadius = 35;
+    }
+    
+    // Use a dark silhouette fill
+    const fillColor = 'rgba(30, 35, 60, 0.4)';
+    const strokeColor = 'rgba(60, 70, 100, 0.3)';
+    
+    // Draw a simple circle for the silhouette
+    ctx.beginPath();
+    ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // Add a small question mark for unknown nodes
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.font = 'bold 12px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('?', x, y);
+    
+    ctx.restore();
+  },
+  
   // Update node drawing to match character cards
   drawNodeCard: function(ctx, x, y, width, height, fillColor, shadowColor) {
     // Draw shadow
@@ -562,6 +794,7 @@ const MapRenderer = {
     ctx.lineWidth = 1;
     ctx.stroke();
   },
+  
   getNodesInRow: function(rowIndex) {
     if (!GameState || !GameState.getAllNodes) return [];
     
@@ -666,6 +899,7 @@ const MapRenderer = {
     ctx.strokeStyle = this.adjustColorBrightness(fillColor, 50);
     ctx.stroke();
   },
+  
   // Draw a pixelated node shape with 3D effect
   drawPixelatedNode: function(ctx, x, y, radius, fillColor, shadowColor, strokeColor) {
     // Draw main node shape
@@ -888,6 +1122,9 @@ const MapRenderer = {
       
       // Skip nodes that are already visited
       if (node.visited) continue;
+      
+      // Skip nodes in fog of war
+      if (this.config.fogOfWarEnabled && this.isNodeInFog(node)) continue;
       
       // Get nodes in this row for column calculation
       const nodesInRow = this.getNodesInRow(node.position.row);
