@@ -1,57 +1,74 @@
-/* variables.css - Updated color scheme and variables */
+/* variables.css - Design tokens for Medical Physics Residency Roguelike */
 
 :root {
-  /* Core colors */
-  --background: #0f1631;       /* Deeper blue background */
-  --background-alt: #1a1c38;   /* Slightly lighter background */
-  --dark: #141824;             /* Dark element background */
-  --dark-alt: #23273a;         /* Slightly lighter element background */
+  /*
+  * SPACING SYSTEM
+  * Used for margins, padding, and layout gaps
+  */
+  --spacing-xs: 4px;    /* Small icons, tight spacing */
+  --spacing-sm: 8px;    /* Standard element padding */
+  --spacing-md: 16px;   /* Panel padding, component spacing */
+  --spacing-lg: 24px;   /* Large section spacing */
+  --spacing-xl: 32px;   /* Page section divisions */
+  --spacing-xxl: 48px;  /* Major layout divisions */
+
+  /*
+  * COLOR SYSTEM
+  * Base palette
+  */
+  --background: #0f1631;     /* Deep blue background */
+  --background-alt: #1a1c38; /* Slightly lighter background */
+  --dark: #141824;           /* Dark element background */
+  --dark-alt: #23273a;       /* Slightly lighter element background */
   
-  /* Primary colors */
-  --primary: #5d9cff;          /* Brighter blue */
-  --primary-dark: #4a7cc7;     /* Darker blue */
-  --secondary: #45e17c;        /* Brighter green */
-  --secondary-dark: #36b362;   /* Darker green */
+  /* Primary colors - main UI elements */
+  --primary: #5d9cff;        /* Bright blue - main UI elements */
+  --primary-dark: #4a7cc7;   /* Darker blue - pressed states */
+  --secondary: #45e17c;      /* Bright green - success, progress */
+  --secondary-dark: #36b362; /* Darker green - pressed states */
   
-  /* Accent colors */
-  --accent-yellow: #ffcc55;    /* Bright yellow/gold */
-  --accent-purple: #9c77db;    /* Purple */
-  --danger: #e67e73;           /* Red for warnings/errors */
-  --danger-dark: #c5655c;      /* Darker red */
-  --warning: #ffcc55;          /* Yellow for warnings */
-  --warning-dark: #d9aa48;     /* Darker yellow */
+  /* Accent colors - highlights and special elements */
+  --accent-yellow: #ffcc55;  /* Yellow/gold - treasures, warnings */
+  --accent-purple: #9c77db;  /* Purple - special events, rare items */
+  
+  /* Feedback colors */
+  --success: var(--secondary);      /* Success messages */
+  --warning: #ffcc55;               /* Warning messages */
+  --danger: #e67e73;                /* Error messages, dangers */
+  --danger-dark: #c5655c;           /* Darker red for button states */
+  --warning-dark: #d9aa48;          /* Darker yellow for button states */
+  --info: var(--primary);           /* Information messages */
   
   /* Text colors */
-  --text: #ffffff;             /* Main text color */
-  --text-light: #f0f2ff;       /* Lighter text */
-  --text-dark: #373a54;        /* Darker text */
-  --text-dimmed: #8b8fa9;      /* Dimmed text */
-  
+  --text: #ffffff;           /* Main text color */
+  --text-light: #f0f2ff;     /* Lighter text */
+  --text-dark: #373a54;      /* Darker text for light backgrounds */
+  --text-dimmed: #8b8fa9;    /* Dimmed text for less emphasis */
+
   /* Node type colors */
-  --node-start: #5d9cff;      /* Primary blue */
-  --node-boss: #e67e73;       /* Danger red */
-  --node-question: #5d9cff;   /* Primary blue */
-  --node-elite: #9c77db;      /* Purple */
-  --node-treasure: #ffcc55;   /* Gold */
-  --node-rest: #45e17c;       /* Secondary green */
-  --node-shop: #5d9cff;       /* Primary blue */
-  --node-event: #9c77db;      /* Purple */
-  --node-gamble: #ffcc55;     /* Gold */
-  --node-patient-case: #9c77db; /* Purple */
+  --node-start: var(--primary);     /* Primary blue */
+  --node-boss: var(--danger);       /* Danger red */
+  --node-question: var(--primary);  /* Primary blue */
+  --node-elite: var(--accent-purple); /* Purple */
+  --node-treasure: var(--accent-yellow); /* Gold */
+  --node-rest: var(--secondary);    /* Secondary green */
+  --node-shop: var(--primary);      /* Primary blue */
+  --node-event: var(--accent-purple); /* Purple */
+  --node-gamble: var(--accent-yellow); /* Gold */
+  --node-patient-case: var(--accent-purple); /* Purple */
   
   /* Rarity colors */
-  --rarity-common: #8b8fa9;    /* Gray */
-  --rarity-uncommon: #5d9cff;  /* Blue */
-  --rarity-rare: #9c77db;      /* Purple */
-  --rarity-epic: #ffcc55;      /* Gold */
-  
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-xxl: 48px;
+  --rarity-common: var(--text-dimmed);  /* Gray */
+  --rarity-uncommon: var(--primary);    /* Blue */
+  --rarity-rare: var(--accent-purple);  /* Purple */
+  --rarity-epic: var(--accent-yellow);  /* Gold */
+
+  /*
+  * TYPOGRAPHY
+  * Font families, sizes, and properties
+  */
+  --font-primary: 'Press Start 2P', cursive;  /* Pixel font for headings */
+  --font-secondary: monospace;                /* Monospace for body text */
   
   /* Font sizes */
   --font-size-xs: 10px;
@@ -61,24 +78,35 @@
   --font-size-xl: 24px;
   --font-size-xxl: 32px;
   
-  /* Border radius */
+  /* Line heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-loose: 1.8;
+  
+  /* Letter spacing */
+  --letter-spacing-tight: -0.5px;
+  --letter-spacing-normal: 0px;
+  --letter-spacing-wide: 1px;
+  --letter-spacing-pixel: 2px; /* For pixel font headers */
+  
+  /*
+  * BORDERS
+  * Border radius, widths, and styles
+  */
   --border-radius-xs: 2px;
   --border-radius-sm: 4px;
   --border-radius-md: 6px;
   --border-radius-lg: 10px;
   --border-radius-xl: 16px;
   
-  /* Transitions */
-  --transition-fast: 0.15s ease-in-out;
-  --transition-medium: 0.3s ease-in-out;
-  --transition-slow: 0.5s ease-in-out;
+  --border-width-thin: 1px;
+  --border-width-normal: 2px;
+  --border-width-thick: 4px;
   
-  /* Animation durations */
-  --animation-short: 1s;
-  --animation-medium: 2s;
-  --animation-long: 4s;
-  
-  /* Box shadows */
+  /*
+  * SHADOWS
+  * Box shadows for elements
+  */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
@@ -107,19 +135,10 @@
   --glow-inner-primary: inset 0 0 5px rgba(93, 156, 255, 0.3);
   --glow-inner-secondary: inset 0 0 5px rgba(69, 225, 124, 0.3);
   
-  /* Pixel art settings */
-  --pixel-size: 4px;          /* Size of pixelated elements */
-  
-  /* Breakpoints */
-  --breakpoint-sm: 576px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 992px;
-  --breakpoint-xl: 1200px;
-  
-  /* Map specific */
-  --map-width: 800px;
-  
-  /* Z-index layers */
+  /*
+  * Z-INDEX LAYERS
+  * Stacking context for elements
+  */
   --z-background: 0;
   --z-decoration: 10;
   --z-game-element: 20;
@@ -127,4 +146,39 @@
   --z-tooltip: 100;
   --z-notification: 500;
   --z-modal: 1000;
+  
+  /*
+  * TRANSITIONS & ANIMATIONS
+  * Timing for interactive elements
+  */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-medium: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+  
+  --animation-short: 1s;
+  --animation-medium: 2s;
+  --animation-long: 4s;
+  
+  /*
+  * CONTAINER & LAYOUT
+  * Widths for layout containers
+  */
+  --container-width: 1200px;
+  --container-sm: 800px;
+  --container-lg: 1400px;
+  
+  /* Pixel art settings */
+  --pixel-size: 4px;  /* Size of pixelated elements */
+  
+  /*
+  * BREAKPOINTS
+  * Screen sizes for responsive design
+  */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  
+  /* Game specific variables */
+  --map-width: 800px;
 }

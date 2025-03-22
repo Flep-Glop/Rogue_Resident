@@ -1,13 +1,19 @@
-/* reset.css - Normalize styles across browsers */
+/* reset.css - Browser normalization for consistent styling */
 
-/* Box sizing for all elements */
+/* 
+* Box sizing rules 
+* Apply border-box to all elements for more predictable layouts
+*/
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Remove default margin and padding */
+/* 
+* Remove default margin and padding
+* Normalize appearance across browsers
+*/
 html, body, div, span, h1, h2, h3, h4, h5, h6, p, 
 pre, a, code, em, img, small, strike, strong, sub, sup, 
 ol, ul, li, fieldset, form, label, table, caption, 
@@ -20,31 +26,68 @@ nav, output, section, summary, audio, video {
   vertical-align: baseline;
 }
 
-/* Set core body defaults */
+/* 
+* Set core body defaults
+* Improve text rendering and scrolling
+*/
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
   text-rendering: optimizeSpeed;
   line-height: 1.5;
+  font-family: var(--font-secondary, monospace);
+  background-color: var(--background, #0f1631);
+  color: var(--text, #ffffff);
 }
 
-/* Remove list styles */
+/* 
+* Remove list styles
+* Lists will be styled with classes when needed
+*/
 ul, ol {
   list-style: none;
 }
 
-/* Make images responsive by default */
+/* 
+* Make images responsive by default
+* Ensures images don't overflow their containers
+*/
 img {
   max-width: 100%;
   display: block;
+  height: auto;
 }
 
-/* Inherit fonts for forms */
+/* 
+* Inherit fonts for inputs and buttons
+* Ensures consistent typography
+*/
 input, button, textarea, select {
   font: inherit;
 }
 
-/* Remove animations for users who have requested reduced motion */
+/* 
+* Add accessible line-height
+* Improve text rendering
+*/
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 
+* Default focus styles
+* Ensure keyboard navigation is visible
+*/
+:focus-visible {
+  outline: 2px solid var(--primary, #5d9cff);
+  outline-offset: 2px;
+}
+
+/*
+* Enable smooth scrolling, but respect user preferences
+* Remove animations for users who've requested reduced motion
+*/
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

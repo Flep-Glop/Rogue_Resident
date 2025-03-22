@@ -1,0 +1,176 @@
+.
+├── medical_physics_game
+│   ├── data
+│   │   ├── characters.json
+│   │   ├── events.json
+│   │   ├── floors.json
+│   │   ├── game_config.json
+│   │   ├── items.json
+│   │   ├── node_types.json
+│   │   ├── patient_cases.json
+│   │   ├── questions.json
+│   │   └── relics.json
+│   ├── plugins
+│   │   ├── __init__.py
+│   │   └── question_plugin.py
+│   ├── static
+│   │   ├── css
+│   │   │   ├── base
+│   │   │   │   ├── layout.css
+│   │   │   │   ├── reset.css
+│   │   │   │   └── variables.css
+│   │   │   ├── components
+│   │   │   │   ├── boss.css
+│   │   │   │   ├── boss_effects.css
+│   │   │   │   ├── character.css
+│   │   │   │   ├── inventory.css
+│   │   │   │   ├── ion_chamber_boss.css
+│   │   │   │   ├── map.css
+│   │   │   │   └── nodes.css
+│   │   │   ├── themes
+│   │   │   │   └── retro-theme.css
+│   │   │   ├── animations.css
+│   │   │   ├── character_image_styles.css
+│   │   │   ├── character_sprites.css
+│   │   │   ├── components.css
+│   │   │   ├── intro-sequence.css
+│   │   │   ├── item_editor.css
+│   │   │   ├── main.css
+│   │   │   ├── npc_sprites.css
+│   │   │   ├── question-inventory.css
+│   │   │   ├── shop-styles.css
+│   │   │   ├── simple_sprites.css
+│   │   │   ├── tooltip-fix.css
+│   │   │   ├── utilities.css
+│   │   │   └── vertical_sprite.css
+│   │   ├── img
+│   │   │   ├── characters
+│   │   │   │   ├── ion_chamber
+│   │   │   │   │   ├── ability.png
+│   │   │   │   │   ├── idle.png
+│   │   │   │   │   ├── special_ability.png
+│   │   │   │   │   └── walking.png
+│   │   │   │   ├── bonus.png
+│   │   │   │   ├── debug_mode.png
+│   │   │   │   ├── physicist.png
+│   │   │   │   ├── qa_specialist.png
+│   │   │   │   └── resident.png
+│   │   │   └── items
+│   │   │       ├── 10 Weight.png
+│   │   │       ├── 3D Glasses.png
+│   │   │       ├── 5 Weight.png
+│   │   │       ├── Aquarium.png
+│   │   │       ├── Bandaid.png
+│   │   │       ├── Black Dice.png
+│   │   │       ├── Black Floppy Disk.png
+│   │   │       ├── Brown Glove.png
+│   │   │       ├── Brown Suitcase.png
+│   │   │       ├── CD.png
+│   │   │       ├── Cardboard Box.png
+│   │   │       ├── Chair.png
+│   │   │       ├── Clock.png
+│   │   │       ├── Compass.png
+│   │   │       ├── Cracked Modern TV.png
+│   │   │       ├── Cracked Old TV.png
+│   │   │       ├── Diamond Ring.png
+│   │   │       ├── Dumbbell.png
+│   │   │       ├── Flag.png
+│   │   │       ├── Glue.png
+│   │   │       ├── Headphones.png
+│   │   │       ├── Lightbulb.png
+│   │   │       ├── Lucky Cat.png
+│   │   │       ├── Magnet Silver.png
+│   │   │       ├── Magnifying Glass.png
+│   │   │       ├── Map.png
+│   │   │       ├── Money Bag.png
+│   │   │       ├── Nail.png
+│   │   │       ├── Nametag.png
+│   │   │       ├── Newspaper.png
+│   │   │       ├── Notebook.png
+│   │   │       ├── Notepad.png
+│   │   │       ├── Paper Plane.png
+│   │   │       ├── Paperclip.png
+│   │   │       ├── Pencil.png
+│   │   │       ├── Phone.png
+│   │   │       ├── Printer.png
+│   │   │       ├── Prism.png
+│   │   │       ├── Red Book.png
+│   │   │       ├── Silver Laptop.png
+│   │   │       ├── Table.png
+│   │   │       ├── Tabletennis.png
+│   │   │       ├── Tape.png
+│   │   │       ├── Textbook.png
+│   │   │       ├── Textbubble.png
+│   │   │       ├── Tooth.png
+│   │   │       ├── USB Stick.png
+│   │   │       └── Yellow Sticky Note.png
+│   │   └── js
+│   │       ├── components
+│   │       │   ├── boss_component.js
+│   │       │   ├── elite_component.js
+│   │       │   ├── event_component.js
+│   │       │   ├── gamble_component.js
+│   │       │   ├── patient_case_component.js
+│   │       │   ├── question_component.js
+│   │       │   ├── rest_component.js
+│   │       │   ├── shop_component.js
+│   │       │   └── treasure_component.js
+│   │       ├── engine
+│   │       │   ├── component-utils.js
+│   │       │   ├── debug_tools.js
+│   │       │   ├── event_system.js
+│   │       │   ├── item_manager.js
+│   │       │   ├── node_components.js
+│   │       │   ├── node_registry.js
+│   │       │   ├── node_system_integrator.js
+│   │       │   ├── progression.js
+│   │       │   ├── save_manager.js
+│   │       │   └── state_manager.js
+│   │       ├── sprite-system
+│   │       │   ├── canvas-sprite-animator.js
+│   │       │   └── sprite-system.js
+│   │       ├── ui
+│   │       │   ├── character_panel.js
+│   │       │   ├── feedback_system.js
+│   │       │   ├── inventory_system.js
+│   │       │   ├── map_renderer.js
+│   │       │   ├── node_interaction.js
+│   │       │   └── special_interactions.js
+│   │       ├── api-client.js
+│   │       ├── character-panel-fix.js
+│   │       ├── character_assets.js
+│   │       ├── character_select.js
+│   │       ├── design-bridge.js
+│   │       ├── error_handler.js
+│   │       ├── game.js
+│   │       ├── item_editor.js
+│   │       ├── map_integration.js
+│   │       ├── npc_assets.js
+│   │       ├── tooltip-debugger.js
+│   │       ├── tooltip-system.js
+│   │       ├── ui-utils.js
+│   │       ├── unified-tooltip-system.js
+│   │       └── visual-effects.js
+│   ├── templates
+│   │   ├── character_select.html
+│   │   ├── index.html
+│   │   ├── ionix.html
+│   │   ├── item_editor.html
+│   │   └── landing.html
+│   ├── README.md
+│   ├── app.py
+│   ├── data_manager.py
+│   ├── db_utils.py
+│   ├── dev-guide.txt
+│   ├── file_structure.txt
+│   ├── full directory.txt
+│   ├── game_data.db
+│   ├── game_state.py
+│   ├── map_generator.py
+│   ├── node_plugins.py
+│   ├── requirements.txt
+│   ├── update_weights.py
+│   └── weight_manager.py
+└── file_structure.txt
+
+18 directories, 155 files

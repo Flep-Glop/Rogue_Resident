@@ -1,67 +1,51 @@
-/* main.css - Main stylesheet that imports all other stylesheets */
+/* main.css - Main import file for Medical Physics Residency Roguelike */
 
-/* Import base styles first */
+/* 
+* IMPORT ORDER
+* Following the standardized import order from the style guide
+*/
+
+/* 1. Import base styles first */
 @import url('/static/css/base/reset.css');
 @import url('/static/css/base/variables.css');
-@import url('/static/css/utilities.css');
 @import url('/static/css/base/layout.css');
 
-/* Import component styles */
-@import url('/static/css/components.css');
+/* 2. Import component styles */
 @import url('/static/css/components/character.css');
 @import url('/static/css/components/inventory.css');
 @import url('/static/css/components/map.css');
 @import url('/static/css/components/nodes.css');
-
-/* Import animations */
-@import url('/static/css/animations.css');
-
-/* Special component styles */
 @import url('/static/css/components/boss.css');
 @import url('/static/css/components/boss_effects.css');
-@import url('/static/css/shop-styles.css');
+@import url('/static/css/components/ion_chamber_boss.css');
 @import url('/static/css/question-inventory.css');
+@import url('/static/css/shop-styles.css');
+
+/* 3. Import animations */
+@import url('/static/css/animations.css');
+
+/* 4. Import utilities after components so they can override component styles */
+@import url('/static/css/utilities.css');
+
+/* 5. Import sprite styles */
+@import url('/static/css/character_sprites.css');
+@import url('/static/css/npc_sprites.css');
+@import url('/static/css/simple_sprites.css');
+@import url('/static/css/vertical_sprite.css');
+@import url('/static/css/character_image_styles.css');
+
+/* 6. Import special UI elements */
+@import url('/static/css/intro-sequence.css');
+@import url('/static/css/item_editor.css');
 @import url('/static/css/tooltip-fix.css');
 
-/* Import theme styles last to override component styles */
+/* 7. Import theme styles last to override component styles */
 @import url('/static/css/themes/retro-theme.css');
 
-/* Any additional global styles can go here */
-.unified-background {
-  background-color: transparent !important;
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 10px rgba(93, 156, 255, 0.3) !important;
-}
-
-/* Standardize panel headers */
-.panel-title, .map-title, h3 {
-  font-family: 'Press Start 2P', cursive;
-  text-transform: uppercase;
-  color: var(--primary);
-  letter-spacing: 2px;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
-  margin-bottom: var(--spacing-md);
-}
-
-/* Fix for segmented appearance */
-.row {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-.col-md-3, .col-md-9 {
-  padding-left: 5px !important;
-  padding-right: 5px !important;
-}
-
-/* Make all modals use the unified background style */
-.node-modal-content {
-  background-color: var(--dark) !important;
-  border: 2px solid var(--primary) !important;
-  box-shadow: 0 0 15px rgba(93, 156, 255, 0.4) !important;
-}
-
-/* Add scanlines and CRT effect to index.html */
+/* 
+* GLOBAL CRT EFFECT
+* Adds scanlines and vignette to simulate a retro monitor 
+*/
 body::after {
   content: '';
   position: fixed;

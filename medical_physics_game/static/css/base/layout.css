@@ -1,241 +1,165 @@
-/* layout.css - Core layout styling */
+/* layout.css - Base layout rules for Medical Physics Roguelike */
 
 /* Import Press Start 2P font for retro styling */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Base styles */
-body {
-  font-family: 'Press Start 2P', cursive;
-  background-color: var(--background);
-  color: var(--text);
-  line-height: 1.5;
-  margin: 0;
-  padding: 0;
-}
-
+/* 
+* CONTAINER SYSTEM
+* Responsive containers for page layout 
+*/
 .container {
-  max-width: var(--container-width);
-  margin: 0 auto;
-  padding: var(--spacing-lg);
+  max-width: var(--container-width, 1200px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+  width: 100%;
 }
 
-/* Game title section */
-.game-title {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
+.container-sm {
+  max-width: 800px;
 }
 
-.game-title h1 {
-  font-size: var(--font-size-xl);
-  color: var(--primary);
-  margin-bottom: var(--spacing-sm);
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+.container-lg {
+  max-width: 1400px;
 }
 
-.subtitle {
-  font-size: var(--font-size-md);
-  color: var(--secondary);
+/* 
+* GRID SYSTEM
+* Standard grid layouts with gap
+*/
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
 }
 
-/* Main layout grid */
+.grid-cols-1 { grid-template-columns: 1fr; }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-auto-fill { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+
+/* Grid rows */
+.grid-rows-1 { grid-template-rows: 1fr; }
+.grid-rows-2 { grid-template-rows: repeat(2, 1fr); }
+.grid-rows-3 { grid-template-rows: repeat(3, 1fr); }
+
+/* Grid item placement */
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+
+.row-span-1 { grid-row: span 1; }
+.row-span-2 { grid-row: span 2; }
+.row-span-3 { grid-row: span 3; }
+
+/* 
+* FLEXBOX UTILITIES
+* Standard flexbox layouts and alignments
+*/
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.flex-1 { flex: 1; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+/*
+* ROW & COLUMN LAYOUT 
+* Bootstrap-like row and column layout system
+*/
 .row {
   display: flex;
   flex-wrap: wrap;
-  margin: 0 -var(--spacing-sm);
+  margin-left: calc(var(--spacing-sm) * -1);
+  margin-right: calc(var(--spacing-sm) * -1);
 }
 
+/* Column widths */
 .col-md-3 {
   flex: 0 0 25%;
   max-width: 25%;
-  padding: 0 var(--spacing-sm);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.col-md-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
 }
 
 .col-md-9 {
   flex: 0 0 75%;
   max-width: 75%;
-  padding: 0 var(--spacing-sm);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
 }
 
-/* Generic panel styling */
-.panel {
-  background-color: var(--background-alt);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.panel {
-  background-color: rgba(41, 43, 54, 0.85); /* Slightly transparent dark background */
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  border-left: 3px solid var(--primary);
-}
-
-.panel-title {
-  color: var(--primary);
+/* Game layout structure */
+.character-stats {
   margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-md);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: var(--spacing-sm);
 }
 
-/* Generic card styling */
-.card {
-  background-color: var(--background-alt);
-  border-radius: var(--border-radius-md);
+.inventory-container {
   margin-bottom: var(--spacing-md);
-  overflow: hidden;
 }
 
-.card-header {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--dark);
-  font-weight: bold;
+.map-container {
+  width: 100%;
+  min-height: 400px;
+  position: relative;
 }
 
-.card-body {
-  padding: var(--spacing-md);
-}
-
-/* Button styling */
-.btn {
-  display: inline-block;
-  cursor: pointer;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-sm);
-  border: none;
-  font-family: 'Press Start 2P', cursive;
-  font-size: var(--font-size-sm);
-  text-align: center;
-  transition: all var(--transition-fast);
-}
-
-.btn-primary {
-  background-color: var(--primary);
-  color: white;
-  box-shadow: 
-    0 var(--pixel-size) 0 0 var(--primary-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
-}
-
-.btn-secondary {
-  background-color: var(--secondary);
-  color: white;
-  box-shadow: 
-    0 var(--pixel-size) 0 0 var(--secondary-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
-}
-
-.btn-danger {
-  background-color: var(--danger);
-  color: white;
-  box-shadow: 
-    0 var(--pixel-size) 0 0 var(--danger-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
-}
-
-.btn-warning {
-  background-color: var(--warning);
-  color: black;
-  box-shadow: 
-    0 var(--pixel-size) 0 0 var(--warning-dark),
-    0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-}
-
-.btn:active {
-  transform: translateY(var(--pixel-size));
-  box-shadow: none;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-
-.btn:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Alert styling */
-.alert {
-  padding: var(--spacing-md);
+.game-panel {
   margin-bottom: var(--spacing-md);
-  border-radius: var(--border-radius-sm);
-  border-left: 4px solid transparent;
 }
 
-.alert-success {
-  background-color: rgba(86, 184, 134, 0.2);
-  border-color: var(--secondary);
-}
-
-.alert-danger {
-  background-color: rgba(230, 126, 115, 0.2);
-  border-color: var(--danger);
-}
-
-.alert-info {
-  background-color: rgba(91, 141, 217, 0.2);
-  border-color: var(--primary);
-}
-
-.alert-warning {
-  background-color: rgba(240, 200, 102, 0.2);
-  border-color: var(--warning);
-}
-
-/* Toast container for notifications */
-.toast-container {
-  position: fixed;
-  bottom: var(--spacing-lg);
-  right: var(--spacing-lg);
-  z-index: 1000;
-}
-
-/* Game over screen */
-.game-over-screen {
-  display: none;
-  text-align: center;
-  padding: var(--spacing-xl);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  border-radius: var(--border-radius-lg);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
   .container {
-    padding: var(--spacing-sm);
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
   }
   
-  .col-md-3, .col-md-9 {
+  .col-md-3, .col-md-6, .col-md-9 {
     flex: 0 0 100%;
     max-width: 100%;
   }
   
-  .game-title h1 {
-    font-size: var(--font-size-lg);
+  .row {
+    display: block;
+  }
+}
+
+@media (max-width: var(--breakpoint-sm)) {
+  .grid-cols-2, 
+  .grid-cols-3, 
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
   }
   
-  .game-title p {
-    font-size: var(--font-size-sm);
+  .container {
+    padding-left: var(--spacing-xs);
+    padding-right: var(--spacing-xs);
+  }
+}
+
+/* Special media query for larger screens */
+@media (min-width: var(--breakpoint-xl)) {
+  .container-lg {
+    max-width: 1600px;
   }
 }
