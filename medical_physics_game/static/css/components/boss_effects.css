@@ -1,9 +1,12 @@
 /* boss_effects.css - Shared effects for boss encounters */
 
-/* Ion Chamber Glow Effect */
+/*
+* GLOW EFFECTS
+* Special glow effects for bosses
+*/
 .ion-chamber-glow {
   box-shadow: 0 0 15px rgba(255, 106, 0, 0.6);
-  animation: boss-glow-pulse 3s infinite;
+  animation: boss-glow-pulse var(--animation-medium) infinite;
 }
 
 @keyframes boss-glow-pulse {
@@ -12,13 +15,16 @@
   100% { box-shadow: 0 0 15px rgba(255, 106, 0, 0.4); }
 }
 
-/* Answer feedback effects */
+/*
+* ANSWER FEEDBACK EFFECTS
+* Visual feedback for correct/incorrect answers
+*/
 .boss-effect-correct {
-  animation: boss-correct-answer 0.5s ease-in-out;
+  animation: boss-correct-answer var(--transition-medium) ease-in-out;
 }
 
 .boss-effect-incorrect {
-  animation: boss-incorrect-answer 0.5s ease-in-out;
+  animation: boss-incorrect-answer var(--transition-medium) ease-in-out;
 }
 
 @keyframes boss-correct-answer {
@@ -33,9 +39,12 @@
   100% { background-color: rgba(0, 0, 0, 0.2); }
 }
 
-/* Fade in animation */
+/*
+* TRANSITION ANIMATIONS
+* Entrance and exit animations
+*/
 .boss-fade-in {
-  animation: boss-fade-in 0.8s ease-in-out;
+  animation: boss-fade-in var(--transition-medium) ease-in-out;
 }
 
 @keyframes boss-fade-in {
@@ -43,18 +52,21 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Placeholder fallback for missing sprites */
+/*
+* PLACEHOLDER ELEMENTS
+* Fallbacks for missing sprites
+*/
 .boss-placeholder {
   width: 96px;
   height: 96px;
-  background-color: #000;
+  background-color: var(--dark);
   border-radius: 50%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   box-shadow: 0 0 25px 8px rgba(91, 141, 217, 0.6);
-  animation: boss-pulse-glow 3s infinite ease-in-out;
+  animation: boss-pulse-glow var(--animation-medium) infinite ease-in-out;
 }
 
 .boss-placeholder::after {
@@ -72,10 +84,13 @@
   100% { box-shadow: 0 0 20px 5px rgba(91, 141, 217, 0.5); transform: scale(1); }
 }
 
-/* Ion chamber specific placeholder */
+/*
+* ION CHAMBER EFFECTS
+* Ion chamber specific placeholder and effects
+*/
 .ion-chamber-placeholder {
   box-shadow: 0 0 25px 8px rgba(255, 106, 0, 0.6);
-  animation: boss-ion-pulse-glow 3s infinite ease-in-out;
+  animation: boss-ion-pulse-glow var(--animation-medium) infinite ease-in-out;
 }
 
 .ion-chamber-placeholder::after {
@@ -88,10 +103,24 @@
   100% { box-shadow: 0 0 20px 5px rgba(255, 106, 0, 0.5); transform: scale(1); }
 }
 
-/* Pixelated image rendering for sprites */
+/*
+* PIXELATED RENDERING
+* Proper pixelated image rendering for sprites
+*/
 .boss-sprite img, 
 .boss-static-img {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
+  .boss-placeholder {
+    width: 70px;
+    height: 70px;
+  }
 }

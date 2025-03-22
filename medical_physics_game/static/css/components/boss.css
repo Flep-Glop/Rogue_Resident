@@ -1,9 +1,12 @@
 /* boss.css - Core styling for all boss encounters */
 
-/* === BASE BOSS PANEL STYLING === */
+/*
+* BASE BOSS PANEL
+* Main container for boss encounters
+*/
 .boss-exam-panel {
   background-color: rgba(33, 35, 47, 0.95);
-  border-color: #5b8dd9;
+  border-color: var(--primary);
   position: relative;
   overflow: hidden;
   max-height: 80vh;
@@ -12,6 +15,7 @@
   scrollbar-color: rgba(91, 141, 217, 0.5) rgba(0, 0, 0, 0.2);
 }
 
+/* Custom scrollbar styling */
 .boss-exam-panel::-webkit-scrollbar {
   width: 8px;
 }
@@ -22,29 +26,37 @@
 
 .boss-exam-panel::-webkit-scrollbar-thumb {
   background-color: rgba(91, 141, 217, 0.5);
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
 }
 
-/* === HEADER STYLING === */
+/*
+* HEADER COMPONENT
+* Top section with title and status
+*/
 .boss-exam-panel .exam-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
   border-bottom: 2px solid rgba(91, 141, 217, 0.3);
-  padding-bottom: 10px;
+  padding-bottom: var(--spacing-sm);
 }
 
 .boss-exam-panel .exam-title {
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   margin: 0;
-  color: #5b8dd9;
+  color: var(--primary);
+  font-family: var(--font-primary);
 }
 
 .boss-exam-panel .exam-title-container {
   flex-grow: 1;
 }
 
+/*
+* EXAM STATUS
+* Time remaining and score
+*/
 .boss-exam-panel .exam-status {
   display: flex;
   flex-direction: column;
@@ -54,45 +66,48 @@
 .boss-exam-panel .time-container {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .boss-exam-panel .time-icon {
-  margin-right: 5px;
+  margin-right: var(--spacing-xs);
 }
 
 .boss-exam-panel .time-remaining {
-  font-family: monospace;
-  font-size: 1.1rem;
-  color: white;
+  font-family: var(--font-secondary);
+  font-size: var(--font-size-md);
+  color: var(--text);
 }
 
 .boss-exam-panel .time-warning {
-  color: #f0c866;
+  color: var(--warning);
 }
 
 .boss-exam-panel .time-critical {
-  color: #e67e73;
-  animation: boss-pulse 1s infinite;
+  color: var(--danger);
+  animation: boss-pulse var(--animation-short) infinite;
 }
 
 .boss-exam-panel .score-container {
-  padding: 5px 10px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
 }
 
 .boss-exam-panel .score-text {
-  font-size: 0.9rem;
-  color: white;
+  font-size: var(--font-size-sm);
+  color: var(--text);
 }
 
-/* === CHARACTER CONTAINER === */
+/*
+* CHARACTER CONTAINER
+* Boss sprite and animation area
+*/
 .boss-exam-panel .boss-character-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
   min-height: 150px;
   position: relative;
 }
@@ -103,12 +118,15 @@
   position: relative;
 }
 
-/* === DIALOGUE === */
+/*
+* DIALOGUE COMPONENT
+* Boss dialogue box
+*/
 .boss-exam-panel .boss-dialogue {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   position: relative;
 }
 
@@ -125,53 +143,62 @@
   transform: translateX(-50%);
 }
 
-/* === PHASE STYLING === */
+/*
+* PHASE STYLING
+* Section headers for each exam phase
+*/
 .boss-exam-panel .phase-header {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+  padding-bottom: var(--spacing-sm);
 }
 
 .boss-exam-panel .phase-title {
-  margin: 0 0 10px 0;
-  color: #f0c866;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--warning);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-md);
 }
 
 .boss-exam-panel .phase-description {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
 }
 
-/* === QUESTION STYLING === */
+/*
+* QUESTION STYLING
+* Individual question cards
+*/
 .boss-exam-panel .question-card {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
-  transition: all 0.3s ease;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  transition: all var(--transition-medium);
 }
 
 .boss-exam-panel .question-text {
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-  line-height: 1.5;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
 }
 
 .boss-exam-panel .question-options {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .boss-exam-panel .question-option {
   text-align: left;
-  padding: 10px 15px;
+  padding: var(--spacing-sm) var(--spacing-md);
   background-color: rgba(59, 76, 96, 0.4);
   border: 1px solid rgba(91, 141, 217, 0.3);
-  border-radius: 5px;
-  color: white;
-  transition: all 0.3s ease;
+  border-radius: var(--border-radius-sm);
+  color: var(--text);
+  transition: all var(--transition-fast);
   position: relative;
+  cursor: pointer;
 }
 
 .boss-exam-panel .question-option:hover:not(:disabled) {
@@ -201,32 +228,36 @@
 .boss-exam-panel .eliminated-badge {
   padding: 2px 5px;
   background-color: rgba(230, 126, 115, 0.7);
-  color: white;
-  border-radius: 3px;
-  font-size: 0.7rem;
-  margin-left: 10px;
+  color: var(--text);
+  border-radius: var(--border-radius-xs);
+  font-size: calc(var(--font-size-xs) - 1px);
+  margin-left: var(--spacing-sm);
   float: right;
 }
 
-/* === RESULTS STYLING === */
+/*
+* RESULTS STYLING
+* Phase completion results
+*/
 .boss-exam-panel .phase-results {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: 15px;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
 }
 
 .boss-exam-panel .results-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 10px;
+  padding-bottom: var(--spacing-sm);
 }
 
 .boss-exam-panel .results-title {
   margin: 0;
-  color: #f0c866;
+  color: var(--warning);
+  font-family: var(--font-primary);
 }
 
 .boss-exam-panel .score-display {
@@ -241,72 +272,77 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 5px;
-  border: 2px solid #5b8dd9;
+  margin-bottom: var(--spacing-xs);
+  border: 2px solid var(--primary);
 }
 
 .boss-exam-panel .score-value {
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   font-weight: bold;
-  color: white;
+  color: var(--text);
+  font-family: var(--font-secondary);
 }
 
 .boss-exam-panel .answered-questions {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--spacing-md);
 }
 
 .boss-exam-panel .answered-question {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  padding: 10px;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
   border-left: 3px solid transparent;
 }
 
 .boss-exam-panel .correct-answer {
-  border-left-color: #56b886;
+  border-left-color: var(--secondary);
 }
 
 .boss-exam-panel .incorrect-answer {
-  border-left-color: #e67e73;
+  border-left-color: var(--danger);
 }
 
 .boss-exam-panel .question-result {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .boss-exam-panel .result-icon {
-  margin-right: 10px;
-  font-size: 1rem;
+  margin-right: var(--spacing-sm);
+  font-size: var(--font-size-md);
 }
 
 .boss-exam-panel .answer-explanation {
   background-color: rgba(59, 76, 96, 0.4);
-  padding: 10px;
-  border-radius: 5px;
-  font-size: 0.8rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
 }
 
-/* === COMPLETION STYLING === */
+/*
+* COMPLETION STYLING
+* Final exam results
+*/
 .boss-exam-panel .exam-complete {
   text-align: center;
-  padding: 20px;
+  padding: var(--spacing-lg);
   position: relative;
 }
 
 .boss-exam-panel .complete-title {
-  font-size: 1.3rem;
-  margin-bottom: 20px;
-  color: #f0c866;
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-lg);
+  color: var(--warning);
+  font-family: var(--font-primary);
 }
 
 .boss-exam-panel .final-score-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .boss-exam-panel .final-score-circle {
@@ -317,63 +353,67 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm);
   border: 3px solid;
 }
 
 .boss-exam-panel .final-score-circle.passed {
-  border-color: #56b886;
+  border-color: var(--secondary);
   box-shadow: 0 0 15px rgba(86, 184, 134, 0.5);
 }
 
 .boss-exam-panel .final-score-circle.failed {
-  border-color: #e67e73;
+  border-color: var(--danger);
   box-shadow: 0 0 15px rgba(230, 126, 115, 0.5);
 }
 
 .boss-exam-panel .final-score {
-  font-size: 2rem;
+  font-size: var(--font-size-xxl);
   font-weight: bold;
-  color: white;
+  color: var(--text);
+  font-family: var(--font-secondary);
 }
 
 .boss-exam-panel .final-verdict {
   text-align: center;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-sm);
 }
 
 .boss-exam-panel .exam-rewards {
   background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 20px;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
 }
 
 .boss-exam-panel .rewards-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
 .boss-exam-panel .reward-item {
   display: flex;
   align-items: center;
   background-color: rgba(59, 76, 96, 0.4);
-  padding: 10px;
-  border-radius: 5px;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
 }
 
 .boss-exam-panel .reward-icon {
-  margin-right: 10px;
-  font-size: 1.2rem;
+  margin-right: var(--spacing-sm);
+  font-size: var(--font-size-lg);
 }
 
-/* === INVENTORY STYLING === */
+/*
+* INVENTORY LAYOUT
+* Side panel with inventory items
+*/
 .boss-with-inventory {
   display: flex;
-  gap: 15px;
+  gap: var(--spacing-md);
   width: 100%;
   position: relative;
 }
@@ -382,37 +422,38 @@
   width: 180px;
   flex-shrink: 0;
   background-color: rgba(30, 30, 50, 0.7);
-  border: 2px solid #5b8dd9;
-  border-radius: 4px;
-  padding: 10px;
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
   max-height: 600px;
   overflow-y: auto;
   align-self: flex-start;
   position: sticky;
-  top: 20px;
-  box-shadow: 0 0 15px rgba(91, 141, 217, 0.3);
+  top: var(--spacing-lg);
+  box-shadow: var(--glow-primary);
 }
 
 .inventory-sidebar-title {
-  font-size: 0.8rem;
-  color: #5b8dd9;
+  font-size: var(--font-size-sm);
+  color: var(--primary);
   text-align: center;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
   border-bottom: 1px dashed rgba(91, 141, 217, 0.4);
+  font-family: var(--font-primary);
 }
 
 .inventory-sidebar-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .inventory-sidebar-item {
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .inventory-sidebar-item-inner {
@@ -420,27 +461,28 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px;
+  padding: var(--spacing-sm);
   height: 50px;
   border: 1px solid rgba(91, 141, 217, 0.3);
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
 }
 
+/* Rarity styling */
 .inventory-sidebar-item.common .inventory-sidebar-item-inner {
-  border-color: rgba(170, 170, 170, 0.5);
+  border-color: var(--rarity-common);
 }
 
 .inventory-sidebar-item.uncommon .inventory-sidebar-item-inner {
-  border-color: rgba(91, 141, 217, 0.5);
+  border-color: var(--primary);
 }
 
 .inventory-sidebar-item.rare .inventory-sidebar-item-inner {
-  border-color: rgba(156, 119, 219, 0.5);
+  border-color: var(--accent-purple);
 }
 
 .inventory-sidebar-item.epic .inventory-sidebar-item-inner {
-  border-color: rgba(240, 200, 102, 0.5);
-  box-shadow: 0 0 5px rgba(240, 200, 102, 0.3);
+  border-color: var(--warning);
+  box-shadow: var(--glow-warning);
 }
 
 .inventory-sidebar-item:hover {
@@ -451,15 +493,44 @@
   background-color: rgba(91, 141, 217, 0.2);
 }
 
-/* === ANIMATIONS === */
+/*
+* ANIMATIONS
+* Boss encounter animation keyframes
+*/
 @keyframes boss-pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
   100% { opacity: 1; }
 }
 
-/* === RESPONSIVE DESIGN === */
-@media (max-width: 768px) {
+/*
+* BUTTON STYLING
+* Boss specific button styles
+*/
+.boss-exam-panel .game-btn.game-btn--primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-primary);
+}
+
+.boss-exam-panel .game-btn.game-btn--primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
   .boss-with-inventory {
     flex-direction: column;
   }
@@ -467,7 +538,7 @@
   .boss-inventory-sidebar {
     width: 100%;
     max-height: 200px;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
   }
   
   .boss-inventory-sidebar .inventory-sidebar-grid {
@@ -475,30 +546,10 @@
   }
   
   .boss-exam-panel .exam-title {
-    font-size: 1rem;
+    font-size: var(--font-size-md);
   }
   
   .boss-exam-panel .question-option {
-    padding: 8px 12px;
+    padding: var(--spacing-sm);
   }
-}
-
-/* === BUTTON STYLING === */
-/* IMPORTANT: Button styles are properly scoped to avoid leaking */
-.boss-exam-panel .game-btn.game-btn--primary {
-  background: #5b8dd9;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.boss-exam-panel .game-btn.game-btn--primary:hover {
-  background: #4a70b0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }

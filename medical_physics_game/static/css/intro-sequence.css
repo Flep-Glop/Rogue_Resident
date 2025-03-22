@@ -1,5 +1,9 @@
-/* Add these styles for the intro sequence */
+/* intro-sequence.css - Styling for game introduction sequences */
 
+/*
+* INTRO SEQUENCE CONTAINER
+* Main container for introduction animations
+*/
 .intro-sequence {
   min-height: 500px;
   background-image: linear-gradient(to bottom, rgba(45, 23, 53, 0.95), rgba(25, 12, 30, 0.98));
@@ -10,6 +14,7 @@
   overflow: hidden;
 }
 
+/* Background glow effect */
 .intro-sequence::before {
   content: '';
   position: absolute;
@@ -19,14 +24,13 @@
   bottom: 0;
   background: radial-gradient(circle at center, rgba(255, 106, 0, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
   z-index: 0;
-  animation: pulse-subtle 4s infinite alternate ease-in-out;
+  animation: pulse-scale-subtle var(--animation-long) infinite alternate ease-in-out;
 }
 
-@keyframes pulse-subtle {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.7; }
-}
-
+/*
+* INTRO CONTENT CONTAINER
+* Centers and arranges intro content
+*/
 .intro-container {
   display: flex;
   flex-direction: column;
@@ -35,57 +39,70 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 30px;
+  padding: var(--spacing-xl);
   position: relative;
-  z-index: 1;
-  transition: opacity 0.8s ease;
+  z-index: var(--z-game-element);
+  transition: opacity var(--transition-medium) ease;
 }
 
+/* Boss character container */
 .intro-boss-container {
-  margin-bottom: 40px;
-  margin-top: 30px;
+  margin-bottom: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
   transform-origin: center;
 }
 
+/*
+* DIALOGUE COMPONENT
+* Text dialogue with animations
+*/
 .intro-dialogue {
   width: 100%;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: var(--spacing-xl);
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 1s ease, transform 1s ease;
+  transition: opacity var(--transition-slow) ease, 
+              transform var(--transition-slow) ease;
   min-height: 80px;
 }
 
 .intro-dialogue p {
-  color: #fff;
-  font-size: 1.2rem !important;
-  line-height: 1.6 !important;
+  color: var(--text);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-loose);
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
 }
 
+/*
+* CONTINUE BUTTON
+* Button to advance intro sequence
+*/
 .intro-continue {
-  margin-top: 20px;
-  padding: 10px 25px !important;
-  font-size: 1.1rem !important;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.3s ease !important;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg) !important;
+  font-size: var(--font-size-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transition: all var(--transition-medium) !important;
   opacity: 0;
   transform: translateY(10px);
 }
 
 .intro-continue:hover {
   transform: translateY(-3px) !important;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(--shadow-xl) !important;
 }
 
 .intro-continue:active {
   transform: translateY(0) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
-/* Additional fixes for the main boss battle UI */
-
-/* Fix the question container to make all text visible */
+/*
+* BOSS BATTLE UI OVERRIDES
+* Fixes for main boss battle UI components
+*/
+/* Question container fixes */
 .phase-questions {
   max-height: none !important; /* Remove height restriction */
   overflow: visible !important; /* Show all content */
@@ -98,27 +115,49 @@
 .question-options {
   display: flex !important;
   flex-direction: column !important;
-  gap: 10px !important;
+  gap: var(--spacing-sm) !important;
   max-height: none !important; /* Remove height restriction */
   overflow: visible !important; /* Show all content */
 }
 
-/* Nicer fade-in animations */
+/*
+* ANIMATION UTILITIES
+* Custom animation classes for intro
+*/
 .anim-fade-in {
-  animation: fadeIn 0.8s ease-in-out;
+  animation: intro-fade-in var(--transition-medium) ease-in-out;
 }
 
-@keyframes fadeIn {
+@keyframes intro-fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Add a small animation to dialogue box */
+/* Dialogue pulse animation */
 .boss-dialogue {
-  animation: dialoguePulse 5s infinite alternate ease-in-out;
+  animation: intro-dialogue-pulse var(--animation-long) infinite alternate ease-in-out;
 }
 
-@keyframes dialoguePulse {
+@keyframes intro-dialogue-pulse {
   0% { border-color: rgba(255, 106, 0, 0.6); }
   100% { border-color: rgba(255, 106, 0, 1); }
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
+  .intro-container {
+    padding: var(--spacing-md);
+  }
+  
+  .intro-dialogue p {
+    font-size: var(--font-size-md);
+  }
+  
+  .intro-continue {
+    padding: var(--spacing-xs) var(--spacing-md) !important;
+    font-size: var(--font-size-sm) !important;
+  }
 }

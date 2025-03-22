@@ -1,136 +1,146 @@
-/* Add to components.css or create a new CSS file */
+/* question-inventory.css - Sidebar inventory for question components */
 
-/* Main container for question with inventory layout */
+/*
+* QUESTION WITH INVENTORY LAYOUT
+* Container layout for question with side inventory
+*/
 .question-with-inventory-container {
-    display: flex;
-    gap: 15px;
-    width: 100%;
-    position: relative;
+  display: flex;
+  gap: var(--spacing-md);
+  width: 100%;
+  position: relative;
+}
+
+/* Question panel taking remaining width */
+.question-panel {
+  flex: 1;
+  min-width: 0; /* Allow panel to shrink if needed */
+}
+
+/*
+* SIDEBAR INVENTORY
+* Side panel with inventory items
+*/
+.question-inventory-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  background-color: var(--background-alt);
+  border: var(--border-width-normal) solid var(--primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  max-height: 600px;
+  overflow-y: auto;
+  align-self: flex-start;
+  position: sticky;
+  top: var(--spacing-md);
+}
+
+/* Sidebar title styling */
+.inventory-sidebar-title {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Inventory items container */
+.inventory-sidebar-items {
+  padding: 0;
+  overflow-y: auto;
+  max-height: 520px;
+}
+
+/* Inventory grid layout */
+.inventory-sidebar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs);
+}
+
+/* 
+* SIDEBAR ITEM
+* Individual inventory item in sidebar
+*/
+.inventory-sidebar-item {
+  width: 100%;
+  aspect-ratio: 1;
+  background-color: var(--dark-alt);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), 
+              filter var(--transition-fast), 
+              box-shadow var(--transition-fast);
+  position: relative;
+}
+
+.inventory-sidebar-item:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.inventory-sidebar-item:active {
+  transform: translateY(0);
+  filter: brightness(0.9);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Inner item content */
+.inventory-sidebar-item-inner {
+  width: 85%;
+  height: 85%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--dark);
+  border-radius: 2px;
+  position: relative;
+}
+
+/* 
+* RARITY STYLING
+* Visual treatment based on item rarity
+*/
+.inventory-sidebar-item.common .inventory-sidebar-item-inner {
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.2) inset;
+}
+
+.inventory-sidebar-item.uncommon .inventory-sidebar-item-inner {
+  box-shadow: 0 0 5px var(--primary) inset;
+}
+
+.inventory-sidebar-item.rare .inventory-sidebar-item-inner {
+  box-shadow: 0 0 5px var(--warning) inset;
+}
+
+.inventory-sidebar-item.epic .inventory-sidebar-item-inner {
+  box-shadow: 0 0 8px var(--secondary) inset;
+  animation: epic-pulse var(--animation-medium) infinite;
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
+  .question-with-inventory-container {
+    flex-direction: column;
   }
   
-  /* Question panel */
-  .question-panel {
-    flex: 1;
-    min-width: 0; /* Allow panel to shrink if needed */
-  }
-  
-  /* Sidebar inventory styling */
   .question-inventory-sidebar {
-    width: 180px;
-    flex-shrink: 0;
-    background-color: var(--background-alt);
-    border: 2px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-sm);
-    max-height: 600px;
-    overflow-y: auto;
-    align-self: flex-start;
-    position: sticky;
-    top: var(--spacing-md);
-  }
-  
-  /* Sidebar title */
-  .inventory-sidebar-title {
-    font-family: 'Press Start 2P', cursive;
-    font-size: var(--font-size-sm);
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: var(--spacing-sm);
-    padding-bottom: var(--spacing-xs);
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-  }
-  
-  /* Items container */
-  .inventory-sidebar-items {
-    padding: 0;
-    overflow-y: auto;
-    max-height: 520px;
-  }
-  
-  /* Grid for items */
-  .inventory-sidebar-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    padding: 4px;
-  }
-  
-  /* Individual item styling */
-  .inventory-sidebar-item {
     width: 100%;
-    aspect-ratio: 1;
-    background-color: var(--dark-alt);
-    border-radius: var(--border-radius-sm);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
-    position: relative;
+    max-height: 200px;
+    margin-bottom: var(--spacing-md);
   }
   
-  .inventory-sidebar-item:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  .inventory-sidebar-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
-  
-  .inventory-sidebar-item:active {
-    transform: translateY(0);
-    filter: brightness(0.9);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* Inner item content */
-  .inventory-sidebar-item-inner {
-    width: 85%;
-    height: 85%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--dark);
-    border-radius: 2px;
-    position: relative;
-  }
-  
-  /* Rarity styling */
-  .inventory-sidebar-item.common .inventory-sidebar-item-inner {
-    box-shadow: 0 0 3px rgba(255, 255, 255, 0.2) inset;
-  }
-  
-  .inventory-sidebar-item.uncommon .inventory-sidebar-item-inner {
-    box-shadow: 0 0 5px var(--primary) inset;
-  }
-  
-  .inventory-sidebar-item.rare .inventory-sidebar-item-inner {
-    box-shadow: 0 0 5px var(--warning) inset;
-  }
-  
-  .inventory-sidebar-item.epic .inventory-sidebar-item-inner {
-    box-shadow: 0 0 8px var(--secondary) inset;
-    animation: epic-pulse 2s infinite;
-  }
-  
-  /* Media queries for responsive design */
-  @media (max-width: 768px) {
-    .question-with-inventory-container {
-      flex-direction: column;
-    }
-    
-    .question-inventory-sidebar {
-      width: 100%;
-      max-height: 200px;
-      margin-bottom: var(--spacing-md);
-    }
-    
-    .inventory-sidebar-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
-  /* Make sure the animation is defined */
-  @keyframes epic-pulse {
-    0% { box-shadow: 0 0 3px var(--secondary) inset; }
-    50% { box-shadow: 0 0 8px var(--secondary) inset; }
-    100% { box-shadow: 0 0 3px var(--secondary) inset; }
-  }
+}

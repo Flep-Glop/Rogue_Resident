@@ -1,6 +1,9 @@
 /* ion_chamber_boss.css - Styles specific to Ion Chamber boss */
 
-/* === ION CHAMBER CORE STYLING === */
+/*
+* ION CHAMBER CORE STYLING
+* Base styling for the ion chamber boss
+*/
 .ion-chamber-boss {
   background-color: rgba(30, 23, 45, 0.95);
   border-color: #ff6a00;
@@ -8,66 +11,82 @@
   box-shadow: 0 0 20px rgba(255, 106, 0, 0.3), inset 0 0 30px rgba(138, 43, 226, 0.2);
 }
 
-/* === HEADER STYLING === */
+/*
+* HEADER STYLING
+* Exam header components
+*/
 .ion-chamber-boss .exam-header {
   border-bottom: 2px solid rgba(255, 106, 0, 0.5);
-  padding-bottom: 15px;
+  padding-bottom: var(--spacing-md);
 }
 
 .ion-chamber-boss .exam-title {
-  font-size: 1.4rem;
+  font-size: var(--font-size-lg);
   color: #ff6a00;
   text-shadow: 0 0 5px rgba(255, 106, 0, 0.5);
+  font-family: var(--font-primary);
 }
 
 .ion-chamber-boss .exam-subtitle {
   opacity: 0.8;
   color: #ff9d4c;
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-primary);
 }
 
-/* === TIMER STYLING === */
+/*
+* TIMER STYLING
+* Time remaining display
+*/
 .ion-chamber-boss .time-remaining {
-  font-family: monospace;
-  font-size: 1.2rem;
+  font-family: var(--font-secondary);
+  font-size: var(--font-size-lg);
   color: #ff9d4c;
   background-color: rgba(0, 0, 0, 0.4);
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
   border-left: 3px solid #ff6a00;
 }
 
 .ion-chamber-boss .time-remaining.time-warning {
   color: #ffd000;
-  animation: ion-chamber-pulse-warning 1.5s infinite;
+  animation: ion-chamber-pulse-warning var(--animation-short) infinite;
 }
 
 .ion-chamber-boss .time-remaining.time-critical {
   color: #ff3030;
-  animation: ion-chamber-pulse-critical 0.8s infinite;
+  animation: ion-chamber-pulse-critical calc(var(--animation-short) / 2) infinite;
 }
 
-/* === QUESTION STYLING === */
+/*
+* QUESTION STYLING
+* Question components specific to ion chamber
+*/
 .ion-chamber-boss .phase-title {
   color: #ff9d4c;
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   text-shadow: 0 0 8px rgba(255, 106, 0, 0.3);
+  font-family: var(--font-primary);
 }
 
 .ion-chamber-boss .question-card {
   background-color: rgba(0, 0, 0, 0.3);
   border-left: 3px solid #ff6a00;
   box-shadow: 0 2px 10px rgba(138, 43, 226, 0.1);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .ion-chamber-boss .question-option {
   text-align: left;
-  padding: 12px 18px;
+  padding: var(--spacing-md) var(--spacing-md);
   background-color: rgba(50, 28, 69, 0.5);
   border: 1px solid rgba(138, 43, 226, 0.3);
-  margin-bottom: 8px;
-  border-radius: 5px;
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
 .ion-chamber-boss .question-option:hover:not(:disabled) {
@@ -76,26 +95,32 @@
   border-color: rgba(255, 106, 0, 0.5);
 }
 
-/* === DIALOGUE STYLING === */
+/*
+* DIALOGUE STYLING
+* Boss dialogue box
+*/
 .ion-chamber-boss .boss-dialogue {
   background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   border-left: 3px solid #ff6a00;
-  padding: 15px 20px;
-  margin-bottom: 25px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
   font-style: italic;
   text-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
 }
 
 .ion-chamber-boss .boss-dialogue p {
-  color: #fff;
+  color: var(--text);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  font-size: 1.05rem;
-  line-height: 1.5;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
   margin: 0;
 }
 
-/* === SPRITE EFFECTS === */
+/*
+* SPRITE EFFECTS
+* Visual effects for the boss sprite
+*/
 .ion-chamber-boss .boss-sprite {
   position: relative;
 }
@@ -109,50 +134,58 @@
   bottom: 0;
   border-radius: 50%;
   box-shadow: 0 0 30px 10px rgba(255, 106, 0, 0.4);
-  animation: ion-chamber-glow-pulse 3s infinite;
+  animation: ion-chamber-glow-pulse var(--animation-medium) infinite;
   z-index: -1;
 }
 
+/* Boss state animations */
 .ion-chamber-boss .boss-static-img.boss-idle {
-  animation: ion-chamber-idle 3s infinite ease-in-out;
+  animation: ion-chamber-idle var(--animation-medium) infinite ease-in-out;
   transform-origin: center center;
   display: block;
 }
 
 .ion-chamber-boss .boss-static-img.boss-ability {
-  animation: ion-chamber-ability 1s ease-in-out;
+  animation: ion-chamber-ability var(--animation-short) ease-in-out;
   transform-origin: center center;
   display: block;
 }
 
 .ion-chamber-boss .boss-static-img.boss-walking {
-  animation: ion-chamber-walking 1s infinite ease-in-out;
+  animation: ion-chamber-walking var(--animation-short) infinite ease-in-out;
   transform-origin: center center;
   display: block;
 }
 
 .ion-chamber-boss .boss-static-img.boss-specialAbility {
-  animation: ion-chamber-special 1.5s ease-in-out;
+  animation: ion-chamber-special var(--animation-short) ease-in-out;
   transform-origin: center center;
   display: block;
 }
 
-/* === SCORE STYLING === */
+/*
+* SCORE STYLING
+* Score display container
+*/
 .ion-chamber-boss .score-container {
-  padding: 5px 10px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
   border-left: 3px solid #ff6a00;
 }
 
 .ion-chamber-boss .score-text {
-  font-size: 1rem;
+  font-size: var(--font-size-md);
   color: #ff9d4c;
   letter-spacing: 1px;
   font-weight: bold;
+  font-family: var(--font-secondary);
 }
 
-/* === INTRO SEQUENCE STYLING === */
+/*
+* INTRO SEQUENCE STYLING
+* Ion chamber specific intro sequence
+*/
 .ion-chamber-boss.intro-sequence {
   min-height: 500px;
   display: flex;
@@ -171,7 +204,7 @@
   bottom: 0;
   background: radial-gradient(circle at center, rgba(255, 106, 0, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
   z-index: 0;
-  animation: ion-chamber-pulse-subtle 4s infinite alternate ease-in-out;
+  animation: ion-chamber-pulse-subtle var(--animation-long) infinite alternate ease-in-out;
 }
 
 .ion-chamber-boss .intro-container {
@@ -182,13 +215,16 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 30px;
+  padding: var(--spacing-xl);
   position: relative;
-  z-index: 1;
-  transition: opacity 0.8s ease;
+  z-index: var(--z-game-element);
+  transition: opacity var(--transition-medium) ease;
 }
 
-/* === ANIMATIONS === */
+/*
+* ANIMATIONS
+* Custom animations for ion chamber boss
+*/
 @keyframes ion-chamber-glow-pulse {
   0% { box-shadow: 0 0 30px 5px rgba(255, 106, 0, 0.4); }
   50% { box-shadow: 0 0 40px 10px rgba(255, 106, 0, 0.6); }
@@ -240,46 +276,48 @@
   100% { transform: scale(4) rotate(0deg); filter: drop-shadow(0 0 8px rgba(255, 106, 0, 0.3)); }
 }
 
-@keyframes ion-chamber-fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* === BUTTON OVERRIDES === */
-/* IMPORTANT: This is the main fix - properly scoped button styling */
+/*
+* BUTTON OVERRIDES
+* Ion chamber specific button styling
+*/
 .ion-chamber-boss .game-btn.game-btn--primary {
   background: linear-gradient(to bottom, #ff8f30, #e55b00);
   color: white;
   border: none;
-  padding: 12px 18px;
-  border-radius: 4px;
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-medium);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-primary);
 }
 
 .ion-chamber-boss .game-btn.game-btn--primary:hover {
   background: linear-gradient(to bottom, #ffaa30, #ff6a00);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .ion-chamber-boss .game-btn.game-btn--subtle {
   background: rgba(255, 106, 0, 0.3);
   border: 1px solid rgba(255, 106, 0, 0.5);
   color: #ff9d4c;
-  font-size: 0.9rem;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-medium);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xs);
+  font-family: var(--font-primary);
 }
 
-/* === BROWSER COMPATIBILITY === */
+/*
+* BROWSER COMPATIBILITY
+* Fixes for different browsers
+*/
 @supports (-webkit-touch-callout: none) {
   .ion-chamber-boss .boss-static-img {
     transform: scale(4); /* Force scale on Safari */
@@ -289,5 +327,27 @@
 @-moz-document url-prefix() {
   .ion-chamber-boss .boss-static-img {
     image-rendering: -moz-crisp-edges;
+  }
+}
+
+/*
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
+  .ion-chamber-boss .exam-title {
+    font-size: var(--font-size-md);
+  }
+  
+  .ion-chamber-boss .time-remaining {
+    font-size: var(--font-size-md);
+  }
+  
+  .ion-chamber-boss .question-option {
+    padding: var(--spacing-sm);
+  }
+  
+  .ion-chamber-boss .boss-dialogue p {
+    font-size: var(--font-size-sm);
   }
 }
