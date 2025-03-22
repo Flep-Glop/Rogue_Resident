@@ -102,7 +102,7 @@ const NodeInteraction = {
     }
   },
   
-  // Show the map view
+  // Replace the showMapView function in node_interaction.js with this improved version
   showMapView: function() {
     // Hide the modal overlay if it exists
     const modalOverlay = document.getElementById('node-modal-overlay');
@@ -114,12 +114,23 @@ const NodeInteraction = {
       if (modalContent) {
         // Move all interaction containers back to their original parent
         const containers = modalContent.querySelectorAll('.interaction-container');
-        const gameBoard = document.querySelector('.col-md-9');
+        
+        // Use the same parent element logic as in createContainerForType
+        const gameBoard = document.querySelector('.col-md-9') || 
+                          document.querySelector('#game-board-container') || 
+                          document.querySelector('.game-board-container');
         
         if (gameBoard) {
           containers.forEach(container => {
             gameBoard.appendChild(container);
             container.style.display = 'none'; // Hide them
+          });
+        } else {
+          console.error("Could not find parent element to return containers to");
+          // As a last resort, add to body to avoid losing the elements completely
+          containers.forEach(container => {
+            document.body.appendChild(container);
+            container.style.display = 'none';
           });
         }
       }
