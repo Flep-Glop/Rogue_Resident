@@ -12,7 +12,7 @@ const MapRenderer = {
     gridSize: 50,      // Size of grid cells
     dropShadowDepth: 4, // Depth of the pixel drop shadows
     fogOfWarEnabled: true, // Enable fog of war effect
-    fogOfWarDistance: 4,  // Number of rows ahead that are visible
+    fogOfWarDistance: 10,  // Number of rows ahead that are visible
     nodeRevealAnimations: true // Enable node reveal animations
   },
   
@@ -411,9 +411,9 @@ const MapRenderer = {
     // Create a gradient for the fog effect
     const gradient = ctx.createLinearGradient(0, fogStartY, 0, fogStartY + 400);
     gradient.addColorStop(0, "rgba(15, 22, 49, 0)");
-    gradient.addColorStop(0.2, "rgba(15, 22, 49, 0.7)");
-    gradient.addColorStop(0.6, "rgba(15, 22, 49, 0.85)");
-    gradient.addColorStop(1, "rgba(15, 22, 49, 0.95)");
+    gradient.addColorStop(0.2, "rgba(15, 22, 49, 0.4)"); // Less opacity (0.7 → 0.4)
+    gradient.addColorStop(0.6, "rgba(15, 22, 49, 0.6)"); // Less opacity (0.85 → 0.6)
+    gradient.addColorStop(1, "rgba(15, 22, 49, 0.8)"); // Less opacity (0.95 → 0.8)
     
     // Apply gradient to fog area
     ctx.fillStyle = gradient;
