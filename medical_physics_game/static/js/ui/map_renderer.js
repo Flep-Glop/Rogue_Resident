@@ -239,8 +239,8 @@ const MapRenderer = {
     
     // Get the container dimensions for display size
     const container = canvas.closest('.map-wrapper');
-    const displayWidth = container ? container.clientWidth : logicalWidth;
-    const displayHeight = container ? container.clientHeight : logicalHeight;
+    const displayWidth = container ? container.clientWidth : this.logicalWidth;
+    const displayHeight = container ? container.clientHeight : this.logicalHeight;
     
     // Important! Set BOTH the canvas dimensions AND the CSS style
     // 1. Set the internal canvas size (where drawing happens)
@@ -274,11 +274,11 @@ const MapRenderer = {
     
     // Draw all nodes
     allNodes.forEach(node => {
-      this.drawNode(ctx, node, logicalWidth, logicalHeight);
+      this.drawNode(ctx, node, this.logicalWidth, this.logicalHeight);
     });
     
     // Add subtle CRT scanline effect
-    this.drawScanlines(ctx, logicalWidth, logicalHeight);
+    this.drawScanlines(ctx, this.logicalWidth, this.logicalHeight);
     
     // Update map title with floor number
     const mapTitle = document.querySelector('.panel-title, .map-title, h3');
