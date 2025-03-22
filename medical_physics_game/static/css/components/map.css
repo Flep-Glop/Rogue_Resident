@@ -1,18 +1,23 @@
-/* map.css - Map-specific styling */
+/* map.css - Map-specific styling for Medical Physics Residency Roguelike */
 
-/* Map container */
+/* 
+* MAP CONTAINER
+* Main container for the map area
+*/
 .map-container {
-  background-color: transparent !important;
-  border: 3px solid var(--primary);
+  background-color: rgba(26, 28, 56, 0.7);
+  backdrop-filter: blur(2px);
+  border: 2px solid var(--primary);
   border-radius: var(--border-radius-md);
+  box-shadow: 0 0 15px rgba(93, 156, 255, 0.3);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
   position: relative;
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  image-rendering: pixelated;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  height: auto;
+  min-height: 600px;
+  max-height: 700px;
+  transition: all var(--transition-medium);
 }
 
 /* Custom scrollbar for the map container */
@@ -34,7 +39,36 @@
   background: var(--primary-dark);
 }
 
-/* Scroll indicators */
+/* 
+* MAP WRAPPER
+* Contains the map canvas
+*/
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 40px); /* Account for title */
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* 
+* MAP CANVAS
+* The actual canvas element to draw the map
+*/
+#floor-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  background-color: transparent !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* 
+* MAP SCROLL INDICATORS
+* Indicators to show scroll direction
+*/
 .scroll-indicator {
   position: absolute;
   left: 50%;
@@ -44,7 +78,7 @@
   text-align: center;
   font-size: 14px;
   color: var(--primary);
-  animation: pulse 1.5s infinite;
+  animation: pulse-opacity 1.5s infinite;
   z-index: 5;
   pointer-events: none;
 }
@@ -57,67 +91,21 @@
   bottom: 10px;
 }
 
-@keyframes pulse {
-  0% { opacity: 0.3; }
-  50% { opacity: 1; }
-  100% { opacity: 0.3; }
-}
-
-/* Map wrapper to position canvas properly */
-.map-wrapper {
-  background-color: transparent !important;
-  position: relative;
-  width: var(--map-width);
-  margin: 0 auto;
-}
-
-/* Map control buttons */
-.floor-button {
-  width: 100%;
-  margin-bottom: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  font-weight: bold;
-}
-
-/* Next floor button styling */
+/* 
+* NEXT FLOOR BUTTON
+* Button to proceed to the next floor
+*/
 #next-floor-btn {
   position: relative;
   font-size: var(--font-size-md);
   padding: var(--spacing-sm) var(--spacing-md);
   margin: var(--spacing-md) auto;
   display: none; /* Initially hidden */
-  animation: pulse-attention 2s infinite;
+  animation: button-pulse 2s infinite;
   box-shadow: 
     0 var(--pixel-size) 0 0 var(--secondary-dark),
     0 var(--pixel-size) 0 var(--pixel-size) rgba(0,0,0,0.5),
     0 0 15px var(--secondary);
-}
-
-#floor-map {
-  display: block;
-  image-rendering: pixelated;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  background-color: transparent !important; /* Add this line */
-}
-
-/* Ensure nodes are above pixel background */
-.map-node {
-  position: relative;
-  z-index: 2;  /* Higher than background */
-}
-
-/* Ensure paths between nodes are above background */
-.map-path {
-  position: relative; 
-  z-index: 1;  /* Above background but below nodes */
-}
-
-/* Ensure text and descriptions are visible */
-.node-title, .node-description {
-  position: relative;
-  z-index: 3;  /* Above everything */
 }
 
 #next-floor-btn::before {
@@ -132,22 +120,47 @@
   font-size: 1.2em;
 }
 
-@keyframes pulse-attention {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+/* 
+* NODE ELEMENTS
+* Ensures proper z-indexing for map elements
+*/
+.map-node {
+  position: relative;
+  z-index: 2;  /* Higher than background */
 }
 
-/* Path visualization overlay */
-.path-visualization-overlay {
+.node-path {
   position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 1000;
+  height: 3px;
+  background-color: var(--text);
+  transform-origin: 0 0;
+  z-index: 1; /* Above background but below nodes */
 }
 
-/* Floor transition styling */
+.node-path--locked {
+  opacity: 0.2;
+}
+
+.node-path--active {
+  background-color: var(--primary);
+  opacity: 0.8;
+}
+
+.node-path--completed {
+  background-color: var(--secondary);
+  opacity: 0.6;
+}
+
+.node-title, 
+.node-description {
+  position: relative;
+  z-index: 3;  /* Above everything */
+}
+
+/* 
+* FLOOR TRANSITION SCREEN
+* Visual transition between floors
+*/
 .floor-transition-screen {
   position: fixed;
   top: 0;
@@ -160,7 +173,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: var(--z-modal);
   animation: floor-transition 3s ease-in-out forwards;
 }
 
@@ -185,14 +198,10 @@
   line-height: 1.5;
 }
 
-@keyframes floor-transition {
-  0% { transform: translateY(100%); opacity: 0; }
-  10% { transform: translateY(0); opacity: 1; }
-  90% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
-}
-
-/* Map debug buttons */
+/* 
+* MAP DEBUG TOOLS
+* Styling for debug functionality
+*/
 .debug-buttons {
   display: flex;
   gap: 5px;
@@ -205,341 +214,48 @@
   opacity: 0.7;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* 
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: var(--breakpoint-md)) {
   .map-container {
+    min-height: 400px;
+    max-height: 500px;
     padding: var(--spacing-sm);
+    order: 1;
   }
+  
+  .floor-title {
+    font-size: 32px;
+  }
+  
+  .floor-subtitle {
+    font-size: 18px;
+  }
+  
+  .floor-description {
+    font-size: 14px;
+    padding: 0 var(--spacing-md);
+  }
+}
 
+@media (max-width: var(--breakpoint-sm)) {
+  .map-container {
+    min-height: 300px;
+    padding: var(--spacing-xs);
+  }
+  
   .map-wrapper {
     width: 100%;
     overflow-x: auto;
   }
-
-  #floor-map {
-    width: 100%;
-    height: auto;
-  }
-
+  
   .floor-title {
-    font-size: 32px;
+    font-size: 24px;
   }
-
+  
   .floor-description {
-    font-size: 14px;
-  }
-}
-
-/* Custom CSS to enhance the map and fix character panel integration */
-
-/* Enhanced Map Container */
-.map-container {
-  background-color: rgba(26, 28, 56, 0.7);
-  backdrop-filter: blur(2px);
-  border: 2px solid var(--primary);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 0 15px rgba(93, 156, 255, 0.3);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  position: relative;
-  overflow: hidden;
-  height: auto;
-  min-height: 600px;
-  max-height: 700px;
-  transition: all 0.3s ease;
-}
-
-/* Make map responsive but maintain aspect ratio */
-.map-wrapper {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 40px); /* Account for title */
-  margin: 0 auto;
-  overflow: hidden;
-}
-
-#floor-map {
-  display: block;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-}
-
-/* Character panel fixes to work with character_panel.js */
-.character-avatar-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto var(--spacing-sm);
-  max-height: 120px;
-  min-height: 80px;
-  overflow: hidden;
-  width: 100%;
-  text-align: center;
-}
-
-.character-sprite-container {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto;
-  position: relative;
-}
-
-/* Character bobbing animation */
-.pixel-bobbing {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0% { transform: scale(3) translateY(0px); }
-  50% { transform: scale(3) translateY(-5px); }
-  100% { transform: scale(3) translateY(0px); }
-}
-
-/* Character glow effect */
-.character-avatar {
-  position: relative;
-  display: inline-block;
-}
-
-.pixel-glow {
-  animation: glow 3s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(93, 156, 255, 0.3); }
-  50% { box-shadow: 0 0 15px rgba(93, 156, 255, 0.6); }
-  100% { box-shadow: 0 0 5px rgba(93, 156, 255, 0.3); }
-}
-
-/* Character info styling */
-.character-details {
-  text-align: center;
-}
-
-.character-name {
-  font-family: 'Press Start 2P', cursive;
-  color: var(--primary);
-  margin-bottom: var(--spacing-sm);
-}
-
-.character-level {
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
-  margin-top: var(--spacing-sm);
-}
-
-/* Insight bar styling */
-.insight-bar-container {
-  margin: var(--spacing-sm) 0;
-}
-
-.insight-bar-label {
-  font-size: var(--font-size-xs);
-  color: var(--primary);
-  margin-bottom: 3px;
-  text-align: left;
-}
-
-.insight-bar {
-  height: 12px;
-  background-color: var(--dark-alt);
-  border-radius: 6px;
-  overflow: hidden;
-  position: relative;
-}
-
-.insight-bar-fill {
-  height: 100%;
-  background-color: var(--primary);
-  transition: width 0.5s ease;
-}
-
-.insight-value {
-  position: absolute;
-  right: 5px;
-  top: 0;
-  font-size: var(--font-size-xs);
-  color: white;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
-  line-height: 12px;
-}
-
-/* Lives container styling */
-.lives-container {
-  margin: var(--spacing-sm) 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--spacing-sm);
-}
-
-.life-icon {
-  font-size: 16px;
-  margin: 0 2px;
-}
-
-.life-icon.active {
-  color: var(--danger);
-  filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.5));
-}
-
-.life-icon.inactive {
-  color: var(--dark);
-  opacity: 0.5;
-}
-
-/* Lives changed animations */
-.lives-increased {
-  animation: pulse-green 1s;
-}
-
-.lives-decreased {
-  animation: pulse-red 1s;
-}
-
-@keyframes pulse-green {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); background-color: rgba(69, 225, 124, 0.2); }
-  100% { transform: scale(1); }
-}
-
-@keyframes pulse-red {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); background-color: rgba(230, 126, 115, 0.2); }
-  100% { transform: scale(1); }
-}
-
-/* Special ability button styling */
-.special-ability-container {
-  margin-top: var(--spacing-sm);
-}
-
-.special-ability-btn {
-  width: 100%;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-family: 'Press Start 2P', cursive;
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-  box-shadow: 0 3px 0 var(--primary-dark);
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.special-ability-btn:hover:not(.disabled) {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 0 var(--primary-dark);
-}
-
-.special-ability-btn:active:not(.disabled) {
-  transform: translateY(1px);
-  box-shadow: 0 2px 0 var(--primary-dark);
-}
-
-.special-ability-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.use-count {
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 2px 5px;
-  border-radius: 10px;
-  font-size: var(--font-size-xs);
-  margin-left: var(--spacing-sm);
-}
-
-/* Ability tooltip */
-.ability-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  width: 100%;
-  background-color: var(--dark);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  z-index: 10;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  margin-bottom: 5px;
-}
-
-.special-ability-btn:hover .ability-tooltip {
-  opacity: 1;
-}
-
-/* Highlight for correct answer when using peer review ability */
-.correct-answer-highlight {
-  border-color: var(--secondary) !important;
-  background-color: rgba(69, 225, 124, 0.2) !important;
-  box-shadow: 0 0 8px var(--secondary) !important;
-}
-
-/* Styles for the Right Panel */
-.stats-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--spacing-xs) 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-}
-
-.stat-label {
-  color: var(--text-light);
-  font-size: var(--font-size-xs);
-}
-
-.stat-value {
-  color: var(--accent-yellow);
-  font-weight: bold;
-  font-size: var(--font-size-xs);
-}
-
-.node-legend {
-  margin-top: var(--spacing-md);
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-}
-
-/* Responsive adjustments */
-@media (max-width: 992px) {
-  .row {
-    flex-direction: column;
-  }
-  
-  .col-md-3, .col-md-6 {
-    width: 100%;
-    max-width: 100%;
-    flex: 0 0 100%;
-  }
-  
-  .map-container {
-    max-height: 500px;
-    min-height: 400px;
-    order: 1;
-  }
-  
-  .character-stats.game-panel {
-    order: 0;
-  }
-  
-  .game-panel--secondary {
-    order: 2;
+    font-size: 12px;
   }
 }

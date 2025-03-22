@@ -1,363 +1,400 @@
-/* character.css - Character panel styling */
+/* character.css - Character panel styling for Medical Physics Residency Roguelike */
 
-/* Character stats panel */
+/* 
+* CHARACTER STATS PANEL
+* Main container for character information
+*/
 .character-stats {
-    background-color: var(--background-alt);
-    color: var(--text);
-    border: 2px solid var(--primary);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    font-family: 'Press Start 2P', cursive;
-    font-size: var(--font-size-sm);
-    line-height: 1.5;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    animation: character-panel-glow 4s ease-in-out infinite;
-  }
-  
-  @keyframes character-panel-glow {
-    0% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(91, 141, 217, 0.7); }
-    100% { box-shadow: 0 0 5px rgba(91, 141, 217, 0.3); }
-  }
-  
-  .character-avatar {
-    width: 72px;  /* Should match your image size */
-    height: 72px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  background-color: rgba(26, 28, 56, 0.7);
+  backdrop-filter: blur(2px);
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 0 10px rgba(93, 156, 255, 0.3);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  animation: pulse-primary var(--animation-long) infinite;
+}
+
+/* 
+* CHARACTER AVATAR
+* Visual representation of the character
+*/
+.character-avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto var(--spacing-sm);
+  max-height: 120px;
+  min-height: 80px;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+}
+
+.character-sprite-container {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.character-avatar {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.ascii-character {
+  font-family: var(--font-secondary);
+  white-space: pre;
+  line-height: 1.2;
+  text-align: center;
+  margin: 0;
+  font-size: 16px;
+  color: var(--text);
+  transition: transform 0.2s ease-in-out;
+}
+
+.character-panel-img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -webkit-font-smoothing: none;
+}
+
+/* 
+* CHARACTER ANIMATION STATES
+* Animation classes for different character states
+*/
+.pixel-bobbing {
+  animation: float 3s ease-in-out infinite;
+}
+
+.pixel-glow {
+  animation: pulse-primary 3s ease-in-out infinite;
+}
+
+.ascii-character.walking {
+  animation: 
+    float-subtle 2s ease-in-out infinite,
+    walk-cycle 1.5s steps(4) infinite;
+  transform-origin: center bottom;
+}
+
+.using-ability .ascii-character {
+  animation: ability-flash 0.5s 3;
+}
+
+/* Special glow effect for debug character */
+.debug-physicist .character-avatar {
+  animation: pulse-secondary 2s infinite alternate;
+}
+
+/* 
+* CHARACTER DETAILS
+* Text information about the character
+*/
+.character-details {
+  text-align: center;
+  margin-top: var(--spacing-sm);
+}
+
+.character-name {
+  font-family: var(--font-primary);
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.character-level {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  margin-top: var(--spacing-sm);
+}
+
+.character-details p strong {
+  color: var(--primary);
+  font-size: var(--font-size-md);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  font-weight: normal;
+}
+
+/* 
+* LIVES DISPLAY
+* Health/Lives indicator
+*/
+.lives-container {
+  margin: var(--spacing-sm) 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-sm);
+}
+
+/* Show numeric lives for high values */
+.lives-container[data-lives-count="high"] {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.lives-container[data-lives-count="high"] .life-display {
+  color: var(--danger);
+  font-weight: bold;
+  font-size: var(--font-size-sm);
+}
+
+.lives-container[data-lives-count="high"] .life-icon {
+  margin: 0 4px;
+  font-size: 14px;
+}
+
+/* Regular heart icons for normal lives count */
+.lives-container:not([data-lives-count="high"]) .life-display {
+  display: none;
+}
+
+.lives-container:not([data-lives-count="high"]) .life-icon {
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+.life-icon.active {
+  color: var(--danger);
+  filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.5));
+}
+
+.life-icon.inactive {
+  color: var(--dark);
+  opacity: 0.5;
+}
+
+/* Lives changed animations */
+.lives-increased {
+  animation: pulse-green 1s;
+}
+
+.lives-decreased {
+  animation: pulse-red 1s;
+}
+
+/* 
+* INSIGHT BAR
+* Progress bar for the character's insight/knowledge
+*/
+.insight-bar-container {
+  margin: var(--spacing-sm) 0;
+}
+
+.insight-bar-label {
+  font-size: var(--font-size-xs);
+  color: var(--primary);
+  margin-bottom: 3px;
+  text-align: left;
+}
+
+.insight-bar {
+  height: 12px;
+  background-color: var(--dark-alt);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.insight-bar-fill {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width var(--transition-medium) ease-out;
+}
+
+.insight-value {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  font-size: var(--font-size-xs);
+  color: white;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
+  line-height: 12px;
+}
+
+/* Insight change animations */
+.insight-gain-animation {
+  animation: pulse-green 0.5s ease-in-out;
+}
+
+.insight-loss-animation {
+  animation: pulse-red 0.5s ease-in-out;
+}
+
+/* 
+* SPECIAL ABILITY
+* Character special ability button
+*/
+.special-ability-container {
+  margin-top: var(--spacing-md);
+}
+
+.special-ability-btn {
+  width: 100%;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--primary-dark);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.special-ability-btn:hover:not(.disabled) {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--primary-dark);
+}
+
+.special-ability-btn:active:not(.disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
+
+.special-ability-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.use-count {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-size: var(--font-size-xs);
+  margin-left: var(--spacing-sm);
+}
+
+/* Ability tooltip */
+.ability-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  background-color: var(--dark);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  z-index: var(--z-tooltip);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-medium);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 5px;
+}
+
+.special-ability-btn:hover .ability-tooltip {
+  opacity: 1;
+}
+
+/* 
+* CHARACTER FRAME ANIMATIONS
+* Animation frames for character states
+*/
+.ascii-frame {
+  display: none;
+}
+
+.ascii-frame.active {
+  display: block;
+}
+
+/* 
+* SPECIAL ANIMATIONS
+* Additional character effect animations
+*/
+.ghost-animation {
+  font-family: var(--font-secondary);
+  font-size: 14px;
+  white-space: pre;
+  line-height: 1.2;
+  text-align: center;
+  margin: var(--spacing-lg) auto;
+  color: var(--accent-purple);
+  opacity: 0.8;
+  text-shadow: 0 0 5px var(--accent-purple);
+  animation: float 3s ease-in-out infinite, flicker 5s linear infinite;
+}
+
+/* Highlight for correct answer when using peer review ability */
+.correct-answer-highlight {
+  border-color: var(--secondary) !important;
+  background-color: rgba(69, 225, 124, 0.2) !important;
+  box-shadow: 0 0 8px var(--secondary) !important;
+}
+
+/* 
+* STATS DISPLAY
+* Additional character stats in the right panel
+*/
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+  color: var(--text-light);
+  font-size: var(--font-size-xs);
+}
+
+.stat-value {
+  color: var(--accent-yellow);
+  font-weight: bold;
+  font-size: var(--font-size-xs);
+}
+
+/* 
+* NODE LEGEND
+* Map node type reference
+*/
+.node-legend {
+  margin-top: var(--spacing-md);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+/* 
+* RESPONSIVE ADJUSTMENTS
+* Media queries for different screen sizes
+*/
+@media (max-width: 768px) {
+  .character-stats {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm);
   }
   
   .ascii-character {
-    font-family: monospace;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: 0;
-    font-size: 16px; /* Slightly reduced from 18px */
-    color: var(--text);
-  }
-  
-  /* Character animation states */
-  .ascii-character {
-    position: relative;
-    transition: transform 0.2s ease-in-out;
-  }
-
-  .character-panel-img {
-    image-rendering: pixelated;
-    image-rendering: crisp-edges; /* Fallback for some browsers */
-    -webkit-font-smoothing: none;
-  }
-
-  .ascii-character.walking {
-    animation: 
-      bob 2s ease-in-out infinite,
-      walk-cycle 1.5s steps(4) infinite;
-    position: relative;
-    transform-origin: center bottom; /* Make sure character bobs from the bottom */
-  }
-  
-  @keyframes bob {
-    0% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-2px) rotate(-1deg); }
-    50% { transform: translateY(-3px) rotate(0deg); }
-    75% { transform: translateY(-2px) rotate(1deg); }
-    100% { transform: translateY(0) rotate(0deg); }
-  }
-  
-  /* Modify the character container to be more compact */
-  .character-avatar-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto var(--spacing-sm);
-    max-height: 120px; /* Limit maximum height */
-    overflow: hidden;
-  }
-  
-  /* Improved walking animation effect */
-  @keyframes walk-cycle {
-    0% { transform: translateX(-2px); }
-    50% { transform: translateX(2px); }
-    100% { transform: translateX(-2px); }
-  }
-
-  /* Bobbing animation - improved */
-  @keyframes bob {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-    100% { transform: translateY(0); }
-  }
-
-  /* Special glow effect for debug character - using class-based approach instead */
-  .debug-physicist .character-avatar {
-    animation: debug-glow 2s infinite alternate;
-  }
-
-  @keyframes debug-glow {
-    0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.5) inset; }
-    100% { box-shadow: 0 0 10px rgba(86, 184, 134, 0.8) inset; }
-  }
-
-  /* Special animation when using ability */
-  .using-ability .ascii-character {
-    animation: ability-flash 0.5s 3;
-  }
-
-  @keyframes ability-flash {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-  }
-  
-  /* Character details */
-  .character-details {
-    margin-top: var(--spacing-sm);
+    font-size: 16px;
   }
   
   .character-details p strong {
-    color: var(--primary);
-    font-size: var(--font-size-md);
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
-    font-weight: normal;
-  }
-  
-  /* Lives display */
-  #lives-container {
-    margin: var(--spacing-sm) 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: var(--spacing-sm);
-  }
-  
-  /* Show numeric lives for high values */
-  #lives-container[data-lives-count="high"] {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-  }
-  
-  #lives-container[data-lives-count="high"] .life-display {
-    color: var(--danger);
-    font-weight: bold;
     font-size: var(--font-size-sm);
   }
   
-  #lives-container[data-lives-count="high"] .life-icon {
-    margin: 0 4px;
-    font-size: 14px;
-  }
-  
-  /* Regular heart icons for normal lives count */
-  #lives-container:not([data-lives-count="high"]) .life-display {
-    display: none;
-  }
-  
-  #lives-container:not([data-lives-count="high"]) .life-icon {
-    font-size: 16px;
-    margin: 0 2px;
-  }
-  
-  .life-icon.active {
-    color: var(--danger);
-    filter: drop-shadow(0 0 3px rgba(231, 76, 60, 0.5));
-  }
-  
-  .life-icon.inactive {
-    color: var(--dark);
-    opacity: 0.5;
-  }
-  
-  /* Insight bar */
-  .insight-bar-container {
-    margin: var(--spacing-sm) 0;
-  }
-  
-  .insight-bar-label {
-    font-size: var(--font-size-xs);
-    margin-bottom: 3px;
-    text-align: left;
-    color: var(--primary);
-  }
-  
-  .insight-bar {
-    height: 12px;
-    background-color: var(--dark-alt);
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .insight-bar-fill {
-    height: 100%;
-    background-color: var(--primary);
-    transition: width var(--transition-medium) ease-out;
-  }
-  
-  .insight-value {
-    position: absolute;
-    right: 5px;
-    top: 0;
-    font-size: var(--font-size-xs);
-    color: white;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
-    line-height: 12px;
-  }
-  
-  /* Special ability styling */
-  .special-ability-container {
-    margin-top: var(--spacing-md);
-  }
-  
   .special-ability-btn {
-    width: 100%;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    font-family: 'Press Start 2P', cursive;
-    font-size: var(--font-size-xs);
-    cursor: pointer;
-    box-shadow: 0 3px 0 var(--primary-dark);
-    position: relative;
+    font-size: calc(var(--font-size-xs) - 1px);
   }
-  
-  .special-ability-btn:hover {
-    background-color: var(--primary-dark);
-  }
-  
-  .special-ability-btn:active {
-    transform: translateY(2px);
-    box-shadow: none;
-  }
-  
-  .special-ability-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .use-count {
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 2px 5px;
-    border-radius: 10px;
-    font-size: var(--font-size-xs);
-    margin-left: var(--spacing-sm);
-  }
-  
-  .ability-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    width: 100%;
-    background-color: var(--dark);
-    color: white;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-xs);
-    opacity: 0;
-    transition: opacity var(--transition-fast);
-    pointer-events: none;
-    z-index: 10;
-  }
-  
-  .special-ability-btn:hover .ability-tooltip {
-    opacity: 1;
-  }
-  
-  /* Character frame animations */
-  .ascii-frame {
-    display: none;
-  }
-  
-  .ascii-frame.active {
-    display: block;
-  }
-  
-  /* Ghost animation for special characters */
-  .ghost-animation {
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre;
-    line-height: 1.2;
-    text-align: center;
-    margin: var(--spacing-lg) auto;
-    color: #9b59b6;
-    opacity: 0.8;
-    text-shadow: 0 0 5px #9b59b6;
-    animation: float 3s ease-in-out infinite, flicker 5s linear infinite;
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0) translateX(0); }
-    25% { transform: translateY(-5px) translateX(3px); }
-    50% { transform: translateY(0) translateX(0); }
-    75% { transform: translateY(5px) translateX(-3px); }
-    100% { transform: translateY(0) translateX(0); }
-  }
-  
-  @keyframes flicker {
-    0% { opacity: 0.7; }
-    10% { opacity: 0.8; }
-    20% { opacity: 0.7; }
-    30% { opacity: 0.8; }
-    40% { opacity: 0.9; }
-    50% { opacity: 0.7; }
-    60% { opacity: 0.9; }
-    70% { opacity: 0.8; }
-    80% { opacity: 0.7; }
-    90% { opacity: 0.9; }
-    100% { opacity: 0.7; }
-  }
-  
-  /* Character stats animations */
-  .insight-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-  
-  .insight-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-  
-  .life-gain-animation {
-    animation: pulse-green 0.5s ease-in-out;
-  }
-  
-  .life-loss-animation {
-    animation: pulse-red 0.5s ease-in-out;
-  }
-  
-  @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-  }
-  
-  @keyframes pulse-red {
-    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .character-stats {
-      font-size: var(--font-size-xs);
-      padding: var(--spacing-sm);
-    }
-    
-    .ascii-character {
-      font-size: 16px;
-    }
-    
-    .character-details p strong {
-      font-size: var(--font-size-sm);
-    }
-    
-    .special-ability-btn {
-      font-size: calc(var(--font-size-xs) - 1px);
-    }
-  }
+}

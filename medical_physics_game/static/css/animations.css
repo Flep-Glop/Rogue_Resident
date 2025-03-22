@@ -1,7 +1,9 @@
-/* animations.css - Centralized animation system */
-/* This file replaces scattered animation definitions across multiple CSS files */
+/* animations.css - Animation system for Medical Physics Residency Roguelike */
 
-/* ===== MOVEMENT ANIMATIONS ===== */
+/*
+* MOVEMENT ANIMATIONS
+* Animations for element movement patterns
+*/
 
 /* Vertical floating animations */
 @keyframes float {
@@ -44,7 +46,10 @@
   to { transform: translateY(110vh); }
 }
 
-/* ===== PULSE/GLOW ANIMATIONS ===== */
+/*
+* VISUAL EFFECT ANIMATIONS
+* Animations for color and visual effects
+*/
 
 /* Color-based pulse animations */
 @keyframes pulse-primary {
@@ -97,26 +102,6 @@
   100% { transform: scale(1); }
 }
 
-/* Gentle pulse for title (alias for pulse-scale-subtle for semantic clarity) */
-@keyframes gentle-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-/* Card specific pulse animations */
-@keyframes card-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-@keyframes selected-pulse {
-  0% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
-  50% { box-shadow: 0 0 15px rgba(86, 184, 134, 0.7); }
-  100% { box-shadow: 0 0 5px rgba(86, 184, 134, 0.3); }
-}
-
 /* Opacity-based pulse animations */
 @keyframes pulse-opacity {
   0% { opacity: 0.7; }
@@ -124,36 +109,31 @@
   100% { opacity: 0.7; }
 }
 
-/* Arrow pulse animation */
-@keyframes arrow-pulse {
-  0% { opacity: 0.7; }
-  50% { opacity: 1; }
-  100% { opacity: 0.7; }
+/* Epic item pulse animation */
+@keyframes epic-pulse {
+  0% { box-shadow: 0 0 3px var(--secondary) inset; }
+  50% { box-shadow: 0 0 8px var(--secondary) inset; }
+  100% { box-shadow: 0 0 3px var(--secondary) inset; }
 }
 
-/* Combined rarity glow animations */
-@keyframes epic-item-pulse {
-  0% { 
-    box-shadow: var(--glow-epic);
-    transform: scale(1);
-  }
-  50% { 
-    box-shadow: var(--glow-warning-strong);
-    transform: scale(1.02); 
-  }
-  100% { 
-    box-shadow: var(--glow-epic);
-    transform: scale(1);
-  }
+/* Treasure item pulse animation */
+@keyframes treasure-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-@keyframes rare-item-pulse {
-  0% { box-shadow: 0 0 5px var(--node-rest); }
-  50% { box-shadow: 0 0 12px var(--node-rest); }
-  100% { box-shadow: 0 0 5px var(--node-rest); }
+/* Button attention pulse */
+@keyframes button-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
-/* ===== TRANSITION ANIMATIONS ===== */
+/*
+* TRANSITION ANIMATIONS
+* Animations for element transitions
+*/
 
 /* Fade animations */
 @keyframes fade-in {
@@ -198,7 +178,10 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ===== ATTENTION ANIMATIONS ===== */
+/*
+* FEEDBACK ANIMATIONS
+* Animations for user feedback effects
+*/
 
 /* Flash animations for highlighting */
 @keyframes flash {
@@ -220,13 +203,35 @@
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* Button animations */
-@keyframes button-shine {
-  0% { left: -50%; top: -50%; }
-  100% { left: 150%; top: 150%; }
+/* Success feedback */
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
 }
 
-/* ===== SPECIAL EFFECT ANIMATIONS ===== */
+/* Error feedback */
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+/* Toast notifications */
+@keyframes toast-in {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toast-out {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/*
+* SPECIAL EFFECT ANIMATIONS
+* Animations for unique visual effects
+*/
 
 /* Flicker effect for lights/ghosts */
 @keyframes flicker {
@@ -243,66 +248,13 @@
   100% { opacity: 0.7; }
 }
 
-/* CRT screen flicker */
-@keyframes gentle-flicker {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.25; }
-  100% { opacity: 0.2; }
+/* Floor transition animation */
+@keyframes floor-transition {
+  0% { transform: translateY(100%); opacity: 0; }
+  10% { transform: translateY(0); opacity: 1; }
+  90% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }
-
-/* Scanline movement */
-@keyframes scanline-move {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 calc(var(--pixel-size) * 2); }
-}
-
-/* Pixel background animations */
-@keyframes pixel-pulse {
-  0% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
-  100% { opacity: 0.3; transform: scale(1); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.8; }
-  100% { opacity: 0.3; }
-}
-
-/* ===== FEEDBACK ANIMATIONS ===== */
-
-/* Success feedback */
-@keyframes pulse-green {
-  0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-}
-
-/* Error feedback */
-@keyframes pulse-red {
-  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-}
-
-/* Floating text notifications */
-@keyframes float-up-fade {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-50px); opacity: 0; }
-}
-
-/* Toast notifications */
-@keyframes toast-in {
-  0% { transform: translateX(100%); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes toast-out {
-  0% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
-
-/* ===== GAME-SPECIFIC ANIMATIONS ===== */
 
 /* Character ability usage */
 @keyframes ability-flash {
@@ -311,40 +263,16 @@
   100% { opacity: 1; }
 }
 
-/* Character level up */
-@keyframes level-up-glow {
-  0% { box-shadow: 0 0 10px var(--secondary); }
-  50% { box-shadow: 0 0 30px var(--secondary); }
-  100% { box-shadow: 0 0 10px var(--secondary); }
+/* Epic item glow */
+@keyframes epic-item-glow {
+  0% { box-shadow: 0 0 8px var(--secondary); }
+  100% { box-shadow: 0 0 18px var(--secondary); }
 }
 
-/* Floor transition */
-@keyframes floor-transition {
-  0% { opacity: 0; transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-/* Map node hover */
-@keyframes node-hover {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
-}
-
-/* Floor transition out */
-@keyframes floor-transition-out {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
-}
-
-/* Dice roll animation */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* The following are animation utility classes to easily apply these animations */
-
-/* === UTILITY ANIMATION CLASSES === */
+/*
+* ANIMATION UTILITY CLASSES
+* Utility classes for easily applying animations
+*/
 
 /* Float animations */
 .anim-float { animation: float var(--animation-medium) infinite ease-in-out; }
@@ -355,9 +283,6 @@
 /* Pulse animations */
 .anim-pulse-primary { animation: pulse-primary var(--animation-medium) infinite; }
 .anim-pulse-secondary { animation: pulse-secondary var(--animation-medium) infinite; }
-.anim-pulse-danger { animation: pulse-danger var(--animation-medium) infinite; }
-.anim-pulse-warning { animation: pulse-warning var(--animation-medium) infinite; }
-
 .anim-pulse-scale { animation: pulse-scale var(--animation-medium) infinite; }
 .anim-pulse-opacity { animation: pulse-opacity var(--animation-medium) infinite; }
 
@@ -365,239 +290,31 @@
 .anim-fade-in { animation: fade-in var(--transition-medium) forwards; }
 .anim-fade-out { animation: fade-out var(--transition-medium) forwards; }
 
-/* Flash animations */
-.anim-flash { animation: flash 0.5s 3; }
-.anim-highlight { animation: highlight-flash 1s; }
+/* Slide animations */
+.anim-slide-up { animation: slide-up var(--transition-medium) forwards; }
+.anim-slide-down { animation: slide-down var(--transition-medium) forwards; }
 
-/* Epic item animation */
-.anim-epic { animation: epic-item-pulse var(--animation-medium) infinite; }
+/*
+* REDUCED MOTION SUPPORT
+* Respect user preferences for reduced motion
+*/
 
-/* Character animations */
-.anim-character-walk { 
-  animation: 
-    float-subtle var(--animation-medium) infinite ease-in-out,
-    walk-cycle 1.5s steps(4) infinite;
-}
-
-/* Dice roll */
-.dice-roll {
-  display: inline-block;
-  animation: spin 1s ease-in-out infinite;
-}
-
-/* Add these new animations to your existing CSS */
-@keyframes pixel-diagonal {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(20px, -15px); }
-  50% { transform: translate(5px, -25px); }
-  75% { transform: translate(-15px, -10px); }
-  100% { transform: translate(-20px, -20px); }
-}
-
-@keyframes pixel-drift {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(30px); }
-}
-
-/* Update your pixel-decoration base style to support the new animations */
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  opacity: 0.8;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
-  pointer-events: none;
-  transform-origin: center center;
-}
-/* Updated animations and styles to match the screenshot */
-.pixel-container {
-  background-color: #292f5b; /* Dark blue background like in the image */
-  position: relative;
-  overflow: hidden;
-}
-
-@keyframes slow-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pixel-float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.2; }
-}
-
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  transform-origin: center center;
-}
-
-/* Style the game title to match the image */
-.game-title {
-  text-transform: uppercase;
-  color: #8be8e5; /* Bright cyan like in the image */
-  text-shadow: 0 0 5px #5b8dd9;
-  letter-spacing: 2px;
-}
-
-.subtitle {
-  text-transform: uppercase;
-  color: #8be8e5;
-  letter-spacing: 1px;
-}
-
-/* Style menu buttons to match the image */
-.retro-btn {
-  text-transform: uppercase;
-  border: 2px solid #8be8e5;
-  background-color: #333;
-  color: #8be8e5;
-  margin-bottom: 10px;
-  text-shadow: none;
-  box-shadow: 0 0 5px #5b8dd9;
-}
-
-.retro-btn.start {
-  background-color: #5b8dd9;
-  color: white;
-}
-
-.footer {
-  color: #ffffff;
-  opacity: 0.7;
-}
-
-/* Enhanced styling to match the screenshot exactly */
-.pixel-container {
-  background-color: #292f5b; /* Dark blue background */
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Title block styling */
-.title-block {
-  background-color: #1a1a1a; /* Dark background */
-  border: 2px solid #5b8dd9; /* Blue border */
-  padding: 20px 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 0 10px rgba(91, 141, 217, 0.5);
-  text-align: center;
-  max-width: 500px;
-  width: 80%;
-}
-
-.game-title {
-  text-transform: uppercase;
-  color: #8be8e5; /* Bright cyan */
-  text-shadow: 0 0 5px #5b8dd9;
-  letter-spacing: 3px;
-  font-size: 2.5rem;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.subtitle {
-  text-transform: uppercase;
-  color: #8be8e5;
-  letter-spacing: 2px;
-  font-size: 1rem;
-  margin-top: 10px;
-}
-
-/* Button container to match the image */
-.menu-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px; /* Tighter gap between buttons */
-  margin-bottom: 40px;
-  width: 40%;
-  max-width: 300px;
-}
-
-/* Button styling to match exactly */
-.retro-btn {
-  text-transform: uppercase;
-  border: 2px solid #8be8e5;
-  background-color: #5b8dd9;
-  color: white;
-  padding: 10px;
-  text-shadow: none;
-  box-shadow: 0 0 5px #5b8dd9;
-  font-size: 0.8rem;
-}
-
-.retro-btn.options {
-  background-color: #a7a1db; /* Yellow button in the image */
-}
-
-.retro-btn.help {
-  background-color: #9c77db; /* Purple button in the image */
-}
-
-/* Animation keyframes */
-@keyframes slow-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pixel-float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 0.1; }
-}
-
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  transform-origin: center center;
-}
-
-/* Space bar prompt styling */
-.footer {
-  position: absolute;
-  bottom: 20px;
-  color: #ffffff;
-  opacity: 0.7;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
-/* Pixel decorations styling */
-.pixel-decoration {
-  position: absolute;
-  z-index: 0;  /* Behind other elements */
-  opacity: 0.7;
-  pointer-events: none;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-}
-
-/* Animation keyframes */
-@keyframes pixel-float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes pixel-twinkle {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.7; }
-  100% { opacity: 0.3; }
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .anim-float,
+  .anim-float-fast,
+  .anim-float-slow,
+  .anim-float-subtle,
+  .anim-pulse-primary,
+  .anim-pulse-secondary,
+  .anim-pulse-scale,
+  .anim-pulse-opacity {
+    animation: none !important;
+  }
 }
