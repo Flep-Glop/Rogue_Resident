@@ -287,7 +287,7 @@ const MapRenderer = {
     }
     
     // Check if we need scroll indicators
-    this.updateScrollIndicators(logicalHeight);
+    this.updateScrollIndicators(this.logicalHeight);
   },
   
     drawRetroBackground: function(ctx, pattern, width, height) {
