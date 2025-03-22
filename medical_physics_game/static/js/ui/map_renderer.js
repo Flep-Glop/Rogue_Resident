@@ -12,7 +12,7 @@ const MapRenderer = {
     gridSize: 50,      // Size of grid cells
     dropShadowDepth: 4, // Depth of the pixel drop shadows
     fogOfWarEnabled: true, // Enable fog of war effect
-    fogOfWarDistance: 10,  // Number of rows ahead that are visible
+    fogOfWarDistance: 20,  // Number of rows ahead that are visible
     nodeRevealAnimations: true // Enable node reveal animations
   },
   
