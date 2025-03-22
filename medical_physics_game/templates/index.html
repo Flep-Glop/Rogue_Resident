@@ -457,9 +457,7 @@
     <script src="/static/js/sprite-system/sprite-system.js"></script>
     <script src="/static/js/game.js"></script>
     
-    <!-- Add UI enhancement JavaScript -->
     <script>
-        // Tab switching functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Tab system
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -502,51 +500,9 @@
                 });
             }
             
-            // Map enhancement functionality
-            function enhanceMapRenderer() {
-                if (window.MapRenderer && typeof MapRenderer.renderMap === 'function') {
-                    // Store original renderMap function
-                    const originalRenderMap = MapRenderer.renderMap;
-                    
-                    // Create enhanced version with proper sizing
-                    MapRenderer.renderMap = function() {
-                        // Call original function
-                        const result = originalRenderMap.apply(this, arguments);
-                        
-                        // Get canvas and adjust size to fit container
-                        const canvas = document.getElementById('floor-map');
-                        if (canvas) {
-                            const container = canvas.closest('.map-wrapper');
-                            if (container) {
-                                // Get container dimensions
-                                const containerWidth = container.clientWidth;
-                                const containerHeight = container.clientHeight;
-                                
-                                // Update canvas size in CSS (preserves pixelated rendering)
-                                canvas.style.width = containerWidth + 'px';
-                                canvas.style.height = containerHeight + 'px';
-                            }
-                        }
-                        
-                        return result;
-                    };
-                    
-                    // Add window resize handler to update canvas
-                    window.addEventListener('resize', function() {
-                        if (MapRenderer && typeof MapRenderer.renderMap === 'function') {
-                            MapRenderer.renderMap();
-                        }
-                    });
-                    
-                    console.log("Map renderer enhanced with responsive sizing");
-                }
-            }
-            
-            // Apply map enhancements
-            enhanceMapRenderer();
+            // REMOVED: enhanceMapRenderer() function - now using map_integration.js instead
         });
-    </script>
-    
+    </script>    
     <!-- Toast container for notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     

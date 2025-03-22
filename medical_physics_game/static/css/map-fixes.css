@@ -1,0 +1,46 @@
+/* map-fixes.css - Override styles to fix map scrolling */
+
+/* Force map wrapper to be scrollable with high specificity */
+body .map-wrapper {
+    overflow-y: auto !important;
+    max-height: 600px !important;
+    width: 100% !important;
+    position: relative !important;
+  }
+  
+  /* Ensure map container doesn't restrict scrolling */
+  body .map-container {
+    overflow: visible !important;
+    min-height: auto !important; 
+    height: auto !important;
+  }
+  
+  /* Let the canvas size naturally for scrolling */
+  body #floor-map {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important; /* critical for scrolling */
+    image-rendering: pixelated !important;
+    position: relative !important;
+  }
+  
+  /* Make sure scrollbars are visible and styled properly */
+  body .map-wrapper::-webkit-scrollbar {
+    width: 12px !important;
+    display: block !important;
+  }
+  
+  body .map-wrapper::-webkit-scrollbar-track {
+    background: rgba(26, 28, 56, 0.8) !important;
+    border-radius: 5px !important;
+  }
+  
+  body .map-wrapper::-webkit-scrollbar-thumb {
+    background: var(--primary) !important;
+    border-radius: 5px !important;
+    border: 2px solid var(--background-alt) !important;
+  }
+  
+  body .map-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark) !important;
+  }
