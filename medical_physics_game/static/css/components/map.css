@@ -309,12 +309,11 @@
   }
 }
 
-/* Add to components/map.css */
 .map-wrapper {
   overflow-y: auto;
+  overflow-x: auto; /* Enable horizontal scrolling if needed */
   max-height: 600px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--background-alt);
+  width: 100%;
 }
 
 .map-wrapper::-webkit-scrollbar {

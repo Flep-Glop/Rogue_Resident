@@ -302,6 +302,11 @@ const MapRenderer = {
   
   // This is the key modification to fix the stretched map issue and add fog of war
   renderMap: function() {
+    // Add at beginning of renderMap()
+    if (GameState.getAllNodes().length > 0) {
+      console.log("Sample node structure:", GameState.getAllNodes()[0]);
+    }
+    
     const canvas = document.getElementById(this.canvasId);
     if (!canvas) {
       console.error(`Canvas element not found: ${this.canvasId}`);
@@ -343,14 +348,13 @@ const MapRenderer = {
     const displayHeight = container ? container.clientHeight : this.logicalHeight;
     
     // Important! Set BOTH the canvas dimensions AND the CSS style
-    // 1. Set the internal canvas size (where drawing happens)
+    // For logical drawing dimensions (can be large)
     canvas.width = this.logicalWidth;
     canvas.height = this.logicalHeight;
-    
-    // 2. Set the display size with CSS - maintain aspect ratio
-    // Calculate proper height based on aspect ratio
-    const aspectRatio = this.logicalHeight / this.logicalWidth;
-    const properHeight = displayWidth * aspectRatio;
+
+    // For display - don't scale down, just set width to container width
+    canvas.style.width = "100%";  
+    // Don't set height - let container's overflow handle scrolling
     
     canvas.style.width = displayWidth + 'px';
     canvas.style.height = properHeight + 'px';
@@ -594,14 +598,12 @@ const MapRenderer = {
     });
   },
   
-  // Check if a node is obscured by fog of war
   isNodeInFog: function(node) {
-    if (!this.config.fogOfWarEnabled || !node || !node.position) {
-      return false;
+    const result = node.position.row > this.fogOfWar.lastVisibleRow;
+    if (result) {
+      console.log(`Node ${node.id} is hidden by fog of war`);
     }
-    
-    // Nodes beyond the visible area are in fog
-    return node.position.row > this.fogOfWar.lastVisibleRow;
+    return result;
   },
   
   // Update the drawNode function to ensure nodes are properly drawn
@@ -801,11 +803,11 @@ const MapRenderer = {
   },
   
   getNodesInRow: function(rowIndex) {
-    if (!GameState || !GameState.getAllNodes) return [];
-    
-    return GameState.getAllNodes().filter(node => 
+    const nodes = GameState.getAllNodes().filter(node => 
       node.position && node.position.row === rowIndex
-    ).sort((a, b) => a.position.col - b.position.col);
+    );
+    console.log(`Row ${rowIndex} has ${nodes.length} nodes:`, nodes);
+    return nodes.sort((a, b) => a.position.col - b.position.col);
   },
 
   // Draw a hexagon shape for start node
